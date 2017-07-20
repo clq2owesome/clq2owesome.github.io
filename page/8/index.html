@@ -72,77 +72,6 @@
     <div class="outer">
       <section id="main">
   
-    <article id="post-服务器相关/redis/常用非原子方法" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/07/19/服务器相关/redis/常用非原子方法/" class="article-date">
-  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a>►<a class="article-category-link" href="/categories/服务器相关/redis/">redis</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/服务器相关/redis/常用非原子方法/">常用非原子方法</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="SETNX-key-value"><a href="#SETNX-key-value" class="headerlink" title="SETNX key value"></a>SETNX key value</h1><blockquote>
-<p>起始版本：1.0.0<br>  时间复杂度：O(1)</p>
-</blockquote>
-<p>将key设置值为value，如果key不存在，这种情况下等同SET命令。 当key存在时，什么也不做。SETNX是”SET if Not eXists”的简写</p>
-<h3 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Integer reply, 特定值:</div><div class="line">1 如果key被设置了</div><div class="line">0 如果key没有被设置</div></pre></td></tr></table></figure>
-<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">redis&gt; SETNX mykey &quot;Hello&quot;</div><div class="line">(integer) 1</div><div class="line">redis&gt; SETNX mykey &quot;World&quot;</div><div class="line">(integer) 0</div><div class="line">redis&gt; GET mykey</div><div class="line">&quot;Hello&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure>
-<h1 id="STRLEN-key"><a href="#STRLEN-key" class="headerlink" title="STRLEN key"></a>STRLEN key</h1><blockquote>
-<p>起始版本：2.2.0<br>  时间复杂度：O(1)</p>
-</blockquote>
-<p>返回key的string类型value的长度。如果key对应的非string类型，就返回错误。</p>
-<h3 id="返回值-1"><a href="#返回值-1" class="headerlink" title="返回值"></a>返回值</h3><p>integer-reply：key对应的字符串value的长度，或者0（key不存在）</p>
-<h3 id="例子-1"><a href="#例子-1" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET mykey &quot;Hello world&quot;</div><div class="line">OK</div><div class="line">redis&gt; STRLEN mykey</div><div class="line">(integer) 11</div><div class="line">redis&gt; STRLEN nonexisting</div><div class="line">(integer) 0</div><div class="line">redis&gt;</div></pre></td></tr></table></figure>
-<h1 id="SETRANGE-key-offset-value"><a href="#SETRANGE-key-offset-value" class="headerlink" title="SETRANGE key offset value"></a>SETRANGE key offset value</h1><blockquote>
-<p>起始版本：2.2.0<br>时间复杂度：O(1), not counting the time taken to copy the new string in place. Usually, this string is very small so the amortized complexity is O(1). Otherwise, complexity is O(M) with M being the length of the value argument.</p>
-</blockquote>
-<p>这个命令的作用是覆盖key对应的string的一部分，从指定的offset处开始，覆盖value的长度。如果offset比当前key对应string还要长，那这个string后面就补0以达到offset。不存在的keys被认为是空字符串，所以这个命令可以确保key有一个足够大的字符串，能在offset处设置value。<br>注意，offset最大可以是229-1(536870911),因为redis字符串限制在512M大小。如果你需要超过这个大小，你可以用多个keys。</p>
-<h3 id="返回值-2"><a href="#返回值-2" class="headerlink" title="返回值"></a>返回值</h3><p>integer-reply：该命令修改后的字符串长度</p>
-<h3 id="例子-2"><a href="#例子-2" class="headerlink" title="例子"></a>例子</h3><p>基本使用方法:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET key1 &quot;Hello World&quot;</div><div class="line">OK</div><div class="line">redis&gt; SETRANGE key1 6 &quot;Redis&quot;</div><div class="line">(integer) 11</div><div class="line">redis&gt; GET key1</div><div class="line">&quot;Hello Redis&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure></p>
-<p>补0的例子:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">redis&gt; SETRANGE key2 6 &quot;Redis&quot;</div><div class="line">(integer) 11</div><div class="line">redis&gt; GET key2</div><div class="line">&quot;\x00\x00\x00\x00\x00\x00Redis&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure></p>
-<h1 id="GETRANGE-key-start-end"><a href="#GETRANGE-key-start-end" class="headerlink" title="GETRANGE key start end"></a>GETRANGE key start end</h1><blockquote>
-<p>起始版本：2.4.0<br>时间复杂度：O(N) N是字符串长度，复杂度由最终返回长度决定，但由于通过一个字符串创建子字符串是很容易的，它可以被认为是O(1)。</p>
-</blockquote>
-<p>==警告==：这个命令是被改成GETRANGE的，在小于2.0的Redis版本中叫SUBSTR。 返回key对应的字符串value的子串，这个子串是由start和end位移决定的（两者都在string内）。可以用负的位移来表示从string尾部开始数的下标。所以-1就是最后一个字符，-2就是倒数第二个，以此类推。  </p>
-<p>这个函数处理超出范围的请求时，都把结果限制在string内。</p>
-<h3 id="返回值-3"><a href="#返回值-3" class="headerlink" title="返回值"></a>返回值</h3><p>bulk-reply</p>
-<h3 id="例子-3"><a href="#例子-3" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET mykey &quot;This is a string&quot;</div><div class="line">OK</div><div class="line">redis&gt; GETRANGE mykey 0 3</div><div class="line">&quot;This&quot;</div><div class="line">redis&gt; GETRANGE mykey -3 -1</div><div class="line">&quot;ing&quot;</div><div class="line">redis&gt; GETRANGE mykey 0 -1</div><div class="line">&quot;This is a string&quot;</div><div class="line">redis&gt; GETRANGE mykey 10 100</div><div class="line">&quot;string&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-        <a data-url="http://yoursite.com/2017/07/19/服务器相关/redis/常用非原子方法/" data-id="cj5c2h6ms002vzvbl55q49dbr" class="article-share-link" data-share="baidu" data-title="常用非原子方法">分享到</a>
-      
-
-      
-        <a href="http://yoursite.com/2017/07/19/服务器相关/redis/常用非原子方法/#ds-thread" class="article-comment-link">评论</a>
-      
-
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
     <article id="post-服务器相关/redis/常用原子方法" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2017/07/19/服务器相关/redis/常用原子方法/" class="article-date">
@@ -208,11 +137,82 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/服务器相关/redis/常用原子方法/" data-id="cj5c2h6mt002xzvblj3zghdo0" class="article-share-link" data-share="baidu" data-title="常用原子方法">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/服务器相关/redis/常用原子方法/" data-id="cj5c3bs89007130bltc0i0yht" class="article-share-link" data-share="baidu" data-title="常用原子方法">分享到</a>
       
 
       
         <a href="http://yoursite.com/2017/07/19/服务器相关/redis/常用原子方法/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-服务器相关/redis/常用非原子方法" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/服务器相关/redis/常用非原子方法/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a>►<a class="article-category-link" href="/categories/服务器相关/redis/">redis</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/服务器相关/redis/常用非原子方法/">常用非原子方法</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="SETNX-key-value"><a href="#SETNX-key-value" class="headerlink" title="SETNX key value"></a>SETNX key value</h1><blockquote>
+<p>起始版本：1.0.0<br>  时间复杂度：O(1)</p>
+</blockquote>
+<p>将key设置值为value，如果key不存在，这种情况下等同SET命令。 当key存在时，什么也不做。SETNX是”SET if Not eXists”的简写</p>
+<h3 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Integer reply, 特定值:</div><div class="line">1 如果key被设置了</div><div class="line">0 如果key没有被设置</div></pre></td></tr></table></figure>
+<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">redis&gt; SETNX mykey &quot;Hello&quot;</div><div class="line">(integer) 1</div><div class="line">redis&gt; SETNX mykey &quot;World&quot;</div><div class="line">(integer) 0</div><div class="line">redis&gt; GET mykey</div><div class="line">&quot;Hello&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure>
+<h1 id="STRLEN-key"><a href="#STRLEN-key" class="headerlink" title="STRLEN key"></a>STRLEN key</h1><blockquote>
+<p>起始版本：2.2.0<br>  时间复杂度：O(1)</p>
+</blockquote>
+<p>返回key的string类型value的长度。如果key对应的非string类型，就返回错误。</p>
+<h3 id="返回值-1"><a href="#返回值-1" class="headerlink" title="返回值"></a>返回值</h3><p>integer-reply：key对应的字符串value的长度，或者0（key不存在）</p>
+<h3 id="例子-1"><a href="#例子-1" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET mykey &quot;Hello world&quot;</div><div class="line">OK</div><div class="line">redis&gt; STRLEN mykey</div><div class="line">(integer) 11</div><div class="line">redis&gt; STRLEN nonexisting</div><div class="line">(integer) 0</div><div class="line">redis&gt;</div></pre></td></tr></table></figure>
+<h1 id="SETRANGE-key-offset-value"><a href="#SETRANGE-key-offset-value" class="headerlink" title="SETRANGE key offset value"></a>SETRANGE key offset value</h1><blockquote>
+<p>起始版本：2.2.0<br>时间复杂度：O(1), not counting the time taken to copy the new string in place. Usually, this string is very small so the amortized complexity is O(1). Otherwise, complexity is O(M) with M being the length of the value argument.</p>
+</blockquote>
+<p>这个命令的作用是覆盖key对应的string的一部分，从指定的offset处开始，覆盖value的长度。如果offset比当前key对应string还要长，那这个string后面就补0以达到offset。不存在的keys被认为是空字符串，所以这个命令可以确保key有一个足够大的字符串，能在offset处设置value。<br>注意，offset最大可以是229-1(536870911),因为redis字符串限制在512M大小。如果你需要超过这个大小，你可以用多个keys。</p>
+<h3 id="返回值-2"><a href="#返回值-2" class="headerlink" title="返回值"></a>返回值</h3><p>integer-reply：该命令修改后的字符串长度</p>
+<h3 id="例子-2"><a href="#例子-2" class="headerlink" title="例子"></a>例子</h3><p>基本使用方法:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET key1 &quot;Hello World&quot;</div><div class="line">OK</div><div class="line">redis&gt; SETRANGE key1 6 &quot;Redis&quot;</div><div class="line">(integer) 11</div><div class="line">redis&gt; GET key1</div><div class="line">&quot;Hello Redis&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure></p>
+<p>补0的例子:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">redis&gt; SETRANGE key2 6 &quot;Redis&quot;</div><div class="line">(integer) 11</div><div class="line">redis&gt; GET key2</div><div class="line">&quot;\x00\x00\x00\x00\x00\x00Redis&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure></p>
+<h1 id="GETRANGE-key-start-end"><a href="#GETRANGE-key-start-end" class="headerlink" title="GETRANGE key start end"></a>GETRANGE key start end</h1><blockquote>
+<p>起始版本：2.4.0<br>时间复杂度：O(N) N是字符串长度，复杂度由最终返回长度决定，但由于通过一个字符串创建子字符串是很容易的，它可以被认为是O(1)。</p>
+</blockquote>
+<p>==警告==：这个命令是被改成GETRANGE的，在小于2.0的Redis版本中叫SUBSTR。 返回key对应的字符串value的子串，这个子串是由start和end位移决定的（两者都在string内）。可以用负的位移来表示从string尾部开始数的下标。所以-1就是最后一个字符，-2就是倒数第二个，以此类推。  </p>
+<p>这个函数处理超出范围的请求时，都把结果限制在string内。</p>
+<h3 id="返回值-3"><a href="#返回值-3" class="headerlink" title="返回值"></a>返回值</h3><p>bulk-reply</p>
+<h3 id="例子-3"><a href="#例子-3" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET mykey &quot;This is a string&quot;</div><div class="line">OK</div><div class="line">redis&gt; GETRANGE mykey 0 3</div><div class="line">&quot;This&quot;</div><div class="line">redis&gt; GETRANGE mykey -3 -1</div><div class="line">&quot;ing&quot;</div><div class="line">redis&gt; GETRANGE mykey 0 -1</div><div class="line">&quot;This is a string&quot;</div><div class="line">redis&gt; GETRANGE mykey 10 100</div><div class="line">&quot;string&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/服务器相关/redis/常用非原子方法/" data-id="cj5c3bs89007230blpotej1vs" class="article-share-link" data-share="baidu" data-title="常用非原子方法">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/服务器相关/redis/常用非原子方法/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -256,7 +256,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/服务器相关/redis/文档（持续更新中）/" data-id="cj5c2h6mv0030zvblcgi2x9j7" class="article-share-link" data-share="baidu" data-title="文档（持续更新中）">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/服务器相关/redis/文档（持续更新中）/" data-id="cj5c3bs8a007530blwv8g46cx" class="article-share-link" data-share="baidu" data-title="文档（持续更新中）">分享到</a>
       
 
       
@@ -377,7 +377,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/服务器相关/redis/系统命令/" data-id="cj5c2h6mw0032zvbl0ityjx4f" class="article-share-link" data-share="baidu" data-title="系统命令">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/服务器相关/redis/系统命令/" data-id="cj5c3bs8b007730bl3txh2e6j" class="article-share-link" data-share="baidu" data-title="系统命令">分享到</a>
       
 
       
@@ -446,7 +446,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/服务器相关/redis/自增自减命令/" data-id="cj5c2h6mx0035zvblk295p4ue" class="article-share-link" data-share="baidu" data-title="文档（持续更新中）">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/服务器相关/redis/自增自减命令/" data-id="cj5c3bs8e007a30bla3de24vu" class="article-share-link" data-share="baidu" data-title="文档（持续更新中）">分享到</a>
       
 
       
@@ -503,19 +503,19 @@
           </li>
         
           <li>
-            <a href="/2017/07/19/Maven/maven 引入外部jar包的几种方式/">maven 引入外部jar包的几种方式</a>
+            <a href="/2017/07/19/Spring/JPA/对应关系映射配置/">对应关系映射配置</a>
           </li>
         
           <li>
-            <a href="/2017/07/19/Spring/JPA/JPA高级查询/">JPA高级查询</a>
+            <a href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
           </li>
         
           <li>
-            <a href="/2017/07/19/Spring/JPA/Specification实例/">Specification实例</a>
+            <a href="/2017/07/19/Linux/apt-get常用命令/">apt-get常用命令</a>
           </li>
         
           <li>
-            <a href="/2017/07/19/Spring/JPA/利用hibernate实现/">利用hibernate实现</a>
+            <a href="/2017/07/19/Linux/mysql安装/">mysql安装</a>
           </li>
         
       </ul>

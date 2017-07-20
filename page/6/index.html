@@ -72,14 +72,14 @@
     <div class="outer">
       <section id="main">
   
-    <article id="post-Java/日记/spring配置log4j" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/SpringMVC/使用BindingResult处理校验异常" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Java/日记/spring配置log4j/" class="article-date">
+    <a href="/2017/07/19/Spring/SpringMVC/使用BindingResult处理校验异常/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/日记/">日记</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
   </div>
 
   </div>
@@ -90,7 +90,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/日记/spring配置log4j/">spring配置log4j</a>
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/使用BindingResult处理校验异常/">使用BindingResult处理校验异常</a>
     </h1>
   
 
@@ -98,26 +98,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="依赖包"><a href="#依赖包" class="headerlink" title="依赖包"></a>依赖包</h2><p>引入下面这个包即可，maven会自动加载依赖包<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;  </div><div class="line">    &lt;groupId&gt;org.slf4j&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;  </div><div class="line">    &lt;version&gt;1.7.2&lt;/version&gt;  </div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure></p>
-<p>实际上需要jar包</p>
-<ul>
-<li>slf4j-log4j12-1.7.2.jar</li>
-<li>slf4j-api-1.7.2.jar</li>
-<li>log4j-1.2.17.jar</li>
-<li>commons-logging-1.0.3.jar</li>
-</ul>
-<h2 id="web文件中的配置"><a href="#web文件中的配置" class="headerlink" title="web文件中的配置"></a>web文件中的配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;!--  设置log4j配置文件目录 --&gt;</div><div class="line">&lt;context-param&gt;  </div><div class="line">    &lt;param-name&gt;log4jConfigLocation&lt;/param-name&gt;  </div><div class="line">    &lt;param-value&gt;WEB-INF/log4j.properties&lt;/param-value&gt;  </div><div class="line">&lt;/context-param&gt;  </div><div class="line">  </div><div class="line">&lt;!-- 启动一个watchdog线程每3秒扫描一下log4j配置文件的变化  --&gt;</div><div class="line">&lt;!-- &lt;context-param&gt;  </div><div class="line">    &lt;param-name&gt;log4jRefreshInterval&lt;/param-name&gt;  </div><div class="line">    &lt;param-value&gt;3000&lt;/param-value&gt;</div><div class="line">&lt;/context-param&gt;  --&gt;</div><div class="line"></div><div class="line">&lt;!-- 设置监听器 --&gt;</div><div class="line">&lt;listener&gt;  </div><div class="line">    &lt;listener-class&gt;  </div><div class="line">        org.springframework.web.util.Log4jConfigListener  </div><div class="line">    &lt;/listener-class&gt;  </div><div class="line">&lt;/listener&gt;</div></pre></td></tr></table></figure>
-<p>默认会找默认会找src目录下的log4j.properties<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;context-param&gt;</div><div class="line">    &lt;param-name&gt;log4jConfigLocation&lt;/param-name&gt;</div><div class="line">    &lt;param-value&gt;classpath:log4j.properties&lt;/param-value&gt;</div><div class="line">&lt;/context-param&gt;</div></pre></td></tr></table></figure></p>
-<h2 id="log4j-properties"><a href="#log4j-properties" class="headerlink" title="log4j.properties"></a>log4j.properties</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div></pre></td><td class="code"><pre><div class="line"># +======================================================================+#</div><div class="line">log4j.rootLogger=$&#123;log4j.log.level&#125;,$&#123;log4j.log.target&#125;</div><div class="line">log4j.addivity.org.apache=true</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - Console</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender</div><div class="line">log4j.appender.CONSOLE.Threshold=$&#123;log4j.log.level&#125;</div><div class="line">log4j.appender.CONSOLE.Encoding=$&#123;log4j.log.encoding&#125;</div><div class="line">log4j.appender.CONSOLE.Target=System.out</div><div class="line">log4j.appender.CONSOLE.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.CONSOLE.layout.ConversionPattern=$&#123;log4j.log.layout.pattern&#125;</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - FILE</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.FILE=org.apache.log4j.RollingFileAppender</div><div class="line">log4j.appender.FILE.Threshold=$&#123;log4j.log.level&#125;</div><div class="line">log4j.appender.FILE.Encoding=$&#123;log4j.log.encoding&#125;</div><div class="line">log4j.appender.FILE.File=$&#123;log4j.log.dir&#125;/runtime.log</div><div class="line">log4j.appender.FILE.Append=true</div><div class="line">#规定最大到1024K，就生成新文件</div><div class="line">log4j.appender.FILE.MaxFileSize=2048KB</div><div class="line">#最多生成10个</div><div class="line">log4j.appender.FILE.MaxBackupIndex=10</div><div class="line">log4j.appender.FILE.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.FILE.layout.ConversionPattern=$&#123;log4j.log.layout.pattern&#125;</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - DATABASE</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.DATABASE=org.apache.log4j.jdbc.JDBCAppender</div><div class="line">log4j.appender.DATABASE.Threshold=ERROR</div><div class="line">log4j.appender.DATABASE.URL=jdbc:mysql://127.0.0.1:3306/spring</div><div class="line">log4j.appender.DATABASE.driver=com.mysql.jdbc.Driver</div><div class="line">log4j.appender.DATABASE.user=root</div><div class="line">log4j.appender.DATABASE.password=liuriqi</div><div class="line">log4j.appender.DATABASE.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.DATABASE.sql=INSERT INTO tv_log4j(message)VALUES(&apos;$&#123;log4j.log.layout.pattern&#125;&apos;)</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - EMAIL</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.EMAIL=org.apache.log4j.net.SMTPAppender</div><div class="line">log4j.appender.EMAIL.Threshold=FATAL</div><div class="line">log4j.appender.EMAIL.BufferSize=10</div><div class="line">log4j.appender.EMAIL.From=fromuser@gmail.com</div><div class="line">log4j.appender.EMAIL.SMTPHost=localhost</div><div class="line">log4j.appender.EMAIL.Subject=Log4J Message</div><div class="line">log4j.appender.EMAIL.To=touser@gmail.com</div><div class="line">log4j.appender.EMAIL.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.EMAIL.layout.ConversionPattern=$&#123;log4j.log.layout.pattern&#125;</div><div class="line"># +======================================================================+#</div><div class="line">上面配置相关的变量，我提取出来统一放到变量配置文件里边，如下：</div><div class="line"></div><div class="line"># +======================================================================+#</div><div class="line"># | log4j config</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.log.dir=logs/</div><div class="line">#log4j.log.level=ALL,TRACE,DEBUG,INFO,WARN,ERROR,FATAL,OFF</div><div class="line">log4j.log.level=DEBUG</div><div class="line">#log4j.log.target=CONSOLE,FILE,DATABASE,EMAIL,SOCKET</div><div class="line">log4j.log.target=CONSOLE,FILE</div><div class="line">log4j.log.encoding=UTF-8</div><div class="line">log4j.log.layout=org.apache.log4j.PatternLayout</div><div class="line">log4j.log.layout.pattern=[%d %r] [%-5p] [%t] [%l] [%m]%n</div><div class="line"># +======================================================================+#</div></pre></td></tr></table></figure>
+        <p>BindingResult一般会跟在@Valid或@Validated后面，一个BindingResult只对应一个@Valid或@Validated，任何无法通过的验证都会被自动报告为错误并添加到BindingResult对象中去，你可以在方法参数中声明它并获取这些错误，同时这些错误也能在Spring MVC的HTML视图中被渲染。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public Map&lt;String, Object&gt; create(@Valid @RequestBody  Banner banner, BindingResult bindingResult)  throws BussinessException, IOException &#123;</div><div class="line">	logger.info(&quot;BannerController.create start&quot;);</div><div class="line">	if(bindingResult.hasErrors())&#123;</div><div class="line">        	String msg=&quot;&quot;;</div><div class="line">            List&lt;FieldError&gt; allErrors = bindingResult.getFieldErrors();</div><div class="line">            for(FieldError fe : allErrors) &#123;</div><div class="line">        		msg = fe.getField() + &quot;:&quot; + fe.getDefaultMessage();</div><div class="line">            &#125;</div><div class="line">            throw new BussinessException(msg);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Java/日记/spring配置log4j/" data-id="cj5c2h6lt001nzvblgqvi9tml" class="article-share-link" data-share="baidu" data-title="spring配置log4j">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Spring/SpringMVC/使用BindingResult处理校验异常/" data-id="cj5c3bs6i003930blldg0simm" class="article-share-link" data-share="baidu" data-title="使用BindingResult处理校验异常">分享到</a>
       
 
       
-        <a href="http://yoursite.com/2017/07/19/Java/日记/spring配置log4j/#ds-thread" class="article-comment-link">评论</a>
+        <a href="http://yoursite.com/2017/07/19/Spring/SpringMVC/使用BindingResult处理校验异常/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -128,14 +120,14 @@
 
 
   
-    <article id="post-Java/集合/Collections排序" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/SpringMVC/允许跨域请求配置" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Java/集合/Collections排序/" class="article-date">
+    <a href="/2017/07/19/Spring/SpringMVC/允许跨域请求配置/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/集合/">集合</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
   </div>
 
   </div>
@@ -146,7 +138,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/集合/Collections排序/">Collections排序</a>
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/允许跨域请求配置/">允许跨域请求配置</a>
     </h1>
   
 
@@ -154,17 +146,21 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="方法一"><a href="#方法一" class="headerlink" title="方法一"></a>方法一</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Collections.sort(list, <span class="keyword">new</span> Comparator&lt;实体&gt;() &#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(实体 arg0, 实体 arg1)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span>(比较条件) <span class="keyword">return</span> <span class="number">1</span>;</div><div class="line">        <span class="keyword">else</span> <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
-<h2 id="方法二：实现Comparable接口"><a href="#方法二：实现Comparable接口" class="headerlink" title="方法二：实现Comparable接口"></a>方法二：实现Comparable接口</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> <span class="keyword">implements</span> <span class="title">Comparable</span>&lt;<span class="title">User</span>&gt;</span>&#123;</div><div class="line">    <span class="keyword">private</span> String name;</div><div class="line">    <span class="keyword">private</span> Integer order;</div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> name;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.name = name;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">getOrder</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> order;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setOrder</span><span class="params">(Integer order)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.order = order;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(User arg0)</span> </span>&#123;</div><div class="line">        比较条件</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">使用： Collections.sort(list);</div></pre></td></tr></table></figure>
+        <p>==注意：加入了spring security后，配置不起作用了==</p>
+<h2 id="方式一：springMVC-servlet-xml配置"><a href="#方式一：springMVC-servlet-xml配置" class="headerlink" title="方式一：springMVC-servlet.xml配置"></a>方式一：springMVC-servlet.xml配置</h2><p>在spingMVC的配置文件中,这里的配置必需是4.2版本<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">xsi:schemaLocation=&quot;http://www.springframework.org/schema/mvc </div><div class="line">	http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd&quot;</div></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">&lt;!-- API 接口跨域配置 --&gt;  </div><div class="line">&lt;mvc:cors&gt;  </div><div class="line">    &lt;mvc:mapping path=&quot;/**&quot;  </div><div class="line">         allowed-origins=&quot;*&quot;  </div><div class="line">         allowed-methods=&quot;POST, GET, OPTIONS, DELETE, PUT&quot;  </div><div class="line">         allowed-headers=&quot;Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, Access-Control-Allow-Origin&quot;  </div><div class="line">         allow-credentials=&quot;true&quot; /&gt;</div><div class="line">         </div><div class="line">    &lt;!-- 配置特定的域名 --&gt;</div><div class="line">    &lt;mvc:mapping path=&quot;/resources/**&quot;</div><div class="line">		allowed-origins=&quot;http://domain1.com&quot; /&gt;</div><div class="line">&lt;/mvc:cors&gt;</div></pre></td></tr></table></figure>
+<h2 id="方式二：注解配置（未测试）"><a href="#方式二：注解配置（未测试）" class="headerlink" title="方式二：注解配置（未测试）"></a>方式二：注解配置（未测试）</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@Configuration</div><div class="line">@EnableWebMvc</div><div class="line">public class WebConfig extends WebMvcConfigurerAdapter &#123;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void addCorsMappings(CorsRegistry registry) &#123;</div><div class="line">		registry.addMapping(&quot;/**&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="自定义配置"><a href="#自定义配置" class="headerlink" title="自定义配置"></a>自定义配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">@Configuration</div><div class="line">@EnableWebMvc</div><div class="line">public class WebConfig extends WebMvcConfigurerAdapter &#123;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void addCorsMappings(CorsRegistry registry) &#123;</div><div class="line">		registry.addMapping(&quot;/api/**&quot;)</div><div class="line">			.allowedOrigins(&quot;http://domain2.com&quot;)</div><div class="line">			.allowedMethods(&quot;PUT&quot;, &quot;DELETE&quot;)</div><div class="line">			.allowedHeaders(&quot;header1&quot;, &quot;header2&quot;, &quot;header3&quot;)</div><div class="line">			.exposedHeaders(&quot;header1&quot;, &quot;header2&quot;)</div><div class="line">			.allowCredentials(false).maxAge(3600);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Java/集合/Collections排序/" data-id="cj5c2h6lv001pzvblv67pyrj8" class="article-share-link" data-share="baidu" data-title="Collections排序">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Spring/SpringMVC/允许跨域请求配置/" data-id="cj5c3bs6j003b30blprsa2t4e" class="article-share-link" data-share="baidu" data-title="允许跨域请求配置">分享到</a>
       
 
       
-        <a href="http://yoursite.com/2017/07/19/Java/集合/Collections排序/#ds-thread" class="article-comment-link">评论</a>
+        <a href="http://yoursite.com/2017/07/19/Spring/SpringMVC/允许跨域请求配置/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -175,14 +171,14 @@
 
 
   
-    <article id="post-Java/集合/集合排序" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/SpringMVC/jackjson注解" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Java/集合/集合排序/" class="article-date">
+    <a href="/2017/07/19/Spring/SpringMVC/jackjson注解/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/集合/">集合</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
   </div>
 
   </div>
@@ -193,7 +189,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/集合/集合排序/">集合排序</a>
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/jackjson注解/">jackjson注解</a>
     </h1>
   
 
@@ -201,128 +197,83 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="Map排序"><a href="#Map排序" class="headerlink" title="Map排序"></a>Map排序</h1><h2 id="TreeMap-能够把它保存的记录根据键-key-排序-默认是按升序排序-，也可以指定排序的比较器，-遍历TreeMap时，得到的记录是排过序的。TreeMap不允许key的值为null。非同步的。"><a href="#TreeMap-能够把它保存的记录根据键-key-排序-默认是按升序排序-，也可以指定排序的比较器，-遍历TreeMap时，得到的记录是排过序的。TreeMap不允许key的值为null。非同步的。" class="headerlink" title="TreeMap: 能够把它保存的记录根据键(key)排序,==默认是按升序排序==，也可以指定排序的比较器， 遍历TreeMap时，得到的记录是排过序的。TreeMap不允许key的值为null。非同步的。"></a>TreeMap: 能够把它保存的记录根据键(key)排序,==默认是按升序排序==，也可以指定排序的比较器， 遍历TreeMap时，得到的记录是排过序的。TreeMap不允许key的值为null。非同步的。</h2><h3 id="指定按key降序排序"><a href="#指定按key降序排序" class="headerlink" title="指定按key降序排序"></a>指定按key降序排序</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Map&lt;String,String&gt; map = new TreeMap&lt;String,String&gt;(new Comparator&lt;String&gt;()&#123; </div><div class="line">   public int compare(String obj1,String obj2)&#123; </div><div class="line">        //降序排序 </div><div class="line">        return obj2.compareTo(obj1); </div><div class="line">   &#125; </div><div class="line">&#125;);</div></pre></td></tr></table></figure>
-<h2 id="HashMap-最常用的Map-它根据键的HashCode-值存储数据-根据键可以直接获取它的值，具有很快的访问速度。HashMap最多只允许一条记录的键为Null-多条会覆盖-允许多条记录的值为-Null。非同步的。"><a href="#HashMap-最常用的Map-它根据键的HashCode-值存储数据-根据键可以直接获取它的值，具有很快的访问速度。HashMap最多只允许一条记录的键为Null-多条会覆盖-允许多条记录的值为-Null。非同步的。" class="headerlink" title="HashMap: 最常用的Map,它根据键的HashCode 值存储数据,根据键可以直接获取它的值，具有很快的访问速度。HashMap最多只允许一条记录的键为Null(多条会覆盖);允许多条记录的值为 Null。非同步的。"></a>HashMap: 最常用的Map,它根据键的HashCode 值存储数据,根据键可以直接获取它的值，具有很快的访问速度。HashMap最多只允许一条记录的键为Null(多条会覆盖);允许多条记录的值为 Null。非同步的。</h2><h2 id="Hashtable-与-HashMap类似-不同的是-key和value的值均不允许为null-它支持线程的同步，即任一时刻只有一个线程能写Hashtable-因此也导致了Hashtale在写入时会比较慢。"><a href="#Hashtable-与-HashMap类似-不同的是-key和value的值均不允许为null-它支持线程的同步，即任一时刻只有一个线程能写Hashtable-因此也导致了Hashtale在写入时会比较慢。" class="headerlink" title="Hashtable: 与 HashMap类似,不同的是:key和value的值均不允许为null;它支持线程的同步，即任一时刻只有一个线程能写Hashtable,因此也导致了Hashtale在写入时会比较慢。"></a>Hashtable: 与 HashMap类似,不同的是:key和value的值均不允许为null;它支持线程的同步，即任一时刻只有一个线程能写Hashtable,因此也导致了Hashtale在写入时会比较慢。</h2><h2 id="LinkedHashMap-保存了记录的插入顺序，在遍历LinkedHashMap时，先得到的记录肯定是先插入的-在遍历的时候会比HashMap慢。key和value均允许为空，非同步的。"><a href="#LinkedHashMap-保存了记录的插入顺序，在遍历LinkedHashMap时，先得到的记录肯定是先插入的-在遍历的时候会比HashMap慢。key和value均允许为空，非同步的。" class="headerlink" title="LinkedHashMap: 保存了记录的插入顺序，在遍历LinkedHashMap时，先得到的记录肯定是先插入的.在遍历的时候会比HashMap慢。key和value均允许为空，非同步的。"></a>LinkedHashMap: 保存了记录的插入顺序，在遍历LinkedHashMap时，先得到的记录肯定是先插入的.在遍历的时候会比HashMap慢。key和value均允许为空，非同步的。</h2><h1 id="统一排序方法"><a href="#统一排序方法" class="headerlink" title="统一排序方法"></a>统一排序方法</h1><p>如果要对TreeMap按照value的值进行排序，或者对HashMap,Hashtable,LinkedHashMap进行排序，则可以使用Map.Entry<k,v>接口结合List实现：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">Map&lt;String,String&gt; map = new TreeMap&lt;String,String&gt;(); </div><div class="line">map.put(&quot;aaaa&quot;, &quot;month&quot;); </div><div class="line">map.put(&quot;bbbb&quot;, &quot;bread&quot;); </div><div class="line">map.put(&quot;ccccc&quot;, &quot;attack&quot;); </div><div class="line">  </div><div class="line">  </div><div class="line">//通过ArrayList构造函数把map.entrySet()转换成list </div><div class="line">List&lt;Map.Entry&lt;String,String&gt;&gt; mappingList = new ArrayList&lt;Map.Entry&lt;String,String&gt;&gt;(map.entrySet()); </div><div class="line">//通过比较器实现比较排序,按照value值升序 </div><div class="line">Collections.sort(mappingList, new Comparator&lt;Map.Entry&lt;String,String&gt;&gt;()&#123; </div><div class="line">    public int compare(Map.Entry&lt;String,String&gt; mapping1,Map.Entry&lt;String,String&gt; mapping2)&#123; </div><div class="line">        return mapping1.getValue().compareTo(mapping2.getValue()); </div><div class="line">    &#125; </div><div class="line">&#125;); </div><div class="line"></div><div class="line">for(Map.Entry&lt;String,String&gt; mapping:mappingList)&#123; </div><div class="line">    System.out.println(mapping.getKey()+&quot;:&quot;+mapping.getValue()); </div><div class="line">&#125;</div></pre></td></tr></table></figure></k,v></p>
-<h1 id="List排序"><a href="#List排序" class="headerlink" title="List排序"></a>List排序</h1><h3 id="方法一：包装类排序"><a href="#方法一：包装类排序" class="headerlink" title="方法一：包装类排序"></a>方法一：包装类排序</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">List&lt;Integer&gt; nums = new ArrayList&lt;Integer&gt;();  </div><div class="line">nums.add(3);  </div><div class="line">nums.add(5);  </div><div class="line">nums.add(1);  </div><div class="line">nums.add(0);  </div><div class="line">Collections.sort(nums);</div></pre></td></tr></table></figure>
-<h3 id="方法二：对象排序"><a href="#方法二：对象排序" class="headerlink" title="方法二：对象排序"></a>方法二：对象排序</h3><h4 id="升序"><a href="#升序" class="headerlink" title="升序"></a>升序</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">Collections.sort(list, new Comparator&lt;Student&gt;()&#123;  </div><div class="line">  </div><div class="line">    public int compare(Student o1, Student o2) &#123;  </div><div class="line">      </div><div class="line">        //按照学生的年龄进行升序排列  </div><div class="line">        if(o1.getAge() &gt;= o2.getAge())&#123;  </div><div class="line">            return 1;  </div><div class="line">        &#125;  </div><div class="line">        return -1;  </div><div class="line">    &#125;  </div><div class="line">&#125;);</div></pre></td></tr></table></figure>
-<h4 id="降序"><a href="#降序" class="headerlink" title="降序"></a>降序</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">Collections.sort(list, new Comparator&lt;Student&gt;()&#123;  </div><div class="line">  </div><div class="line">    public int compare(Student o1, Student o2) &#123;  </div><div class="line">      </div><div class="line">        //按照学生的年龄进行降序排列  </div><div class="line">        if(o1.getAge() &lt;= o2.getAge())&#123;  </div><div class="line">            return 1;  </div><div class="line">        &#125;  </div><div class="line">        return -1;  </div><div class="line">    &#125;  </div><div class="line">&#125;);</div></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-        <a data-url="http://yoursite.com/2017/07/19/Java/集合/集合排序/" data-id="cj5c2h6lw001qzvbl8k4y5x05" class="article-share-link" data-share="baidu" data-title="集合排序">分享到</a>
-      
-
-      
-        <a href="http://yoursite.com/2017/07/19/Java/集合/集合排序/#ds-thread" class="article-comment-link">评论</a>
-      
-
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Java/集合/集合遍历" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/07/19/Java/集合/集合遍历/" class="article-date">
-  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/集合/">集合</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/集合/集合遍历/">集合遍历</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h1><h2 id="第一种-通过Map-keySet-遍历key和value"><a href="#第一种-通过Map-keySet-遍历key和value" class="headerlink" title="第一种:通过Map.keySet()遍历key和value"></a>第一种:通过Map.keySet()遍历key和value</h2><p>这里有一个二次取值的过程,所以并不推荐<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(Integer key:map.keySet())&#123; </div><div class="line"> System.out.println(&quot;key=&quot;+key+&quot;and value=&quot;+map.get(key)); </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h2 id="第二种-通过Map-entrySet-使用iterator-遍历key和value"><a href="#第二种-通过Map-entrySet-使用iterator-遍历key和value" class="headerlink" title="第二种:通过Map.entrySet()使用iterator()遍历key和value"></a>第二种:通过Map.entrySet()使用iterator()遍历key和value</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">Iterator&lt;Map.Entry&lt;Integer, String&gt;&gt; iterator=map.entrySet().iterator(); </div><div class="line"></div><div class="line">while(iterator.hasNext()) &#123; </div><div class="line"> Map.Entry&lt;Integer,String&gt; entry = iterator.next(); </div><div class="line"></div><div class="line"> System.out.println(&quot;key=&quot;+ entry.getKey() + &quot;and value = &quot;+entry.getValue()); </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="通过Map-entrySet-遍历key和value"><a href="#通过Map-entrySet-遍历key和value" class="headerlink" title="通过Map.entrySet()遍历key和value"></a>通过Map.entrySet()遍历key和value</h2><p>//JDK1.5后的遍历形式,代码看起来比较整洁,更推荐采用</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(Map.Entry&lt;Integer, String&gt; entry :map.entrySet()) &#123; </div><div class="line"> System.out.println(&quot;key=&quot;+entry.getKey()+&quot; and value=&quot;+entry.getValue()); </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h1 id="Set"><a href="#Set" class="headerlink" title="Set"></a>Set</h1><h2 id="迭代遍历："><a href="#迭代遍历：" class="headerlink" title="迭代遍历："></a>迭代遍历：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Set&lt;String&gt;  set=new HashSet&lt;String&gt;(); </div><div class="line">Iterator&lt;String&gt; it = set.iterator();</div><div class="line">while(it.hasNext()) &#123;</div><div class="line">    String str = it.next();</div><div class="line">    System.out.println(str);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="for循环遍历："><a href="#for循环遍历：" class="headerlink" title="for循环遍历："></a>for循环遍历：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(Object obj : set) &#123;</div><div class="line">    System.out.println(obj);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h1 id="List"><a href="#List" class="headerlink" title="List"></a>List</h1><h2 id="迭代遍历"><a href="#迭代遍历" class="headerlink" title="迭代遍历"></a>迭代遍历</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">Iterator it1 = list.iterator();</div><div class="line">while(it1.hasNext())&#123;</div><div class="line">    System.out.println(it1.next());</div><div class="line">&#125;</div><div class="line"></div><div class="line">for(Iterator it2 = list.iterator();it2.hasNext();)&#123;</div><div class="line">    System.out.println(it2.next());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="for…each方式"><a href="#for…each方式" class="headerlink" title="for…each方式"></a>for…each方式</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(String tmp:list)&#123;</div><div class="line">    System.out.println(tmp);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="下标值遍历"><a href="#下标值遍历" class="headerlink" title="下标值遍历"></a>下标值遍历</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(int i = 0;i &lt; list.size(); i ++)&#123;</div><div class="line">    System.out.println(list.get(i));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-        <a data-url="http://yoursite.com/2017/07/19/Java/集合/集合遍历/" data-id="cj5c2h6ly001szvblordjx19k" class="article-share-link" data-share="baidu" data-title="集合遍历">分享到</a>
-      
-
-      
-        <a href="http://yoursite.com/2017/07/19/Java/集合/集合遍历/#ds-thread" class="article-comment-link">评论</a>
-      
-
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Java/数据类型/BigDecimal" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/07/19/Java/数据类型/BigDecimal/" class="article-date">
-  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/数据类型/">数据类型</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/数据类型/BigDecimal/">BigDecimal</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="在使用BigDecimal类来进行计算的时候，主要分为以下步骤："><a href="#在使用BigDecimal类来进行计算的时候，主要分为以下步骤：" class="headerlink" title="在使用BigDecimal类来进行计算的时候，主要分为以下步骤："></a>在使用BigDecimal类来进行计算的时候，主要分为以下步骤：</h4><ol>
-<li>用float或者double或者String变量构建BigDecimal对象。使用float或者double构造对象时，最好先转成String，以免发生错误</li>
-<li>通过调用BigDecimal的加，减，乘，除等相应的方法进行算术运算。</li>
-<li><p>把BigDecimal对象转换成float，double，int等类型。</p>
-<p>一般来说，可以使用BigDecimal的构造方法或者静态方法的valueOf()方法把基本类型的变量构建成BigDecimal对象。</p>
+        <h1 id="jackson的常用注解"><a href="#jackson的常用注解" class="headerlink" title="jackson的常用注解"></a>jackson的常用注解</h1><h2 id="JsonRootName"><a href="#JsonRootName" class="headerlink" title="@JsonRootName"></a>@JsonRootName</h2><p>定义节点名称</p>
+<h2 id="JsonIgnore"><a href="#JsonIgnore" class="headerlink" title="@JsonIgnore"></a>@JsonIgnore</h2><p>作用在字段或方法上，用来完全忽略被注解的字段和方法对应的属性，即便这个字段或方法可以被自动检测到或者还有其他的注解</p>
+<h2 id="JsonProperty"><a href="#JsonProperty" class="headerlink" title="@JsonProperty"></a>@JsonProperty</h2><p>作用在字段或方法上，用来对属性的序列化/反序列化，可以用来避免遗漏属性，同时提供对属性名称重命名</p>
+<h2 id="JsonIgnoreProperties"><a href="#JsonIgnoreProperties" class="headerlink" title="@JsonIgnoreProperties"></a>@JsonIgnoreProperties</h2><p>作用在类上，用来说明有些属性在序列化/反序列化时需要忽略掉，可以将它看做是@JsonIgnore的批量操作，但它的功能比@JsonIgnore要强，比如一个类是代理类，我们无法将将@JsonIgnore标记在属性或方法上，此时便可用@JsonIgnoreProperties标注在类声明上，它还有一个重要的功能是作用在反序列化时解析字段时过滤一些未知的属性，否则通常情况下解析到我们定义的类不认识的属性便会抛出异常。</p>
+<ol>
+<li>可以注明是想要忽略的属性列表如@JsonIgnoreProperties({“name”,”age”,”title”})</li>
+<li>也可以注明过滤掉未知的属性如@JsonIgnoreProperties(ignoreUnknown=true)</li>
+</ol>
+<h2 id="JsonUnwrapped"><a href="#JsonUnwrapped" class="headerlink" title="@JsonUnwrapped"></a>@JsonUnwrapped</h2><p>作用在属性字段或方法上，用来将子JSON对象的属性添加到封闭的JSON对象</p>
+<p>在2.0+版本中@JsonUnwrapped添加了prefix和suffix属性，用来对字段添加前后缀，这在有关属性分组上比较有用<br><code>@JsonUnwrapped(prefix = &quot;name_&quot;,suffix = &quot;_test&quot;)</code> </p>
+<h2 id="JsonIdentityInfo"><a href="#JsonIdentityInfo" class="headerlink" title="@JsonIdentityInfo"></a>@JsonIdentityInfo</h2><p>2.0+版本新注解，作用于类或属性上，被用来在序列化/反序列化时为该对象或字段添加一个对象识别码，通常是用来解决循环嵌套的问题，比如数据库中的多对多关系，通过配置属性generator来确定识别码生成的方式，有简单的，配置属性property来确定识别码的名称，识别码名称没有限制。</p>
+<ol>
+<li><p>对象识别码可以是虚拟的，即存在在JSON中，但不是POJO的一部分，这种情况下我们可以如此使用注解</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class,property = &quot;@id&quot;)</div></pre></td></tr></table></figure>
+</li>
+<li><p>对象识别码也可以是真实存在的，即以对象的属性为识别码，通常这种情况下我们一般以id属性为识别码，可以这么使用注解</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class,property = &quot;id&quot;)</div></pre></td></tr></table></figure>
 </li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">BigDecimal b1 = new BigDecimal(Double.toString(0.48));</div><div class="line">BigDecimal b2 = BigDecimal.valueOf(0.48);</div></pre></td></tr></table></figure>
-<h3 id="常用方法"><a href="#常用方法" class="headerlink" title="常用方法"></a>常用方法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public BigDecimal add(BigDecimal value);                        //加法</div><div class="line">public BigDecimal subtract(BigDecimal value);                   //减法 </div><div class="line">public BigDecimal multiply(BigDecimal value);                   //乘法</div><div class="line">public BigDecimal divide(BigDecimal value);                     //除法</div><div class="line"></div><div class="line">public int compareTo(BigDecimal val)        //比较大小</div><div class="line">结果是-1:小于  0:等于 1:大于</div></pre></td></tr></table></figure>
+<h1 id="多态类型处理"><a href="#多态类型处理" class="headerlink" title="多态类型处理"></a>多态类型处理</h1><p>jackson允许配置多态类型处理，当进行反序列话时，JSON数据匹配的对象可能有多个子类型，为了正确的读取对象的类型，我们需要添加一些类型信息。可以通过下面几个注解来实现：</p>
+<h2 id="JsonTypeInfo"><a href="#JsonTypeInfo" class="headerlink" title="@JsonTypeInfo"></a>@JsonTypeInfo</h2><p>作用于类/接口，被用来开启多态类型处理，对基类/接口和子类/实现类都有效<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@JsonTypeInfo(use = JsonTypeInfo.Id.NAME,include = JsonTypeInfo.As.PROPERTY,property = &quot;name&quot;)</div></pre></td></tr></table></figure></p>
+<p>==use==:定义使用哪一种类型识别码，它有下面几个可选值：</p>
+<ul>
+<li><p>JsonTypeInfo.Id.CLASS：使用完全限定类名做识别</p>
+</li>
+<li><p>JsonTypeInfo.Id.MINIMAL_CLASS：若基类和子类在同一包类，使用类名(忽略包名)作为识别码</p>
+</li>
+<li><p>JsonTypeInfo.Id.NAME：一个合乎逻辑的指定名称</p>
+</li>
+<li><p>JsonTypeInfo.Id.CUSTOM：自定义识别码，由@JsonTypeIdResolver对应，稍后解释</p>
+</li>
+<li><p>JsonTypeInfo.Id.NONE：不使用识别码</p>
+</li>
+</ul>
+<p>==include==(可选):指定识别码是如何被包含进去的，它有下面几个可选值：</p>
+<ul>
+<li><p>JsonTypeInfo.As.PROPERTY：作为数据的兄弟属性</p>
+</li>
+<li><p>JsonTypeInfo.As.EXISTING_PROPERTY：作为POJO中已经存在的属性</p>
+</li>
+<li><p>JsonTypeInfo.As.EXTERNAL_PROPERTY：作为扩展属性</p>
+</li>
+<li><p>JsonTypeInfo.As.WRAPPER_OBJECT：作为一个包装的对象</p>
+</li>
+<li><p>JsonTypeInfo.As.WRAPPER_ARRAY：作为一个包装的数组</p>
+</li>
+</ul>
+<p>==property==(可选):制定识别码的属性名称<br>此属性只有当use为JsonTypeInfo.Id.CLASS（若不指定property则默认为@class）、JsonTypeInfo.Id.MINIMAL_CLASS(若不指定property则默认为@c)、JsonTypeInfo.Id.NAME(若不指定property默认为@type)，include为JsonTypeInfo.As.PROPERTY、JsonTypeInfo.As.EXISTING_PROPERTY、JsonTypeInfo.As.EXTERNAL_PROPERTY时才有效</p>
+<p>==defaultImpl==(可选)：如果类型识别码不存在或者无效，可以使用该属性来制定反序列化时使用的默认类型</p>
+<p>==visible==(可选，默认为false)：是否可见<br>属性定义了类型标识符的值是否会通过JSON流成为反序列化器的一部分，默认为fale,也就是说,jackson会从JSON内容中处理和删除类型标识符再传递给JsonDeserializer。</p>
+<h2 id="JsonSubTypes"><a href="#JsonSubTypes" class="headerlink" title="@JsonSubTypes"></a>@JsonSubTypes</h2><p>作用于类/接口，用来列出给定类的子类，只有当子类类型无法被检测到时才会使用它</p>
+<p>一般是配合@JsonTypeInfo在基类上使用，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@JsonTypeInfo(use = JsonTypeInfo.Id.NAME,include = JsonTypeInfo.As.PROPERTY,property = &quot;typeName&quot;)  </div><div class="line">@JsonSubTypes(&#123;@JsonSubTypes.Type(value=Sub1.class,name = &quot;sub1&quot;),@JsonSubTypes.Type(value=Sub2.class,name = &quot;sub2&quot;)&#125;)</div></pre></td></tr></table></figure></p>
+<p>@JsonSubTypes的值是一个@JsonSubTypes.Type[]数组，里面枚举了多态类型(value对应类)和类型的标识符值(name对应@JsonTypeInfo中的property标识名称的值，此为可选值，若不制定需由@JsonTypeName在子类上制定)</p>
+<h2 id="JsonTypeName"><a href="#JsonTypeName" class="headerlink" title="@JsonTypeName"></a>@JsonTypeName</h2><p>作用于子类，用来为多态子类指定类型标识符的值<br>比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@JsonTypeName(value = &quot;sub1&quot;)</div></pre></td></tr></table></figure></p>
+<p>value属性作用同上面@JsonSubTypes里的name作用</p>
+<h1 id="用于序列化和反序列化的注解类"><a href="#用于序列化和反序列化的注解类" class="headerlink" title="用于序列化和反序列化的注解类"></a>用于序列化和反序列化的注解类</h1><h2 id="JsonSerialize和-JsonDeserialize"><a href="#JsonSerialize和-JsonDeserialize" class="headerlink" title="@JsonSerialize和@JsonDeserialize"></a>@JsonSerialize和@JsonDeserialize</h2><p>作用于方法和字段上，通过 using(JsonSerializer)和using(JsonDeserializer)来指定序列化和反序列化的实现，通常我们在需要自定义序列化和反序列化时会用到，比如下面的例子中的日期转换<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">public static class TestPOJO&#123;  </div><div class="line">    private String name;  </div><div class="line">    @JsonSerialize(using = MyDateSerializer.class)  </div><div class="line">    @JsonDeserialize(using = MyDateDeserializer.class)  </div><div class="line">    private Date birthday;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">  </div><div class="line">&#125; </div><div class="line"></div><div class="line">private static class MyDateSerializer extends JsonSerializer&lt;Date&gt;&#123;  </div><div class="line">    @Override  </div><div class="line">    public void serialize(Date value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException &#123;  </div><div class="line">        DateFormat dateFormat = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);  </div><div class="line">        String dateStr = dateFormat.format(value);  </div><div class="line">        jgen.writeString(dateStr);  </div><div class="line">    &#125;  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">private static class MyDateDeserializer extends JsonDeserializer&lt;Date&gt;&#123;  </div><div class="line">    @Override  </div><div class="line">    public Date deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException &#123;  </div><div class="line">        String value = jp.getValueAsString();  </div><div class="line">        DateFormat dateFormat = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);  </div><div class="line">        try &#123;  </div><div class="line">            return dateFormat.parse(value);  </div><div class="line">        &#125; catch (ParseException e) &#123;  </div><div class="line">            e.printStackTrace();  </div><div class="line">        &#125;  </div><div class="line">        return null;  </div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>也可以通过使用as(JsonSerializer)和as(JsonDeserializer)来实现多态类型转换，上面我们有提到多态类型处理时可以使用@JsonTypeInfo实现，还有一种比较简便的方式就是使用@JsonSerialize和@JsonDeserialize指定as的子类类型，注意这里必须指定为子类类型才可以实现替换运行时的类型<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line">public static class TestPOJO&#123;  </div><div class="line">    private String name;  </div><div class="line">    @JsonSerialize(as = Sub1.class)  </div><div class="line">    @JsonDeserialize(as = Sub1.class)  </div><div class="line">    private MyIn sub1;  </div><div class="line">    @JsonSerialize(as = Sub2.class)  </div><div class="line">    @JsonDeserialize(as = Sub2.class)  </div><div class="line">    private MyIn sub2;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">  </div><div class="line">&#125; </div><div class="line"></div><div class="line">public static class MyIn&#123;  </div><div class="line">    private int id;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">public static class Sub1 extends MyIn&#123;  </div><div class="line">    private String name;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">  </div><div class="line">    @Override  </div><div class="line">    public String toString() &#123;  </div><div class="line">        return &quot;Sub1&#123;&quot; +  </div><div class="line">            &quot;id=&quot; + getId()  +  </div><div class="line">            &quot;name=&apos;&quot; + name + &apos;\&apos;&apos; +  </div><div class="line">            &apos;&#125;&apos;;  </div><div class="line">    &#125;  </div><div class="line">&#125;  </div><div class="line">public static class Sub2 extends MyIn&#123;  </div><div class="line">    private int age;  </div><div class="line">    //getters、setters省略  </div><div class="line">  </div><div class="line">    @Override  </div><div class="line">    public String toString() &#123;  </div><div class="line">        return &quot;Sub1&#123;&quot; +  </div><div class="line">            &quot;id=&quot; + getId() +  </div><div class="line">            &quot;age=&apos;&quot; + age +  </div><div class="line">            &apos;&#125;&apos;;  </div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>上面例子中通过as来指定了需要替换实际运行时类型的子类，实际上上面例子中序列化时是可以不使用@JsonSerialize(as = Sub1.class)的，因为jackson可以自动将POJO转换为对应的JSON，而反序列化时由于无法自动检索匹配类型必须要指定@JsonDeserialize(as = Sub1.class)方可实现</p>
+<p>最后@JsonSerialize可以配置include属性来指定序列化时被注解的属性被包含的方式，默认总是被包含进来，但是可以过滤掉空的属性或有默认值的属性，举个简单的过滤空属性的例子如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">public static class TestPOJO&#123;  </div><div class="line">    @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)  </div><div class="line">    private String name;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="JsonPropertyOrder"><a href="#JsonPropertyOrder" class="headerlink" title="@JsonPropertyOrder"></a>@JsonPropertyOrder</h2><p>作用在类上，被用来指明当序列化时需要对属性做排序，它有2个属性</p>
+<p>一个是alphabetic：布尔类型，表示是否采用字母拼音顺序排序，默认是为false，即不排序</p>
+<p>还有一个属性是value：数组类型，表示将优先其他属性排序的属性名称<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@JsonPropertyOrder(alphabetic = true,value = &#123;&quot;c&quot;,&quot;b&quot;&#125;)  </div><div class="line">public static class TestPOJO&#123;  </div><div class="line">    private String a;  </div><div class="line">    private String c;  </div><div class="line">    private String d;  </div><div class="line">    private String b;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="JsonFilter"><a href="#JsonFilter" class="headerlink" title="@JsonFilter"></a>@JsonFilter</h2><p>Json属性过滤器，作用于类，作用同上面的@JsonView，都是过滤掉不想要的属性，输出自己想要的属性。和@JsonView不同的是@JsonFilter可以动态的过滤属性，比如我不想输出以system开头的所有属性等待，应该说@JsonFilter更高级一点</p>
+<h2 id="JsonIgnoreType"><a href="#JsonIgnoreType" class="headerlink" title="@JsonIgnoreType"></a>@JsonIgnoreType</h2><p>作用于类，表示被注解该类型的属性将不会被序列化和反序列化，也跟上面几个一样属于过滤属性功能的注解<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">public static class TestPOJO&#123;  </div><div class="line">    private Sub1 sub1;  </div><div class="line">    private Sub2 sub2;  </div><div class="line">    private MyIn myIn;  </div><div class="line">    private String name;  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">public static class MyIn&#123;  </div><div class="line">    private int id;  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">@JsonIgnoreType  </div><div class="line">public static class Sub1 extends MyIn&#123;  </div><div class="line">    private String name;  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">@JsonIgnoreType  </div><div class="line">public static class Sub2 extends MyIn&#123;  </div><div class="line">    private int age;  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>上面例子中我们在类Sub1和Sub2上都加上了@JsonIgnoreType，那么需要序列化和反序列时POJO中所有Sub1和Sub2类型的属性都将会被忽略，上面测试结果为{“myIn”:{“id”:1},”name”:”myName”}，只输出了name和myIn属性。需要注意的是@JsonIgnoreType是可以继承的，即如果在基类上添加了该注解，那么子类也相当于加了该注解。在上例中，如果只在基类MyIn上添加@JsonIgnoreType那么序列化TestPOJO时将会过滤掉MyIn、Sub1、Sub2。输出结果为{“name”:”myName”}</p>
+<h2 id="JsonAnySetter"><a href="#JsonAnySetter" class="headerlink" title="@JsonAnySetter"></a>@JsonAnySetter</h2><p>作用于方法，在反序列化时用来处理遇到未知的属性的时候调用，在本文前面我们知道可以通过注解@JsonIgnoreProperties(ignoreUnknown=true)来过滤未知的属性，但是如果需要这些未知的属性该如何是好?那么@JsonAnySetter就可以派上用场了，它通常会和map属性配合使用用来保存未知的属性，举例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">public static class TestPOJO&#123;  </div><div class="line">    private String name;  </div><div class="line">  </div><div class="line">    private Map other = new HashMap();  </div><div class="line">  </div><div class="line">    @JsonAnySetter  </div><div class="line">    public void set(String name,Object value) &#123;  </div><div class="line">        other.put(name,value);  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>测试用例中我们在set方法上标注了@JsonAnySetter，每当遇到未知的属性时都会调用该方法</p>
+
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Java/数据类型/BigDecimal/" data-id="cj5c2h6m0001tzvbl0ydjky97" class="article-share-link" data-share="baidu" data-title="BigDecimal">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Spring/SpringMVC/jackjson注解/" data-id="cj5c3bs6k003d30bl9tgr4aji" class="article-share-link" data-share="baidu" data-title="jackjson注解">分享到</a>
       
 
       
-        <a href="http://yoursite.com/2017/07/19/Java/数据类型/BigDecimal/#ds-thread" class="article-comment-link">评论</a>
+        <a href="http://yoursite.com/2017/07/19/Spring/SpringMVC/jackjson注解/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -333,14 +284,14 @@
 
 
   
-    <article id="post-Spring/基础/Spring获取ApplicationContext，并获取所有Bean" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/SpringMVC/拦截器配置" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/" class="article-date">
+    <a href="/2017/07/19/Spring/SpringMVC/拦截器配置/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/基础/">基础</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
   </div>
 
   </div>
@@ -351,7 +302,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/">Spring获取ApplicationContext，并获取所有Bean</a>
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/拦截器配置/">拦截器配置</a>
     </h1>
   
 
@@ -359,21 +310,17 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="方法一（推荐）"><a href="#方法一（推荐）" class="headerlink" title="方法一（推荐）"></a>方法一（推荐）</h2><h3 id="实现接口ApplicationContextAware"><a href="#实现接口ApplicationContextAware" class="headerlink" title="实现接口ApplicationContextAware"></a>实现接口ApplicationContextAware</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line">package com.lhc.utils;</div><div class="line"></div><div class="line">import java.util.Map;</div><div class="line"></div><div class="line">import org.springframework.beans.BeansException;</div><div class="line">import org.springframework.context.ApplicationContext;</div><div class="line">import org.springframework.context.ApplicationContextAware;</div><div class="line"></div><div class="line">public class SpringContextHolder implements ApplicationContextAware &#123;</div><div class="line">	private static ApplicationContext applicationContext = null;  </div><div class="line">	  @Override  </div><div class="line">	  public  void setApplicationContext(ApplicationContext applicationContext)  throws BeansException &#123;  </div><div class="line">		    if(SpringContextHolder.applicationContext == null) &#123;  </div><div class="line">		    	SpringContextHolder.applicationContext  = applicationContext;  </div><div class="line">		    &#125;  </div><div class="line">	  &#125;  </div><div class="line"></div><div class="line">	public static ApplicationContext getApplicationContext() &#123;</div><div class="line">		checkApplicationContext();</div><div class="line">		return applicationContext;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public static &lt;T&gt; T getBean(String name) &#123;</div><div class="line">		checkApplicationContext();</div><div class="line">		return (T) applicationContext.getBean(name);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public static &lt;T&gt; T getBean(String beanName, Class&lt;T&gt; type) &#123;</div><div class="line">		checkApplicationContext();</div><div class="line">		return applicationContext.getBean(beanName, type);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public static &lt;T&gt; T getBean(Class&lt;T&gt; clazz) &#123;</div><div class="line">		checkApplicationContext();</div><div class="line"></div><div class="line">		Map&lt;String, T&gt; beanMaps = applicationContext.getBeansOfType(clazz);</div><div class="line">		if ((beanMaps != null) &amp;&amp; (!beanMaps.isEmpty())) &#123;</div><div class="line">			return beanMaps.values().iterator().next();</div><div class="line">		&#125;</div><div class="line">		return null;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	private static void checkApplicationContext() &#123;</div><div class="line">		if (applicationContext == null) &#123;</div><div class="line">			throw new IllegalStateException(&quot;applicaitonContext未注入,请在applicationContext.xml中定义SpringContextHolder&quot;);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="配置文件中配置"><a href="#配置文件中配置" class="headerlink" title="配置文件中配置"></a>配置文件中配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;!--  bean管理工具 --&gt;</div><div class="line">&lt;bean id=&quot;springContextHolder&quot; class=&quot;com.lhc.utils.SpringContextHolder&quot;/&gt;</div><div class="line">&lt;!--  bean管理工具 --&gt;</div></pre></td></tr></table></figure>
-<h2 id="方法二"><a href="#方法二" class="headerlink" title="方法二"></a>方法二</h2><h3 id="继承自抽象类ApplicationObjectSupport"><a href="#继承自抽象类ApplicationObjectSupport" class="headerlink" title="继承自抽象类ApplicationObjectSupport"></a>继承自抽象类ApplicationObjectSupport</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line">import javax.faces.application.Application;  </div><div class="line">import org.springframework.beans.BeansException;  </div><div class="line">import org.springframework.context.ApplicationContext;  </div><div class="line">import org.springframework.context.ApplicationContextAware;  </div><div class="line">import org.springframework.context.support.ApplicationObjectSupport;  </div><div class="line">import org.springframework.web.context.support.WebApplicationObjectSupport;  </div><div class="line">/** </div><div class="line"> * 获取spring信息的工具类 </div><div class="line"> * @author Administrator </div><div class="line"> * </div><div class="line"> */  </div><div class="line">public final class SpringContextHolder extends ApplicationObjectSupport &#123;  </div><div class="line">  private static ApplicationContext applicationContext = null;  </div><div class="line">  @Override  </div><div class="line">  protected void initApplicationContext(ApplicationContext context)  </div><div class="line">  throws BeansException &#123;  </div><div class="line">    super.initApplicationContext(context);  </div><div class="line">    if(ToolSpring.applicationContext == null)&#123;  </div><div class="line">      ToolSpring.applicationContext = context;  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println(&quot;========ApplicationContext配置成功,在普通类可以通过调用ToolSpring.getAppContext()获取applicationContext对象,applic      ationContext=&quot;+applicationContext+&quot;========&quot;);  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">    &#125;  </div><div class="line">  &#125;  </div><div class="line">  public static ApplicationContext getAppContext() &#123;  </div><div class="line">    return applicationContext;  </div><div class="line">  &#125;  </div><div class="line">  public static Object getBean(String name)&#123;  </div><div class="line">    return getAppContext().getBean(name);  </div><div class="line">  &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="配置文件中配置-1"><a href="#配置文件中配置-1" class="headerlink" title="配置文件中配置"></a>配置文件中配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;!--  bean管理工具 --&gt;</div><div class="line">&lt;bean id=&quot;springContextHolder&quot; class=&quot;com.lhc.utils.SpringContextHolder&quot;/&gt;</div><div class="line">&lt;!--  bean管理工具 --&gt;</div></pre></td></tr></table></figure>
-<h2 id="方法三"><a href="#方法三" class="headerlink" title="方法三"></a>方法三</h2><h3 id="继承自抽象类WebApplicationObjectSupport"><a href="#继承自抽象类WebApplicationObjectSupport" class="headerlink" title="继承自抽象类WebApplicationObjectSupport"></a>继承自抽象类WebApplicationObjectSupport</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">import javax.faces.application.Application;  </div><div class="line">import org.springframework.beans.BeansException;  </div><div class="line">import org.springframework.context.ApplicationContext;  </div><div class="line">import org.springframework.context.support.ApplicationObjectSupport;  </div><div class="line">import org.springframework.web.context.support.WebApplicationObjectSupport;  </div><div class="line">/** </div><div class="line"> * 获取spring信息的工具类 </div><div class="line"> * @author Administrator </div><div class="line"> * </div><div class="line"> */  </div><div class="line">public final class SpringContextHolder extends WebApplicationObjectSupport&#123;  </div><div class="line">  private static ApplicationContext applicationContext = null;  </div><div class="line">  @Override  </div><div class="line">  protected void initApplicationContext(ApplicationContext context) &#123;  </div><div class="line">    super.initApplicationContext(context);  </div><div class="line">    if(applicationContext == null)&#123;  </div><div class="line">      applicationContext = context;  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println(&quot;========ApplicationContext配置成功,在普通类可以通过调用ToolSpring.getAppContext()获取applicationContext对象,applicationContext=&quot;+applicationContext+&quot;========&quot;);  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">    &#125;  </div><div class="line">  &#125;  </div><div class="line">  public static ApplicationContext getAppContext() &#123;  </div><div class="line">    return applicationContext;  </div><div class="line">  &#125;  </div><div class="line">  public static Object getBean(String name)&#123;  </div><div class="line">    return applicationContext.getBean(name);  </div><div class="line">  &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="配置文件中配置-2"><a href="#配置文件中配置-2" class="headerlink" title="配置文件中配置"></a>配置文件中配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;!--  bean管理工具 --&gt;</div><div class="line">&lt;bean id=&quot;springContextHolder&quot; class=&quot;com.lhc.utils.SpringContextHolder&quot;/&gt;</div><div class="line">&lt;!--  bean管理工具 --&gt;</div></pre></td></tr></table></figure>
+        <h2 id="配置拦截器"><a href="#配置拦截器" class="headerlink" title="配置拦截器"></a>配置拦截器</h2><h3 id="继承HandlerInterceptorAdapter抽象类"><a href="#继承HandlerInterceptorAdapter抽象类" class="headerlink" title="继承HandlerInterceptorAdapter抽象类"></a>继承HandlerInterceptorAdapter抽象类</h3><p>下面是一个统计接口执行时间的拦截器<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line">import javax.servlet.http.HttpServletRequest;</div><div class="line">import javax.servlet.http.HttpServletResponse;</div><div class="line"></div><div class="line">import org.slf4j.Logger;</div><div class="line">import org.slf4j.LoggerFactory;</div><div class="line">import org.springframework.web.servlet.ModelAndView;</div><div class="line">import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 统计接口执行时间拦截器</div><div class="line"> * @author   chenliqiang, 2017年4月12日 下午5:00:53 &lt;br/&gt;</div><div class="line"> * @version  </div><div class="line"> * @see 	 </div><div class="line"> */</div><div class="line">public class ExecuteTimeInterceptor extends HandlerInterceptorAdapter &#123;</div><div class="line"></div><div class="line">	private static final Logger logger = LoggerFactory.getLogger(ExecuteTimeInterceptor.class);</div><div class="line"></div><div class="line">	//before the actual handler will be executed</div><div class="line">	@Override</div><div class="line">	public boolean preHandle(HttpServletRequest request,</div><div class="line">		HttpServletResponse response, Object handler) throws Exception &#123;</div><div class="line"></div><div class="line">		long startTime = System.currentTimeMillis();</div><div class="line">		request.setAttribute(&quot;startTime&quot;, startTime);</div><div class="line">		</div><div class="line">		return true;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	//after the handler is executed</div><div class="line">	@Override</div><div class="line">	public void postHandle(</div><div class="line">		HttpServletRequest request, HttpServletResponse response,</div><div class="line">		Object handler, ModelAndView modelAndView)</div><div class="line">		throws Exception &#123;</div><div class="line"></div><div class="line">		long startTime = (Long)request.getAttribute(&quot;startTime&quot;);</div><div class="line">		long endTime = System.currentTimeMillis();</div><div class="line">		long executeTime = endTime - startTime;</div><div class="line">		</div><div class="line">		//modified the exisitng modelAndView</div><div class="line">		//modelAndView.addObject(&quot;executeTime&quot;, executeTime);</div><div class="line"></div><div class="line">		//log it</div><div class="line">		if(logger.isInfoEnabled())&#123;</div><div class="line">		   logger.info(&quot;[&quot; + handler + &quot;] executeTime : &quot; + executeTime + &quot;ms&quot;);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="spring-mvc-xml配置"><a href="#spring-mvc-xml配置" class="headerlink" title="spring-mvc.xml配置"></a>spring-mvc.xml配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;</div><div class="line">	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;</div><div class="line">	xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot;</div><div class="line">	xsi:schemaLocation=&quot;http://www.springframework.org/schema/mvc</div><div class="line">	http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd</div><div class="line">	http://www.springframework.org/schema/beans</div><div class="line">	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd</div><div class="line">	http://www.springframework.org/schema/context</div><div class="line">	http://www.springframework.org/schema/context/spring-context-3.2.xsd&quot;&gt;</div><div class="line">	</div><div class="line">	&lt;mvc:annotation-driven /&gt;</div><div class="line"></div><div class="line">	&lt;mvc:interceptors&gt;</div><div class="line">		&lt;ref bean=&quot;executeTimeInterceptor&quot; /&gt;   &lt;!-- 全局配置，拦截所有请求  --&gt;</div><div class="line">		</div><div class="line">		&lt;!--  定义拦截特定的请求  --&gt;</div><div class="line">		&lt;!-- 按需添加需要拦截的请求  --&gt;</div><div class="line">		&lt;!-- &lt;mvc:interceptor&gt; </div><div class="line">			&lt;mvc:mapping path=&quot;/announcement/*&quot; /&gt; </div><div class="line">			&lt;mvc:mapping path=&quot;/product/*&quot; /&gt; </div><div class="line">			&lt;ref bean=&quot;executeTimeInterceptor&quot; /&gt; </div><div class="line">		&lt;/mvc:interceptor&gt;  --&gt;</div><div class="line">	&lt;/mvc:interceptors&gt;</div><div class="line">	</div><div class="line">	&lt;!--  定义拦截器  --&gt;</div><div class="line">	&lt;bean id=&quot;executeTimeInterceptor&quot; class=&quot;com.highsunbuy.interceptor.ExecuteTimeInterceptor&quot; /&gt;</div><div class="line"></div><div class="line">&lt;/beans&gt;</div></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/" data-id="cj5c2h6m1001vzvblt5akifhj" class="article-share-link" data-share="baidu" data-title="Spring获取ApplicationContext，并获取所有Bean">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Spring/SpringMVC/拦截器配置/" data-id="cj5c3bs6l003e30bl04bggqq9" class="article-share-link" data-share="baidu" data-title="拦截器配置">分享到</a>
       
 
       
-        <a href="http://yoursite.com/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/#ds-thread" class="article-comment-link">评论</a>
+        <a href="http://yoursite.com/2017/07/19/Spring/SpringMVC/拦截器配置/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -384,14 +331,14 @@
 
 
   
-    <article id="post-Spring/基础/spring官方文档" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/SpringMVC/包扫描" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Spring/基础/spring官方文档/" class="article-date">
+    <a href="/2017/07/19/Spring/SpringMVC/包扫描/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/基础/">基础</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
   </div>
 
   </div>
@@ -402,7 +349,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/基础/spring官方文档/">spring官方文档</a>
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/包扫描/">包扫描</a>
     </h1>
   
 
@@ -410,18 +357,333 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="总的文档："><a href="#总的文档：" class="headerlink" title="总的文档："></a>总的文档：</h2><p><a href="https://spring.io/docs/reference" target="_blank" rel="external">https://spring.io/docs/reference</a></p>
-<h2 id="spring-framework-reference"><a href="#spring-framework-reference" class="headerlink" title="spring-framework-reference"></a>spring-framework-reference</h2><p><a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/" target="_blank" rel="external">http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/</a></p>
+        <h2 id="lt-context-component-scan-base-package-“”-gt-浅析"><a href="#lt-context-component-scan-base-package-“”-gt-浅析" class="headerlink" title="&lt; context:component-scan base-package = “” /&gt;浅析"></a>&lt; context:component-scan base-package = “” /&gt;浅析</h2><p>component-scan 默认扫描的注解类型是 @Component，不过，在 @Component 语义基础上细化后的 @Repository, @Service 和 @Controller 也同样可以获得 component-scan 的青睐<br>有了<code>&lt;context:component-scan&gt;</code>，另一个<code>&lt;context:annotation-config/&gt;</code>标签根本可以移除掉，因为已经被包含进去了 </p>
+<p>另外<context:annotation-config>还提供了两个子标签</context:annotation-config></p>
+<ol>
+<li><context:include-filter> //指定扫描的路径</context:include-filter></li>
+<li><context:exclude-filter> //排除扫描的路径</context:exclude-filter></li>
+</ol>
+<p><context:component-scan>有一个use-default-filters属性，属性默认为true,表示会扫描指定包下的全部的标有@Component的类，并注册成bean.也就是@Component的子注解@Service,@Reposity等。       </context:component-scan></p>
+<p>这种扫描的粒度有点太大，如果你只想扫描指定包下面的Controller或其他内容则设置use-default-filters属性为false，表示不再按照scan指定的包扫描，而是按照<context:include-filter>指定的包扫描，示例：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">context:component-scan</span> <span class="attr">base-package</span>=<span class="string">"com.tan"</span> <span class="attr">use-default-filters</span>=<span class="string">"false"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">"com.tan.*"</span>/&gt;</span>//注意后面要写.*</div><div class="line"><span class="tag">&lt;/<span class="name">context:component-scan</span>&gt;</span></div><div class="line">//当没有设置use-default-filters属性或者属性为true时，表示基于base-packge包下指定扫描的具体路径</div><div class="line"><span class="tag">&lt;<span class="name">context:component-scan</span> <span class="attr">base-package</span>=<span class="string">"com.tan"</span> &gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">".controller.*"</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">".service.*"</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">".dao.*"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">context:component-scan</span>&gt;</span></div></pre></td></tr></table></figure></context:include-filter></p>
+<p>效果相当于：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">context:component-scan</span> <span class="attr">base-package</span>=<span class="string">"com.tan"</span> &gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:exclude-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">".model.*"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">context:component-scan</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>注意：本人尝试时无论哪种情况<context:include-filter>和<context:exclude-filter>都不能同时存在</context:exclude-filter></context:include-filter></p>
 
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Spring/基础/spring官方文档/" data-id="cj5c2h6m3001wzvbl4oudgsph" class="article-share-link" data-share="baidu" data-title="spring官方文档">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Spring/SpringMVC/包扫描/" data-id="cj5c3bs6m003h30blompktd52" class="article-share-link" data-share="baidu" data-title="包扫描">分享到</a>
       
 
       
-        <a href="http://yoursite.com/2017/07/19/Spring/基础/spring官方文档/#ds-thread" class="article-comment-link">评论</a>
+        <a href="http://yoursite.com/2017/07/19/Spring/SpringMVC/包扫描/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Spring/SpringMVC/异步请求" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Spring/SpringMVC/异步请求/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/异步请求/">异步请求</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Spring MVC 3.2开始引入了基于Servlet 3的异步请求处理。相比以前，控制器方法已经不一定需要返回一个值，而是可以返回一个java.util.concurrent.Callable的对象，并通过Spring MVC所管理的线程来产生返回值。与此同时，Servlet容器的主线程则可以退出并释放其资源了，同时也允许容器去处理其他的请求。通过一个TaskExecutor，Spring MVC可以在另外的线程中调用Callable。当Callable返回时，请求再携带Callable返回的值，再次被分配到Servlet容器中恢复处理流程。以下代码给出了一个这样的控制器方法作为例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(method=RequestMethod.POST)</div><div class="line">public Callable&lt;String&gt; processUpload(final MultipartFile file) &#123;</div><div class="line"></div><div class="line">    return new Callable&lt;String&gt;() &#123;</div><div class="line">        public String call() throws Exception &#123;</div><div class="line">            // ...</div><div class="line">            return &quot;someView&quot;;</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>另一个选择，是让控制器方法返回一个DeferredResult的实例。这种场景下，返回值可以由任何一个线程产生，也包括那些不是由Spring MVC管理的线程。举个例子，返回值可能是为了响应某些外部事件所产生的，比如一条JMS的消息，一个计划任务，等等。以下代码给出了一个这样的控制器作为例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/quotes&quot;)</div><div class="line">@ResponseBody</div><div class="line">public DeferredResult&lt;String&gt; quotes() &#123;</div><div class="line">    DeferredResult&lt;String&gt; deferredResult = new DeferredResult&lt;String&gt;();</div><div class="line">    // Save the deferredResult somewhere..</div><div class="line">    return deferredResult;</div><div class="line">&#125;</div><div class="line"></div><div class="line">// In some other thread...</div><div class="line">deferredResult.setResult(data);</div></pre></td></tr></table></figure></p>
+<p>如果对Servlet 3.0的异步请求处理特性没有了解，理解这个特性可能会有点困难。因此，阅读一下前者的文档将会很有帮助。以下给出了这个机制运作背后的一些原理：</p>
+<ul>
+<li>一个servlet请求ServletRequest可以通过调用request.startAsync()方法而进入异步模式。这样做的主要结果就是该servlet以及所有的过滤器都可以结束，但其响应（response）会留待异步处理结束后再返回</li>
+<li>调用request.startAsync()方法会返回一个AsyncContext对象，可用它对异步处理进行进一步的控制和操作。比如说它也提供了一个与转向（forward）很相似的dispatch方法，只不过它允许应用恢复Servlet容器的请求处理进程</li>
+<li>ServletRequest提供了获取当前DispatherType的方式，后者可以用来区别当前处理的是原始请求、异步分发请求、转向，或是其他类型的请求分发类型。  </li>
+</ul>
+<p>有了上面的知识，下面可以来看一下Callable的异步请求被处理时所依次发生的事件：    </p>
+<ul>
+<li>控制器先返回一个Callable对象</li>
+<li>Spring MVC开始进行异步处理，并把该Callable对象提交给另一个独立线程的执行器TaskExecutor处理</li>
+<li>DispatcherServlet和所有过滤器都退出Servlet容器线程，但此时方法的响应对象仍未返回</li>
+<li>Callable对象最终产生一个返回结果，此时Spring MVC会重新把请求分派回Servlet容器，恢复处理</li>
+<li>DispatcherServlet再次被调用，恢复对Callable异步处理所返回结果的处理  </li>
+</ul>
+<p>对DeferredResult异步请求的处理顺序也非常类似，区别仅在于应用可以通过任何线程来计算返回一个结果：    </p>
+<ul>
+<li>控制器先返回一个DeferredResult对象，并把它存取在内存（队列或列表等）中以便存取</li>
+<li>Spring MVC开始进行异步处理</li>
+<li>DispatcherServlet和所有过滤器都退出Servlet容器线程，但此时方法的响应对象仍未返回</li>
+<li>由处理该请求的线程对 DeferredResult进行设值，然后Spring MVC会重新把请求分派回Servlet容器，恢复处理</li>
+<li>DispatcherServlet再次被调用，恢复对该异步返回结果的处理    </li>
+</ul>
+<p>关于引入异步请求处理的背景和原因，以及什么时候使用它、为什么使用异步请求处理等问题，你可以从<a href="https://spring.io/blog/2012/05/07/spring-mvc-3-2-preview-introducing-servlet-3-async-support" target="_blank" rel="external">这个系列的博客</a>中了解更多信息。</p>
+<h2 id="异步请求的异常处理"><a href="#异步请求的异常处理" class="headerlink" title="异步请求的异常处理"></a>异步请求的异常处理</h2><p>若控制器返回的Callable在执行过程中抛出了异常，又会发生什么事情？简单来说，这与一般的控制器方法抛出异常是一样的。它会被正常的异常处理流程捕获处理。更具体地说呢，当Callable抛出异常时，Spring MVC会把一个Exception对象分派给Servlet容器进行处理，而不是正常返回方法的返回值，然后容器恢复对此异步请求异常的处理。若方法返回的是一个DeferredResult对象，你可以选择调Exception实例的setResult方法还是setErrorResult方法。</p>
+<h2 id="拦截异步请求"><a href="#拦截异步请求" class="headerlink" title="拦截异步请求"></a>拦截异步请求</h2><p>处理器拦截器HandlerInterceptor可以实现AsyncHandlerInterceptor接口拦截异步请求，因为在异步请求开始时，被调用的回调方法是该接口的afterConcurrentHandlingStarted方法，而非一般的postHandle和afterCompletion方法。  </p>
+<p>如果需要与异步请求处理的生命流程有更深入的集成，比如需要处理timeout的事件等，则HandlerInterceptor需要注册一个CallableProcessingInterceptor或DeferredResultProcessingInterceptor拦截器。具体的细节可以参考AsyncHandlerInterceptor类的Java文档。  </p>
+<p>DeferredResult类还提供了onTimeout(Runnable)和onCompletion(Runnable)等方法，具体的细节可以参考DeferredResult类的Java文档。</p>
+<p>Callable需要请求过期(timeout)和完成后的拦截时，可以把它包装在一个WebAsyncTask实例中，后者提供了相关的支持。</p>
+<h2 id="HTTP-streaming"><a href="#HTTP-streaming" class="headerlink" title="HTTP streaming"></a>HTTP streaming</h2><p>如前所述，控制器可以使用DeferredResult或Callable对象来异步地计算其返回值，这可以用于实现一些有用的技术，比如 long polling技术，让服务器可以尽可能快地向客户端推送事件。<br>如果你想在一个HTTP响应中同时推送多个事件，怎么办？这样的技术已经存在，与”Long Polling”相关，叫”HTTP Streaming”。Spring MVC支持这项技术，你可以通过让方法返回一个ResponseBodyEmitter类型对象来实现，该对象可被用于发送多个对象。通常我们所使用的@ResponseBody只能返回一个对象，它是通过HttpMessageConverter写到响应体中的。<br>下面是一个实现该技术的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/events&quot;)</div><div class="line">public ResponseBodyEmitter handle() &#123;</div><div class="line">    ResponseBodyEmitter emitter = new ResponseBodyEmitter();</div><div class="line">    // Save the emitter somewhere..</div><div class="line">    return emitter;</div><div class="line">&#125;</div><div class="line"></div><div class="line">// In some other thread</div><div class="line">emitter.send(&quot;Hello once&quot;);</div><div class="line"></div><div class="line">// and again later on</div><div class="line">emitter.send(&quot;Hello again&quot;);</div><div class="line"></div><div class="line">// and done at some point</div><div class="line">emitter.complete();</div></pre></td></tr></table></figure></p>
+<p>ResponseBodyEmitter也可以被放到ResponseEntity体里面使用，这可以对响应状态和响应头做一些定制。<br>Note that ResponseBodyEmitter can also be used as the body in a ResponseEntity in order to customize the status and headers of the response.</p>
+<h2 id="使用“服务器端事件推送”的HTTP-Streaming"><a href="#使用“服务器端事件推送”的HTTP-Streaming" class="headerlink" title="使用“服务器端事件推送”的HTTP Streaming"></a>使用“服务器端事件推送”的HTTP Streaming</h2><p>SseEmitter是ResponseBodyEmitter的一个子类，提供了对服务器端事件推送的技术的支持。服务器端事件推送其实只是一种HTTP Streaming的类似实现，只不过它服务器端所推送的事件遵循了W3C Server-Sent Events规范中定义的事件格式。    </p>
+<p>“服务器端事件推送”技术正如其名，是用于由服务器端向客户端进行的事件推送。这在Spring MVC中很容易做到，只需要方法返回一个SseEmitter类型的对象即可。    </p>
+<p>需要注意的是，Internet Explorer并不支持这项服务器端事件推送的技术。另外，对于更大型的web应用及更精致的消息传输场景——比如在线游戏、在线协作、金融应用等——来说，使用Spring的WebSocket（包含SockJS风格的实时WebSocket）更成熟一些，因为它支持的浏览器范围非常广（包括IE），并且，对于一个以消息为中心的架构中，它为服务器端-客户端间的事件发布-订阅模型的交互提供了更高层级的消息模式（messaging patterns）的支持。</p>
+<h2 id="直接写回输出流OutputStream的HTTP-Streaming"><a href="#直接写回输出流OutputStream的HTTP-Streaming" class="headerlink" title="直接写回输出流OutputStream的HTTP Streaming"></a>直接写回输出流OutputStream的HTTP Streaming</h2><p>ResponseBodyEmitter也允许通过HttpMessageConverter向响应体中支持写事件对象。这可能是最常见的情形，比如写返回的JSON数据的时候。但有时，跳过消息转换的阶段，直接把数据写回响应的输出流OutputStream可能更有效，比如文件下载这样的场景。这可以通过返回一个StreamingResponseBody类型的对象来实现。<br>以下是一个实现的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/download&quot;)</div><div class="line">public StreamingResponseBody handle() &#123;</div><div class="line">    return new StreamingResponseBody() &#123;</div><div class="line">        @Override</div><div class="line">        public void writeTo(OutputStream outputStream) throws IOException &#123;</div><div class="line">            // write...</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>ResponseBodyEmitter也可以被放到ResponseEntity体里面使用，这可以对响应状态和响应头做一些定制。</p>
+<h2 id="异步请求处理的相关配置"><a href="#异步请求处理的相关配置" class="headerlink" title="异步请求处理的相关配置"></a>异步请求处理的相关配置</h2><h3 id="Servlet容器配置"><a href="#Servlet容器配置" class="headerlink" title="Servlet容器配置"></a>Servlet容器配置</h3><p>对于那些使用web.xml配置文件的应用，请确保web.xml的版本更新到3.0：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">web-app</span> <span class="attr">xmlns</span>=<span class="string">"http://java.sun.com/xml/ns/javaee"</span></span></div><div class="line">         <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance http://java.sun.com/xml/ns/javaee</span></div><div class="line">                    http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"</div><div class="line">         <span class="attr">version</span>=<span class="string">"3.0"</span>&gt;</div><div class="line"></div><div class="line">    ...</div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>异步请求必须在web.xml将DispatcherServlet下的子元素<async-supported>true</async-supported>设置为true。此外，所有可能参与异步请求处理的过滤器Filter都必须配置为支持ASYNC类型的请求分派。在Spring框架中为过滤器启用支持ASYNC类型的请求分派应是安全的，因为这些过滤器一般都继承了基类OncePerRequestFilter，后者在运行时会检查该过滤器是否需要参与到异步分派的请求处理中。<br>以下是一个例子，展示了web.xml的配置：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">web-app</span> <span class="attr">xmlns</span>=<span class="string">"http://java.sun.com/xml/ns/javaee"</span></span></div><div class="line">        <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></div><div class="line">        <span class="attr">xsi:schemaLocation</span>=<span class="string">"</span></div><div class="line">            http://java.sun.com/xml/ns/javaee</div><div class="line">            http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"</div><div class="line">    <span class="attr">version</span>=<span class="string">"3.0"</span>&gt;</div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">filter</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>Spring OpenEntityManagerInViewFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">filter-class</span>&gt;</span>org.springframework.~.OpenEntityManagerInViewFilter<span class="tag">&lt;/<span class="name">filter-class</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">async-supported</span>&gt;</span>true<span class="tag">&lt;/<span class="name">async-supported</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">filter</span>&gt;</span></div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">filter-mapping</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>Spring OpenEntityManagerInViewFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/*<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">dispatcher</span>&gt;</span>REQUEST<span class="tag">&lt;/<span class="name">dispatcher</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">dispatcher</span>&gt;</span>ASYNC<span class="tag">&lt;/<span class="name">dispatcher</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">filter-mapping</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>如果应用使用的是Servlet 3规范基于Java编程的配置方式，比如通过WebApplicationInitializer，那么你也需要设置”asyncSupported”标志和ASYNC分派类型的支持，就像你在web.xml中所配置的一样。你可以考虑直接继承AbstractDispatcherServletInitializer或AbstractAnnotationConfigDispatcherServletInitializer来简化配置，它们都自动地为你设置了这些配置项，并使得注册Filter过滤器实例变得非常简单。</p>
+<h2 id="Spring-MVC配置"><a href="#Spring-MVC配置" class="headerlink" title="Spring MVC配置"></a>Spring MVC配置</h2><p>MVC Java编程配置和MVC命名空间配置方式都提供了配置异步请求处理支持的选择。WebMvcConfigurer提供了configureAsyncSupport方法，而<mvc:annotation-driven>有一个子元素<async-support>，它们都用以为此提供支持。  </async-support></mvc:annotation-driven></p>
+<p>这些配置允许你覆写异步请求默认的超时时间，在未显式设置时，它们的值与所依赖的Servlet容器是相关的（比如，Tomcat设置的超时时间是10秒）。你也可以配置用于执行控制器返回值Callable的执行器AsyncTaskExecutor。Spring强烈推荐你配置这个选项，因为Spring MVC默认使用的是普通的执行器SimpleAsyncTaskExecutor。MVC Java编程配置及MVC命名空间配置的方式都允许你注册自己的CallableProcessingInterceptor和DeferredResultProcessingInterceptor拦截器实例。    </p>
+<p>若你需要为特定的DeferredResult覆写默认的超时时间，你可以选用合适的构造方法来实现。类似，对于Callable返回，你可以把它包装在一个WebAsyncTask对象中，并使用合适的构造方法定义超时时间。WebAsyncTask类的构造方法同时也能接受一个任务执行器AsyncTaskExecutor类型的参数。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Spring/SpringMVC/异步请求/" data-id="cj5c3bs6n003j30blegiyp0zg" class="article-share-link" data-share="baidu" data-title="异步请求">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Spring/SpringMVC/异步请求/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Spring/SpringMVC/定义@RequestMapping注解的处理方法" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Spring/SpringMVC/定义@RequestMapping注解的处理方法/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/定义@RequestMapping注解的处理方法/">定义@RequestMapping注解的处理方法</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="PathVariable"><a href="#PathVariable" class="headerlink" title="@PathVariable"></a>@PathVariable</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path=&quot;/owners/&#123;ownerId&#125;&quot;, method=RequestMethod.GET)</div><div class="line">public String findOwner(@PathVariable String ownerId, Model model) &#123;</div><div class="line">    Owner owner = ownerService.findOwner(ownerId);</div><div class="line">    model.addAttribute(&quot;owner&quot;, owner);</div><div class="line">    return &quot;displayOwner&quot;;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>URI模板”/owners/{ownerId}”指定了一个变量，名为ownerId。当控制器处理这个请求的时候，ownerId的值就会被URI模板中对应部分的值所填充。比如说，如果请求的URI是/owners/fred，此时变量ownerId的值就是fred.<br>为了处理@PathVariables注解，Spring MVC必须通过变量名来找到URI模板中相对应的变量。你可以在注解中直接声明：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path=&quot;/owners/&#123;ownerId&#125;&#125;&quot;, method=RequestMethod.GET)</div><div class="line">public String findOwner(@PathVariable(&quot;ownerId&quot;) String theOwner, Model model) &#123;</div><div class="line">    // 具体的方法代码…</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>如果URI模板中的变量名与方法的参数名是相同的，则你可以不必再指定一次<br>一个方法可以拥有任意数量的@PathVariable注解：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path=&quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;&quot;, method=RequestMethod.GET)</div><div class="line">public String findPet(@PathVariable String ownerId, @PathVariable String petId, Model model) &#123;</div><div class="line">    Owner owner = ownerService.findOwner(ownerId);</div><div class="line">    Pet pet = owner.getPet(petId);</div><div class="line">    model.addAttribute(&quot;pet&quot;, pet);</div><div class="line">    return &quot;displayPet&quot;;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>当@PathVariable注解被应用于Map<string, string="">类型的参数上时，框架会使用所有URI模板变量来填充这个map。  </string,></p>
+<p>URI模板可以从类级别和方法级别的 @RequestMapping 注解获取数据。因此，像这样的findPet()方法可以被类似于/owners/42/pets/21这样的URL路由并调用到：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@Controller</div><div class="line">@RequestMapping(&quot;/owners/&#123;ownerId&#125;&quot;)</div><div class="line">public class RelativePathUriTemplateController &#123;</div><div class="line"></div><div class="line">    @RequestMapping(&quot;/pets/&#123;petId&#125;&quot;)</div><div class="line">    public void findPet(_@PathVariable_ String ownerId, _@PathVariable_ String petId, Model model) &#123;</div><div class="line">        // 方法实现体这里忽略</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>@PathVariable可以被应用于所有 简单类型 的参数上，比如int、long、Date等类型。Spring会自动地帮你把参数转化成合适的类型，如果转换失败，就抛出一个TypeMismatchException。如果你需要处理其他数据类型的转换，也可以注册自己的类</p>
+<h1 id="MatrixVariable"><a href="#MatrixVariable" class="headerlink" title="@MatrixVariable"></a>@MatrixVariable</h1><p>矩阵变量可以在任何路径段落中出现，每对矩阵变量之间使用一个分号“;”隔开。比如这样的URI：”/cars;color=red;year=2012”。多个值可以用逗号隔开”color=red,green,blue”，或者重复变量名多次”color=red;color=green;color=blue”<br>下面是一个例子，展示了我们如何从矩阵变量中获取到变量“q”的值：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">// GET /pets/42;q=11;r=22</div><div class="line"></div><div class="line">@RequestMapping(path = &quot;/pets/&#123;petId&#125;&quot;, method = RequestMethod.GET)</div><div class="line">public void findPet(@PathVariable String petId, @MatrixVariable int q) &#123;</div><div class="line"></div><div class="line">    // petId == 42</div><div class="line">    // q == 11</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>由于任意路径段落中都可以含有矩阵变量，在某些场景下，你需要用更精确的信息来指定一个矩阵变量的位置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">// GET /owners/42;q=11/pets/21;q=22</div><div class="line"></div><div class="line">@RequestMapping(path = &quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;&quot;, method = RequestMethod.GET)</div><div class="line">public void findPet(</div><div class="line">    @MatrixVariable(name=&quot;q&quot;, pathVar=&quot;ownerId&quot;) int q1,</div><div class="line">    @MatrixVariable(name=&quot;q&quot;, pathVar=&quot;petId&quot;) int q2) &#123;</div><div class="line"></div><div class="line">    // q1 == 11</div><div class="line">    // q2 == 22</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>你也可以声明一个矩阵变量不是必须出现的，并给它赋一个默认值：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">// GET /pets/42</div><div class="line"></div><div class="line">@RequestMapping(path = &quot;/pets/&#123;petId&#125;&quot;, method = RequestMethod.GET)</div><div class="line">public void findPet(@MatrixVariable(required=false, defaultValue=&quot;1&quot;) int q) &#123;</div><div class="line"></div><div class="line">    // q == 1</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>也可以通过一个Map来存储所有的矩阵变量：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">// GET /owners/42;q=11;r=12/pets/21;q=22;s=23</div><div class="line"></div><div class="line">@RequestMapping(path = &quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;&quot;, method = RequestMethod.GET)</div><div class="line">public void findPet(</div><div class="line">    @MatrixVariable Map&lt;String, String&gt; matrixVars,</div><div class="line">    @MatrixVariable(pathVar=&quot;petId&quot;) Map&lt;String, String&gt; petMatrixVars) &#123;</div><div class="line"></div><div class="line">    // matrixVars: [&quot;q&quot; : [11,22], &quot;r&quot; : 12, &quot;s&quot; : 23]</div><div class="line">    // petMatrixVars: [&quot;q&quot; : 11, &quot;s&quot; : 23]</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>使用MVC的命名空间配置时，你可以把<mvc:annotation-driven>元素下的enable-matrix-variables属性设置为true。该值默认情况下是配置为false的<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</div><div class="line">&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;</div><div class="line">    xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot;</div><div class="line">    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</div><div class="line">    xsi:schemaLocation=&quot;</div><div class="line">        http://www.springframework.org/schema/beans</div><div class="line">        http://www.springframework.org/schema/beans/spring-beans.xsd</div><div class="line">        http://www.springframework.org/schema/mvc</div><div class="line">        http://www.springframework.org/schema/mvc/spring-mvc.xsd&quot;&gt;</div><div class="line"></div><div class="line">    &lt;mvc:annotation-driven enable-matrix-variables=&quot;true&quot;/&gt;</div><div class="line"></div><div class="line">&lt;/beans&gt;</div></pre></td></tr></table></figure></mvc:annotation-driven></p>
+<h2 id="RequestParam"><a href="#RequestParam" class="headerlink" title="@RequestParam"></a>@RequestParam</h2><ul>
+<li>value：参数名字，即入参的请求参数名字，如username表示请求的参数区中的名字为username的参数的值将传入；</li>
+<li>required：是否必须，默认是true，表示请求中一定要有相应的参数，否则将报404错误码；</li>
+<li>defaultValue：默认值，表示如果请求中没有同名参数时的默认值<br>。<br>你可以使用@RequestParam注解将请求参数绑定到你控制器的方法参数上。<br>类似于<code>request.getParameter();</code><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">@Controller</div><div class="line">@RequestMapping(&quot;/pets&quot;)</div><div class="line">@SessionAttributes(&quot;pet&quot;)</div><div class="line">public class EditPetForm &#123;</div><div class="line">    // ...</div><div class="line">    @RequestMapping(method = RequestMapping.GET)</div><div class="line">    public String setupForm(@RequestParam(&quot;petId&quot;) int petId, ModelMap model) &#123;</div><div class="line">        Pet pet = this.clinic.loadPet(petId);</div><div class="line">        model.addAttribute(&quot;pet&quot;, pet);</div><div class="line">        return &quot;petForm&quot;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // ,..</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>若参数使用了该注解，则该参数默认是必须提供的，但你也可以把该参数标注为非必须的：只需要将@RequestParam注解的required属性设置为false即可（比如，<code>@RequestParam(path=&quot;id&quot;, required=false)</code>）。    </p>
+<p>若所注解的方法参数类型不是String，则类型转换会自动地发生。<br>若@RequestParam注解的参数类型是Map<string, string="">或者MultiValueMap<string, string="">，则该Map中会自动填充所有的请求参数。</string,></string,></p>
+<h2 id="RequestBody"><a href="#RequestBody" class="headerlink" title="@RequestBody"></a>@RequestBody</h2><p>一直以为在SpringMVC环境中，@RequestBody接收的是一个Json对象，一直在调试代码都没有成功，后来发现，其实 @RequestBody接收的是一个Json对象的字符串，而不是一个Json对象。然而在ajax请求往往传的都是Json对象，后来发现用 JSON.stringify(data)的方式就能将对象变成字符串。同时ajax请求的时候也要指定dataType: “json”,contentType:”application/json” 这样就可以轻易的将一个对象或者List传到Java端，使用@RequestBody即可绑定对象或者List.  </p>
+<p>该注解常用来处理Content-Type: 不是application/x-www-form-urlencoded编码的内容，例如application/json, application/xml等；<br>它是通过使用HandlerAdapter 配置的HttpMessageConverters来解析post data body，然后绑定到相应的bean上的。<br>因为配置有FormHttpMessageConverter，所以也可以用来处理 application/x-www-form-urlencoded的内容，处理完的结果放在一个MultiValueMap<string, string="">里，这种情况在某些特殊需求下使用，详情查看FormHttpMessageConverter api;</string,></p>
+<p>@RequestBody注解时： 根据Request对象header部分的Content-Type类型，逐一匹配合适的HttpMessageConverter来读取数据</p>
+<p>MappingJacksonHttpMessageConverter 调用了 objectMapper.writeValue(OutputStream stream, Object)方法，使用@ResponseBody注解返回的对象就传入Object参数内。若返回的对象为已经格式化好的json串时，不使用@RequestBody注解，而应该这样处理：</p>
+<ol>
+<li>response.setContentType(“application/json; charset=UTF-8”);</li>
+<li>response.getWriter().print(jsonStr);</li>
+<li>直接输出到body区，然后的视图为void。</li>
+</ol>
+<p>方法参数中的@RequestBody注解暗示了方法参数应该被绑定了HTTP请求体的值。举个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/something&quot;, method = RequestMethod.PUT)</div><div class="line">public void handle(@RequestBody String body, Writer writer) throws IOException &#123;</div><div class="line">    writer.write(body);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>请求体到方法参数的转换是由HttpMessageConverter完成的。HttpMessageConverter负责将HTTP请求信息转换成对象，以及将对象转换回一个HTTP响应体。对于@RequestBody注解，RequestMappingHandlerAdapter提供了以下几种默认的HttpMessageConverter支持：</p>
+<ul>
+<li>ByteArrayHttpMessageConverter用以转换字节数组</li>
+<li>StringHttpMessageConverter用以转换字符串</li>
+<li>FormHttpMessageConverter用以将表格数据转换成MultiValueMap<string, string="">或从MultiValueMap<string, string="">中转换出表格数据</string,></string,></li>
+<li>SourceHttpMessageConverter用于javax.xml.transform.Source类的互相转换</li>
+<li>MappingJacksonHttpMessageConverter负责读取和写入json格式的数据</li>
+</ul>
+<p>若你更倾向于阅读和编写XML文件，那么你需要配置一个MarshallingHttpMessageConverter并为其提供org.springframework.oxm包下的一个Marshaller和Unmarshaller实现。下面的示例就为你展示如何直接在配置文件中配置它。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;bean class=&quot;org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter&quot;&gt;</div><div class="line">    &lt;property name=&quot;messageConverters&quot;&gt;</div><div class="line">        &lt;util:list id=&quot;beanList&quot;&gt;</div><div class="line">            &lt;ref bean=&quot;stringHttpMessageConverter&quot;/&gt;</div><div class="line">            &lt;ref bean=&quot;marshallingHttpMessageConverter&quot;/&gt;</div><div class="line">        &lt;/util:list&gt;</div><div class="line">    &lt;/property</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;stringHttpMessageConverter&quot; class=&quot;org.springframework.http.converter.StringHttpMessageConverter&quot;/&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;marshallingHttpMessageConverter&quot;</div><div class="line">        class=&quot;org.springframework.http.converter.xml.MarshallingHttpMessageConverter&quot;&gt;</div><div class="line">    &lt;property name=&quot;marshaller&quot; ref=&quot;castorMarshaller&quot;/&gt;</div><div class="line">    &lt;property name=&quot;unmarshaller&quot; ref=&quot;castorMarshaller&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;castorMarshaller&quot; class=&quot;org.springframework.oxm.castor.CastorMarshaller&quot;/&gt;</div></pre></td></tr></table></figure></p>
+<p>注解了@RequestBody的方法参数还可以被@Valid注解，这样框架会使用已配置的Validator实例来对该参数进行验证。若你的应用是使用MVC命令空间或MVC Java编程的方式配置的，框架会假设在classpath路径下存在一个符合JSR-303规范的验证器，并自动将其作为默认配置。      </p>
+<p>与@ModelAttribute注解的参数一样，Errors也可以被传入为方法参数，用于检查错误。如果没有声明这样一个参数，那么程序会抛出一个MethodArgumentNotValidException异常。该异常默认由DefaultHandlerExceptionResolver处理，处理程序会返回一个400错误给客户端。</p>
+<h2 id="ResponseBody"><a href="#ResponseBody" class="headerlink" title="@ResponseBody"></a>@ResponseBody</h2><p>@ResponseBody注解与@RequestBody注解类似。@ResponseBody注解可被应用于方法上，标志该方法的返回值（更正，原文是return type，看起来应该是返回值）应该被直接写回到HTTP响应体中去（而不会被被放置到Model中或被解释为一个视图名）。举个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/something&quot;, method = RequestMethod.PUT)</div><div class="line">@ResponseBody</div><div class="line">public String helloWorld() &#123;</div><div class="line">    return &quot;Hello World&quot;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>上面的代码结果是文本Hello World将被写入HTTP的响应流中。<br>与@RequestBody注解类似，Spring使用了一个HttpMessageConverter来将返回对象转换到响应体中。</p>
+<h2 id="CookieValue"><a href="#CookieValue" class="headerlink" title="@CookieValue"></a>@CookieValue</h2><p>@CookieValue注解能将一个方法参数与一个HTTP cookie的值进行绑定。<br>看一个这样的场景：以下的这个cookie存储在一个HTTP请求中：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">JSESSIONID=415A4AC178C59DACE0B2C9CA727CDD84</div></pre></td></tr></table></figure></p>
+<p>下面的代码演示了拿到JSESSIONID这个cookie值的方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/displayHeaderInfo.do&quot;)</div><div class="line">public void displayHeaderInfo(@CookieValue(&quot;JSESSIONID&quot;) String cookie) &#123;</div><div class="line">    //...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>若注解的目标方法参数不是String类型，则类型转换会自动进行。</p>
+<h2 id="RequestHeader"><a href="#RequestHeader" class="headerlink" title="@RequestHeader"></a>@RequestHeader</h2><p>@RequestHeader注解能将一个方法参数与一个请求头属性进行绑定。<br>以下是一个请求头的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Host                    localhost:8080</div><div class="line">Accept                  text/html,application/xhtml+xml,application/xml;q=0.9</div><div class="line">Accept-Language         fr,en-gb;q=0.7,en;q=0.3</div><div class="line">Accept-Encoding         gzip,deflate</div><div class="line">Accept-Charset          ISO-8859-1,utf-8;q=0.7,*;q=0.7</div><div class="line">Keep-Alive              300</div></pre></td></tr></table></figure></p>
+<p>以下的代码片段展示了如何取得Accept-Encoding请求头和Keep-Alive请求头的值：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/displayHeaderInfo.do&quot;)</div><div class="line">public void displayHeaderInfo(@RequestHeader(&quot;Accept-Encoding&quot;) String encoding,</div><div class="line">        @RequestHeader(&quot;Keep-Alive&quot;) long keepAlive) &#123;</div><div class="line">    //...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>若注解的目标方法参数不是String类型，则类型转换会自动进行。<br>如果@RequestHeader注解应用在Map<string, string="">、MultiValueMap<string, string="">或HttpHeaders类型的参数上，那么所有的请求头属性值都会被填充到map中。<br>Spring内置支持将一个逗号分隔的字符串（或其他类型转换系统所能识别的类型）转换成一个String类型的列表/集合。举个例子，一个注解了@RequestHeader(“Accept”)的方法参数可以是一个String类型，但也可以是String[]或List<string>类型的。</string></string,></string,></p>
+<h2 id="HttpEntity"><a href="#HttpEntity" class="headerlink" title="@HttpEntity"></a>@HttpEntity</h2><p>HttpEntity与@RequestBody和@ResponseBody很相似。除了能获得请求体和响应体中的内容之外，HttpEntity（以及专门负责处理响应的ResponseEntity子类）还可以存取请求头和响应头，像下面这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/something&quot;)</div><div class="line">public ResponseEntity&lt;String&gt; handle(HttpEntity&lt;byte[]&gt; requestEntity) throws UnsupportedEncodingException &#123;</div><div class="line">    String requestHeader = requestEntity.getHeaders().getFirst(&quot;MyRequestHeader&quot;);</div><div class="line">    byte[] requestBody = requestEntity.getBody();</div><div class="line"></div><div class="line">    // do something with request header and body</div><div class="line"></div><div class="line">    HttpHeaders responseHeaders = new HttpHeaders();</div><div class="line">    responseHeaders.set(&quot;MyResponseHeader&quot;, &quot;MyValue&quot;);</div><div class="line">    return new ResponseEntity&lt;String&gt;(&quot;Hello World&quot;, responseHeaders, HttpStatus.CREATED);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>上面这段示例代码先是获取了MyRequestHeader请求头的值，然后读取请求体的主体内容。读完以后往影响头中添加了一个自己的响应头MyResponseHeader，然后向响应流中写了字符串Hello World，最后把响应状态码设置为201（创建成功）。<br>与@RequestBody与@ResponseBody注解一样，Spring使用了HttpMessageConverter来对请求流和响应流进行转换。</p>
+<h2 id="ModelAttribute"><a href="#ModelAttribute" class="headerlink" title="@ModelAttribute"></a>@ModelAttribute</h2><h3 id="ModelAttribute注解应用在方法上"><a href="#ModelAttribute注解应用在方法上" class="headerlink" title="@ModelAttribute注解应用在方法上"></a>@ModelAttribute注解应用在方法上</h3><p>注解在方法上的@ModelAttribute说明了方法的作用是用于添加一个或多个属性到model上。这样的方法能接受与@RequestMapping注解相同的参数类型，只不过不能直接被映射到具体的请求上。在同一个控制器中，注解了@ModelAttribute的方法实际上会在@RequestMapping方法之前被调用。以下是几个例子：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Add one attribute</span></div><div class="line"><span class="comment">// The return value of the method is added to the model under the name "account"</span></div><div class="line"><span class="comment">// You can customize the name via @ModelAttribute("myAccount")</span></div><div class="line"></div><div class="line"><span class="meta">@ModelAttribute</span></div><div class="line"><span class="function"><span class="keyword">public</span> Account <span class="title">addAccount</span><span class="params">(@RequestParam String number)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> accountManager.findAccount(number);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// Add multiple attributes</span></div><div class="line"></div><div class="line"><span class="meta">@ModelAttribute</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">populateModel</span><span class="params">(@RequestParam String number, Model model)</span> </span>&#123;</div><div class="line">    model.addAttribute(accountManager.findAccount(number));</div><div class="line">    <span class="comment">// add more ...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>@ModelAttribute方法通常被用来填充一些公共需要的属性或数据，比如一个下拉列表所预设的几种状态，或者宠物的几种类型，或者去取得一个HTML表单渲染所需要的命令对象，比如Account等。<br>留意@ModelAttribute方法的两种风格。在第一种写法中，方法通过返回值的方式默认地将添加一个属性；在第二种写法中，方法接收一个Model对象，然后可以向其中添加任意数量的属性。你可以在根据需要，在两种风格中选择合适的一种。<br>一个控制器可以拥有数量不限的@ModelAttribute方法。同个控制器内的所有这些方法，都会在@RequestMapping方法之前被调用.<br>@ModelAttribute方法也可以定义在@ControllerAdvice注解的类中，并且这些@ModelAttribute可以同时对许多控制器生效。<br>@ModelAttribute注解也可以被用在@RequestMapping方法上。这种情况下，@RequestMapping方法的返回值将会被解释为model的一个属性，而非一个视图名。此时视图名将以视图命名约定来方式来决议，与返回值为void的方法所采用的处理方法类似</p>
+<h3 id="ModelAttribute注解用在方法参数上"><a href="#ModelAttribute注解用在方法参数上" class="headerlink" title="@ModelAttribute注解用在方法参数上"></a>@ModelAttribute注解用在方法参数上</h3><p>注解在方法参数上的@ModelAttribute说明了该方法参数的值将由model中取得。如果model中找不到，那么该参数会先被实例化，然后被添加到model中。在model中存在以后，请求中所有名称匹配的参数都会填充到该参数中。这在Spring MVC中被称为数据绑定，一个非常有用的特性，节约了你每次都需要手动从表格数据中转换这些字段数据的时间。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;/edit&quot;, method = RequestMethod.POST)</div><div class="line">public String processSubmit(@ModelAttribute Pet pet) &#123; &#125;</div></pre></td></tr></table></figure></p>
+<p>以上面的代码为例，这个Pet类型的实例可能来自哪里呢？有几种可能:     </p>
+<ul>
+<li>它可能因为@SessionAttributes注解的使用已经存在于model中</li>
+<li>它可能因为在同个控制器中使用了@ModelAttribute方法已经存在于model中</li>
+<li>它可能是由URI模板变量和类型转换中取得的（下面会详细讲解）</li>
+<li>它可能是调用了自身的默认构造器被实例化出来的  </li>
+</ul>
+<p>@ModelAttribute方法常用于从数据库中取一个属性值，该值可能通过@SessionAttributes注解在请求中间传递。在一些情况下，使用URI模板变量和类型转换的方式来取得一个属性是更方便的方式。这里有个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/accounts/&#123;account&#125;&quot;, method = RequestMethod.PUT)</div><div class="line">public String save(@ModelAttribute(&quot;account&quot;) Account account) &#123;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>上面这个例子中，model属性的名称（”account”）与URI模板变量的名称相匹配。如果你配置了一个可以将String类型的账户值转换成Account类型实例的转换器Converter<string, account="">，那么上面这段代码就可以工作的很好，而不需要再额外写一个@ModelAttribute方法。<br>下一步就是数据的绑定。WebDataBinder类能将请求参数——包括字符串的查询参数和表单字段等——通过名称匹配到model的属性上。成功匹配的字段在需要的时候会进行一次类型转换（从String类型到目标字段的类型），然后被填充到model对应的属性中。数据绑定和数据验证的问题在第8章 验证，数据绑定和类型转换中提到。如何在控制器层来定制数据绑定的过程，在这一节 “定制WebDataBinder的初始化”中提及。<br>进行了数据绑定后，则可能会出现一些错误，比如没有提供必须的字段、类型转换过程的错误等。若想检查这些错误，可以在注解了@ModelAttribute的参数紧跟着声明一个BindingResult参数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;/edit&quot;, method = RequestMethod.POST)</div><div class="line">public String processSubmit(@ModelAttribute(&quot;pet&quot;) Pet pet, BindingResult result) &#123;</div><div class="line">    if (result.hasErrors()) &#123;</div><div class="line">        return &quot;petForm&quot;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // ...</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></string,></p>
+<p>拿到BindingResult参数后，你可以检查是否有错误。有时你可以通过Spring的<errors>表单标签来在同一个表单上显示错误信息。<br>BindingResult被用于记录数据绑定过程的错误，因此除了数据绑定外，你还可以把该对象传给自己定制的验证器来调用验证。这使得数据绑定过程和验证过程出现的错误可以被搜集到一处，然后一并返回给用户：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;/edit&quot;, method = RequestMethod.POST)</div><div class="line">public String processSubmit(@ModelAttribute(&quot;pet&quot;) Pet pet, BindingResult result) &#123;</div><div class="line"></div><div class="line">    new PetValidator().validate(pet, result);</div><div class="line">    if (result.hasErrors()) &#123;</div><div class="line">        return &quot;petForm&quot;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // ...</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></errors></p>
+<p>又或者，你可以通过添加一个JSR-303规范的@Valid注解，这样验证器会自动被调用。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;/edit&quot;, method = RequestMethod.POST)</div><div class="line">public String processSubmit(@Valid @ModelAttribute(&quot;pet&quot;) Pet pet, BindingResult result) &#123;</div><div class="line"></div><div class="line">    if (result.hasErrors()) &#123;</div><div class="line">        return &quot;petForm&quot;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // ...</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="SessionAttributes"><a href="#SessionAttributes" class="headerlink" title="@SessionAttributes"></a>@SessionAttributes</h2><p>类型级别的@SessionAttributes注解声明了某个特定处理器所使用的会话属性。通常它会列出该类型希望存储到session或converstaion中的model属性名或model的类型名，一般是用于在请求之间保存一些表单数据的bean。<br>以下的代码段演示了该注解的用法，它指定了模型属性的名称<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@Controller</div><div class="line">@RequestMapping(&quot;/editPet.do&quot;)</div><div class="line">@SessionAttributes(&quot;pet&quot;)</div><div class="line">public class EditPetForm &#123;</div><div class="line">    // ...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Spring/SpringMVC/定义@RequestMapping注解的处理方法/" data-id="cj5c3bs6o003l30blyvoo76yg" class="article-share-link" data-share="baidu" data-title="定义@RequestMapping注解的处理方法">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Spring/SpringMVC/定义@RequestMapping注解的处理方法/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Spring/SpringMVC/统一处理异常" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Spring/SpringMVC/统一处理异常/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/统一处理异常/">统一处理异常</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="SpringMVC三种异常处理机制"><a href="#SpringMVC三种异常处理机制" class="headerlink" title="SpringMVC三种异常处理机制"></a>SpringMVC三种异常处理机制</h1><p>Spring MVC处理异常有3种方式： </p>
+<ol>
+<li>使用Spring MVC提供的简单异常处理器SimpleMappingExceptionResolver； </li>
+<li>实现Spring的异常处理接口HandlerExceptionResolver 自定义自己的异常处理器； </li>
+<li>使用@ExceptionHandler注解实现异常处理； </li>
+</ol>
+<h2 id="自定义异常处理类，实现HandlerExceptionResolver接口"><a href="#自定义异常处理类，实现HandlerExceptionResolver接口" class="headerlink" title="自定义异常处理类，实现HandlerExceptionResolver接口"></a>自定义异常处理类，实现<code>HandlerExceptionResolver</code>接口</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> javax.servlet.http.HttpServletRequest;</div><div class="line"><span class="keyword">import</span> javax.servlet.http.HttpServletResponse;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.springframework.http.HttpStatus;</div><div class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</div><div class="line"><span class="keyword">import</span> org.springframework.web.servlet.HandlerExceptionResolver;</div><div class="line"><span class="keyword">import</span> org.springframework.web.servlet.ModelAndView;</div><div class="line"><span class="keyword">import</span> org.springframework.web.servlet.view.json.MappingJackson2JsonView;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * 自定义异常处理器</div><div class="line"> * <span class="doctag">@author</span> chenliqiang.</div><div class="line"> * <span class="doctag">@Date</span> 2017年2月11日</div><div class="line"> * <span class="doctag">@Version</span> 1.0</div><div class="line"> */</div><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomExceptionResolver</span>  <span class="keyword">implements</span> <span class="title">HandlerExceptionResolver</span> </span>&#123;</div><div class="line"></div><div class="line"></div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> ModelAndView <span class="title">resolveException</span><span class="params">(HttpServletRequest request, HttpServletResponse response, Object handler,</span></span></div><div class="line">			Exception ex) &#123;</div><div class="line">		</div><div class="line">    	ex.printStackTrace();</div><div class="line">    	<span class="comment">//向前台返回错误信息</span></div><div class="line">        ModelAndView modelAndView = <span class="keyword">new</span> ModelAndView();</div><div class="line">        BaseException baseException = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">        <span class="comment">//如果抛出的是系统自定义的异常则直接转换</span></div><div class="line">        <span class="keyword">if</span>(ex <span class="keyword">instanceof</span> BussinessException) &#123;</div><div class="line">    		baseException = (BussinessException) ex;</div><div class="line">    		modelAndView.addObject(<span class="string">"code"</span>, -<span class="number">1</span>);</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span>(ex <span class="keyword">instanceof</span> ParamsException) &#123;</div><div class="line">    		baseException = (ParamsException) ex;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="comment">//如果抛出的不是系统自定义的异常则重新构造一个未知错误异常</span></div><div class="line">            <span class="comment">//这里我就也有CustomException省事了，实际中应该要再定义一个新的异常</span></div><div class="line">    		baseException = <span class="keyword">new</span> BaseException(<span class="string">"系统出错,请联系管理员"</span>);</div><div class="line">    		modelAndView.addObject(<span class="string">"code"</span>, -<span class="number">1</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        </div><div class="line">        modelAndView.addObject(<span class="string">"msg"</span>, baseException.getMessage());</div><div class="line">        <span class="comment">//modelAndView.setViewName("error/error");</span></div><div class="line">        modelAndView.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);</div><div class="line">        MappingJackson2JsonView view = <span class="keyword">new</span> MappingJackson2JsonView();        </div><div class="line">        modelAndView.setView(view);</div><div class="line">        </div><div class="line">        <span class="keyword">return</span> modelAndView;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="使用SimpleMappingExceptionResolver实现异常处理"><a href="#使用SimpleMappingExceptionResolver实现异常处理" class="headerlink" title="使用SimpleMappingExceptionResolver实现异常处理"></a>使用SimpleMappingExceptionResolver实现异常处理</h2><p>在Spring的配置文件applicationContext.xml中增加以下内容：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"</span>&gt;</span>  </div><div class="line">    <span class="comment">&lt;!-- 定义默认的异常处理页面，当该异常类型的注册时使用 --&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"defaultErrorView"</span> <span class="attr">value</span>=<span class="string">"error"</span>&gt;</span><span class="tag">&lt;/<span class="name">property</span>&gt;</span>  </div><div class="line">    <span class="comment">&lt;!-- 定义异常处理页面用来获取异常信息的变量名，默认名为exception --&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"exceptionAttribute"</span> <span class="attr">value</span>=<span class="string">"ex"</span>&gt;</span><span class="tag">&lt;/<span class="name">property</span>&gt;</span>  </div><div class="line">    <span class="comment">&lt;!-- 定义需要特殊处理的异常，用类名或完全路径名作为key，异常也页名作为值 --&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"exceptionMappings"</span>&gt;</span>  </div><div class="line">        <span class="tag">&lt;<span class="name">props</span>&gt;</span>  </div><div class="line">            <span class="tag">&lt;<span class="name">prop</span> <span class="attr">key</span>=<span class="string">"cn.basttg.core.exception.BusinessException"</span>&gt;</span>error-business<span class="tag">&lt;/<span class="name">prop</span>&gt;</span>  </div><div class="line">            <span class="tag">&lt;<span class="name">prop</span> <span class="attr">key</span>=<span class="string">"cn.basttg.core.exception.ParameterException"</span>&gt;</span>error-parameter<span class="tag">&lt;/<span class="name">prop</span>&gt;</span>  </div><div class="line">  </div><div class="line">            <span class="comment">&lt;!-- 这里还可以继续扩展对不同异常类型的处理 --&gt;</span>  </div><div class="line">        <span class="tag">&lt;/<span class="name">props</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span>  </div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<h2 id="使用-ExceptionHandler注解实现异常处理"><a href="#使用-ExceptionHandler注解实现异常处理" class="headerlink" title="使用@ExceptionHandler注解实现异常处理"></a>使用@ExceptionHandler注解实现异常处理</h2><p>HandlerExceptionResolver接口以及SimpleMappingExceptionResolver解析器类的实现使得你能声明式地将异常映射到特定的视图上，还可以在异常被转发（forward）到对应的视图前使用Java代码做些判断和逻辑。不过在一些场景，特别是依靠@ResponseBody返回响应而非依赖视图解析机制的场景下，直接设置响应的状态码并将客户端需要的错误信息直接写回响应体中，可能是更方便的方法。  </p>
+<p>你也可以使用@ExceptionHandler方法来做到这点。如果@ExceptionHandler方法是在控制器内部定义的，那么它会接收并处理由控制器（或其任何子类）中的@RequestMapping方法抛出的异常。如果你将@ExceptionHandler方法定义在@ControllerAdvice类中，那么它会处理相关控制器中抛出的异常。下面的代码就展示了一个定义在控制器内部的@ExceptionHandler方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">@Controller</div><div class="line">public class SimpleController &#123;</div><div class="line"></div><div class="line">    // @RequestMapping methods omitted ...</div><div class="line"></div><div class="line">    @ExceptionHandler(IOException.class)</div><div class="line">    public ResponseEntity&lt;String&gt; handleIOException(IOException ex) &#123;</div><div class="line">        // prepare responseEntity</div><div class="line">        return responseEntity;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>使用@ExceptionHandler进行处理有一个不好的地方是进行异常处理的方法必须与出错的方法在同一个Controller里面    </p>
+<p>增加BaseController类，并在类中使用@ExceptionHandler注解声明异常处理，代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">public class BaseController &#123;  </div><div class="line">    /** 基于@ExceptionHandler异常处理 */  </div><div class="line">    @ExceptionHandler  </div><div class="line">    public String exp(HttpServletRequest request, Exception ex) &#123;  </div><div class="line">          </div><div class="line">        request.setAttribute(&quot;ex&quot;, ex);  </div><div class="line">          </div><div class="line">        // 根据不同错误转向不同页面  </div><div class="line">        if(ex instanceof BusinessException) &#123;  </div><div class="line">            return &quot;error-business&quot;;  </div><div class="line">        &#125;else if(ex instanceof ParameterException) &#123;  </div><div class="line">            return &quot;error-parameter&quot;;  </div><div class="line">        &#125; else &#123;  </div><div class="line">            return &quot;error&quot;;  </div><div class="line">        &#125;  </div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Spring/SpringMVC/统一处理异常/" data-id="cj5c3bs6r003m30bl9njhadjh" class="article-share-link" data-share="baidu" data-title="统一处理异常">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Spring/SpringMVC/统一处理异常/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Spring/SpringMVC/自定义校验" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Spring/SpringMVC/自定义校验/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/自定义校验/">自定义校验</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="在类中根据不同的请求定义不同的校验接口"><a href="#在类中根据不同的请求定义不同的校验接口" class="headerlink" title="在类中根据不同的请求定义不同的校验接口"></a>在类中根据不同的请求定义不同的校验接口</h2> <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpressOrder</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line"></div><div class="line">   <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</div><div class="line"></div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PdaPut</span> </span>&#123;&#125;</div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PCScanPut</span> </span>&#123;&#125;</div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PdaPriceQuery</span> </span>&#123;&#125;</div><div class="line"> </div><div class="line">   <span class="meta">@NotNull</span>(groups = &#123;PdaPut.class, PdaPriceQuery.class, PdaBarcode.class&#125;)</div><div class="line">   <span class="keyword">private</span> Integer id;</div><div class="line">   </div><div class="line">   <span class="meta">@NotNull</span>(groups = &#123;PdaPut.class, PdaPriceQuery.class&#125;)</div><div class="line">   <span class="keyword">private</span> Integer serviceTypeId;</div><div class="line">   </div><div class="line">   <span class="comment">//getter and setter</span></div></pre></td></tr></table></figure>
+<p>在mvc中使用不同的校验<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/updateBarcode&quot;, method = RequestMethod.PUT)</div><div class="line">public @ResponseBody ExpressOrder updateBarcode(</div><div class="line">        @Validated(&#123;ExpressOrder.PdaBarcode.class&#125;)</div><div class="line">        @RequestBody ExpressOrder expressOrder) throws Exception &#123;</div><div class="line">	</div><div class="line">    return expressOrderService.updateBarcode(expressOrder);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Spring/SpringMVC/自定义校验/" data-id="cj5c3bs6t003o30blezhbeyg4" class="article-share-link" data-share="baidu" data-title="自定义校验">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Spring/SpringMVC/自定义校验/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -480,109 +742,11 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/服务器相关/Hessian/几种通信协议的比较/" data-id="cj5c2h6m4001zzvblsy2ti54z" class="article-share-link" data-share="baidu" data-title="几种通信协议的比较">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/服务器相关/Hessian/几种通信协议的比较/" data-id="cj5c3bs7q006l30blfyln17kl" class="article-share-link" data-share="baidu" data-title="几种通信协议的比较">分享到</a>
       
 
       
         <a href="http://yoursite.com/2017/07/19/服务器相关/Hessian/几种通信协议的比较/#ds-thread" class="article-comment-link">评论</a>
-      
-
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-服务器相关/Hudson &amp; Jenkins/Jenkins相关设置" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/07/19/服务器相关/Hudson & Jenkins/Jenkins相关设置/" class="article-date">
-  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a>►<a class="article-category-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/服务器相关/Hudson & Jenkins/Jenkins相关设置/">Jenkins相关设置</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="安装目录"><a href="#安装目录" class="headerlink" title="安装目录"></a>安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/Users/Shared/Jenkins</div></pre></td></tr></table></figure>
-<h2 id="开机自启动"><a href="#开机自启动" class="headerlink" title="开机自启动"></a>开机自启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo launchctl load -w /Library/LaunchDaemons/org.jenkins-ci.plist</div></pre></td></tr></table></figure>
-<h2 id="取消开机自启动"><a href="#取消开机自启动" class="headerlink" title="取消开机自启动"></a>取消开机自启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo launchctl unload -w /Library/LaunchDaemons/org.jenkins-ci.plist</div></pre></td></tr></table></figure>
-<h2 id="修改端口"><a href="#修改端口" class="headerlink" title="修改端口"></a>修改端口</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">1. 关闭jenkins</div><div class="line">2. sudo defaults write /Library/Preferences/org.jenkins-ci httpPort &apos;9999&apos;</div></pre></td></tr></table></figure>
-<h2 id="登录"><a href="#登录" class="headerlink" title="登录"></a>登录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">localhost:9999</div></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-        <a data-url="http://yoursite.com/2017/07/19/服务器相关/Hudson & Jenkins/Jenkins相关设置/" data-id="cj5c2h6m50021zvblyl7n00vo" class="article-share-link" data-share="baidu" data-title="Jenkins相关设置">分享到</a>
-      
-
-      
-        <a href="http://yoursite.com/2017/07/19/服务器相关/Hudson & Jenkins/Jenkins相关设置/#ds-thread" class="article-comment-link">评论</a>
-      
-
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Spring/SpringMVC/JsonView嵌套（继承）过滤" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/07/19/Spring/SpringMVC/JsonView嵌套（继承）过滤/" class="article-date">
-  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/JsonView嵌套（继承）过滤/">JsonView嵌套（继承）过滤</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="通过接口继承的方式嵌套过滤"><a href="#通过接口继承的方式嵌套过滤" class="headerlink" title="通过接口继承的方式嵌套过滤"></a>通过接口继承的方式嵌套过滤</h2><h3 id="需要返回到前端的实体"><a href="#需要返回到前端的实体" class="headerlink" title="需要返回到前端的实体"></a>需要返回到前端的实体</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">public class OrderInfo &#123;</div><div class="line">	</div><div class="line">	public interface OrderInfoView extends ExpressOrderShopView , SellerAddressListView, </div><div class="line">	ExpressCouponCodeListView, ExpressOrderDistributionSiteView &#123;&#125;;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private Shop shop;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private List&lt;AddressBook&gt; addresses;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private List&lt;CouponCode&gt; coupons;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private List&lt;DistributionSite&gt; distributionSites;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="子对象"><a href="#子对象" class="headerlink" title="子对象"></a>子对象</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">public class Shop implements Serializable &#123;</div><div class="line">    public interface ExpressOrderShopView &#123;&#125;;</div><div class="line"></div><div class="line">    private Integer id;</div><div class="line">    </div><div class="line">    @NotNull</div><div class="line">    @Size( min = 1, max = 50 )</div><div class="line">    @JsonView(ExpressOrderShopView.class)</div><div class="line">    private String name;</div><div class="line"></div><div class="line">    @NotNull</div><div class="line">    @Size( min = 1, max = 255 )</div><div class="line">    @JsonView(ExpressOrderShopView.class)</div><div class="line">    private String address;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="controller"><a href="#controller" class="headerlink" title="controller"></a>controller</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/getOrderInfo&quot;, method = RequestMethod.GET)</div><div class="line">@ResponseStatus(HttpStatus.OK)</div><div class="line">@ResponseBody</div><div class="line">@JsonView(OrderInfo.OrderInfoView.class)</div><div class="line">public OrderInfo getOrderInfo(@RequestParam(&quot;mobile&quot;)   String mobile) throws Exception &#123;</div><div class="line">	if(null == mobile) &#123;</div><div class="line">		throw new ParamException(&quot;mobile不能为空&quot;);</div><div class="line">	&#125;</div><div class="line">	return expressOrderService.getOrderInfo(mobile);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-        <a data-url="http://yoursite.com/2017/07/19/Spring/SpringMVC/JsonView嵌套（继承）过滤/" data-id="cj5c2h6m60024zvbl3qfq6lvi" class="article-share-link" data-share="baidu" data-title="JsonView嵌套（继承）过滤">分享到</a>
-      
-
-      
-        <a href="http://yoursite.com/2017/07/19/Spring/SpringMVC/JsonView嵌套（继承）过滤/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -635,19 +799,19 @@
           </li>
         
           <li>
-            <a href="/2017/07/19/Maven/maven 引入外部jar包的几种方式/">maven 引入外部jar包的几种方式</a>
+            <a href="/2017/07/19/Spring/JPA/对应关系映射配置/">对应关系映射配置</a>
           </li>
         
           <li>
-            <a href="/2017/07/19/Spring/JPA/JPA高级查询/">JPA高级查询</a>
+            <a href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
           </li>
         
           <li>
-            <a href="/2017/07/19/Spring/JPA/Specification实例/">Specification实例</a>
+            <a href="/2017/07/19/Linux/apt-get常用命令/">apt-get常用命令</a>
           </li>
         
           <li>
-            <a href="/2017/07/19/Spring/JPA/利用hibernate实现/">利用hibernate实现</a>
+            <a href="/2017/07/19/Linux/mysql安装/">mysql安装</a>
           </li>
         
       </ul>
