@@ -4,19 +4,19 @@
 <head>
   <meta charset="utf-8">
   
-  <title>leo chen的个人博客</title>
+  <title>LeoChan&#39;s 个人博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="描述啊">
 <meta property="og:type" content="website">
-<meta property="og:title" content="leo chen的个人博客">
+<meta property="og:title" content="LeoChan&#39;s 个人博客">
 <meta property="og:url" content="http://yoursite.com/page/4/index.html">
-<meta property="og:site_name" content="leo chen的个人博客">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
 <meta property="og:description" content="描述啊">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="leo chen的个人博客">
+<meta name="twitter:title" content="LeoChan&#39;s 个人博客">
 <meta name="twitter:description" content="描述啊">
   
-    <link rel="alternative" href="/atom.xml" title="leo chen的个人博客" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.png">
@@ -33,7 +33,7 @@
   <div id="header-outer" class="outer">
     <div id="header-title" class="inner">
       <h1 id="logo-wrap">
-        <a href="/" id="logo">leo chen的个人博客</a>
+        <a href="/" id="logo">LeoChan&#39;s 个人博客</a>
       </h1>
       
         <h2 id="subtitle-wrap">
@@ -71,157 +71,6 @@
 </header>
     <div class="outer">
       <section id="main">
-  
-    <article id="post-Spring/Spring Task/自带用法" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/07/19/Spring/Spring Task/自带用法/" class="article-date">
-  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/Task/">Task</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/Spring Task/自带用法/">自带用法</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="applicationContext-task-xml"><a href="#applicationContext-task-xml" class="headerlink" title="applicationContext-task.xml"></a>applicationContext-task.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</div><div class="line">&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;</div><div class="line">	xmlns:task=&quot;http://www.springframework.org/schema/task&quot;</div><div class="line">	xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans  </div><div class="line">    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd  </div><div class="line">    http://www.springframework.org/schema/context   </div><div class="line">    http://www.springframework.org/schema/context/spring-context-4.1.xsd </div><div class="line">    http://www.springframework.org/schema/task </div><div class="line">    http://www.springframework.org/schema/task/spring-task-4.1.xsd</div><div class="line">    &quot;&gt;</div><div class="line">    </div><div class="line">    &lt;task:annotation-driven /&gt;</div><div class="line">    &lt;!-- 处理物流订单的定时任务 --&gt;</div><div class="line">    &lt;task:scheduler id=&quot;orderScheduler&quot; pool-size=&quot;10&quot; /&gt;</div><div class="line">    &lt;task:scheduled-tasks scheduler=&quot;orderScheduler&quot;&gt;</div><div class="line">       &lt;!-- 处理立即支付类型的在订单过期时间前还没有支付的订单 --&gt;</div><div class="line">       &lt;task:scheduled ref=&quot;logisticsOrderService&quot; method=&quot;remoteUpdateHsbStatus&quot; cron=&quot;0 0/5 * * * ?&quot; /&gt;</div><div class="line">       &lt;!-- 处理物流订单的支付订单的支付状态 --&gt;</div><div class="line">        &lt;task:scheduled ref=&quot;logisticsPaymentService&quot; method=&quot;processLogisticsPayment&quot; cron=&quot;0 0/5 * * * ?&quot; /&gt; </div><div class="line">       &lt;!-- 物流订单结算 --&gt;</div><div class="line">        &lt;task:scheduled ref=&quot;logisticsOrderTaskService&quot; method=&quot;doSettleLogisticsOrderTask&quot; cron=&quot;0 0 5 * * ?&quot;/&gt;</div><div class="line">    	&lt;!-- 处理与zpt同步失败的物流订单 --&gt;</div><div class="line">    	&lt;task:scheduled ref=&quot;logisticsOrderTaskService&quot; method=&quot;disposeSynFailOrderTask&quot; cron=&quot;0 0/5 * * * ?&quot;/&gt;</div><div class="line">    &lt;/task:scheduled-tasks&gt;</div><div class="line">    </div><div class="line">&lt;/beans&gt;</div></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer class="article-footer">
-      
-        <a data-url="http://yoursite.com/2017/07/19/Spring/Spring Task/自带用法/" data-id="cj5c3bs5u001w30blt95zikrx" class="article-share-link" data-share="baidu" data-title="自带用法">分享到</a>
-      
-
-      
-        <a href="http://yoursite.com/2017/07/19/Spring/Spring Task/自带用法/#ds-thread" class="article-comment-link">评论</a>
-      
-
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Spring/Spring Task/使用Quartz" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/07/19/Spring/Spring Task/使用Quartz/" class="article-date">
-  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/Task/">Task</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/Spring Task/使用Quartz/">使用Quartz</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="Maven"><a href="#Maven" class="headerlink" title="Maven"></a>Maven</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">&lt;!-- spring time task --&gt;</div><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;org.quartz-scheduler&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;quartz&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;1.8.4&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
-<h2 id="方法一"><a href="#方法一" class="headerlink" title="方法一:"></a>方法一:</h2><p>作业类继承自特定的基类：<code>org.springframework.scheduling.quartz.QuartzJobBean</code><br>作业类（定时任务类）<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">import org.quartz.JobExecutionContext;  </div><div class="line">import org.quartz.JobExecutionException;  </div><div class="line">import org.springframework.scheduling.quartz.QuartzJobBean;  </div><div class="line">public class Job1 extends QuartzJobBean &#123;  </div><div class="line">  </div><div class="line">private int timeout;  </div><div class="line">private static int i = 0;  </div><div class="line">//调度工厂实例化后，经过timeout时间开始执行调度  </div><div class="line">public void setTimeout(int timeout) &#123;  </div><div class="line">this.timeout = timeout;  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">/** </div><div class="line">* 要调度的具体任务 </div><div class="line">*/  </div><div class="line">@Override  </div><div class="line">protected void executeInternal(JobExecutionContext context)  </div><div class="line">    throws JobExecutionException &#123;  </div><div class="line">      System.out.println(&quot;定时任务执行中…&quot;);  </div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h3 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">&lt;bean name=&quot;exampleJob&quot; class=&quot;org.springframework.scheduling.quartz.JobDetailFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;jobClass&quot; value=&quot;example.ExampleJob&quot;/&gt;</div><div class="line">    &lt;property name=&quot;jobDataAsMap&quot;&gt;</div><div class="line">        &lt;map&gt;</div><div class="line">            &lt;entry key=&quot;timeout&quot; value=&quot;5&quot;/&gt;</div><div class="line">        &lt;/map&gt;</div><div class="line">    &lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;simpleTrigger&quot; class=&quot;org.springframework.scheduling.quartz.SimpleTriggerFactoryBean&quot;&gt;</div><div class="line">    &lt;!-- see the example of method invoking job above --&gt;</div><div class="line">    &lt;property name=&quot;jobDetail&quot; ref=&quot;exampleJob&quot;/&gt;</div><div class="line">    &lt;!-- 10 seconds --&gt;</div><div class="line">    &lt;property name=&quot;startDelay&quot; value=&quot;10000&quot;/&gt;</div><div class="line">    &lt;!-- repeat every 50 seconds --&gt;</div><div class="line">    &lt;property name=&quot;repeatInterval&quot; value=&quot;50000&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;cronTrigger&quot; class=&quot;org.springframework.scheduling.quartz.CronTriggerFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;jobDetail&quot; ref=&quot;exampleJob&quot;/&gt;</div><div class="line">    &lt;!-- run every morning at 6 AM --&gt;</div><div class="line">    &lt;property name=&quot;cronExpression&quot; value=&quot;0 0 6 * * ?&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean class=&quot;org.springframework.scheduling.quartz.SchedulerFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;triggers&quot;&gt;</div><div class="line">        &lt;list&gt;</div><div class="line">            &lt;ref bean=&quot;cronTrigger&quot;/&gt;</div><div class="line">            &lt;ref bean=&quot;simpleTrigger&quot;/&gt;</div><div class="line">        &lt;/list&gt;</div><div class="line">    &lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<h2 id="方法二"><a href="#方法二" class="headerlink" title="方法二"></a>方法二</h2><p>作业类不继承特定基类</p>
-<h3 id="配置文件-1"><a href="#配置文件-1" class="headerlink" title="配置文件"></a>配置文件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;exampleBusinessObject&quot; class=&quot;examples.ExampleBusinessObject&quot;/&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;jobDetail&quot; class=&quot;org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;targetObject&quot; ref=&quot;exampleBusinessObject&quot;/&gt;</div><div class="line">    &lt;property name=&quot;targetMethod&quot; value=&quot;doIt&quot;/&gt;</div><div class="line">    &lt;property name=&quot;concurrent&quot; value=&quot;false&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;simpleTrigger&quot; class=&quot;org.springframework.scheduling.quartz.SimpleTriggerFactoryBean&quot;&gt;</div><div class="line">    &lt;!-- see the example of method invoking job above --&gt;</div><div class="line">    &lt;property name=&quot;jobDetail&quot; ref=&quot;exampleBusinessObject&quot;/&gt;</div><div class="line">    &lt;!-- 10 seconds --&gt;</div><div class="line">    &lt;property name=&quot;startDelay&quot; value=&quot;10000&quot;/&gt;</div><div class="line">    &lt;!-- repeat every 50 seconds --&gt;</div><div class="line">    &lt;property name=&quot;repeatInterval&quot; value=&quot;50000&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;cronTrigger&quot; class=&quot;org.springframework.scheduling.quartz.CronTriggerFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;jobDetail&quot; ref=&quot;exampleBusinessObject&quot;/&gt;</div><div class="line">    &lt;!-- run every morning at 6 AM --&gt;</div><div class="line">    &lt;property name=&quot;cronExpression&quot; value=&quot;0 0 6 * * ?&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean class=&quot;org.springframework.scheduling.quartz.SchedulerFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;triggers&quot;&gt;</div><div class="line">        &lt;list&gt;</div><div class="line">            &lt;ref bean=&quot;cronTrigger&quot;/&gt;</div><div class="line">            &lt;ref bean=&quot;simpleTrigger&quot;/&gt;</div><div class="line">        &lt;/list&gt;</div><div class="line">    &lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-        <a data-url="http://yoursite.com/2017/07/19/Spring/Spring Task/使用Quartz/" data-id="cj5c3bs5w001z30blkc7kpj2y" class="article-share-link" data-share="baidu" data-title="使用Quartz">分享到</a>
-      
-
-      
-        <a href="http://yoursite.com/2017/07/19/Spring/Spring Task/使用Quartz/#ds-thread" class="article-comment-link">评论</a>
-      
-
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Spring/JPA/GeneratedValue主键生成策略" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/" class="article-date">
-  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/">GeneratedValue主键生成策略</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="GeneratedValue-主键的产生策略，通过strategy属性指定。"><a href="#GeneratedValue-主键的产生策略，通过strategy属性指定。" class="headerlink" title="@GeneratedValue:主键的产生策略，通过strategy属性指定。"></a>@GeneratedValue:主键的产生策略，通过strategy属性指定。</h2><p>主键产生策略通过GenerationType来指定。GenerationType是一个枚举，它定义了主键产生策略的类型。</p>
-<ol>
-<li>AUTO　自动选择一个最适合底层数据库的主键生成策略。如MySQL会自动对应auto increment。这个是默认选项，即如果只写@GeneratedValue，等价于@GeneratedValue(strategy=GenerationType.AUTO)。</li>
-<li>IDENTITY　表自增长字段，Oracle不支持这种方式。</li>
-<li>SEQUENCE　通过序列产生主键，MySQL不支持这种方式。</li>
-<li>TABLE　通过表产生主键，框架借由表模拟序列产生主键，使用该策略可以使应用更易于数据库移植。不同的JPA实现商生成的表名是不同的，如 OpenJPA生成openjpa_sequence_table表，Hibernate生成一个hibernate_sequences表，而TopLink则生成sequence表。这些表都具有一个序列名和对应值两个字段，如SEQ_NAME和SEQ_COUNT。</li>
-</ol>
-<p>在我们的应用中，一般选用@GeneratedValue(strategy=GenerationType.AUTO)这种方式，自动选择主键生成策略，以适应不同的数据库移植。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      
-        <a data-url="http://yoursite.com/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/" data-id="cj5c3bs5z002130blo0n7nilv" class="article-share-link" data-share="baidu" data-title="GeneratedValue主键生成策略">分享到</a>
-      
-
-      
-        <a href="http://yoursite.com/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/#ds-thread" class="article-comment-link">评论</a>
-      
-
-      
-    </footer>
-  </div>
-  
-</article>
-
-
   
     <article id="post-Spring/JPA/Cascade和orphanRemoval" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
@@ -269,7 +118,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Spring/JPA/Cascade和orphanRemoval/" data-id="cj5c3bs60002430bl5a4o6wid" class="article-share-link" data-share="baidu" data-title="Cascade和orphanRemoval">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Spring/JPA/Cascade和orphanRemoval/" data-id="cj5c3tb4o001w45blex9xe6d6" class="article-share-link" data-share="baidu" data-title="Cascade和orphanRemoval">分享到</a>
       
 
       
@@ -469,7 +318,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Spring/JPA/JPA高级查询/" data-id="cj5c3bs61002630blwvgjrwwj" class="article-share-link" data-share="baidu" data-title="JPA高级查询">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Spring/JPA/JPA高级查询/" data-id="cj5c3tb4r001z45blxb59lbsh" class="article-share-link" data-share="baidu" data-title="JPA高级查询">分享到</a>
       
 
       
@@ -520,7 +369,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Spring/JPA/Specification实例/" data-id="cj5c3bs61002930bl85yuiuft" class="article-share-link" data-share="baidu" data-title="Specification实例">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Spring/JPA/Specification实例/" data-id="cj5c3tb4t002145bl0pr5pyp2" class="article-share-link" data-share="baidu" data-title="Specification实例">分享到</a>
       
 
       
@@ -579,7 +428,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Spring/JPA/利用hibernate实现/" data-id="cj5c3bs62002b30bl4sfa3mpm" class="article-share-link" data-share="baidu" data-title="利用hibernate实现">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Spring/JPA/利用hibernate实现/" data-id="cj5c3tb4v002445bljc6kcak8" class="article-share-link" data-share="baidu" data-title="利用hibernate实现">分享到</a>
       
 
       
@@ -594,14 +443,14 @@
 
 
   
-    <article id="post-GitHub/安装gogs本地git服务器" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/JPA/对应关系映射配置" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/GitHub/安装gogs本地git服务器/" class="article-date">
+    <a href="/2017/07/19/Spring/JPA/对应关系映射配置/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Github/">Github</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
   </div>
 
   </div>
@@ -612,7 +461,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/GitHub/安装gogs本地git服务器/">安装gogs本地git服务器</a>
+      <a class="article-title" href="/2017/07/19/Spring/JPA/对应关系映射配置/">对应关系映射配置</a>
     </h1>
   
 
@@ -620,22 +469,70 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="gogs首页"><a href="#gogs首页" class="headerlink" title="gogs首页"></a>gogs首页</h2><p><a href="https://gogs.io/" target="_blank" rel="external">https://gogs.io/</a></p>
-<h2 id="下载二进制包"><a href="#下载二进制包" class="headerlink" title="下载二进制包"></a>下载二进制包</h2><p><a href="https://gogs.io/docs/installation/install_from_binary.html" target="_blank" rel="external">https://gogs.io/docs/installation/install_from_binary.html</a><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入解压目录：</div><div class="line">执行命令 ./gogs web</div></pre></td></tr></table></figure></p>
-<p>目录运行地址：<br><a href="http://localhost:3000/" target="_blank" rel="external">http://localhost:3000/</a></p>
-<p>登录地址：<a href="http://localhost:3000/user/login" target="_blank" rel="external">http://localhost:3000/user/login</a></p>
-<p>帐号：<code>root</code>      密码：<code>clq</code></p>
-<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入go目录：/usr/local/Cellar/gogs</div><div class="line">执行命令./gogs web</div></pre></td></tr></table></figure>
-<h2 id="后台运行"><a href="#后台运行" class="headerlink" title="后台运行"></a>后台运行</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入go目录：/usr/local/Cellar/gogs</div><div class="line">执行命令 nohup ./gogs web &amp;</div></pre></td></tr></table></figure>
+        <h2 id="ManyToMany"><a href="#ManyToMany" class="headerlink" title="ManyToMany"></a>ManyToMany</h2><p>主控方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@ManyToMany(targetEntity=SysRoleEntity.class, fetch=FetchType.LAZY)</div><div class="line">@JoinTable(name=&quot;sys_admin_role&quot;, </div><div class="line">  joinColumns=@JoinColumn(name=&quot;admin_id&quot;, referencedColumnName=&quot;id&quot;),</div><div class="line">  inverseJoinColumns=@JoinColumn(name=&quot;role_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line"> ) </div><div class="line">private List&lt;SysRoleEntity&gt; listOfSysRole;</div></pre></td></tr></table></figure></p>
+<p>被动方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@ManyToMany(mappedBy=&quot;listOfSysRole&quot;, targetEntity=SysAdminEntity.class)</div><div class="line">private List&lt;SysAdminEntity&gt; listOfSysAdmin;</div></pre></td></tr></table></figure></p>
+<h2 id="ManyToOne-And-OneToMany"><a href="#ManyToOne-And-OneToMany" class="headerlink" title="ManyToOne And OneToMany"></a>ManyToOne And OneToMany</h2><p>主控方配置：一般是多的一方为主控<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@ManyToOne</div><div class="line">@JoinColumn(name=&quot;role_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line">private SysRoleEntity sysRole;</div></pre></td></tr></table></figure></p>
+<p>被动方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@OneToMany(mappedBy=&quot;sysRole&quot;, targetEntity=SysAuthorityEntity.class)</div><div class="line">private List&lt;SysAuthorityEntity&gt; listOfsysAuthority;</div></pre></td></tr></table></figure></p>
+<h2 id="OneToOne"><a href="#OneToOne" class="headerlink" title="OneToOne"></a>OneToOne</h2><p>主控方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@OneToOne(fetch=FetchType.LAZY)</div><div class="line">@JoinColumn(name=&quot;code_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line">private CodeEntity codeEntity;</div></pre></td></tr></table></figure></p>
+<p>被动方配置:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@OneToOne(mappedBy=&quot;codeEntity&quot;, targetEntity=OddsEntity.class, fetch=FetchType.LAZY)</div><div class="line">private OddsEntity oddsEntity;</div></pre></td></tr></table></figure></p>
+
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/GitHub/安装gogs本地git服务器/" data-id="cj5c3bs3n000130blea1obx5b" class="article-share-link" data-share="baidu" data-title="安装gogs本地git服务器">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Spring/JPA/对应关系映射配置/" data-id="cj5c3tb4w002645bli2x0hr9c" class="article-share-link" data-share="baidu" data-title="对应关系映射配置">分享到</a>
       
 
       
-        <a href="http://yoursite.com/2017/07/19/GitHub/安装gogs本地git服务器/#ds-thread" class="article-comment-link">评论</a>
+        <a href="http://yoursite.com/2017/07/19/Spring/JPA/对应关系映射配置/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Spring/基础/spring官方文档" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Spring/基础/spring官方文档/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/基础/">基础</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/基础/spring官方文档/">spring官方文档</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="总的文档："><a href="#总的文档：" class="headerlink" title="总的文档："></a>总的文档：</h2><p><a href="https://spring.io/docs/reference" target="_blank" rel="external">https://spring.io/docs/reference</a></p>
+<h2 id="spring-framework-reference"><a href="#spring-framework-reference" class="headerlink" title="spring-framework-reference"></a>spring-framework-reference</h2><p><a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/" target="_blank" rel="external">http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Spring/基础/spring官方文档/" data-id="cj5c3tb4x002945blkyg0wnp8" class="article-share-link" data-share="baidu" data-title="spring官方文档">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Spring/基础/spring官方文档/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -704,11 +601,63 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Eclipse/codetemplates变量解析/" data-id="cj5c3bs3j000030bl4tflp1rm" class="article-share-link" data-share="baidu" data-title="codetemplates变量解析">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Eclipse/codetemplates变量解析/" data-id="cj5c3tb1n000045bllnn6ovdh" class="article-share-link" data-share="baidu" data-title="codetemplates变量解析">分享到</a>
       
 
       
         <a href="http://yoursite.com/2017/07/19/Eclipse/codetemplates变量解析/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-GitHub/安装gogs本地git服务器" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/GitHub/安装gogs本地git服务器/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Github/">Github</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/GitHub/安装gogs本地git服务器/">安装gogs本地git服务器</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="gogs首页"><a href="#gogs首页" class="headerlink" title="gogs首页"></a>gogs首页</h2><p><a href="https://gogs.io/" target="_blank" rel="external">https://gogs.io/</a></p>
+<h2 id="下载二进制包"><a href="#下载二进制包" class="headerlink" title="下载二进制包"></a>下载二进制包</h2><p><a href="https://gogs.io/docs/installation/install_from_binary.html" target="_blank" rel="external">https://gogs.io/docs/installation/install_from_binary.html</a><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入解压目录：</div><div class="line">执行命令 ./gogs web</div></pre></td></tr></table></figure></p>
+<p>目录运行地址：<br><a href="http://localhost:3000/" target="_blank" rel="external">http://localhost:3000/</a></p>
+<p>登录地址：<a href="http://localhost:3000/user/login" target="_blank" rel="external">http://localhost:3000/user/login</a></p>
+<p>帐号：<code>root</code>      密码：<code>clq</code></p>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入go目录：/usr/local/Cellar/gogs</div><div class="line">执行命令./gogs web</div></pre></td></tr></table></figure>
+<h2 id="后台运行"><a href="#后台运行" class="headerlink" title="后台运行"></a>后台运行</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入go目录：/usr/local/Cellar/gogs</div><div class="line">执行命令 nohup ./gogs web &amp;</div></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/GitHub/安装gogs本地git服务器/" data-id="cj5c3tb1s000145bl7lf239de" class="article-share-link" data-share="baidu" data-title="安装gogs本地git服务器">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/GitHub/安装gogs本地git服务器/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -752,11 +701,141 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Spring/Security/获取所有登录用户/" data-id="cj5c3bs65002i30bl74onepnf" class="article-share-link" data-share="baidu" data-title="获取所有登录用户">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Spring/Security/获取所有登录用户/" data-id="cj5c3tb51002g45blv94j1lrs" class="article-share-link" data-share="baidu" data-title="获取所有登录用户">分享到</a>
       
 
       
         <a href="http://yoursite.com/2017/07/19/Spring/Security/获取所有登录用户/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Spring/Spring Task/Task Cron" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Spring/Spring Task/Task Cron/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/Task/">Task</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/Spring Task/Task Cron/">Task Cron</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Cron语法"><a href="#Cron语法" class="headerlink" title="Cron语法"></a>Cron语法</h2><p>Cron表达式是一个字符串，字符串以5或6个空格隔开，分开共6或7个域，每一个域代表一个含义,Cron有如下两种语法<br>语法： </p>
+<ul>
+<li>Seconds Minutes Hours DayofMonth Month DayofWeek Year</li>
+<li>Seconds Minutes Hours DayofMonth Month DayofWeek </li>
+</ul>
+<p>每一个域可出现的字符如下：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>允许值</th>
+<th>允许的特殊字符</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>秒</td>
+<td>0-59</td>
+<td>, - * /</td>
+</tr>
+<tr>
+<td>分</td>
+<td>0-59</td>
+<td>, - * /</td>
+</tr>
+<tr>
+<td>小时</td>
+<td>0-23</td>
+<td>, - * /</td>
+</tr>
+<tr>
+<td>日期</td>
+<td>1-31</td>
+<td>, - * ? / L W C</td>
+</tr>
+<tr>
+<td>月份</td>
+<td>1-12 或者 JAN-DEC</td>
+<td>, - * /</td>
+</tr>
+<tr>
+<td>星期</td>
+<td>1-7 或者 SUN-SAT</td>
+<td>, - * ? / L C #</td>
+</tr>
+<tr>
+<td>年（可选）</td>
+<td>留空, 1970-2099</td>
+<td>, - * /</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Seconds</strong>:可出现,-  *  / 四个字符，有效范围为0-59的整数    </li>
+<li><strong>Minutes</strong>:可出现,-  *  / 四个字符，有效范围为0-59的整数    </li>
+<li><strong>Hours</strong>:可出现,-  *  / 四个字符，有效范围为0-23的整数    </li>
+<li><strong>DayofMonth</strong>:可出现,-  *  / ? L W C八个字符，有效范围为0-31的整数   </li>
+<li><strong>Month</strong>:可出现,-  *  / 四个字符，有效范围为1-12的整数或JAN-DEc    </li>
+<li><strong>DayofWeek</strong>:可出现,-  *  / ? L C #四个字符，有效范围为1-7的整数或SUN-SAT两个范围。1表示星期天，2表示星期一， 依次类推    </li>
+<li><strong>Year</strong>:可出现,-  *  / 四个字符，有效范围为1970-2099年  </li>
+</ul>
+<p>每一个域都使用数字，但还可以出现如下特殊字符，它们的含义是：</p>
+<ul>
+<li><p>*：表示匹配该域的任意值，假如在Minutes域使用*,即表示每分钟都会触发事件。    </p>
+</li>
+<li><p>?:只能用在DayofMonth和DayofWeek两个域。它也匹配域的任意值，但实际不会。因为DayofMonth和DayofWeek会相互影响。例如想在每月的20日触发调度，不管20日到底是星期几，则只能使用如下写法： 13  13 15 20 <em> ?,其中最后一位只能用？，而不能使用</em>，如果使用*表示不管星期几都会触发，实际上并不是这样。    </p>
+</li>
+<li><p>-:表示范围，例如在Minutes域使用5-20，表示从5分到20分钟每分钟触发一次    </p>
+</li>
+<li><p>/：表示起始时间开始触发，然后每隔固定时间触发一次，例如在Minutes域使用5/20,则意味着5分钟触发一次，而25，45等分别触发一次.    </p>
+</li>
+<li><p>,:表示列出枚举值值。例如：在Minutes域使用5,20，则意味着在5和20分每分钟触发一次。   </p>
+</li>
+<li><p>L:表示最后，只能出现在DayofWeek和DayofMonth域，如果在DayofWeek域使用5L,意味着在最后的一个星期四触发。    </p>
+</li>
+<li><p>W:表示有效工作日(周一到周五),只能出现在DayofMonth域，系统将在离指定日期的最近的有效工作日触发事件。例如：在DayofMonth使用5W，如果5日是星期六，则将在最近的工作日：星期五，即4日触发。如果5日是星期天，则在6日触发；如果5日在星期一到星期五中的一天，则就在5日触发。另外一点，W的最近寻找不会跨过月份    </p>
+</li>
+<li><p>LW:这两个字符可以连用，表示在某个月最后一个工作日，即最后一个星期五。</p>
+</li>
+<li><p>#:用于确定每个月第几个星期几，只能出现在DayofMonth域。例如在4#2，表示某月的第二个星期三。</p>
+<p>​</p>
+</li>
+</ul>
+<h2 id="事例"><a href="#事例" class="headerlink" title="事例"></a>事例</h2><p>一个cron表达式有至少6个（也可能7个）有空格分隔的时间元素。<br>按顺序依次为<br>秒（0~59）<br>分钟（0~59）<br>小时（0~23）<br>天（月）（0~31，但是你需要考虑你月的天数）<br>月（0~11）<br>天（星期）（1~7 1=SUN 或 SUN，MON，TUE，WED，THU，FRI，SAT）<br>7.年份（1970－2099）<br>其中每个元素可以是一个值(如6),一个连续区间(9-12),一个间隔时间(8-18/4)(/表示每隔4小时),一个列表(1,3,5),通配符。由于”月份中的日期”和”星期中的日期”这两个元素互斥的,必须要对其中一个设置?.<br>“0 0 10,14,16 <em> </em> ?” 每天上午10点，下午2点，4点<br>“0 0/30 9-17 <em> </em> ?”   朝九晚五工作时间内每半小时<br>“0 0 12 ? <em> WED” 表示每个星期三中午12点<br>“0 0 12 </em> <em> ?” 每天中午12点触发<br>“0 15 10 ? </em> <em>“ 每天上午10:15触发<br>“0 15 10 </em> <em> ?” 每天上午10:15触发<br>“0 15 10 </em> <em> ? </em>“ 每天上午10:15触发<br>“0 15 10 <em> </em> ? 2005” 2005年的每天上午10:15触发<br>“0 <em> 14 </em> <em> ?” 在每天下午2点到下午2:59期间的每1分钟触发<br>“0 0/5 14 </em> <em> ?” 在每天下午2点到下午2:55期间的每5分钟触发<br>“0 0/5 14,18 </em> <em> ?” 在每天下午2点到2:55期间和下午6点到6:55期间的每5分钟触发<br>“0 0-5 14 </em> <em> ?” 在每天下午2点到下午2:05期间的每1分钟触发<br>“0 10,44 14 ? 3 WED” 每年三月的星期三的下午2:10和2:44触发<br>“0 15 10 ? </em> MON-FRI” 周一至周五的上午10:15触发<br>“0 15 10 15 <em> ?” 每月15日上午10:15触发<br>“0 15 10 L </em> ?” 每月最后一日的上午10:15触发<br>“0 15 10 ? <em> 6L” 每月的最后一个星期五上午10:15触发<br>“0 15 10 ? </em> 6L 2002-2005” 2002年至2005年的每月的最后一个星期五上午10:15触发<br>“0 15 10 ? <em> 6#3” 每月的第三个星期五上午10:15触发<br>“0 0  2  1 </em>  ? <em>“  表示在每月的1日的凌晨2点调度任务<br>“0 15 10 ? </em>  MON-FRI” 表示周一到周五每天上午10：15执行作业<br>“0 15 10 ? 6L 2002-2006” 表示200-2006年的每个月的最后一个星期五上午10:15执行作业   </p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Spring/Spring Task/Task Cron/" data-id="cj5c3tb51002i45bl5ruoitzz" class="article-share-link" data-share="baidu" data-title="Task Cron">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Spring/Spring Task/Task Cron/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -809,11 +888,7 @@
           </li>
         
           <li>
-            <a href="/2017/07/19/Spring/JPA/对应关系映射配置/">对应关系映射配置</a>
-          </li>
-        
-          <li>
-            <a href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
+            <a href="/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/">Spring获取ApplicationContext，并获取所有Bean</a>
           </li>
         
           <li>
@@ -822,6 +897,10 @@
         
           <li>
             <a href="/2017/07/19/Linux/mysql安装/">mysql安装</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
           </li>
         
       </ul>
@@ -837,6 +916,10 @@
         
           <li>
             <a href="https://clq2owesome.github.io/" target="_blank">作者主页</a>
+          </li>
+        
+          <li>
+            <a href="https://githubcandybabe.github.io/" target="_blank">御用前端</a>
           </li>
         
       </ul>
