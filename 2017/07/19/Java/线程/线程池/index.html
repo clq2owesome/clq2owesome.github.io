@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>线程池 | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="多线程技术主要解决处理器单元内多个线程执行的问题，它可以显著减少处理器单元的闲置时间，增加处理器单元的吞吐能力。     假设一个服务器完成一项任务所需时间为：T1 创建线程时间，T2 在线程中执行任务的时间，T3 销毁线程时间。如果：T1 + T3 远大于 T2，则可以采用线程池，以提高服务器性能。 一个线程池包括以下四个基本组成部分：  线程池管理器（ThreadPool）：用于创建并管理线程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="线程池">
+<meta property="og:url" content="http://yoursite.com/2017/07/19/Java/线程/线程池/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="多线程技术主要解决处理器单元内多个线程执行的问题，它可以显著减少处理器单元的闲置时间，增加处理器单元的吞吐能力。     假设一个服务器完成一项任务所需时间为：T1 创建线程时间，T2 在线程中执行任务的时间，T3 销毁线程时间。如果：T1 + T3 远大于 T2，则可以采用线程池，以提高服务器性能。 一个线程池包括以下四个基本组成部分：  线程池管理器（ThreadPool）：用于创建并管理线程">
+<meta property="og:updated_time" content="2017-07-26T06:51:48.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="线程池">
+<meta name="twitter:description" content="多线程技术主要解决处理器单元内多个线程执行的问题，它可以显著减少处理器单元的闲置时间，增加处理器单元的吞吐能力。     假设一个服务器完成一项任务所需时间为：T1 创建线程时间，T2 在线程中执行任务的时间，T3 销毁线程时间。如果：T1 + T3 远大于 T2，则可以采用线程池，以提高服务器性能。 一个线程池包括以下四个基本组成部分：  线程池管理器（ThreadPool）：用于创建并管理线程">
+  
+    <link rel="alternative" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!--[if lt IE 9]><script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.min.js"></script><![endif]-->
+  
+</head>
+<body>
+<div id="container">
+  <div id="wrap">
+    <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">LeoChan&#39;s 个人博客</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技术都是通用的，重要的是是否具有自主解决问题的能力！</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//www.baidu.com/baidu" method="get" accept-charset="utf-8" class="search-form">
+          <input type="search" name="word" maxlength="20" class="search-form-input" placeholder="Search">
+          <input type="submit" value="" class="search-form-submit">
+          <input name=tn type=hidden value="bds">
+          <input name=cl type=hidden value="3">
+          <input name=ct type=hidden value="2097152">
+          <input type="hidden" name="si" value="yoursite.com">
+        </form>
+      </div>
+    </div>
+  </div>
+</header>
+    <div class="outer">
+      <section id="main"><article id="post-Java/线程/线程池" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Java/线程/线程池/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/线程/">线程</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      线程池
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>多线程技术主要解决处理器单元内多个线程执行的问题，它可以显著减少处理器单元的闲置时间，增加处理器单元的吞吐能力。    </p>
+<p>假设一个服务器完成一项任务所需时间为：T1 创建线程时间，T2 在线程中执行任务的时间，T3 销毁线程时间。<br>如果：T1 + T3 远大于 T2，则可以采用线程池，以提高服务器性能。</p>
+<p>一个线程池包括以下四个基本组成部分：</p>
+<ol>
+<li>线程池管理器（ThreadPool）：用于创建并管理线程池，包括 创建线程池，销毁线程池，添加新任务；</li>
+<li>工作线程（PoolWorker）：线程池中线程，在没有任务时处于等待状态，可以循环的执行任务；</li>
+<li>任务接口（Task）：每个任务必须实现的接口，以供工作线程调度任务的执行，它主要规定了任务的入口，任务执行完后的收尾工作，任务的执行状态等；</li>
+<li>任务队列（taskQueue）：用于存放没有处理的任务。提供一种缓冲机制。</li>
+</ol>
+<p>线程池技术正是关注如何缩短或调整T1,T3时间的技术，从而提高服务器程序性能的。它把T1，T3分别安排在服务器程序的启动和结束的时间段或者一些空闲的时间段，这样在服务器程序处理客户请求时，不会有T1，T3的开销了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">public static ExecutorService &lt;strong&gt;newFixedThreadPool&lt;/strong&gt;(int nThreads) &#123;</div><div class="line">        return new ThreadPoolExecutor(nThreads, nThreads,</div><div class="line">                                      0L, TimeUnit.MILLISECONDS,</div><div class="line">                                      new LinkedBlockingQueue());</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>其实你可以自己new一个ThreadPoolExecutor，来达到自己的参数可控的程度，例如，可以将LinkedBlockingQueue换成其它的（如：SynchronousQueue），只是可读性会降低，这里只是使用了一种设计模式。</p>
+<p>我们现在来看看ThreadPoolExecutor的源码是怎么样的，也许你刚开始看他的源码会很痛苦，因为你不知道作者为什么是这样设计的，所以本文就我看到的思想会给你做一个介绍，此时也许你通过知道了一些作者的思想，你也许就知道应该该如何去操作了。</p>
+<p>这里来看下构造方法中对那些属性做了赋值：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">public ThreadPoolExecutor(int corePoolSize,</div><div class="line">                              int maximumPoolSize,</div><div class="line">                              long keepAliveTime,</div><div class="line">                              TimeUnit unit,</div><div class="line">                              BlockingQueue workQueue,</div><div class="line">                              ThreadFactory threadFactory,</div><div class="line">                              RejectedExecutionHandler handler) &#123;</div><div class="line">    if (corePoolSize &lt; 0 ||</div><div class="line">        maximumPoolSize &lt;= 0 ||</div><div class="line">        maximumPoolSize &lt; corePoolSize ||</div><div class="line">        keepAliveTime &lt; 0)</div><div class="line">        throw new IllegalArgumentException();</div><div class="line">   if (workQueue == null || threadFactory == null || handler == null)</div><div class="line">         throw new NullPointerException();</div><div class="line">     this.corePoolSize = corePoolSize;</div><div class="line">     this.maximumPoolSize = maximumPoolSize;</div><div class="line">     this.workQueue = workQueue;</div><div class="line">     this.keepAliveTime = unit.toNanos(keepAliveTime);</div><div class="line">     this.threadFactory = threadFactory;</div><div class="line">     this.handler = handler;</div><div class="line"> &#125;</div></pre></td></tr></table></figure></p>
+<p>这里你可以看到最终赋值的过程，可以先大概知道下参数的意思：</p>
+<ul>
+<li>corePoolSize ：核心运行的poolSize，也就是当超过这个范围的时候，就需要将新的阻塞 Runnable 放入到等待队列 workQueue 中了，我们把这些Runnable就叫做要去执行的任务吧。</li>
+<li>maximumPoolSize ：一般你用不到，当大于了这个值就会将 任务 由一个丢弃处理机制来处理，但是当你发生： newFixedThreadPool 的时候， corePoolSize 和 maximumPoolSize 是一样的，而 corePoolSize 是先执行的，所以他会先被放入等待队列，而不会执行到下面的丢弃处理中，看了后面的代码你就知道了。</li>
+<li>workQueue ：等待队列，当达到corePoolSize的时候，就向该等待队列放入线程信息（默认为一个 LinkedBlockingQueue ），运行中的线程属性为： workers ，为一个 HashSet ；我们的 Runnable 内部被包装了一层，后面会看到这部分代码；这个队列默认是一个无界队列（你也可以设定一个有界队列），所以在生产者疯狂生产的时候，考虑如何控制的问题。</li>
+<li>keepAliveTime ：默认都是0，当线程没有任务处理后，保持多长时间，当你使用：newCachedThreadPool() ，它将是60s的时间。这个参数在运行中的线程从 workQueue 获取任务时，当(poolSize &gt;corePoolSize || allowCoreThreadTimeOut)会用到，当然 allowCoreThreadTimeOut 要设置为true，也会先判定 keepAliveTime 是大于0的，不过由于它在 corePoolSize 上采用了 Integer.MAX_VALUE ，当遇到系统遇到瞬间冲击， workers 就会迅速膨胀，所以这个地方就不要去设置 allowCoreThreadTimeOut =true，否则结果是这些运行中的线程会持续60s以上；</li>
+<li>threadFactory ：是构造Thread的方法，你可以自己去包装和传递，主要实现 newThread 方法即可；</li>
+<li>handler ：也就是参数 maximumPoolSize 达到后丢弃处理的方法，java提供了5种丢弃处理的方法，当然你也可以自己根据实际情况去重写，主要是要实现接口： RejectedExecutionHandler 中的方法： public void rejectedExecution(Runnabler, ThreadPoolExecutor e) java默认的是使用：AbortPolicy，他的作用是当出现这中情况的时候会抛出一个异常；<br>其余的还包含：<ul>
+<li>CallerRunsPolicy ：如果发现线程池还在运行，就直接运行这个线程<ul>
+<li>DiscardOldestPolicy ：在线程池的等待队列中，将头取出一个抛弃，然后将当前线程放进去。</li>
+<li>DiscardPolicy ：什么也不做</li>
+<li>AbortPolicy ：java默认，抛出一个异常： RejectedExecutionException 。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>你可以自己写一个，例如我们想在这个处理中，既不是完全丢弃，也不是完全启动，也不是抛异常，而是控制生产者的线程，那么你就可以尝试某种方式将生产者的线程blocking住，其实就有点类似提到的 Semaphor 的功能了。</p>
+<p>通常你得到线程池后，会调用其中的： submit 方法或 execute 方法去操作；其实你会发现，submit方法最终会调用execute方法来进行操作，只是他提供了一个Future来托管返回值的处理而已，当你调用需要有返回值的信息时，你用它来处理是比较好的；这个Future会包装对Callable信息，并定义一个Sync对象（），当你发生读取返回值的操作的时候，会通过Sync对象进入锁，直到有返回值的数据通知，具体细节先不要看太多。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Java/线程/线程池/" data-id="cj5knthv6002f3mblnh2sg3oj" class="article-share-link" data-share="baidu" data-title="线程池">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Java/线程/线程池/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/07/19/Java/线程/线程概述/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">
+        
+          线程概述
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/07/19/Java/线程/线程的同步和锁定/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">线程的同步和锁定</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+  <section id="comments">
+    <div id="ds-thread" class="ds-thread" data-thread-key="2017/07/19/Java/线程/线程池/" data-title="线程池" data-url="http://yoursite.com/2017/07/19/Java/线程/线程池/"></div>
+  </section>
+</section>
+      
+      <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Eclipse/">Eclipse</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Github/">Github</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">27</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/安全相关/">安全相关</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/日记/">日记</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/线程/">线程</a><span class="category-list-count">16</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/集合/">集合</a><span class="category-list-count">3</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Maven/">Maven</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">32</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/JPA/">JPA</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Security/">Security</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Task/">Task</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/基础/">基础</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/">服务器相关</a><span class="category-list-count">16</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/red5/">red5</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/redis/">redis</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/resin/">resin</a><span class="category-list-count">2</span></li></ul></li></ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">七月 2017</a><span class="archive-list-count">93</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">近期文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/07/19/Spring/Spring Data Redis/配置/">配置</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/">GeneratedValue主键生成策略</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/nginx安装/">安装nginx</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/redis安装和配置/">redis安装和配置</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">友情链接</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="https://clq2owesome.github.io/" target="_blank">作者主页</a>
+          </li>
+        
+          <li>
+            <a href="https://githubcandybabe.github.io/" target="_blank">御用前端</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+      
+    </div>
+    <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 leo chen<br>
+      Powered by <a href="//hexo.io/" target="_blank">Hexo</a>
+      .
+      Theme by <a href="https://github.com/xiangming/landscape-plus" target="_blank">Landscape-plus</a>
+    </div>
+  </div>
+</footer>
+  </div>
+  <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+  <!-- totop start -->
+<div id="totop">
+<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+</div>
+
+<!-- totop end -->
+
+<!-- 多说公共js代码 start -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"reqianduan"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0]
+     || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+  </script>
+<!-- 多说公共js代码 end -->
+
+
+<!-- 百度分享 start -->
+
+<div id="article-share-box" class="article-share-box">
+  <div id="bdshare" class="bdsharebuttonbox article-share-links">
+    <a class="article-share-weibo" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a class="article-share-weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a class="article-share-qq" data-cmd="sqq" title="分享到QQ"></a>
+    <a class="article-share-renren" data-cmd="renren" title="分享到人人网"></a>
+    <a class="article-share-more" data-cmd="more" title="更多"></a>
+  </div>
+</div>
+<script>
+  function SetShareData(cmd, config) {
+    if (shareDataTitle && shareDataUrl) {
+      config.bdText = shareDataTitle;
+      config.bdUrl = shareDataUrl;
+    }
+    return config;
+  }
+  window._bd_share_config={
+    "common":{onBeforeClick: SetShareData},
+    "share":{"bdCustomStyle":"/css/bdshare.css"}
+  };
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='//bdimg.share.baidu.com/static/api/js/share.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+<!-- 百度分享 end -->
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+</div>
+</body>
+</html>

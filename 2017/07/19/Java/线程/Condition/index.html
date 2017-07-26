@@ -1,0 +1,328 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Condition | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="在java.util.concurrent包中，有两个很特殊的工具类，Condition和ReentrantLock,使用过的人都知道，ReentrantLock（重入锁）是jdk的concurrent包提供的一种独占锁的实现。它继承自Dong Lea的 AbstractQueuedSynchronizer（同步器），确切的说是ReentrantLock的一个内部类继承了AbstractQueue">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Condition">
+<meta property="og:url" content="http://yoursite.com/2017/07/19/Java/线程/Condition/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="在java.util.concurrent包中，有两个很特殊的工具类，Condition和ReentrantLock,使用过的人都知道，ReentrantLock（重入锁）是jdk的concurrent包提供的一种独占锁的实现。它继承自Dong Lea的 AbstractQueuedSynchronizer（同步器），确切的说是ReentrantLock的一个内部类继承了AbstractQueue">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/9749D9729D1742A69032416B12BBF1AC/8325">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/5429FA3A6FE94A48812924FEF460AE68/8327">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/AD627C2D54E84A408B9BC338CFE15977/8326">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/21A3D2F0FE164DD8AEB7B71E5865C28A/8328">
+<meta property="og:updated_time" content="2017-07-26T06:52:09.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Condition">
+<meta name="twitter:description" content="在java.util.concurrent包中，有两个很特殊的工具类，Condition和ReentrantLock,使用过的人都知道，ReentrantLock（重入锁）是jdk的concurrent包提供的一种独占锁的实现。它继承自Dong Lea的 AbstractQueuedSynchronizer（同步器），确切的说是ReentrantLock的一个内部类继承了AbstractQueue">
+<meta name="twitter:image" content="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/9749D9729D1742A69032416B12BBF1AC/8325">
+  
+    <link rel="alternative" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!--[if lt IE 9]><script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.min.js"></script><![endif]-->
+  
+</head>
+<body>
+<div id="container">
+  <div id="wrap">
+    <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">LeoChan&#39;s 个人博客</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技术都是通用的，重要的是是否具有自主解决问题的能力！</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//www.baidu.com/baidu" method="get" accept-charset="utf-8" class="search-form">
+          <input type="search" name="word" maxlength="20" class="search-form-input" placeholder="Search">
+          <input type="submit" value="" class="search-form-submit">
+          <input name=tn type=hidden value="bds">
+          <input name=cl type=hidden value="3">
+          <input name=ct type=hidden value="2097152">
+          <input type="hidden" name="si" value="yoursite.com">
+        </form>
+      </div>
+    </div>
+  </div>
+</header>
+    <div class="outer">
+      <section id="main"><article id="post-Java/线程/Condition" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Java/线程/Condition/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/线程/">线程</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Condition
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在java.util.concurrent包中，有两个很特殊的工具类，Condition和ReentrantLock,使用过的人都知道，ReentrantLock（重入锁）是jdk的concurrent包提供的一种独占锁的实现。它继承自Dong Lea的 AbstractQueuedSynchronizer（同步器），确切的说是ReentrantLock的一个内部类继承了AbstractQueuedSynchronizer，ReentrantLock只不过是代理了该类的一些方法，可能有人会问为什么要使用内部类在包装一层？ 我想是安全的关系，因为AbstractQueuedSynchronizer中有很多方法，还实现了共享锁，Condition(稍候再细说)等功能，如果直接使ReentrantLock继承它，则很容易出现AbstractQueuedSynchronizer中的API被误用的情况。  </p>
+<p>言归正传，今天，我们讨论下Condition工具类的实现。 </p>
+<p>ReentrantLock和Condition的使用方式通常是这样的：<br><img src="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/9749D9729D1742A69032416B12BBF1AC/8325" alt="image"></p>
+<p>运行后，结果如下：<br><img src="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/5429FA3A6FE94A48812924FEF460AE68/8327" alt="image"><br>Condition的执行方式，是当在线程1中调用await方法后，线程1将释放锁，并且将自己沉睡，等待唤醒，<br>线程2获取到锁后，开始做事，完毕后，调用Condition的signal方法，唤醒线程1，线程1恢复执行。<br>以上说明Condition是一个多线程间协调通信的工具类，使得某个，或者某些线程一起等待某个条件（Condition）,只有当该条件具备( signal 或者 signalAll方法被带调用)时 ，这些等待线程才会被唤醒，从而重新争夺锁。  </p>
+<p>那，它是怎么实现的呢？<br>首先还是要明白，reentrantLock.newCondition() 返回的是Condition的一个实现，该类在AbstractQueuedSynchronizer中被实现，叫做newCondition()<br><img src="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/AD627C2D54E84A408B9BC338CFE15977/8326" alt="image">   </p>
+<p>它可以访问AbstractQueuedSynchronizer中的方法和其余内部类（ AbstractQueuedSynchronizer是个抽象类，至于他怎么能访问，这里有个很奇妙的点，后面我专门用demo说明 ）<br>现在，我们一起来看下Condition类的实现，还是从上面的demo入手，<br>为了方便书写，我将AbstractQueuedSynchronizer缩写为AQS<br>当await被调用时，代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">public final void await() throws InterruptedException &#123;</div><div class="line">	if (Thread.interrupted())</div><div class="line">		throw new InterruptedException();</div><div class="line">		Node node = addConditionWaiter(); //将当前线程包装下后，</div><div class="line">		//添加到Condition自己维护的一个链表中。</div><div class="line">		int savedState = fullyRelease(node);//释放当前线程占有的锁，从demo中看到，</div><div class="line">		//调用await前，当前线程是占有锁的</div><div class="line">		</div><div class="line">		int interruptMode = 0;</div><div class="line">		while (!isOnSyncQueue(node)) &#123;//释放完毕后，遍历AQS的队列，看当前节点是否在队列中，</div><div class="line">			//不在 说明它还没有竞争锁的资格，所以继续将自己沉睡。</div><div class="line">			//直到它被加入到队列中，聪明的你可能猜到了，</div><div class="line">			//没有错，在singal的时候加入不就可以了？</div><div class="line">			LockSupport.park(this);</div><div class="line">			if ((interruptMode = checkInterruptWhileWaiting(node)) != 0) break;</div><div class="line">		&#125;</div><div class="line">		//被唤醒后，重新开始正式竞争锁，同样，如果竞争不到还是会将自己沉睡，等待唤醒重新开始竞争。</div><div class="line">		if (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</div><div class="line">			interruptMode = REINTERRUPT;</div><div class="line">			</div><div class="line">		if (node.nextWaiter != null)</div><div class="line">			unlinkCancelledWaiters();</div><div class="line">			</div><div class="line">		if (interruptMode != 0)</div><div class="line">			reportInterruptAfterWait(interruptMode);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>回到上面的demo，锁被释放后，线程1开始沉睡，这个时候线程因为线程1沉睡时，会唤醒AQS队列中的头结点，所所以线程2会开始竞争锁，并获取到，等待3秒后，线程2会调用signal方法，“发出”signal信号，signal方法如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">public final void signal() &#123;</div><div class="line">	if (!isHeldExclusively()) throw new IllegalMonitorStateException();</div><div class="line">	Node first = firstWaiter; //firstWaiter为condition自己维护的一个链表的头结点，</div><div class="line">	//取出第一个节点后开始唤醒操作</div><div class="line">	if (first != null) doSignal(first);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>说明下，其实Condition内部维护了等待队列的头结点和尾节点，该队列的作用是存放等待signal信号的线程，该线程被封装为Node节点后存放于此。  </p>
+<p><img src="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/21A3D2F0FE164DD8AEB7B71E5865C28A/8328" alt="image"><br>关键的就在于此，我们知道AQS自己维护的队列是当前等待资源的队列，AQS会在资源被释放后，依次唤醒队列中从前到后的所有节点，使他们对应的线程恢复执行。直到队列为空。</p>
+<p>而Condition自己也维护了一个队列，该队列的作用是维护一个等待signal信号的队列，两个队列的作用是不同，事实上，每个线程也仅仅会同时存在以上两个队列中的一个，流程是这样的</p>
+<ol>
+<li>线程1调用reentrantLock.lock时，线程被加入到AQS的等待队列中。</li>
+<li>线程1调用await方法被调用时，该线程从AQS中移除，对应操作是锁的释放。</li>
+<li>接着马上被加入到Condition的等待队列中，以为着该线程需要signal信号。</li>
+<li>线程2，因为线程1释放锁的关系，被唤醒，并判断可以获取锁，于是线程2获取锁，并被加入到AQS的等待队列中。</li>
+<li>线程2调用signal方法，这个时候Condition的等待队列中只有线程1一个节点，于是它被取出来，并被加入到AQS的等待队列中。  注意，这个时候，线程1 并没有被唤醒。</li>
+<li>signal方法执行完毕，线程2调用reentrantLock.unLock()方法，释放锁。这个时候因为AQS中只有线程1，于是，AQS释放锁后按从头到尾的顺序唤醒线程时，线程1被唤醒，于是线程1回复执行。</li>
+<li>直到释放所整个过程执行完毕。 </li>
+</ol>
+<p>可以看到，整个协作过程是靠结点在AQS的等待队列和Condition的等待队列中来回移动实现的，Condition作为一个条件类，很好的自己维护了一个等待信号的队列，并在适时的时候将结点加入到AQS的等待队列中来实现的唤醒操作。    </p>
+<p>看到这里，signal方法的代码应该不难理解了。</p>
+<p>取出头结点，然后doSignal<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">private void doSignal(Node first) &#123;</div><div class="line">	do &#123;</div><div class="line">		if ( (firstWaiter = first.nextWaiter) == null) //修改头结点，完成旧头结点的移出工作</div><div class="line">			lastWaiter = null;</div><div class="line">			first.nextWaiter = null;</div><div class="line">	&#125; while (!transferForSignal(first) &amp;&amp;//将老的头结点，加入到AQS的等待队列中</div><div class="line">			(first = firstWaiter) != null);</div><div class="line">&#125;</div><div class="line">	</div><div class="line">final boolean transferForSignal(Node node) &#123;</div><div class="line">	/*</div><div class="line">	 * If cannot change waitStatus, the node has been cancelled.</div><div class="line">	 */</div><div class="line">	if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))</div><div class="line">	return false;</div><div class="line"></div><div class="line">	/*</div><div class="line">	 * Splice onto queue and try to set waitStatus of predecessor to</div><div class="line">	 * indicate that thread is (probably) waiting. If cancelled or</div><div class="line">	 * attempt to set waitStatus fails, wake up to resync (in which</div><div class="line">	 * case the waitStatus can be transiently and harmlessly wrong).</div><div class="line">	 */</div><div class="line">	Node p = enq(node);</div><div class="line">	int ws = p.waitStatus;</div><div class="line">	//如果该结点的状态为cancel 或者修改waitStatus失败，则直接唤醒。</div><div class="line">	if (ws &gt; 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))</div><div class="line">	LockSupport.unpark(node.thread);</div><div class="line">	return true;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>可以看到，正常情况 ws &gt; 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL) 这个判断是不会为true的，所以，不会在这个时候唤醒该线程。<br>只有到发送signal信号的线程调用reentrantLock.unlock()后因为它已经被加到AQS的等待队列中，所以才会被唤醒。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Java/线程/Condition/" data-id="cj5knthul001q3mblhnsw2pu2" class="article-share-link" data-share="baidu" data-title="Condition">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Java/线程/Condition/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/07/19/Java/线程/Synchronized/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">
+        
+          Synchronized
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/07/19/Java/线程/ReentrantLock（重入锁）/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">ReentrantLock（重入锁）</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+  <section id="comments">
+    <div id="ds-thread" class="ds-thread" data-thread-key="2017/07/19/Java/线程/Condition/" data-title="Condition" data-url="http://yoursite.com/2017/07/19/Java/线程/Condition/"></div>
+  </section>
+</section>
+      
+      <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Eclipse/">Eclipse</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Github/">Github</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">27</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/安全相关/">安全相关</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/日记/">日记</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/线程/">线程</a><span class="category-list-count">16</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/集合/">集合</a><span class="category-list-count">3</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Maven/">Maven</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">32</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/JPA/">JPA</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Security/">Security</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Task/">Task</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/基础/">基础</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/">服务器相关</a><span class="category-list-count">16</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/red5/">red5</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/redis/">redis</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/resin/">resin</a><span class="category-list-count">2</span></li></ul></li></ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">七月 2017</a><span class="archive-list-count">93</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">近期文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/07/19/Spring/Spring Data Redis/配置/">配置</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/">GeneratedValue主键生成策略</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/nginx安装/">安装nginx</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/redis安装和配置/">redis安装和配置</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">友情链接</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="https://clq2owesome.github.io/" target="_blank">作者主页</a>
+          </li>
+        
+          <li>
+            <a href="https://githubcandybabe.github.io/" target="_blank">御用前端</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+      
+    </div>
+    <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 leo chen<br>
+      Powered by <a href="//hexo.io/" target="_blank">Hexo</a>
+      .
+      Theme by <a href="https://github.com/xiangming/landscape-plus" target="_blank">Landscape-plus</a>
+    </div>
+  </div>
+</footer>
+  </div>
+  <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+  <!-- totop start -->
+<div id="totop">
+<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+</div>
+
+<!-- totop end -->
+
+<!-- 多说公共js代码 start -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"reqianduan"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0]
+     || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+  </script>
+<!-- 多说公共js代码 end -->
+
+
+<!-- 百度分享 start -->
+
+<div id="article-share-box" class="article-share-box">
+  <div id="bdshare" class="bdsharebuttonbox article-share-links">
+    <a class="article-share-weibo" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a class="article-share-weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a class="article-share-qq" data-cmd="sqq" title="分享到QQ"></a>
+    <a class="article-share-renren" data-cmd="renren" title="分享到人人网"></a>
+    <a class="article-share-more" data-cmd="more" title="更多"></a>
+  </div>
+</div>
+<script>
+  function SetShareData(cmd, config) {
+    if (shareDataTitle && shareDataUrl) {
+      config.bdText = shareDataTitle;
+      config.bdUrl = shareDataUrl;
+    }
+    return config;
+  }
+  window._bd_share_config={
+    "common":{onBeforeClick: SetShareData},
+    "share":{"bdCustomStyle":"/css/bdshare.css"}
+  };
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='//bdimg.share.baidu.com/static/api/js/share.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+<!-- 百度分享 end -->
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+</div>
+</body>
+</html>

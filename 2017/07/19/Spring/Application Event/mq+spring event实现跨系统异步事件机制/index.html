@@ -1,0 +1,314 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>mq+spring event实现跨系统异步事件机制 | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="基础配置思路：生成spring event-》发布到mq队列-》mq队列监听到事件，解析和发布spring event到applicationContext-》spring事件监听器捕抓到事件，进行逻辑处理 配置事件发送service12345public abstract interface AppEventSendingService &amp;#123;  public abstract void">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mq+spring event实现跨系统异步事件机制">
+<meta property="og:url" content="http://yoursite.com/2017/07/19/Spring/Application Event/mq+spring event实现跨系统异步事件机制/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="基础配置思路：生成spring event-》发布到mq队列-》mq队列监听到事件，解析和发布spring event到applicationContext-》spring事件监听器捕抓到事件，进行逻辑处理 配置事件发送service12345public abstract interface AppEventSendingService &amp;#123;  public abstract void">
+<meta property="og:updated_time" content="2017-07-21T06:13:28.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="mq+spring event实现跨系统异步事件机制">
+<meta name="twitter:description" content="基础配置思路：生成spring event-》发布到mq队列-》mq队列监听到事件，解析和发布spring event到applicationContext-》spring事件监听器捕抓到事件，进行逻辑处理 配置事件发送service12345public abstract interface AppEventSendingService &amp;#123;  public abstract void">
+  
+    <link rel="alternative" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!--[if lt IE 9]><script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.min.js"></script><![endif]-->
+  
+</head>
+<body>
+<div id="container">
+  <div id="wrap">
+    <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">LeoChan&#39;s 个人博客</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技术都是通用的，重要的是是否具有自主解决问题的能力！</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//www.baidu.com/baidu" method="get" accept-charset="utf-8" class="search-form">
+          <input type="search" name="word" maxlength="20" class="search-form-input" placeholder="Search">
+          <input type="submit" value="" class="search-form-submit">
+          <input name=tn type=hidden value="bds">
+          <input name=cl type=hidden value="3">
+          <input name=ct type=hidden value="2097152">
+          <input type="hidden" name="si" value="yoursite.com">
+        </form>
+      </div>
+    </div>
+  </div>
+</header>
+    <div class="outer">
+      <section id="main"><article id="post-Spring/Application Event/mq+spring event实现跨系统异步事件机制" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Spring/Application Event/mq+spring event实现跨系统异步事件机制/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/Application-Event/">Application Event</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      mq+spring event实现跨系统异步事件机制
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="基础配置"><a href="#基础配置" class="headerlink" title="基础配置"></a>基础配置</h2><p>思路：生成spring event-》发布到mq队列-》mq队列监听到事件，解析和发布spring event到applicationContext-》spring事件监听器捕抓到事件，进行逻辑处理</p>
+<h3 id="配置事件发送service"><a href="#配置事件发送service" class="headerlink" title="配置事件发送service"></a>配置事件发送service</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">public abstract interface AppEventSendingService &#123;</div><div class="line">  public abstract void send(BaseAppEvent&lt;?&gt; paramBaseAppEvent);</div><div class="line">  </div><div class="line">  public abstract void sendAfterCommit(BaseAppEvent&lt;?&gt; paramBaseAppEvent);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="配置事件发送service实现类"><a href="#配置事件发送service实现类" class="headerlink" title="配置事件发送service实现类"></a>配置事件发送service实现类</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">public class AppEventSendingServiceImpl implements AppEventSendingService, InitializingBean &#123;</div><div class="line">	private static final Logger logger = LoggerFactory.getLogger(AppEventSendingServiceImpl.class);</div><div class="line">	AppEventMessageSender sender;</div><div class="line"></div><div class="line">	public void setSender(AppEventMessageSender sender) &#123;</div><div class="line">		this.sender = sender;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void send(BaseAppEvent&lt;?&gt; appEvent) &#123;</div><div class="line">		logger.info(&quot;AppEventSendingServiceImpl.send  start&quot;);</div><div class="line">		this.sender.send(appEvent);</div><div class="line">		logger.info(&quot;AppEventSendingServiceImpl.send  end&quot;);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">    //事务提交后触发</div><div class="line">	public void sendAfterCommit(BaseAppEvent&lt;?&gt; appEvent) &#123;</div><div class="line">		try &#123;</div><div class="line">			logger.info(&quot;sending &#123;&#125;&quot;, appEvent);</div><div class="line">			SpringTxUtils.registerSynchronization(new AppEventSendingSynchronization(appEvent, this.sender));</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			logger.error(&quot;[MessageSendingService error] - &quot; + appEvent, e);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void afterPropertiesSet() throws Exception &#123;</div><div class="line">		Assert.notNull(this.sender);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="定义基础事件"><a href="#定义基础事件" class="headerlink" title="定义基础事件"></a>定义基础事件</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">public class BaseAppEvent&lt;T&gt; extends ApplicationEvent &#123;</div><div class="line">	private static final long serialVersionUID = -4328665988986363581L;</div><div class="line">	private T payload;</div><div class="line"></div><div class="line">	public BaseAppEvent(Object source) &#123;</div><div class="line">		super(source);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public T getPayload() &#123;</div><div class="line">		return (T) this.payload;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void setPayload(T payload) &#123;</div><div class="line">		this.payload = payload;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="mq-sender：用于将spring-event发送到mq队列中，实现跨系统"><a href="#mq-sender：用于将spring-event发送到mq队列中，实现跨系统" class="headerlink" title="mq sender：用于将spring event发送到mq队列中，实现跨系统"></a>mq sender：用于将spring event发送到mq队列中，实现跨系统</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">public class AppEventMessageSender &#123;</div><div class="line"></div><div class="line">    private static final Logger logger = LoggerFactory.getLogger(AppEventMessageSender.class);</div><div class="line">    </div><div class="line">	private Queue queue;</div><div class="line"></div><div class="line">	private JmsTemplate jmsTemplate;</div><div class="line">	</div><div class="line">	public void setQueue(Queue queue) &#123;</div><div class="line">		this.queue = queue;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void setJmsTemplate(JmsTemplate jmsTemplate) &#123;</div><div class="line">		this.jmsTemplate = jmsTemplate;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void send(final BaseAppEvent&lt;?&gt; event) &#123;</div><div class="line">		logger.info(&quot;sending event message: &#123;&#125;&quot;, event);</div><div class="line">		if(event == null) &#123;</div><div class="line">            return;</div><div class="line">        &#125;</div><div class="line">		jmsTemplate.send(queue, new MessageCreator() &#123;</div><div class="line">			@Override</div><div class="line">			public Message createMessage(Session session) throws JMSException &#123;</div><div class="line">				return session.createObjectMessage(event);</div><div class="line">			&#125;</div><div class="line">		&#125;);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="事务工具类"><a href="#事务工具类" class="headerlink" title="事务工具类"></a>事务工具类</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">public class SpringTxUtils &#123;</div><div class="line">	public static void registerSynchronization(TransactionSynchronization transactionSynchronization) &#123;</div><div class="line">		TransactionSynchronizationManager.registerSynchronization(transactionSynchronization);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="AppEventSendingSynchronization-用于事物提交后再发送事件"><a href="#AppEventSendingSynchronization-用于事物提交后再发送事件" class="headerlink" title="AppEventSendingSynchronization:用于事物提交后再发送事件"></a>AppEventSendingSynchronization:用于事物提交后再发送事件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">public class AppEventSendingSynchronization extends TransactionSynchronizationAdapter &#123;</div><div class="line"></div><div class="line">    private static final Logger logger = LoggerFactory.getLogger(AppEventSendingSynchronization.class);</div><div class="line"></div><div class="line">    private final BaseAppEvent&lt;?&gt; appEvent;</div><div class="line">    private final AppEventMessageSender sender;</div><div class="line"></div><div class="line">    public AppEventSendingSynchronization(BaseAppEvent&lt;?&gt; appEvent, AppEventMessageSender sender) &#123;</div><div class="line">        this.appEvent = appEvent;</div><div class="line">        this.sender = sender;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public void afterCommit() &#123;</div><div class="line">        if (sender == null) &#123;</div><div class="line">        	logger.error(&quot;sender is null, msg &#123;&#125; not sended.&quot;, appEvent);</div><div class="line">            return;</div><div class="line">        &#125;</div><div class="line">        try &#123;</div><div class="line">            sender.send(appEvent);</div><div class="line">        &#125; catch (Exception e) &#123;</div><div class="line">        	logger.error(&quot;[ Event Sending Failed ]:&quot; + appEvent, e);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="mq事件监听器，用于解析和发布spring-event事件"><a href="#mq事件监听器，用于解析和发布spring-event事件" class="headerlink" title="mq事件监听器，用于解析和发布spring event事件"></a>mq事件监听器，用于解析和发布spring event事件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">public class AppEventMessageListener implements MessageListener, ApplicationContextAware &#123;</div><div class="line"></div><div class="line">	private static final Logger logger = LoggerFactory.getLogger(AppEventMessageListener.class);</div><div class="line"></div><div class="line">	private ApplicationContext context;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException &#123;</div><div class="line">		this.context = applicationContext;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void onMessage(Message message) &#123;</div><div class="line">		if (message instanceof ObjectMessage) &#123;</div><div class="line">			try &#123;</div><div class="line">				Object event = (Object) ((ObjectMessage) message).getObject();</div><div class="line">				if (!BaseAppEvent.class.isAssignableFrom(event.getClass())) &#123;</div><div class="line">					logger.warn(&quot;not an application event: &#123;&#125;&quot;, event);</div><div class="line">					return;</div><div class="line">				&#125;</div><div class="line">				context.publishEvent((BaseAppEvent&lt;?&gt;) event);</div><div class="line">			&#125; catch (Exception ex) &#123;</div><div class="line">				logger.error(&quot;error publishing event&quot;, ex);</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line"></div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="mq-xml配置"><a href="#mq-xml配置" class="headerlink" title="mq xml配置"></a>mq xml配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">&lt;amq:connectionFactory id=&quot;amqConnectionFactory&quot;</div><div class="line">		brokerURL=&quot;$&#123;activemq.brokerURL&#125;&quot; userName=&quot;$&#123;activemq.username&#125;&quot;</div><div class="line">		password=&quot;$&#123;activemq.password&#125;&quot; /&gt;</div><div class="line">		</div><div class="line">	&lt;bean id=&quot;connectionFactory&quot;</div><div class="line">		class=&quot;org.springframework.jms.connection.CachingConnectionFactory&quot;&gt;</div><div class="line">		&lt;constructor-arg ref=&quot;amqConnectionFactory&quot; /&gt;</div><div class="line">		&lt;property name=&quot;sessionCacheSize&quot; value=&quot;100&quot; /&gt;</div><div class="line">	&lt;/bean&gt;</div><div class="line"></div><div class="line">	&lt;bean id=&quot;jmsQueueTemplate&quot; class=&quot;org.springframework.jms.core.JmsTemplate&quot;&gt;</div><div class="line">		&lt;constructor-arg ref=&quot;connectionFactory&quot; /&gt;</div><div class="line">		&lt;property name=&quot;pubSubDomain&quot; value=&quot;false&quot; /&gt;</div><div class="line">	&lt;/bean&gt;</div><div class="line"></div><div class="line">    &lt;!-- CLQ专用的Application Event队列 --&gt;</div><div class="line">    &lt;amq:queue id=&quot;CLQ_APP_EVENT_QUEUE&quot; physicalName=&quot;clq.app.event.queue&quot; /&gt;</div></pre></td></tr></table></figure>
+<h3 id="mq-sender-xml"><a href="#mq-sender-xml" class="headerlink" title="mq sender xml"></a>mq sender xml</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;appEventSendingService&quot; class=&quot;com.clq.base.service.impl.AppEventSendingServiceImpl&quot;&gt;</div><div class="line">	&lt;property name=&quot;sender&quot;&gt;</div><div class="line">		&lt;bean class=&quot;com.clq.base.mq.sender.AppEventMessageSender&quot;&gt;</div><div class="line">			&lt;property name=&quot;queue&quot; ref=&quot;CLQ_APP_EVENT_QUEUE&quot; /&gt;</div><div class="line">			&lt;property name=&quot;jmsTemplate&quot; ref=&quot;jmsQueueTemplate&quot; /&gt;</div><div class="line">		&lt;/bean&gt;</div><div class="line">	&lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
+<h3 id="mq-listener-xml"><a href="#mq-listener-xml" class="headerlink" title="mq listener xml"></a>mq listener xml</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;appEventMessageListener&quot;</div><div class="line">		class=&quot;com.clq.base.mq.listener.AppEventMessageListener&quot;&gt;</div><div class="line">	&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;jms:listener-container destination-type=&quot;queue&quot;</div><div class="line">	container-type=&quot;default&quot; connection-factory=&quot;connectionFactory&quot;</div><div class="line">	acknowledge=&quot;auto&quot;&gt;</div><div class="line">	&lt;jms:listener destination=&quot;clq.app.event.queue&quot; ref=&quot;appEventMessageListener&quot; /&gt;</div><div class="line">&lt;/jms:listener-container&gt;</div></pre></td></tr></table></figure>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><h3 id="定义数据载体payload"><a href="#定义数据载体payload" class="headerlink" title="定义数据载体payload"></a>定义数据载体payload</h3><p>用于事件传播数据载体<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public class EmailPL implements Serializable &#123;</div><div class="line">	private static final long serialVersionUID = 1L;</div><div class="line">	private String sendTo;</div><div class="line">	private String subject;</div><div class="line">	private String body;</div><div class="line"></div><div class="line">    //getter and setter</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="定义事件"><a href="#定义事件" class="headerlink" title="定义事件"></a>定义事件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public class EmailEvent extends BaseAppEvent&lt;EmailPL&gt; &#123;</div><div class="line">	private static final long serialVersionUID = 1L;</div><div class="line"></div><div class="line">	public EmailEvent(Object source) &#123;</div><div class="line">		super(source);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="发送事件"><a href="#发送事件" class="headerlink" title="发送事件"></a>发送事件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">@Resource(name=&quot;appEventSendingService&quot;)</div><div class="line">AppEventSendingService appEventSendingService;</div><div class="line"></div><div class="line">//method</div><div class="line">EmailPL emailPL = new EmailPL();</div><div class="line">emailPL.setSendTo(&quot;收件人&quot;);</div><div class="line">emailPL.setSubject(&quot;主题&quot;);</div><div class="line">emailPL.setBody(&quot;内容&quot;);</div><div class="line">EmailEvent emailEvent = new EmailEvent(this);</div><div class="line">emailEvent.setPayload(emailPL);</div><div class="line">this.appEventSendingService.send(emailEvent);</div></pre></td></tr></table></figure>
+<h3 id="Spring-event监听器"><a href="#Spring-event监听器" class="headerlink" title="Spring event监听器"></a>Spring event监听器</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">@Component</div><div class="line">public class EmailListener implements ApplicationListener&lt;EmailEvent&gt; &#123;</div><div class="line">	private static Logger logger = Logger.getLogger(EmailListener.class);</div><div class="line">	@Resource</div><div class="line">	EmailService emailService;</div><div class="line"></div><div class="line">	public void onApplicationEvent(EmailEvent event) &#123;</div><div class="line">		logger.info(&quot;EmailListener start&#123;&#125;&quot;);</div><div class="line">		EmailPL payLoad = (EmailPL) event.getPayload();</div><div class="line">		String sendTo = payLoad.getSendTo();</div><div class="line">		String subject = payLoad.getSubject();</div><div class="line">		String body = payLoad.getBody();</div><div class="line">		try &#123;</div><div class="line">			//逻辑处理</div><div class="line">		&#125; catch (MessagingException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">		&#125;</div><div class="line">		logger.info(&quot;EmailListener end&#123;&#125;&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Spring/Application Event/mq+spring event实现跨系统异步事件机制/" data-id="cj5knthvo002r3mblc80q8hfc" class="article-share-link" data-share="baidu" data-title="mq+spring event实现跨系统异步事件机制">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Spring/Application Event/mq+spring event实现跨系统异步事件机制/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/07/19/Java/集合/集合遍历/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">
+        
+          集合遍历
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/07/19/Java/线程/Synchronized和Lock的区别的副本 5/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">Synchronized和Lock的区别</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+  <section id="comments">
+    <div id="ds-thread" class="ds-thread" data-thread-key="2017/07/19/Spring/Application Event/mq+spring event实现跨系统异步事件机制/" data-title="mq+spring event实现跨系统异步事件机制" data-url="http://yoursite.com/2017/07/19/Spring/Application Event/mq+spring event实现跨系统异步事件机制/"></div>
+  </section>
+</section>
+      
+      <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Eclipse/">Eclipse</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Github/">Github</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">27</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/安全相关/">安全相关</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/日记/">日记</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/线程/">线程</a><span class="category-list-count">16</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/集合/">集合</a><span class="category-list-count">3</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Maven/">Maven</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">32</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/JPA/">JPA</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Security/">Security</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Task/">Task</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/基础/">基础</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/">服务器相关</a><span class="category-list-count">16</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/red5/">red5</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/redis/">redis</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/resin/">resin</a><span class="category-list-count">2</span></li></ul></li></ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">七月 2017</a><span class="archive-list-count">93</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">近期文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/07/19/Spring/Spring Data Redis/配置/">配置</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/">GeneratedValue主键生成策略</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/nginx安装/">安装nginx</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/redis安装和配置/">redis安装和配置</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">友情链接</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="https://clq2owesome.github.io/" target="_blank">作者主页</a>
+          </li>
+        
+          <li>
+            <a href="https://githubcandybabe.github.io/" target="_blank">御用前端</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+      
+    </div>
+    <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 leo chen<br>
+      Powered by <a href="//hexo.io/" target="_blank">Hexo</a>
+      .
+      Theme by <a href="https://github.com/xiangming/landscape-plus" target="_blank">Landscape-plus</a>
+    </div>
+  </div>
+</footer>
+  </div>
+  <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+  <!-- totop start -->
+<div id="totop">
+<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+</div>
+
+<!-- totop end -->
+
+<!-- 多说公共js代码 start -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"reqianduan"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0]
+     || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+  </script>
+<!-- 多说公共js代码 end -->
+
+
+<!-- 百度分享 start -->
+
+<div id="article-share-box" class="article-share-box">
+  <div id="bdshare" class="bdsharebuttonbox article-share-links">
+    <a class="article-share-weibo" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a class="article-share-weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a class="article-share-qq" data-cmd="sqq" title="分享到QQ"></a>
+    <a class="article-share-renren" data-cmd="renren" title="分享到人人网"></a>
+    <a class="article-share-more" data-cmd="more" title="更多"></a>
+  </div>
+</div>
+<script>
+  function SetShareData(cmd, config) {
+    if (shareDataTitle && shareDataUrl) {
+      config.bdText = shareDataTitle;
+      config.bdUrl = shareDataUrl;
+    }
+    return config;
+  }
+  window._bd_share_config={
+    "common":{onBeforeClick: SetShareData},
+    "share":{"bdCustomStyle":"/css/bdshare.css"}
+  };
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='//bdimg.share.baidu.com/static/api/js/share.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+<!-- 百度分享 end -->
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+</div>
+</body>
+</html>

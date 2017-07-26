@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Java并发编程：Callable、Future和FutureTask | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="创建线程的2种方式，一种是直接继承Thread，另外一种就是实现Runnable接口。这2种方式都有一个缺陷就是：在执行完任务之后无法获取执行结果。如果需要获取执行结果，就必须通过共享变量或者使用线程通信的方式来达到效果，这样使用起来就比较麻烦。 而自从Java 1.5开始，就提供了Callable和Future，通过它们可以在任务执行完毕之后得到任务执行结果。 Callable与Runnable">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java并发编程：Callable、Future和FutureTask">
+<meta property="og:url" content="http://yoursite.com/2017/07/19/Java/线程/Java并发编程：Callable、Future和FutureTask/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="创建线程的2种方式，一种是直接继承Thread，另外一种就是实现Runnable接口。这2种方式都有一个缺陷就是：在执行完任务之后无法获取执行结果。如果需要获取执行结果，就必须通过共享变量或者使用线程通信的方式来达到效果，这样使用起来就比较麻烦。 而自从Java 1.5开始，就提供了Callable和Future，通过它们可以在任务执行完毕之后得到任务执行结果。 Callable与Runnable">
+<meta property="og:updated_time" content="2017-07-26T06:57:25.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java并发编程：Callable、Future和FutureTask">
+<meta name="twitter:description" content="创建线程的2种方式，一种是直接继承Thread，另外一种就是实现Runnable接口。这2种方式都有一个缺陷就是：在执行完任务之后无法获取执行结果。如果需要获取执行结果，就必须通过共享变量或者使用线程通信的方式来达到效果，这样使用起来就比较麻烦。 而自从Java 1.5开始，就提供了Callable和Future，通过它们可以在任务执行完毕之后得到任务执行结果。 Callable与Runnable">
+  
+    <link rel="alternative" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!--[if lt IE 9]><script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.min.js"></script><![endif]-->
+  
+</head>
+<body>
+<div id="container">
+  <div id="wrap">
+    <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">LeoChan&#39;s 个人博客</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技术都是通用的，重要的是是否具有自主解决问题的能力！</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//www.baidu.com/baidu" method="get" accept-charset="utf-8" class="search-form">
+          <input type="search" name="word" maxlength="20" class="search-form-input" placeholder="Search">
+          <input type="submit" value="" class="search-form-submit">
+          <input name=tn type=hidden value="bds">
+          <input name=cl type=hidden value="3">
+          <input name=ct type=hidden value="2097152">
+          <input type="hidden" name="si" value="yoursite.com">
+        </form>
+      </div>
+    </div>
+  </div>
+</header>
+    <div class="outer">
+      <section id="main"><article id="post-Java/线程/Java并发编程：Callable、Future和FutureTask" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Java/线程/Java并发编程：Callable、Future和FutureTask/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/线程/">线程</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Java并发编程：Callable、Future和FutureTask
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>创建线程的2种方式，一种是直接继承Thread，另外一种就是实现Runnable接口。<br>这2种方式都有一个缺陷就是：在执行完任务之后无法获取执行结果。<br>如果需要获取执行结果，就必须通过共享变量或者使用线程通信的方式来达到效果，这样使用起来就比较麻烦。</p>
+<p>而自从Java 1.5开始，就提供了Callable和Future，通过它们可以在任务执行完毕之后得到任务执行结果。</p>
+<h2 id="Callable与Runnable"><a href="#Callable与Runnable" class="headerlink" title="Callable与Runnable"></a>Callable与Runnable</h2><p>先说一下java.lang.Runnable吧，它是一个接口，在它里面只声明了一个run()方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public interface Runnable &#123;</div><div class="line">    public abstract void run();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>由于run()方法返回值为void类型，所以在执行完任务之后无法返回任何结果。</p>
+<p>Callable位于java.util.concurrent包下，它也是一个接口，在它里面也只声明了一个方法，只不过这个方法叫做call()：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public interface Callable&lt;V&gt; &#123;</div><div class="line">    /**</div><div class="line">     * Computes a result, or throws an exception if unable to do so.</div><div class="line">     *</div><div class="line">     * @return computed result</div><div class="line">     * @throws Exception if unable to compute a result</div><div class="line">     */</div><div class="line">    V call() throws Exception;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>可以看到，这是一个泛型接口，call()函数返回的类型就是传递进来的V类型。  </p>
+<p>那么怎么使用Callable呢？一般情况下是配合ExecutorService来使用的，在ExecutorService接口中声明了若干个submit方法的重载版本：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;T&gt; Future&lt;T&gt; submit(Callable&lt;T&gt; task);</div><div class="line">&lt;T&gt; Future&lt;T&gt; submit(Runnable task, T result);</div><div class="line">Future&lt;?&gt; submit(Runnable task);</div></pre></td></tr></table></figure></p>
+<p>第一个submit方法里面的参数类型就是Callable。<br>一般情况下我们使用第一个submit方法和第三个submit方法，第二个submit方法很少使用。<br>​    </p>
+<h3 id="Callable和Runnable的区别如下："><a href="#Callable和Runnable的区别如下：" class="headerlink" title="Callable和Runnable的区别如下："></a>Callable和Runnable的区别如下：</h3><ul>
+<li><p>Callable定义的方法是call，而Runnable定义的方法是run。</p>
+</li>
+<li><p>Callable的call方法可以有返回值，而Runnable的run方法不能有返回值。</p>
+</li>
+<li><p>Callable的call方法可抛出异常，而Runnable的run方法不能抛出异常。</p>
+</li>
+</ul>
+<h2 id="Future"><a href="#Future" class="headerlink" title="Future"></a>Future</h2><p><strong>Future就是对于具体的Runnable或者Callable任务的执行结果进行取消、查询是否完成、获取结果。必要时可以通过get方法获取执行结果，该方法会阻塞直到任务返回结果。</strong>    </p>
+<p>Future类位于java.util.concurrent包下，它是一个接口：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public interface Future&lt;V&gt; &#123;</div><div class="line">    boolean cancel(boolean mayInterruptIfRunning);</div><div class="line">    boolean isCancelled();</div><div class="line">    boolean isDone();</div><div class="line">    V get() throws InterruptedException, ExecutionException;</div><div class="line">    V get(long timeout, TimeUnit unit)</div><div class="line">        throws InterruptedException, ExecutionException, TimeoutException;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在Future接口中声明了5个方法，下面依次解释每个方法的作用：</p>
+<ul>
+<li>cancel方法用来取消任务，如果取消任务成功则返回true，如果取消任务失败则返回false。参数mayInterruptIfRunning表示是否允许取消正在执行却没有执行完毕的任务，如果设置true，则表示可以取消正在执行过程中的任务。如果任务已经完成，则无论mayInterruptIfRunning为true还是false，此方法肯定返回false，即如果取消已经完成的任务会返回false；如果任务正在执行，若mayInterruptIfRunning设置为true，则返回true，若mayInterruptIfRunning设置为false，则返回false；如果任务还没有执行，则无论mayInterruptIfRunning为true还是false，肯定返回true。</li>
+<li>isCancelled方法表示任务是否被取消成功，如果在任务正常完成前被取消成功，则返回 true。</li>
+<li>isDone方法表示任务是否已经完成，若任务完成，则返回true；</li>
+<li>get()方法用来获取执行结果，这个方法会产生阻塞，会一直等到任务执行完毕才返回；</li>
+<li>get(long timeout, TimeUnit unit)用来获取执行结果，如果在指定时间内，还没获取到结果，就直接返回null。</li>
+</ul>
+<p>也就是说Future提供了三种功能：</p>
+<ol>
+<li><p>判断任务是否完成；</p>
+</li>
+<li><p>能够中断任务；</p>
+</li>
+<li><p>能够获取任务执行结果。</p>
+</li>
+</ol>
+<p>因为Future只是一个接口，所以是无法直接用来创建对象使用的，因此就有了下面的FutureTask。</p>
+<h2 id="FutureTask"><a href="#FutureTask" class="headerlink" title="FutureTask"></a>FutureTask</h2><p>我们先来看一下FutureTask的实现：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public class FutureTask&lt;V&gt; implements RunnableFuture&lt;V&gt;</div></pre></td></tr></table></figure></p>
+<p>FutureTask类实现了RunnableFuture接口，我们看一下RunnableFuture接口的实现：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public interface RunnableFuture&lt;V&gt; extends Runnable, Future&lt;V&gt; &#123;</div><div class="line">    void run();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>可以看出RunnableFuture继承了Runnable接口和Future接口，而FutureTask实现了RunnableFuture接口。所以它既可以作为Runnable被线程执行，又可以作为Future得到Callable的返回值。</p>
+<p>FutureTask提供了2个构造器：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">public FutureTask(Callable&lt;V&gt; callable) &#123;</div><div class="line">&#125;</div><div class="line">public FutureTask(Runnable runnable, V result) &#123;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>事实上，FutureTask是Future接口的一个唯一实现类。</p>
+<h2 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h2><p>1.使用Callable+Future获取执行结果<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">public class Test &#123;</div><div class="line">    public static void main(String[] args) &#123;</div><div class="line">        ExecutorService executor = Executors.newCachedThreadPool();</div><div class="line">        Task task = new Task();</div><div class="line">        Future&lt;Integer&gt; result = executor.submit(task);</div><div class="line">        executor.shutdown();</div><div class="line"></div><div class="line">        try &#123;</div><div class="line">            Thread.sleep(1000);</div><div class="line">        &#125; catch (InterruptedException e1) &#123;</div><div class="line">            e1.printStackTrace();</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        System.out.println(&quot;主线程在执行任务&quot;);</div><div class="line">        </div><div class="line">        try &#123;</div><div class="line">            System.out.println(&quot;task运行结果&quot;+result.get());</div><div class="line">        &#125; catch (InterruptedException e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">        &#125; catch (ExecutionException e) &#123;</div><div class="line">        e.printStackTrace();</div><div class="line">        &#125;</div><div class="line">    </div><div class="line">        System.out.println(&quot;所有任务执行完毕&quot;);</div><div class="line">    &#125; </div><div class="line">&#125;</div><div class="line"></div><div class="line">class Task implements Callable&lt;Integer&gt;&#123;</div><div class="line">    @Override</div><div class="line">    public Integer call() throws Exception &#123;</div><div class="line">        System.out.println(&quot;子线程在进行计算&quot;);</div><div class="line">        Thread.sleep(3000);</div><div class="line">        int sum = 0;</div><div class="line">        for(int i=0;i&lt;100;i++)</div><div class="line">        sum += i;</div><div class="line">        return sum;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>执行结果：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">子线程在进行计算</div><div class="line">主线程在执行任务</div><div class="line">task运行结果4950</div><div class="line">所有任务执行完毕</div></pre></td></tr></table></figure></p>
+<p>2.使用Callable+FutureTask获取执行结果<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line">public class Test &#123;</div><div class="line">    public static void main(String[] args) &#123;</div><div class="line">        //第一种方式</div><div class="line">        ExecutorService executor = Executors.newCachedThreadPool();</div><div class="line">        Task task = new Task();</div><div class="line">        FutureTask&lt;Integer&gt; futureTask = new FutureTask&lt;Integer&gt;(task);</div><div class="line">        executor.submit(futureTask);</div><div class="line">        executor.shutdown();</div><div class="line">        </div><div class="line">        //第二种方式，注意这种方式和第一种方式效果是类似的，只不过一个使用的是ExecutorService，一个使用的是Thread</div><div class="line">        /*Task task = new Task();</div><div class="line">        FutureTask&lt;Integer&gt; futureTask = new FutureTask&lt;Integer&gt;(task);</div><div class="line">        Thread thread = new Thread(futureTask);</div><div class="line">        thread.start();*/</div><div class="line">        </div><div class="line">        try &#123;</div><div class="line">            Thread.sleep(1000);</div><div class="line">        &#125; catch (InterruptedException e1) &#123;</div><div class="line">            e1.printStackTrace();</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        System.out.println(&quot;主线程在执行任务&quot;);</div><div class="line">        </div><div class="line">        try &#123;</div><div class="line">            System.out.println(&quot;task运行结果&quot;+futureTask.get());</div><div class="line">        &#125; catch (InterruptedException e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">        &#125; catch (ExecutionException e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        System.out.println(&quot;所有任务执行完毕&quot;);</div><div class="line">    &#125; </div><div class="line">&#125;</div><div class="line"></div><div class="line">class Task implements Callable&lt;Integer&gt;&#123;</div><div class="line">    @Override</div><div class="line">    public Integer call() throws Exception &#123;</div><div class="line">        System.out.println(&quot;子线程在进行计算&quot;);</div><div class="line">        Thread.sleep(3000);</div><div class="line">        int sum = 0;</div><div class="line">        for(int i=0;i&lt;100;i++)</div><div class="line">            sum += i;</div><div class="line">        return sum;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>如果为了可取消性而使用 Future 但又不提供可用的结果，则可以声明 Future&lt;?&gt; 形式类型、并返回 null 作为底层任务的结果。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Java/线程/Java并发编程：Callable、Future和FutureTask/" data-id="cj5knthux001y3mbltiezn34s" class="article-share-link" data-share="baidu" data-title="Java并发编程：Callable、Future和FutureTask">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Java/线程/Java并发编程：Callable、Future和FutureTask/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/07/19/Java/线程/Synchronized和Lock的区别/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">
+        
+          Synchronized和Lock的区别
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/07/19/Java/线程/几个线程工具类/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">几个线程工具类</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+  <section id="comments">
+    <div id="ds-thread" class="ds-thread" data-thread-key="2017/07/19/Java/线程/Java并发编程：Callable、Future和FutureTask/" data-title="Java并发编程：Callable、Future和FutureTask" data-url="http://yoursite.com/2017/07/19/Java/线程/Java并发编程：Callable、Future和FutureTask/"></div>
+  </section>
+</section>
+      
+      <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Eclipse/">Eclipse</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Github/">Github</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">27</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/安全相关/">安全相关</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/日记/">日记</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/线程/">线程</a><span class="category-list-count">16</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/集合/">集合</a><span class="category-list-count">3</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Maven/">Maven</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">32</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/JPA/">JPA</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Security/">Security</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Task/">Task</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/基础/">基础</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/">服务器相关</a><span class="category-list-count">16</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/red5/">red5</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/redis/">redis</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/resin/">resin</a><span class="category-list-count">2</span></li></ul></li></ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">七月 2017</a><span class="archive-list-count">93</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">近期文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/07/19/Spring/Spring Data Redis/配置/">配置</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/">GeneratedValue主键生成策略</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/nginx安装/">安装nginx</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/redis安装和配置/">redis安装和配置</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">友情链接</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="https://clq2owesome.github.io/" target="_blank">作者主页</a>
+          </li>
+        
+          <li>
+            <a href="https://githubcandybabe.github.io/" target="_blank">御用前端</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+      
+    </div>
+    <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 leo chen<br>
+      Powered by <a href="//hexo.io/" target="_blank">Hexo</a>
+      .
+      Theme by <a href="https://github.com/xiangming/landscape-plus" target="_blank">Landscape-plus</a>
+    </div>
+  </div>
+</footer>
+  </div>
+  <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+  <!-- totop start -->
+<div id="totop">
+<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+</div>
+
+<!-- totop end -->
+
+<!-- 多说公共js代码 start -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"reqianduan"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0]
+     || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+  </script>
+<!-- 多说公共js代码 end -->
+
+
+<!-- 百度分享 start -->
+
+<div id="article-share-box" class="article-share-box">
+  <div id="bdshare" class="bdsharebuttonbox article-share-links">
+    <a class="article-share-weibo" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a class="article-share-weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a class="article-share-qq" data-cmd="sqq" title="分享到QQ"></a>
+    <a class="article-share-renren" data-cmd="renren" title="分享到人人网"></a>
+    <a class="article-share-more" data-cmd="more" title="更多"></a>
+  </div>
+</div>
+<script>
+  function SetShareData(cmd, config) {
+    if (shareDataTitle && shareDataUrl) {
+      config.bdText = shareDataTitle;
+      config.bdUrl = shareDataUrl;
+    }
+    return config;
+  }
+  window._bd_share_config={
+    "common":{onBeforeClick: SetShareData},
+    "share":{"bdCustomStyle":"/css/bdshare.css"}
+  };
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='//bdimg.share.baidu.com/static/api/js/share.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+<!-- 百度分享 end -->
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+</div>
+</body>
+</html>

@@ -106,7 +106,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Spring/Spring Data Redis/配置/" data-id="cj5c3tb4y002b45blsf6w1eln" class="article-share-link" data-share="baidu" data-title="配置">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Spring/Spring Data Redis/配置/" data-id="cj5knthvv00383mblu2iutfq8" class="article-share-link" data-share="baidu" data-title="配置">分享到</a>
       
 
       
@@ -121,14 +121,14 @@
 
 
   
-    <article id="post-Spring/基础/Spring获取ApplicationContext，并获取所有Bean" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/JPA/GeneratedValue主键生成策略" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/" class="article-date">
+    <a href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/基础/">基础</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
   </div>
 
   </div>
@@ -139,7 +139,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/">Spring获取ApplicationContext，并获取所有Bean</a>
+      <a class="article-title" href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/">GeneratedValue主键生成策略</a>
     </h1>
   
 
@@ -147,21 +147,24 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="方法一（推荐）"><a href="#方法一（推荐）" class="headerlink" title="方法一（推荐）"></a>方法一（推荐）</h2><h3 id="实现接口ApplicationContextAware"><a href="#实现接口ApplicationContextAware" class="headerlink" title="实现接口ApplicationContextAware"></a>实现接口ApplicationContextAware</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line">package com.lhc.utils;</div><div class="line"></div><div class="line">import java.util.Map;</div><div class="line"></div><div class="line">import org.springframework.beans.BeansException;</div><div class="line">import org.springframework.context.ApplicationContext;</div><div class="line">import org.springframework.context.ApplicationContextAware;</div><div class="line"></div><div class="line">public class SpringContextHolder implements ApplicationContextAware &#123;</div><div class="line">	private static ApplicationContext applicationContext = null;  </div><div class="line">	  @Override  </div><div class="line">	  public  void setApplicationContext(ApplicationContext applicationContext)  throws BeansException &#123;  </div><div class="line">		    if(SpringContextHolder.applicationContext == null) &#123;  </div><div class="line">		    	SpringContextHolder.applicationContext  = applicationContext;  </div><div class="line">		    &#125;  </div><div class="line">	  &#125;  </div><div class="line"></div><div class="line">	public static ApplicationContext getApplicationContext() &#123;</div><div class="line">		checkApplicationContext();</div><div class="line">		return applicationContext;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public static &lt;T&gt; T getBean(String name) &#123;</div><div class="line">		checkApplicationContext();</div><div class="line">		return (T) applicationContext.getBean(name);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public static &lt;T&gt; T getBean(String beanName, Class&lt;T&gt; type) &#123;</div><div class="line">		checkApplicationContext();</div><div class="line">		return applicationContext.getBean(beanName, type);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public static &lt;T&gt; T getBean(Class&lt;T&gt; clazz) &#123;</div><div class="line">		checkApplicationContext();</div><div class="line"></div><div class="line">		Map&lt;String, T&gt; beanMaps = applicationContext.getBeansOfType(clazz);</div><div class="line">		if ((beanMaps != null) &amp;&amp; (!beanMaps.isEmpty())) &#123;</div><div class="line">			return beanMaps.values().iterator().next();</div><div class="line">		&#125;</div><div class="line">		return null;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	private static void checkApplicationContext() &#123;</div><div class="line">		if (applicationContext == null) &#123;</div><div class="line">			throw new IllegalStateException(&quot;applicaitonContext未注入,请在applicationContext.xml中定义SpringContextHolder&quot;);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="配置文件中配置"><a href="#配置文件中配置" class="headerlink" title="配置文件中配置"></a>配置文件中配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;!--  bean管理工具 --&gt;</div><div class="line">&lt;bean id=&quot;springContextHolder&quot; class=&quot;com.lhc.utils.SpringContextHolder&quot;/&gt;</div><div class="line">&lt;!--  bean管理工具 --&gt;</div></pre></td></tr></table></figure>
-<h2 id="方法二"><a href="#方法二" class="headerlink" title="方法二"></a>方法二</h2><h3 id="继承自抽象类ApplicationObjectSupport"><a href="#继承自抽象类ApplicationObjectSupport" class="headerlink" title="继承自抽象类ApplicationObjectSupport"></a>继承自抽象类ApplicationObjectSupport</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line">import javax.faces.application.Application;  </div><div class="line">import org.springframework.beans.BeansException;  </div><div class="line">import org.springframework.context.ApplicationContext;  </div><div class="line">import org.springframework.context.ApplicationContextAware;  </div><div class="line">import org.springframework.context.support.ApplicationObjectSupport;  </div><div class="line">import org.springframework.web.context.support.WebApplicationObjectSupport;  </div><div class="line">/** </div><div class="line"> * 获取spring信息的工具类 </div><div class="line"> * @author Administrator </div><div class="line"> * </div><div class="line"> */  </div><div class="line">public final class SpringContextHolder extends ApplicationObjectSupport &#123;  </div><div class="line">  private static ApplicationContext applicationContext = null;  </div><div class="line">  @Override  </div><div class="line">  protected void initApplicationContext(ApplicationContext context)  </div><div class="line">  throws BeansException &#123;  </div><div class="line">    super.initApplicationContext(context);  </div><div class="line">    if(ToolSpring.applicationContext == null)&#123;  </div><div class="line">      ToolSpring.applicationContext = context;  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println(&quot;========ApplicationContext配置成功,在普通类可以通过调用ToolSpring.getAppContext()获取applicationContext对象,applic      ationContext=&quot;+applicationContext+&quot;========&quot;);  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">    &#125;  </div><div class="line">  &#125;  </div><div class="line">  public static ApplicationContext getAppContext() &#123;  </div><div class="line">    return applicationContext;  </div><div class="line">  &#125;  </div><div class="line">  public static Object getBean(String name)&#123;  </div><div class="line">    return getAppContext().getBean(name);  </div><div class="line">  &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="配置文件中配置-1"><a href="#配置文件中配置-1" class="headerlink" title="配置文件中配置"></a>配置文件中配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;!--  bean管理工具 --&gt;</div><div class="line">&lt;bean id=&quot;springContextHolder&quot; class=&quot;com.lhc.utils.SpringContextHolder&quot;/&gt;</div><div class="line">&lt;!--  bean管理工具 --&gt;</div></pre></td></tr></table></figure>
-<h2 id="方法三"><a href="#方法三" class="headerlink" title="方法三"></a>方法三</h2><h3 id="继承自抽象类WebApplicationObjectSupport"><a href="#继承自抽象类WebApplicationObjectSupport" class="headerlink" title="继承自抽象类WebApplicationObjectSupport"></a>继承自抽象类WebApplicationObjectSupport</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">import javax.faces.application.Application;  </div><div class="line">import org.springframework.beans.BeansException;  </div><div class="line">import org.springframework.context.ApplicationContext;  </div><div class="line">import org.springframework.context.support.ApplicationObjectSupport;  </div><div class="line">import org.springframework.web.context.support.WebApplicationObjectSupport;  </div><div class="line">/** </div><div class="line"> * 获取spring信息的工具类 </div><div class="line"> * @author Administrator </div><div class="line"> * </div><div class="line"> */  </div><div class="line">public final class SpringContextHolder extends WebApplicationObjectSupport&#123;  </div><div class="line">  private static ApplicationContext applicationContext = null;  </div><div class="line">  @Override  </div><div class="line">  protected void initApplicationContext(ApplicationContext context) &#123;  </div><div class="line">    super.initApplicationContext(context);  </div><div class="line">    if(applicationContext == null)&#123;  </div><div class="line">      applicationContext = context;  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println(&quot;========ApplicationContext配置成功,在普通类可以通过调用ToolSpring.getAppContext()获取applicationContext对象,applicationContext=&quot;+applicationContext+&quot;========&quot;);  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">    &#125;  </div><div class="line">  &#125;  </div><div class="line">  public static ApplicationContext getAppContext() &#123;  </div><div class="line">    return applicationContext;  </div><div class="line">  &#125;  </div><div class="line">  public static Object getBean(String name)&#123;  </div><div class="line">    return applicationContext.getBean(name);  </div><div class="line">  &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="配置文件中配置-2"><a href="#配置文件中配置-2" class="headerlink" title="配置文件中配置"></a>配置文件中配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;!--  bean管理工具 --&gt;</div><div class="line">&lt;bean id=&quot;springContextHolder&quot; class=&quot;com.lhc.utils.SpringContextHolder&quot;/&gt;</div><div class="line">&lt;!--  bean管理工具 --&gt;</div></pre></td></tr></table></figure>
+        <h2 id="GeneratedValue-主键的产生策略，通过strategy属性指定。"><a href="#GeneratedValue-主键的产生策略，通过strategy属性指定。" class="headerlink" title="@GeneratedValue:主键的产生策略，通过strategy属性指定。"></a>@GeneratedValue:主键的产生策略，通过strategy属性指定。</h2><p>主键产生策略通过GenerationType来指定。GenerationType是一个枚举，它定义了主键产生策略的类型。</p>
+<ol>
+<li>AUTO　自动选择一个最适合底层数据库的主键生成策略。如MySQL会自动对应auto increment。这个是默认选项，即如果只写@GeneratedValue，等价于@GeneratedValue(strategy=GenerationType.AUTO)。</li>
+<li>IDENTITY　表自增长字段，Oracle不支持这种方式。</li>
+<li>SEQUENCE　通过序列产生主键，MySQL不支持这种方式。</li>
+<li>TABLE　通过表产生主键，框架借由表模拟序列产生主键，使用该策略可以使应用更易于数据库移植。不同的JPA实现商生成的表名是不同的，如 OpenJPA生成openjpa_sequence_table表，Hibernate生成一个hibernate_sequences表，而TopLink则生成sequence表。这些表都具有一个序列名和对应值两个字段，如SEQ_NAME和SEQ_COUNT。</li>
+</ol>
+<p>在我们的应用中，一般选用@GeneratedValue(strategy=GenerationType.AUTO)这种方式，自动选择主键生成策略，以适应不同的数据库移植。</p>
+
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/" data-id="cj5c3tb4z002e45blw0w55zfk" class="article-share-link" data-share="baidu" data-title="Spring获取ApplicationContext，并获取所有Bean">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/" data-id="cj5knthvr002w3mbly0vfq4pn" class="article-share-link" data-share="baidu" data-title="GeneratedValue主键生成策略">分享到</a>
       
 
       
-        <a href="http://yoursite.com/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/#ds-thread" class="article-comment-link">评论</a>
+        <a href="http://yoursite.com/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -172,9 +175,9 @@
 
 
   
-    <article id="post-Linux/apt-get常用命令" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Linux/nginx安装" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Linux/apt-get常用命令/" class="article-date">
+    <a href="/2017/07/19/Linux/nginx安装/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
@@ -190,7 +193,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Linux/apt-get常用命令/">apt-get常用命令</a>
+      <a class="article-title" href="/2017/07/19/Linux/nginx安装/">安装nginx</a>
     </h1>
   
 
@@ -198,20 +201,130 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="什么的是apt-get"><a href="#什么的是apt-get" class="headerlink" title="什么的是apt-get"></a>什么的是apt-get</h2><p>高级包装工具（英语：Advanced Packaging Tools,简称：APT）是Debian及其衍生发行版（如：ubuntu）的软件包管理器。APT可以自动下载，配置，安装二进制或者源代码格式的软 件包，因此简化了 Unix系统上管理软件的过程,apt-get命令一般需要root权限执行，所以一般跟着sudo命令。</p>
-<h2 id="apt-get中文参数"><a href="#apt-get中文参数" class="headerlink" title="apt-get中文参数"></a>apt-get中文参数</h2><h3 id="用法："><a href="#用法：" class="headerlink" title="用法："></a>用法：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">apt-get [选项] 命令 apt-get [选项] install|remove pkg1 [pkg2 ...]</div><div class="line"></div><div class="line">apt-get [选项] source pkg1 [pkg2 ...]</div></pre></td></tr></table></figure>
-<p>apt-get 是一个下载安装软件包的简单命令行接口。 最常用的命令是update(更新) 和install(安装)。</p>
-<h3 id="命令："><a href="#命令：" class="headerlink" title="命令："></a>命令：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div></pre></td><td class="code"><pre><div class="line">update - 重新获取软件包列表 </div><div class="line"></div><div class="line">upgrade - 进行更新 </div><div class="line"></div><div class="line">install - 安装新的软件包 </div><div class="line"></div><div class="line">remove - 移除软件包 </div><div class="line"></div><div class="line">autoremove - 自动移除全部不使用的软件包 </div><div class="line"></div><div class="line">purge - 移除软件包和配置文件 </div><div class="line"></div><div class="line">source - 下载源码档案 </div><div class="line"></div><div class="line">build-dep - 为源码包配置编译依赖 </div><div class="line"></div><div class="line">dist-upgrade - 发行版升级</div><div class="line"></div><div class="line">dselect-upgrade - 依照 dselect 的选择更新 </div><div class="line"></div><div class="line">clean - 清除下载的归档文件 </div><div class="line"></div><div class="line">autoclean - 清除旧的的已下载的归档文件 </div><div class="line"></div><div class="line">check - 检验是否有损坏的依赖 </div><div class="line"></div><div class="line">选项： </div><div class="line"></div><div class="line">-h 本帮助文件。 </div><div class="line"></div><div class="line">-q 输出到日志 - 无进展指示 </div><div class="line"></div><div class="line">-qq 不输出信息，错误除外 </div><div class="line"></div><div class="line">-d 仅下载 - 不安装或解压归档文件 </div><div class="line"></div><div class="line">-s 不实际安装。模拟执行命令</div><div class="line"></div><div class="line">-y 假定对所有的询问选是，不提示 </div><div class="line"></div><div class="line">-f 尝试修正系统依赖损坏处 </div><div class="line"></div><div class="line">-m 如果归档无法定位，尝试继续</div><div class="line"></div><div class="line">-u 同时显示更新软件包的列表 </div><div class="line"></div><div class="line">-b 获取源码包后编译 -V 显示详细的版本号</div><div class="line"></div><div class="line">-c=? 阅读此配置文件</div><div class="line"></div><div class="line">-o=? 设置自定的配置选项，如 -o dir::cache=/tmp</div></pre></td></tr></table></figure>
-<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">apt-cache search packagename 搜索包</div><div class="line">apt-cache show packagename 获取包的相关信息，如说明、大小、版本等</div><div class="line">apt-get install packagename 安装包</div><div class="line">apt-get install packagename --reinstall 重新安装包</div><div class="line">apt-get -f install 修复安装”-f = –fix-missing”</div><div class="line">apt-get remove packagename 删除包</div><div class="line">apt-get remove packagename --purge 删除包，包括删除配置文件等</div><div class="line">apt-get update 更新源</div><div class="line">apt-get upgrade 更新已安装的包</div><div class="line">apt-get dist-upgrade 升级系统</div><div class="line">apt-get dselect-upgrade 使用 dselect 升级</div><div class="line">apt-cache depends packagename 了解使用依赖</div><div class="line">apt-cache rdepends packagename 是查看该包被哪些包依赖</div><div class="line">apt-get build-dep packagename 安装相关的编译环境</div><div class="line">apt-get source packagename 下载该包的源代码</div><div class="line">apt-get clean 清理无用的包</div><div class="line">apt-get autoclean 清理无用的包</div><div class="line">apt-get check 检查是否有损坏的依赖</div></pre></td></tr></table></figure>
+        <h2 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install nginx</div></pre></td></tr></table></figure>
+<h2 id="服务器安装目录"><a href="#服务器安装目录" class="headerlink" title="服务器安装目录"></a>服务器安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">whereis nginx</div><div class="line">/usr/sbin/nginx </div><div class="line">/etc/nginx </div><div class="line">/usr/share/nginx</div></pre></td></tr></table></figure>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.sudo /etc/init.d/nginx start  #通过init.d下的启动文件启动。</div><div class="line"></div><div class="line">2.sudo service nginx start   #通过ubuntu的服务管理器启动</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.sudo /etc/init.d/nginx stop</div><div class="line"></div><div class="line">2.sudo service nginx stop</div></pre></td></tr></table></figure>
+<h2 id="重启"><a href="#重启" class="headerlink" title="重启"></a>重启</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.sudo /etc/init.d/nginx restart</div><div class="line"></div><div class="line">2.sudo service nginx restart</div></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Linux/apt-get常用命令/" data-id="cj5c3tb1x000345ble2vg0xfw" class="article-share-link" data-share="baidu" data-title="apt-get常用命令">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Linux/nginx安装/" data-id="cj5knthsd00033mbl7evk2xws" class="article-share-link" data-share="baidu" data-title="安装nginx">分享到</a>
       
 
       
-        <a href="http://yoursite.com/2017/07/19/Linux/apt-get常用命令/#ds-thread" class="article-comment-link">评论</a>
+        <a href="http://yoursite.com/2017/07/19/Linux/nginx安装/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Linux/activemq安装和配置" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Linux/activemq安装和配置/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><ol>
+<li>下载安装包</li>
+<li>将安装包放到/usr目录</li>
+<li><p>解压安装包</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo tar xvfz 包名</div></pre></td></tr></table></figure>
+</li>
+<li><p>进入bin目录</p>
+</li>
+<li>启动：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./activemq start</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="查看安装目录"><a href="#查看安装目录" class="headerlink" title="查看安装目录"></a>查看安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">whereis activemq</div></pre></td></tr></table></figure>
+<h2 id="查看61616端口是否正常启动"><a href="#查看61616端口是否正常启动" class="headerlink" title="查看61616端口是否正常启动"></a>查看61616端口是否正常启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">netstat -an | grep 61616</div></pre></td></tr></table></figure>
+<h2 id="查看进程"><a href="#查看进程" class="headerlink" title="查看进程"></a>查看进程</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ps -ef | grep activemq</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入bin目录</div><div class="line">./activemq stop</div></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Linux/activemq安装和配置/" data-id="cj5knthsf00043mbl358cixt7" class="article-share-link" data-share="baidu" data-title="activemq安装和配置">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Linux/activemq安装和配置/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Linux/redis安装和配置" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Linux/redis安装和配置/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Linux/redis安装和配置/">redis安装和配置</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$sudo apt-get update</div><div class="line">$sudo apt-get install redis-server</div></pre></td></tr></table></figure>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">默认端口启动：</div><div class="line">service redis start</div><div class="line">注：不指定端口时，脚本默认指定启动6379端口的redis</div><div class="line"></div><div class="line">指定端口启动：</div><div class="line">service redis -p 6379 start</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service redis stop</div></pre></td></tr></table></figure>
+<h2 id="进入redis后台"><a href="#进入redis后台" class="headerlink" title="进入redis后台"></a>进入redis后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ redis-cli</div><div class="line"></div><div class="line">输入ping，返回PONG则成功</div></pre></td></tr></table></figure>
+<h2 id="退出redis后台"><a href="#退出redis后台" class="headerlink" title="退出redis后台"></a>退出redis后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">exit</div></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Linux/redis安装和配置/" data-id="cj5knthsi00053mbl7i3ar57y" class="article-share-link" data-share="baidu" data-title="redis安装和配置">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Linux/redis安装和配置/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -269,121 +382,11 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Linux/mysql安装/" data-id="cj5c3tb1z000445bl2u4k8qyp" class="article-share-link" data-share="baidu" data-title="mysql安装">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Linux/mysql安装/" data-id="cj5knthsj00073mblqqym3rle" class="article-share-link" data-share="baidu" data-title="mysql安装">分享到</a>
       
 
       
         <a href="http://yoursite.com/2017/07/19/Linux/mysql安装/#ds-thread" class="article-comment-link">评论</a>
-      
-
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Linux/activemq安装和配置" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/07/19/Linux/activemq安装和配置/" class="article-date">
-  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><ol>
-<li>下载安装包</li>
-<li>将安装包放到/usr目录</li>
-<li><p>解压安装包</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo tar xvfz 包名</div></pre></td></tr></table></figure>
-</li>
-<li><p>进入bin目录</p>
-</li>
-<li>启动：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./activemq start</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<h2 id="查看安装目录"><a href="#查看安装目录" class="headerlink" title="查看安装目录"></a>查看安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">whereis activemq</div></pre></td></tr></table></figure>
-<h2 id="查看61616端口是否正常启动"><a href="#查看61616端口是否正常启动" class="headerlink" title="查看61616端口是否正常启动"></a>查看61616端口是否正常启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">netstat -an | grep 61616</div></pre></td></tr></table></figure>
-<h2 id="查看进程"><a href="#查看进程" class="headerlink" title="查看进程"></a>查看进程</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ps -ef | grep activemq</div></pre></td></tr></table></figure>
-<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入bin目录</div><div class="line">./activemq stop</div></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-        <a data-url="http://yoursite.com/2017/07/19/Linux/activemq安装和配置/" data-id="cj5c3tb22000545blkx2w631d" class="article-share-link" data-share="baidu" data-title="activemq安装和配置">分享到</a>
-      
-
-      
-        <a href="http://yoursite.com/2017/07/19/Linux/activemq安装和配置/#ds-thread" class="article-comment-link">评论</a>
-      
-
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Linux/nginx安装" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/07/19/Linux/nginx安装/" class="article-date">
-  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Linux/nginx安装/">安装nginx</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install nginx</div></pre></td></tr></table></figure>
-<h2 id="服务器安装目录"><a href="#服务器安装目录" class="headerlink" title="服务器安装目录"></a>服务器安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">whereis nginx</div><div class="line">/usr/sbin/nginx </div><div class="line">/etc/nginx </div><div class="line">/usr/share/nginx</div></pre></td></tr></table></figure>
-<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.sudo /etc/init.d/nginx start  #通过init.d下的启动文件启动。</div><div class="line"></div><div class="line">2.sudo service nginx start   #通过ubuntu的服务管理器启动</div></pre></td></tr></table></figure>
-<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.sudo /etc/init.d/nginx stop</div><div class="line"></div><div class="line">2.sudo service nginx stop</div></pre></td></tr></table></figure>
-<h2 id="重启"><a href="#重启" class="headerlink" title="重启"></a>重启</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.sudo /etc/init.d/nginx restart</div><div class="line"></div><div class="line">2.sudo service nginx restart</div></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-        <a data-url="http://yoursite.com/2017/07/19/Linux/nginx安装/" data-id="cj5c3tb24000745blj1u3vphh" class="article-share-link" data-share="baidu" data-title="安装nginx">分享到</a>
-      
-
-      
-        <a href="http://yoursite.com/2017/07/19/Linux/nginx安装/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -428,108 +431,11 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Linux/vi命令/" data-id="cj5c3tb27000945blzkc9itgo" class="article-share-link" data-share="baidu" data-title="vi命令">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Linux/vi命令/" data-id="cj5knthsl00093mblaewir18p" class="article-share-link" data-share="baidu" data-title="vi命令">分享到</a>
       
 
       
         <a href="http://yoursite.com/2017/07/19/Linux/vi命令/#ds-thread" class="article-comment-link">评论</a>
-      
-
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Linux/redis安装和配置" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/07/19/Linux/redis安装和配置/" class="article-date">
-  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Linux/redis安装和配置/">redis安装和配置</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$sudo apt-get update</div><div class="line">$sudo apt-get install redis-server</div></pre></td></tr></table></figure>
-<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">默认端口启动：</div><div class="line">service redis start</div><div class="line">注：不指定端口时，脚本默认指定启动6379端口的redis</div><div class="line"></div><div class="line">指定端口启动：</div><div class="line">service redis -p 6379 start</div></pre></td></tr></table></figure>
-<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service redis stop</div></pre></td></tr></table></figure>
-<h2 id="进入redis后台"><a href="#进入redis后台" class="headerlink" title="进入redis后台"></a>进入redis后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ redis-cli</div><div class="line"></div><div class="line">输入ping，返回PONG则成功</div></pre></td></tr></table></figure>
-<h2 id="退出redis后台"><a href="#退出redis后台" class="headerlink" title="退出redis后台"></a>退出redis后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">exit</div></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-        <a data-url="http://yoursite.com/2017/07/19/Linux/redis安装和配置/" data-id="cj5c3tb2c000b45blq08f74ok" class="article-share-link" data-share="baidu" data-title="redis安装和配置">分享到</a>
-      
-
-      
-        <a href="http://yoursite.com/2017/07/19/Linux/redis安装和配置/#ds-thread" class="article-comment-link">评论</a>
-      
-
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Maven/Maven把自己的包部署到远程仓库" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/07/19/Maven/Maven把自己的包部署到远程仓库/" class="article-date">
-  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/Maven把自己的包部署到远程仓库/">Maven把自己的包部署到远程仓库</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="1-配置项目的POM文件"><a href="#1-配置项目的POM文件" class="headerlink" title="1.配置项目的POM文件"></a>1.配置项目的POM文件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;dependencyManagement&gt;</div><div class="line">    &lt;/dependencies&gt;</div><div class="line">        &lt;/dependency&gt;</div><div class="line"></div><div class="line">                ......</div><div class="line"></div><div class="line">        &lt;/dependency&gt;</div><div class="line">    &lt;/dependencies&gt;</div><div class="line">&lt;/dependencyManagement&gt;</div><div class="line">    &lt;repository&gt;</div><div class="line">        &lt;id&gt;nexus-snapshots&lt;/id&gt;</div><div class="line">        &lt;url&gt;http://192.168.1.232:8080/content/repositories/releases&lt;/url&gt;</div><div class="line">    &lt;/repository&gt;</div><div class="line">    &lt;snapshotRepository&gt;</div><div class="line">        &lt;id&gt;nexus-releases&lt;/id&gt;</div><div class="line">        &lt;url&gt;http://192.168.1.232:8080/content/repositories/snapshots&lt;/url&gt;</div><div class="line">    &lt;/snapshotRepository&gt;</div><div class="line">&lt;/distributionManagement&gt;</div></pre></td></tr></table></figure>
-<h3 id="2-运行maven命令"><a href="#2-运行maven命令" class="headerlink" title="2.运行maven命令"></a>2.运行maven命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn clean deploy</div></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-        <a data-url="http://yoursite.com/2017/07/19/Maven/Maven把自己的包部署到远程仓库/" data-id="cj5c3tb2d000c45blwyfl8idr" class="article-share-link" data-share="baidu" data-title="Maven把自己的包部署到远程仓库">分享到</a>
-      
-
-      
-        <a href="http://yoursite.com/2017/07/19/Maven/Maven把自己的包部署到远程仓库/#ds-thread" class="article-comment-link">评论</a>
       
 
       
@@ -575,7 +481,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yoursite.com/2017/07/19/Linux/tomcat安装/" data-id="cj5c3tb2h000f45bllpc44fy0" class="article-share-link" data-share="baidu" data-title="tomcat安装">分享到</a>
+        <a data-url="http://yoursite.com/2017/07/19/Linux/tomcat安装/" data-id="cj5knthsq000b3mbl9zmu50wj" class="article-share-link" data-share="baidu" data-title="tomcat安装">分享到</a>
       
 
       
@@ -590,10 +496,130 @@
 
 
   
+    <article id="post-Eclipse/codetemplates变量解析" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Eclipse/codetemplates变量解析/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Eclipse/">Eclipse</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Eclipse/codetemplates变量解析/">codetemplates变量解析</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ol>
+<li><p>在Java中的对应位置，输入/**三个字符，再按下回车键，就可以自动生成CodeTemplate中指定的模式了<br>CodeTemplate中的变量，都用美元符号后面的花括号围住，如${date}、${time}等，如果要在CodeTemplate中要写美元符号$，则用两个美元符号连写表示。<br>下面逐一解释一下这些变量的含义：</p>
+<ul>
+<li>${year}，代表当前年份，例如：2015</li>
+<li>${date}，代表当前日期，例如：2015年11月29日</li>
+<li>${time}，代表当前时间，例如：下午10:07:15</li>
+<li>${project_name}，代表项目名</li>
+<li>${package_name}，代表包名</li>
+<li>${file_name}，代表当前文件名</li>
+<li>${type_name}，代表当前类名</li>
+<li><p>${enclosing_type}，如果类A是在另一个类B内部声明的，则该变量记录了类B的名字，否则为空，代码举例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * <span class="doctag">@enclosing</span>_type</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * <span class="doctag">@enclosing</span>_type VarTest</div><div class="line">     */</div><div class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest2</span> </span>&#123;</div><div class="line">        <span class="comment">/**</span></div><div class="line">         * <span class="doctag">@enclosing</span>_type VarTest.VarTest2</div><div class="line">         */</div><div class="line">        <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest3</span> </span>&#123;</div><div class="line">            </div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>${tags}，输出函数的输入参数与返回值，例如有函数声明如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public int func(int a, String b, long c, boolean d) &#123;</div><div class="line">    return 0;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>CodeTemplate的Pattern如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * $&#123;tags&#125;</div><div class="line"> */</div></pre></td></tr></table></figure>
+<p>则生成的注释如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * </div><div class="line"> * @param a</div><div class="line"> * @param b</div><div class="line"> * @param c</div><div class="line"> * @param d</div><div class="line"> * @return</div><div class="line"> */</div></pre></td></tr></table></figure>
+<ul>
+<li>${todo}，有这个变量的位置，会生成一个TODO标签</li>
+<li>${user}，这个变量存储了当前Eclipse的用户名，这个用户名可以在eclipse.ini中设置<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">-Duser.name=你的名称</div></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Eclipse/codetemplates变量解析/" data-id="cj5knthss000d3mblozo0phct" class="article-share-link" data-share="baidu" data-title="codetemplates变量解析">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Eclipse/codetemplates变量解析/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Maven/Maven把自己的包部署到远程仓库" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Maven/Maven把自己的包部署到远程仓库/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Maven/">Maven</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Maven/Maven把自己的包部署到远程仓库/">Maven把自己的包部署到远程仓库</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="1-配置项目的POM文件"><a href="#1-配置项目的POM文件" class="headerlink" title="1.配置项目的POM文件"></a>1.配置项目的POM文件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;dependencyManagement&gt;</div><div class="line">    &lt;/dependencies&gt;</div><div class="line">        &lt;/dependency&gt;</div><div class="line"></div><div class="line">                ......</div><div class="line"></div><div class="line">        &lt;/dependency&gt;</div><div class="line">    &lt;/dependencies&gt;</div><div class="line">&lt;/dependencyManagement&gt;</div><div class="line">    &lt;repository&gt;</div><div class="line">        &lt;id&gt;nexus-snapshots&lt;/id&gt;</div><div class="line">        &lt;url&gt;http://192.168.1.232:8080/content/repositories/releases&lt;/url&gt;</div><div class="line">    &lt;/repository&gt;</div><div class="line">    &lt;snapshotRepository&gt;</div><div class="line">        &lt;id&gt;nexus-releases&lt;/id&gt;</div><div class="line">        &lt;url&gt;http://192.168.1.232:8080/content/repositories/snapshots&lt;/url&gt;</div><div class="line">    &lt;/snapshotRepository&gt;</div><div class="line">&lt;/distributionManagement&gt;</div></pre></td></tr></table></figure>
+<h3 id="2-运行maven命令"><a href="#2-运行maven命令" class="headerlink" title="2.运行maven命令"></a>2.运行maven命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn clean deploy</div></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Maven/Maven把自己的包部署到远程仓库/" data-id="cj5knthsu000g3mbllc7vhg4r" class="article-share-link" data-share="baidu" data-title="Maven把自己的包部署到远程仓库">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Maven/Maven把自己的包部署到远程仓库/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
 
 
   <nav id="page-nav">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="extend next" rel="next" href="/page/2/">下一页 &raquo;</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/2/">下一页 &raquo;</a>
   </nav>
 </section>
       
@@ -603,7 +629,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">分类</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Eclipse/">Eclipse</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Github/">Github</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">11</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/安全相关/">安全相关</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/日记/">日记</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/集合/">集合</a><span class="category-list-count">3</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Maven/">Maven</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">30</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/JPA/">JPA</a><span class="category-list-count">6</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Security/">Security</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Task/">Task</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/基础/">基础</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/">服务器相关</a><span class="category-list-count">16</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/red5/">red5</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/redis/">redis</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/resin/">resin</a><span class="category-list-count">2</span></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Eclipse/">Eclipse</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Github/">Github</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">27</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/安全相关/">安全相关</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/日记/">日记</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/线程/">线程</a><span class="category-list-count">16</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/集合/">集合</a><span class="category-list-count">3</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Maven/">Maven</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">32</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/JPA/">JPA</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Security/">Security</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Task/">Task</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/基础/">基础</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/">服务器相关</a><span class="category-list-count">16</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/red5/">red5</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/redis/">redis</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/resin/">resin</a><span class="category-list-count">2</span></li></ul></li></ul>
     </div>
   </div>
 
@@ -616,7 +642,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">七月 2017</a><span class="archive-list-count">75</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">七月 2017</a><span class="archive-list-count">93</span></li></ul>
     </div>
   </div>
 
@@ -632,19 +658,19 @@
           </li>
         
           <li>
-            <a href="/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/">Spring获取ApplicationContext，并获取所有Bean</a>
+            <a href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/">GeneratedValue主键生成策略</a>
           </li>
         
           <li>
-            <a href="/2017/07/19/Linux/apt-get常用命令/">apt-get常用命令</a>
-          </li>
-        
-          <li>
-            <a href="/2017/07/19/Linux/mysql安装/">mysql安装</a>
+            <a href="/2017/07/19/Linux/nginx安装/">安装nginx</a>
           </li>
         
           <li>
             <a href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/redis安装和配置/">redis安装和配置</a>
           </li>
         
       </ul>

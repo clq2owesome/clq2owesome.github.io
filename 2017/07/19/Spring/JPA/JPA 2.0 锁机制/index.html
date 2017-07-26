@@ -1,0 +1,374 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>JPA 2.0 锁机制 | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="锁是处理数据库事务并发的一种技术，当两个或更多数据库事务并发地访问相同数据时，锁可以保证同一时间只有一个事务可以修改数据。   锁的方法通常有两种：乐观锁和悲观锁。 乐观锁认为多个并发事务之间很少出现冲突，也就是说不会经常出现同一时间读取或修改相同数据，在乐观锁中，其目标是让并发事务自由地同时得到处理，而不是发现或预防冲突。两个事务在同一时刻可以访问相同的数据，但为了预防冲突，需要对数据执行一次检">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JPA 2.0 锁机制">
+<meta property="og:url" content="http://yoursite.com/2017/07/19/Spring/JPA/JPA 2.0 锁机制/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="锁是处理数据库事务并发的一种技术，当两个或更多数据库事务并发地访问相同数据时，锁可以保证同一时间只有一个事务可以修改数据。   锁的方法通常有两种：乐观锁和悲观锁。 乐观锁认为多个并发事务之间很少出现冲突，也就是说不会经常出现同一时间读取或修改相同数据，在乐观锁中，其目标是让并发事务自由地同时得到处理，而不是发现或预防冲突。两个事务在同一时刻可以访问相同的数据，但为了预防冲突，需要对数据执行一次检">
+<meta property="og:updated_time" content="2017-07-21T01:37:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JPA 2.0 锁机制">
+<meta name="twitter:description" content="锁是处理数据库事务并发的一种技术，当两个或更多数据库事务并发地访问相同数据时，锁可以保证同一时间只有一个事务可以修改数据。   锁的方法通常有两种：乐观锁和悲观锁。 乐观锁认为多个并发事务之间很少出现冲突，也就是说不会经常出现同一时间读取或修改相同数据，在乐观锁中，其目标是让并发事务自由地同时得到处理，而不是发现或预防冲突。两个事务在同一时刻可以访问相同的数据，但为了预防冲突，需要对数据执行一次检">
+  
+    <link rel="alternative" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!--[if lt IE 9]><script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.min.js"></script><![endif]-->
+  
+</head>
+<body>
+<div id="container">
+  <div id="wrap">
+    <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">LeoChan&#39;s 个人博客</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技术都是通用的，重要的是是否具有自主解决问题的能力！</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//www.baidu.com/baidu" method="get" accept-charset="utf-8" class="search-form">
+          <input type="search" name="word" maxlength="20" class="search-form-input" placeholder="Search">
+          <input type="submit" value="" class="search-form-submit">
+          <input name=tn type=hidden value="bds">
+          <input name=cl type=hidden value="3">
+          <input name=ct type=hidden value="2097152">
+          <input type="hidden" name="si" value="yoursite.com">
+        </form>
+      </div>
+    </div>
+  </div>
+</header>
+    <div class="outer">
+      <section id="main"><article id="post-Spring/JPA/JPA 2.0 锁机制" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Spring/JPA/JPA 2.0 锁机制/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      JPA 2.0 锁机制
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>锁是处理数据库事务并发的一种技术，当两个或更多数据库事务并发地访问相同数据时，锁可以保证同一时间只有一个事务可以修改数据。  </p>
+<p>锁的方法通常有两种：<strong>乐观锁</strong>和<strong>悲观锁</strong>。</p>
+<p>乐观锁认为多个并发事务之间很少出现冲突，也就是说不会经常出现同一时间读取或修改相同数据，在乐观锁中，其目标是让并发事务自由地同时得到处理，而不是发现或预防冲突。两个事务在同一时刻可以访问相同的数据，但为了预防冲突，需要对数据执行一次检查，检查自上次读取数据以来发生的任何变化。<br>悲观锁认为事务会经常发生冲突，在悲观锁中，读取数据的事务会锁定数据，在前面的事务提交之前，其它事务都不能修改数据。</p>
+<h3 id="乐观锁的工作原理"><a href="#乐观锁的工作原理" class="headerlink" title="乐观锁的工作原理"></a>乐观锁的工作原理</h3><p>乐观锁基于的假设是实际中冲突很少发生，即使发生，抛出一个错误也比想办法避免它们更容易接受和简单。在乐观锁中，允许一个事务正确完成，但另一个事务需要抛出异常并回滚，并且必须被重新执行或者丢弃。<br>我们以Adam和Barbara为例，下面是一个使用乐观锁可能发生的情形：<br>1.Adam的事务读取数据 X<br>2.Barbara的事务读取数据 X<br>3.Adam的事务修改数据 X，并将其修改为 XA<br>4.Adam的事务写入数据 XA<br>5.Barbara的事务修改数据 X，并将其修改为 XB<br>6.Barbara的事务试图写入数据 XB，但是收到一个错误<br>7.Barbara需要读取数据 XA（或者重新开始一个新的事务）<br>8.Barbara的事务修改数据 XA，并将其修改为 XAB<br>9.Barbara的事务写入数据 XAB     </p>
+<p>如你所见，Barbara被强制要求检查Adam的修改，并且她可以选择继续修改Adam的结果并保存（合并修改）。最后的数据将同时包括Adam和Barbara的修改。<br>乐观锁完全由JPA控制。它需要在DB表中额外存储一个版本号列。它完全依靠于底层用来存储关系型数据的DB引擎来工作。</p>
+<h3 id="悲观锁的工作原理"><a href="#悲观锁的工作原理" class="headerlink" title="悲观锁的工作原理"></a>悲观锁的工作原理</h3><p>对于某些人来说，悲观锁更容易接受。当事务需要修改一个可能被其他事务同时修改的实体时，事务会发起一个命令将实体锁住。所有的锁会持续到事务结束后再自动释放。<br>使用悲观锁的情形可能如下所示：<br>1.Adam的事务读取数据 X<br>2.Adam的事务锁住 X<br>3.Barbara的事务希望读取数据 X，但是因为 X 已经被锁住，只好等待<br>4.Adam的事务修改数据 X，并将其修改为 XA<br>5.Adam的事务写入数据 XA<br>6.Barbara的事务读取数据 XA<br>7.Barbara的事务修改数据  XA，并将其修改为 XAB<br>8.Barbara的事务写入数据 XAB </p>
+<p>如你所见，Barbara又一次被强制的写入 XAB，同时也包含了Adam的修改。但是，这个方案与乐观锁完全不同——Barbara需要等待Adam的事务完成以后才能够读取数据。更甚的是，为了让该场景正确工作，我们需要在两个事务中都手动发起一个lock命令。（因为我们并不确定那个事务先运行，所以两个事务都需要在修改数据前先进行锁定）虽然乐观锁要为每个实体增加一个版本列，比悲观锁工作略多，但是之后我们不需要再在事务中发起锁操作了。JPA会自动完成所有的检查，我们只需要处理可能的异常即可。    </p>
+<p><strong>悲观锁使用底层数据库提供的锁机制来锁住表中已有的记录</strong>。JPA需要知道如何触发这些锁，并且尚不能完全支持某些数据库。</p>
+<h3 id="JPA1-0-锁机制"><a href="#JPA1-0-锁机制" class="headerlink" title="JPA1.0 锁机制"></a>JPA1.0 锁机制</h3><p>JPA 1.0只支持乐观锁，你可以使用EntityManager类的lock()方法指定锁模式的值，可以是READ或WRITE，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">EntityManager em = ... ;</div><div class="line">em.lock(p1, READ);</div></pre></td></tr></table></figure></p>
+<p>对于READ锁模式，JPA实体管理器在事务提交前都会锁定实体，检查实体的版本属性确定实体自上次被读取以来是否有更新，如果版本属性被更新了，实体管理器会抛出一个OptimisticLockException异常，并回滚事务。<br>对于WRITE锁模式，实体管理器执行和READ锁模式相同的乐观锁操作，但它也会更新实体的版本列。 </p>
+<h3 id="JPA2-0锁机制"><a href="#JPA2-0锁机制" class="headerlink" title="JPA2.0锁机制"></a>JPA2.0锁机制</h3><p>JPA 2.0增加了6种新的锁模式，其中两个是乐观锁。JPA 2.0也允许悲观锁，并增加了3种悲观锁，第6种锁模式是无锁。<br>下面是新增的两个乐观锁模式： </p>
+<ol>
+<li><strong>OPTIMISTIC</strong>：它和READ锁模式相同，JPA 2.0仍然支持READ锁模式，但明确指出在新应用程序中推荐使用OPTIMISTIC。 </li>
+<li><strong>OPTIMISTIC_FORCE_INCREMENT</strong>：它和WRITE锁模式相同，JPA 2.0仍然支持WRITE锁模式，但明确指出在新应用程序中推荐使用OPTIMISTIC_FORCE_INCREMENT。 </li>
+</ol>
+<p>下面是新增的三个悲观锁模式： </p>
+<ol>
+<li><strong>PESSIMISTIC_READ</strong>：只要事务读实体，实体管理器就锁定实体，直到事务完成锁才会解开，当你想使用重复读语义查询数据时使用这种锁模式，换句话说就是，当你想确保数据在连续读期间不被修改，这种锁模式不会阻碍其它事务读取数据。 </li>
+<li><strong>PESSIMISTIC_WRITE</strong>：只要事务更新实体，实体管理器就会锁定实体，这种锁模式强制尝试修改实体数据的事务串行化，当多个并发更新事务出现更新失败几率较高时使用这种锁模式。 </li>
+<li><strong>PESSIMISTIC_FORCE_INCREMENT</strong>：当事务读实体时，实体管理器就锁定实体，当事务结束时会增加实体的版本属性，即使实体没有修改。<br>你也可以指定新的锁模式NONE，在这种情况下表示没有锁发生。 </li>
+</ol>
+<h3 id="LockModeType类型"><a href="#LockModeType类型" class="headerlink" title="LockModeType类型"></a>LockModeType类型</h3><h4 id="JPA-2-0"><a href="#JPA-2-0" class="headerlink" title="JPA 2.0"></a>JPA 2.0</h4><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NONE</td>
+<td>没有锁</td>
+</tr>
+<tr>
+<td>OPTIMISTIC</td>
+<td>乐观锁，类似于READ</td>
+</tr>
+<tr>
+<td>OPTIMISTIC_FORCE_INCREMENT</td>
+<td>乐观锁，类似于WRITE</td>
+</tr>
+<tr>
+<td>PESSIMISTIC_READ</td>
+<td>悲观读锁（Pessimistic read lock）</td>
+</tr>
+<tr>
+<td>PESSIMISTIC_WRITE</td>
+<td>悲观写锁（Pessimistic write lock）</td>
+</tr>
+<tr>
+<td>PESSIMISTIC_FORCE_INCREMENT</td>
+<td>悲观写锁，事务结束后会增加版本号（Pessimistic write lock, with version update）</td>
+</tr>
+</tbody>
+</table>
+<h4 id="JPA-1-0"><a href="#JPA-1-0" class="headerlink" title="JPA 1.0"></a>JPA 1.0</h4><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>READ</td>
+<td>乐观读锁</td>
+</tr>
+<tr>
+<td>WRITE</td>
+<td>乐观写锁</td>
+</tr>
+</tbody>
+</table>
+<p>@Version 注解用于支持乐观锁版本控制。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yoursite.com/2017/07/19/Spring/JPA/JPA 2.0 锁机制/" data-id="cj5knthvs002y3mblpu2m47a3" class="article-share-link" data-share="baidu" data-title="JPA 2.0 锁机制">分享到</a>
+      
+
+      
+        <a href="http://yoursite.com/2017/07/19/Spring/JPA/JPA 2.0 锁机制/#ds-thread" class="article-comment-link">评论</a>
+      
+
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/07/19/Linux/apt-get常用命令/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">
+        
+          apt-get常用命令
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/07/19/Spring/JPA/Specification实例/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">Specification实例</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+  <section id="comments">
+    <div id="ds-thread" class="ds-thread" data-thread-key="2017/07/19/Spring/JPA/JPA 2.0 锁机制/" data-title="JPA 2.0 锁机制" data-url="http://yoursite.com/2017/07/19/Spring/JPA/JPA 2.0 锁机制/"></div>
+  </section>
+</section>
+      
+      <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Eclipse/">Eclipse</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Github/">Github</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">27</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/安全相关/">安全相关</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/日记/">日记</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/线程/">线程</a><span class="category-list-count">16</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/集合/">集合</a><span class="category-list-count">3</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Maven/">Maven</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><span class="category-list-count">32</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/JPA/">JPA</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Security/">Security</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Task/">Task</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/基础/">基础</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/">服务器相关</a><span class="category-list-count">16</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/red5/">red5</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/redis/">redis</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/resin/">resin</a><span class="category-list-count">2</span></li></ul></li></ul>
+    </div>
+  </div>
+
+  
+    
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">七月 2017</a><span class="archive-list-count">93</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">近期文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/07/19/Spring/Spring Data Redis/配置/">配置</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/">GeneratedValue主键生成策略</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/nginx安装/">安装nginx</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
+          </li>
+        
+          <li>
+            <a href="/2017/07/19/Linux/redis安装和配置/">redis安装和配置</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">友情链接</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="https://clq2owesome.github.io/" target="_blank">作者主页</a>
+          </li>
+        
+          <li>
+            <a href="https://githubcandybabe.github.io/" target="_blank">御用前端</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+      
+    </div>
+    <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 leo chen<br>
+      Powered by <a href="//hexo.io/" target="_blank">Hexo</a>
+      .
+      Theme by <a href="https://github.com/xiangming/landscape-plus" target="_blank">Landscape-plus</a>
+    </div>
+  </div>
+</footer>
+  </div>
+  <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+  <!-- totop start -->
+<div id="totop">
+<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+</div>
+
+<!-- totop end -->
+
+<!-- 多说公共js代码 start -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"reqianduan"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0]
+     || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+  </script>
+<!-- 多说公共js代码 end -->
+
+
+<!-- 百度分享 start -->
+
+<div id="article-share-box" class="article-share-box">
+  <div id="bdshare" class="bdsharebuttonbox article-share-links">
+    <a class="article-share-weibo" data-cmd="tsina" title="分享到新浪微博"></a>
+    <a class="article-share-weixin" data-cmd="weixin" title="分享到微信"></a>
+    <a class="article-share-qq" data-cmd="sqq" title="分享到QQ"></a>
+    <a class="article-share-renren" data-cmd="renren" title="分享到人人网"></a>
+    <a class="article-share-more" data-cmd="more" title="更多"></a>
+  </div>
+</div>
+<script>
+  function SetShareData(cmd, config) {
+    if (shareDataTitle && shareDataUrl) {
+      config.bdText = shareDataTitle;
+      config.bdUrl = shareDataUrl;
+    }
+    return config;
+  }
+  window._bd_share_config={
+    "common":{onBeforeClick: SetShareData},
+    "share":{"bdCustomStyle":"/css/bdshare.css"}
+  };
+  with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='//bdimg.share.baidu.com/static/api/js/share.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+<!-- 百度分享 end -->
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+</div>
+</body>
+</html>
