@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-数据库相关/mysql/乐观锁和悲观锁" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-数据库相关/mysql/锁机制" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/">乐观锁和悲观锁</a>
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/锁机制/">锁机制</a>
     </h1>
   
 
@@ -95,7 +95,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/07/29/数据库相关/mysql/锁机制/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
 </div>
 
     
@@ -110,23 +110,21 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="锁（-locking-）"><a href="#锁（-locking-）" class="headerlink" title="锁（ locking ）"></a>锁（ locking ）</h3><p>业务逻辑的实现过程中，往往需要保证数据访问的排他性。如在金融系统的日终结算<br>处理中，我们希望针对某个 cut-off 时间点的数据进行处理，而不希望在结算进行过程中<br>（可能是几秒种，也可能是几个小时），数据再发生变化。此时，我们就需要通过一些机<br>制来保证这些数据在某个操作过程中不会被外界修改，这样的机制，在这里，也就是所谓<br>的 “ 锁 ” ，即给我们选定的目标数据上锁，使其无法被其他程序修改。</p>
-<p>Hibernate 支持两种锁机制：即通常所说的 “ 悲观锁（ Pessimistic Locking ） ”<br>和 “ 乐观锁（ Optimistic Locking ） ” 。</p>
-<h3 id="悲观锁（-Pessimistic-Locking-）"><a href="#悲观锁（-Pessimistic-Locking-）" class="headerlink" title="悲观锁（ Pessimistic Locking ）"></a>悲观锁（ Pessimistic Locking ）</h3><p>悲观锁，正如其名，它指的是对数据被外界（包括本系统当前的其他事务，以及来自<br>外部系统的事务处理）修改持保守态度，因此，在整个数据处理过程中，将数据处于锁定<br>状态。悲观锁的实现，往往依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能<br>真正保证数据访问的排他性，否则，即使在本系统中实现了加锁机制，也无法保证外部系<br>统不会修改数据）。</p>
-<p>一个典型的倚赖数据库的悲观锁调用：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">select * from account where name=”Erica” for update</div></pre></td></tr></table></figure></p>
-<p>这条 sql 语句锁定了 account 表中所有符合检索条件（ name=”Erica” ）的记录。<br>本次事务提交之前（事务提交时会释放事务过程中的锁），外界无法修改这些记录。<br>Hibernate 的悲观锁，也是基于数据库的锁机制实现。</p>
-<p>注意，只有在查询开始之前（也就是 Hiberate 生成 SQL 之前）设定加锁，才会<br>真正通过数据库的锁机制进行加锁处理，否则，数据已经通过不包含 for update<br>子句的 Select SQL 加载进来，所谓数据库加锁也就无从谈起。</p>
-<h3 id="乐观锁（-Optimistic-Locking-）"><a href="#乐观锁（-Optimistic-Locking-）" class="headerlink" title="乐观锁（ Optimistic Locking ）"></a>乐观锁（ Optimistic Locking ）</h3><p>相对悲观锁而言，乐观锁机制采取了更加宽松的加锁机制。悲观锁大多数情况下依<br>靠数据库的锁机制实现，以保证操作最大程度的独占性。但随之而来的就是数据库<br>性能的大量开销，特别是对长事务而言，这样的开销往往无法承受。<br>如一个金融系统，当某个操作员读取用户的数据，并在读出的用户数据的基础上进<br>行修改时（如更改用户帐户余额），如果采用悲观锁机制，也就意味着整个操作过<br>程中（从操作员读出数据、开始修改直至提交修改结果的全过程，甚至还包括操作<br>员中途去煮咖啡的时间），数据库记录始终处于加锁状态，可以想见，如果面对几<br>百上千个并发，这样的情况将导致怎样的后果。</p>
-<p>乐观锁机制在一定程度上解决了这个问题。乐观锁，大多是基于数据版本<br>（ Version ）记录机制实现。何谓数据版本？即为数据增加一个版本标识，在基于<br>数据库表的版本解决方案中，一般是通过为数据库表增加一个 “version” 字段来<br>实现。  </p>
-<p>读取出数据时，将此版本号一同读出，之后更新时，对此版本号加一。此时，将提<br>交数据的版本数据与数据库表对应记录的当前版本信息进行比对，如果提交的数据<br>版本号大于数据库表当前版本号，则予以更新，否则认为是过期数据。<br>对于上面修改用户帐户信息的例子而言，假设数据库中帐户信息表中有一个<br>version 字段，当前值为 1 ；而当前帐户余额字段（ balance ）为 $100 。     </p>
-<ol>
-<li>操作员 A 此时将其读出（ version=1 ），并从其帐户余额中扣除 $50<br>（ $100-$50 ）。</li>
-<li>在操作员 A 操作的过程中，操作员 B 也读入此用户信息（ version=1 ），并<br>从其帐户余额中扣除 $20 （ $100-$20 ）。</li>
-<li>操作员 A 完成了修改工作，将数据版本号加一（ version=2 ），连同帐户扣<br>除后余额（ balance=$50 ），提交至数据库更新，此时由于提交数据版本大<br>于数据库记录当前版本，数据被更新，数据库记录 version 更新为 2 。</li>
-<li>操作员 B 完成了操作，也将版本号加一（ version=2 ）试图向数据库提交数<br>据（ balance=$80 ），但此时比对数据库记录版本时发现，操作员 B 提交的<br>数据版本号为 2 ，数据库记录当前版本也为 2 ，不满足 “ 提交版本必须大于记<br>录当前版本才能执行更新 “ 的乐观锁策略，因此，操作员 B 的提交被驳回。<br>这样，就避免了操作员 B 用基于 version=1 的旧数据修改的结果覆盖操作<br>员 A 的操作结果的可能。 </li>
-</ol>
-<p>从上面的例子可以看出，乐观锁机制避免了长事务中的数据库加锁开销（操作员 A<br>和操作员 B 操作过程中，都没有对数据库数据加锁），大大提升了大并发量下的系<br>统整体性能表现。</p>
-<p>需要注意的是，乐观锁机制往往基于系统中的数据存储逻辑，因此也具备一定的局<br>限性，如在上例中，由于乐观锁机制是在我们的系统中实现，来自外部系统的用户<br>余额更新操作不受我们系统的控制，因此可能会造成脏数据被更新到数据库中。在<br>系统设计阶段，我们应该充分考虑到这些情况出现的可能性，并进行相应调整（如<br>将乐观锁策略在数据库存储过程中实现，对外只开放基于此存储过程的数据更新途<br>径，而不是将数据库表直接对外公开）。</p>
+        <p>MySQL有三种锁的级别：</p>
+<ul>
+<li>页级</li>
+<li>表级</li>
+<li>行级。</li>
+</ul>
+<p>MyISAM和MEMORY存储引擎采用的是表级锁（table-level locking）； </p>
+<p>BDB存储引擎采用的是页面锁（page-level locking），但也支持表级锁；</p>
+<p>InnoDB存储引擎既支持行级锁（row-level locking），也支持表级锁，但默认情况下是采用行级锁。</p>
+<p>MySQL这3种锁的特性可大致归纳如下：</p>
+<ul>
+<li>表级锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。</li>
+<li>行级锁：开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低,并发度也最高。</li>
+<li>页面锁：开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。</li>
+</ul>
 
       
     </div>
@@ -137,7 +135,244 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/" data-id="cj5uthv0s005e0mbltod3v5e3" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/锁机制/" data-id="cj5utptav008v2wbl4ya7lwam" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/mysql存储引擎" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/mysql存储引擎/">mysql存储引擎</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/mysql存储引擎/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>MySQL数 据库引擎取决于MySQL在安装的时候是如何被编译的。要添加一个新的引擎，就必须重新编译MYSQL。在缺省情况下，MYSQL支持三个引擎：ISAM、MYISAM和HEAP。另外两种类型INNODB和BERKLEY（BDB），也常常可以使用。如果技术高超，还可以使用MySQL++ API自己做一个引擎。<br>下面介绍几种数据库引擎： </p>
+<ul>
+<li><p>ISAM：ISAM是一个定义明确且历经时间考验的数据表格管理方法，它在设计之时就考虑到 数据库被查询的次数要远大于更新的次数。因此，I<strong>SAM执行读取操作的速度很快，而且不占用大量的内存和存储资源。ISAM的两个主要不足之处在于，它不 支持事务处理，也不能够容错</strong>：如果你的硬盘崩溃了，那么数据文件就无法恢复了。如果你正在把ISAM用在关键任务应用程序里，那就必须经常备份你所有的实 时数据，通过其复制特性，MYSQL能够支持这样的备份应用程序。</p>
+</li>
+<li><p>MyISAM：MyISAM是MySQL的ISAM扩展格式和<strong>默认的数据库引擎（Mysql5.5.5之前）</strong>。除了提供ISAM里所没有的索引和字段管理的大量功能，MyISAM还使用一种表格锁定的机制，来优化多个并发的读写操作，其代价是你需要经常运行OPTIMIZE TABLE命令，来恢复被更新机制所浪费的空间。MyISAM还有一些有用的扩展，例如用来修复数据库文件的MyISAMCHK工具和用来恢复浪费空间的 MyISAMPACK工具。<strong>MYISAM强调了快速读取操作</strong>，这可能就是为什么MySQL受到了WEB开发如此青睐的主要原因：在WEB开发中你所进行的大量数据操作都是读取操作。所以，<strong>大多数虚拟主机提供商和INTERNET平台提供商只允许使用MYISAM格式。MyISAM格式的一个重要缺陷就是不能在表损坏后恢复数据。</strong></p>
+</li>
+<li><p>HEAP：<strong>HEAP允许只驻留在内存里的临时表格</strong>。驻留在内存里让HEAP要比ISAM和MYISAM都快，但是它所管理的数据是不稳定的，而且如果在关机之前没有进行保存，那么所有的数据都会丢失。在数据行被删除的时候，HEAP也不会浪费大量的空间。HEAP表格在你需要使用SELECT表达式来选择和操控数据的时候非常有用。要记住，在用完表格之后就删除表格。</p>
+</li>
+<li><p>InnoDB：InnoDB数据库引擎都是造就MySQL灵活性的技术的直接产品，这项技术就是MYSQL++ API。在使用MYSQL的时候，你所面对的每一个挑战几乎都源于ISAM和MyISAM数据库引擎不支持事务处理（transaction process）也不支持外键。尽管要比ISAM和 MyISAM引擎慢很多，但是<strong>InnoDB包括了对事务处理和外键的支持</strong>，这两点都是前两个引擎所没有的。如前所述，如果你的设计需要这些特性中的一者 或者两者，那你就要被迫使用后两个引擎中的一个了。 </p>
+</li>
+</ul>
+<h3 id="MySQL-官方对InnoDB是这样解释的"><a href="#MySQL-官方对InnoDB是这样解释的" class="headerlink" title="MySQL 官方对InnoDB是这样解释的"></a>MySQL 官方对InnoDB是这样解释的</h3><ul>
+<li><p>InnoDB给MySQL提供了具有提交、回滚和崩溃恢复能力的事务安全（ACID兼容）存储引擎。InnoDB锁定在行级并且也在SELECT语句提供一个Oracle风格一致的非锁定读，这些特色增加了多用户部署和性能。没有在InnoDB中扩大锁定的需要，因为在InnoDB中行级锁定适合非常小的空间。InnoDB也支持FOREIGN KEY强制。在SQL查询中，你可以自由地将InnoDB类型的表与其它MySQL的表的类型混合起来，甚至在同一个查询中也可以混合。</p>
+</li>
+<li><p>InnoDB是为处理巨大数据量时的最大性能设计，它的CPU效率可能是任何其它基于磁盘的关系数据库引擎所不能匹敌的。</p>
+</li>
+<li><p>InnoDB存储引擎被完全与MySQL服务器整合，InnoDB存储引擎为在主内存中缓存数据和索引而维持它自己的缓冲池。InnoDB存储它的表＆索引在一个表空间中，表空间可以包含数个文件（或原始磁盘分区）。这与MyISAM表不同，比如在MyISAM表中每个表被存在分离的文件中。InnoDB 表可以是任何尺寸，即使在文件尺寸被限制为2GB的操作系统上。</p>
+</li>
+<li><p>InnoDB默认地被包含在MySQL二进制分发中。Windows Essentials installer使InnoDB成为Windows上MySQL的默认表。</p>
+</li>
+<li><p>InnoDB被用来在众多需要高性能的大型数据库站点上产生。著名的Internet新闻站点Slashdot.org运行在InnoDB上。 Mytrix, Inc.在InnoDB上存储超过1TB的数据，还有一些其它站点在InnoDB上处理平均每秒800次插入/更新的</p>
+</li>
+</ul>
+<p>一般来说，MyISAM适合：  </p>
+<ol>
+<li>做很多count 的计算；</li>
+<li>插入不频繁，查询非常频繁；</li>
+<li>没有事务。</li>
+</ol>
+<p>InnoDB适合：    </p>
+<ol>
+<li>可靠性要求比较高，或者要求事务；</li>
+<li>表更新和查询都相当的频繁，并且表锁定的机会比较大的情况。</li>
+</ol>
+<p>一般情况下，MySQL会默认提供多种存储引擎，可以通过下面的查看:</p>
+<ol>
+<li>看你的MySQL现在已提供什么存储引擎: mysql&gt; show engines;</li>
+<li>看你的MySQL当前默认的存储引擎: mysql&gt; show variables like ‘%storage_engine%’;</li>
+<li>你要看某个表用了什么引擎(在显示结果里参数engine后面的就表示该表当前用的存储引擎): mysql&gt; show create table 表名;</li>
+</ol>
+<p> 所有的性能测试在：Micrisoft window xp sp2 ， Intel(R) Pentinum(R) M processor 1.6oGHz 1G 内存的电脑上测试。<br> 测试方法：连续提交10个query， 表记录总数：38万 ， 时间单位 s</p>
+<table>
+<thead>
+<tr>
+<th>引擎类型</th>
+<th>MyISAM</th>
+<th>InnoDB</th>
+<th>性能相差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>count</td>
+<td>0.0008357</td>
+<td>3.0163</td>
+<td>3609</td>
+</tr>
+<tr>
+<td>查询主键</td>
+<td>0.005708</td>
+<td>0.1574</td>
+<td>27.57</td>
+</tr>
+<tr>
+<td>查询非主键</td>
+<td>24.01</td>
+<td>80.37</td>
+<td>3.348</td>
+</tr>
+<tr>
+<td>更新主键</td>
+<td>0.008124</td>
+<td>0.8183</td>
+<td>100.7</td>
+</tr>
+<tr>
+<td>更新非主键</td>
+<td>0.004141</td>
+<td>0.02625</td>
+<td>6.338</td>
+</tr>
+<tr>
+<td>插入</td>
+<td>0.004188</td>
+<td>0.3694</td>
+<td>88.21</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>加了索引以后，对于MyISAM查询可以加快：4 206.09733倍，对InnoDB查询加快510.72921倍，同时对MyISAM更新速度减慢为原来的1/2，InnoDB的更新速度减慢为原来的1/30。要看情况决定是否要加索引，比如不查询的log表，不要做任何的索引。</li>
+<li>如果你的数据量是百万级别的，并且没有任何的事务处理，那么用MyISAM是性能最好的选择。</li>
+<li>InnoDB表的大小更加的大，用MyISAM可省很多的硬盘空间。 </li>
+</ol>
+<p>在我们测试的这个38w的表中，表占用空间的情况如下：</p>
+<table>
+<thead>
+<tr>
+<th>引擎类型</th>
+<th>MyISAM</th>
+<th>InnoDB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据</td>
+<td>53,924 KB</td>
+<td>58,976 KB</td>
+</tr>
+<tr>
+<td>索引</td>
+<td>13,640 KB</td>
+<td>21,072 KB</td>
+</tr>
+<tr>
+<td>占用总空间</td>
+<td>67,564 KB</td>
+<td>80,048 KB</td>
+</tr>
+</tbody>
+</table>
+<p>另外一个176W万记录的表， 表占用空间的情况如下：<br>| 引擎类型  | MyISAM     | InnoDB     |<br>| —– | ———- | ———- |<br>| 数据    | 56,166 KB  | 90,736 KB  |<br>| 索引    | 67,103 KB  | 88,848 KB  |<br>| 占用总空间 | 123,269 KB | 179,584 KB |</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql存储引擎/" data-id="cj5utptao008b2wblnsn4btiq" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/not null 和 default" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/not null 和 default/">not null 和 default</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/not null 和 default/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="没有设置default"><a href="#没有设置default" class="headerlink" title="没有设置default"></a>没有设置default</h3><ul>
+<li><p>当插入数据时，没有操作某一字段，并且该字段为null且没有defualt值时，mysql会自动出入null值；</p>
+</li>
+<li><p>当该字段为not null且没有defualt值时，会报错</p>
+</li>
+</ul>
+<h3 id="有设置default"><a href="#有设置default" class="headerlink" title="有设置default"></a>有设置default</h3><p>若有设置default值并且插入数据时没有操作该字段，不管该字段是否设置not null 还是null，mysql统一设置default的值</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/not null 和 default/" data-id="cj5utptap008d2wblrh8noj6p" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -267,7 +502,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql索引原理/" data-id="cj5uthv0v005h0mblufvnr9fw" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql索引原理/" data-id="cj5utptaq008g2wbl64nhg22c" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -281,13 +516,13 @@
 
 
   
-    <article id="post-数据库相关/mysql/not null 和 default" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-数据库相关/mysql/乐观锁和悲观锁" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/not null 和 default/">not null 和 default</a>
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/">乐观锁和悲观锁</a>
     </h1>
   
 
@@ -296,7 +531,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/not null 和 default/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
 </div>
 
     
@@ -311,13 +546,23 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="没有设置default"><a href="#没有设置default" class="headerlink" title="没有设置default"></a>没有设置default</h3><ul>
-<li><p>当插入数据时，没有操作某一字段，并且该字段为null且没有defualt值时，mysql会自动出入null值；</p>
-</li>
-<li><p>当该字段为not null且没有defualt值时，会报错</p>
-</li>
-</ul>
-<h3 id="有设置default"><a href="#有设置default" class="headerlink" title="有设置default"></a>有设置default</h3><p>若有设置default值并且插入数据时没有操作该字段，不管该字段是否设置not null 还是null，mysql统一设置default的值</p>
+        <h3 id="锁（-locking-）"><a href="#锁（-locking-）" class="headerlink" title="锁（ locking ）"></a>锁（ locking ）</h3><p>业务逻辑的实现过程中，往往需要保证数据访问的排他性。如在金融系统的日终结算<br>处理中，我们希望针对某个 cut-off 时间点的数据进行处理，而不希望在结算进行过程中<br>（可能是几秒种，也可能是几个小时），数据再发生变化。此时，我们就需要通过一些机<br>制来保证这些数据在某个操作过程中不会被外界修改，这样的机制，在这里，也就是所谓<br>的 “ 锁 ” ，即给我们选定的目标数据上锁，使其无法被其他程序修改。</p>
+<p>Hibernate 支持两种锁机制：即通常所说的 “ 悲观锁（ Pessimistic Locking ） ”<br>和 “ 乐观锁（ Optimistic Locking ） ” 。</p>
+<h3 id="悲观锁（-Pessimistic-Locking-）"><a href="#悲观锁（-Pessimistic-Locking-）" class="headerlink" title="悲观锁（ Pessimistic Locking ）"></a>悲观锁（ Pessimistic Locking ）</h3><p>悲观锁，正如其名，它指的是对数据被外界（包括本系统当前的其他事务，以及来自<br>外部系统的事务处理）修改持保守态度，因此，在整个数据处理过程中，将数据处于锁定<br>状态。悲观锁的实现，往往依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能<br>真正保证数据访问的排他性，否则，即使在本系统中实现了加锁机制，也无法保证外部系<br>统不会修改数据）。</p>
+<p>一个典型的倚赖数据库的悲观锁调用：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">select * from account where name=”Erica” for update</div></pre></td></tr></table></figure></p>
+<p>这条 sql 语句锁定了 account 表中所有符合检索条件（ name=”Erica” ）的记录。<br>本次事务提交之前（事务提交时会释放事务过程中的锁），外界无法修改这些记录。<br>Hibernate 的悲观锁，也是基于数据库的锁机制实现。</p>
+<p>注意，只有在查询开始之前（也就是 Hiberate 生成 SQL 之前）设定加锁，才会<br>真正通过数据库的锁机制进行加锁处理，否则，数据已经通过不包含 for update<br>子句的 Select SQL 加载进来，所谓数据库加锁也就无从谈起。</p>
+<h3 id="乐观锁（-Optimistic-Locking-）"><a href="#乐观锁（-Optimistic-Locking-）" class="headerlink" title="乐观锁（ Optimistic Locking ）"></a>乐观锁（ Optimistic Locking ）</h3><p>相对悲观锁而言，乐观锁机制采取了更加宽松的加锁机制。悲观锁大多数情况下依<br>靠数据库的锁机制实现，以保证操作最大程度的独占性。但随之而来的就是数据库<br>性能的大量开销，特别是对长事务而言，这样的开销往往无法承受。<br>如一个金融系统，当某个操作员读取用户的数据，并在读出的用户数据的基础上进<br>行修改时（如更改用户帐户余额），如果采用悲观锁机制，也就意味着整个操作过<br>程中（从操作员读出数据、开始修改直至提交修改结果的全过程，甚至还包括操作<br>员中途去煮咖啡的时间），数据库记录始终处于加锁状态，可以想见，如果面对几<br>百上千个并发，这样的情况将导致怎样的后果。</p>
+<p>乐观锁机制在一定程度上解决了这个问题。乐观锁，大多是基于数据版本<br>（ Version ）记录机制实现。何谓数据版本？即为数据增加一个版本标识，在基于<br>数据库表的版本解决方案中，一般是通过为数据库表增加一个 “version” 字段来<br>实现。  </p>
+<p>读取出数据时，将此版本号一同读出，之后更新时，对此版本号加一。此时，将提<br>交数据的版本数据与数据库表对应记录的当前版本信息进行比对，如果提交的数据<br>版本号大于数据库表当前版本号，则予以更新，否则认为是过期数据。<br>对于上面修改用户帐户信息的例子而言，假设数据库中帐户信息表中有一个<br>version 字段，当前值为 1 ；而当前帐户余额字段（ balance ）为 $100 。     </p>
+<ol>
+<li>操作员 A 此时将其读出（ version=1 ），并从其帐户余额中扣除 $50<br>（ $100-$50 ）。</li>
+<li>在操作员 A 操作的过程中，操作员 B 也读入此用户信息（ version=1 ），并<br>从其帐户余额中扣除 $20 （ $100-$20 ）。</li>
+<li>操作员 A 完成了修改工作，将数据版本号加一（ version=2 ），连同帐户扣<br>除后余额（ balance=$50 ），提交至数据库更新，此时由于提交数据版本大<br>于数据库记录当前版本，数据被更新，数据库记录 version 更新为 2 。</li>
+<li>操作员 B 完成了操作，也将版本号加一（ version=2 ）试图向数据库提交数<br>据（ balance=$80 ），但此时比对数据库记录版本时发现，操作员 B 提交的<br>数据版本号为 2 ，数据库记录当前版本也为 2 ，不满足 “ 提交版本必须大于记<br>录当前版本才能执行更新 “ 的乐观锁策略，因此，操作员 B 的提交被驳回。<br>这样，就避免了操作员 B 用基于 version=1 的旧数据修改的结果覆盖操作<br>员 A 的操作结果的可能。 </li>
+</ol>
+<p>从上面的例子可以看出，乐观锁机制避免了长事务中的数据库加锁开销（操作员 A<br>和操作员 B 操作过程中，都没有对数据库数据加锁），大大提升了大并发量下的系<br>统整体性能表现。</p>
+<p>需要注意的是，乐观锁机制往往基于系统中的数据存储逻辑，因此也具备一定的局<br>限性，如在上例中，由于乐观锁机制是在我们的系统中实现，来自外部系统的用户<br>余额更新操作不受我们系统的控制，因此可能会造成脏数据被更新到数据库中。在<br>系统设计阶段，我们应该充分考虑到这些情况出现的可能性，并进行相应调整（如<br>将乐观锁策略在数据库存储过程中实现，对外只开放基于此存储过程的数据更新途<br>径，而不是将数据库表直接对外公开）。</p>
 
       
     </div>
@@ -328,7 +573,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/not null 和 default/" data-id="cj5uthv0w005j0mblpcs340g7" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/" data-id="cj5utptar008i2wbl8cia8wb4" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -448,66 +693,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/事务的ACID特性和隔离级别/" data-id="cj5uthv0x005m0mblnvgwcx5f" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-数据库相关/mysql/分页时计算总页数的方法" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/">分页时计算总页数的方法</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>我们一般分页是这样来计算页码的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">int row=200; //记录总数     </div><div class="line">int page=5;//每页数量   </div><div class="line">int count = (row%5==0?row/page:row/page+1);</div></pre></td></tr></table></figure>
-<p>上面这种是用的最多的!</p>
-<p>那么下面我们来一种最简单的，不用任何判断！<br>看代码：    </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">int row=21;</div><div class="line">int pageCount=5;</div><div class="line">int sum=(row-1)/pageCount+1;//这样就计算好了页码数量，逢1进1</div><div class="line">System.out.println(sum);</div></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" data-id="cj5uthv0y005o0mbl7iih7bat" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/事务的ACID特性和隔离级别/" data-id="cj5utptas008l2wblldl9bk41" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -593,7 +779,130 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/启动和停止命令/" data-id="cj5uthv0z005r0mbloxyq9ssk" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/启动和停止命令/" data-id="cj5utptas008n2wblprr1r6w9" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/数据库连接池介绍" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/数据库连接池介绍/">数据库连接池介绍</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/数据库连接池介绍/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="连接池的基本工作原理"><a href="#连接池的基本工作原理" class="headerlink" title="连接池的基本工作原理"></a>连接池的基本工作原理</h2><h3 id="基本概念及原理"><a href="#基本概念及原理" class="headerlink" title="基本概念及原理"></a>基本概念及原理</h3><p>由上面的分析可以看出，问题的根源就在于对数据库连接资源的低效管理。我们知道，对于共享资源，有一个很著名的设计模式：资源池 (Resource Pool)。该模式正是为了解决资源的频繁分配?释放所造成的问题。为解决上述问题，可以采用数据库连接池技术。数据库连接池的基本思想就是为数据库连接 建立一个“缓冲池”。预先在缓冲池中放入一定数量的连接，当需要建立数据库连接时，只需从“缓冲池”中取出一个，使用完毕之后再放回去。我们可以通过设定 连接池最大连接数来防止系统无尽的与数据库连接。更为重要的是我们可以通过连接池的管理机制监视数据库的连接的数量?使用情况，为系统开发?测试及性能调 整提供依据。    </p>
+<h3 id="服务器自带的连接池"><a href="#服务器自带的连接池" class="headerlink" title="服务器自带的连接池"></a>服务器自带的连接池</h3><p>JDBC的API中没有提供连接池的方法。一些大型的WEB应用服务器如BEA的WebLogic和IBM的WebSphere等提供了连接池的机制，但是必须有其第三方的专用类方法支持连接池的用法。    </p>
+<h2 id="连接池关键问题分析"><a href="#连接池关键问题分析" class="headerlink" title="连接池关键问题分析"></a>连接池关键问题分析</h2><h3 id="并发问题"><a href="#并发问题" class="headerlink" title="并发问题"></a>并发问题</h3><p>为了使连接管理服务具有最大的通用性，必须考虑多线程环境，即并发问题。这个问题相对比较好解决，因为Java语言自身提供了对并发管理的支 持，使用synchronized关键字即可确保线程是同步的。使用方法为直接在类方法前面加上synchronized关键字，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public synchronized Connection getConnection()</div></pre></td></tr></table></figure></p>
+<h3 id="多数据库服务器和多用户"><a href="#多数据库服务器和多用户" class="headerlink" title="多数据库服务器和多用户"></a>多数据库服务器和多用户</h3><p>对于大型的企业级应用，常常需要同时连接不同的数据库(如连接Oracle和Sybase)。如何连接不同的数据库呢?我们采用的策略是：设计 一个符合单例模式的连接池管理类，在连接池管理类的唯一实例被创建时读取一个资源文件，其中资源文件中存放着多个数据库的url地址()?用户名()?密 码()等信息。如 tx.url=172.21.15.123：5000/tx_it，tx.user=yang，tx.password=yang321。根据资源文件提 供的信息，创建多个连接池类的实例，每一个实例都是一个特定数据库的连接池。连接池管理类实例为每个连接池实例取一个名字，通过不同的名字来管理不同的连 接池。 </p>
+<p>对于同一个数据库有多个用户使用不同的名称和密码访问的情况，也可以通过资源文件处理，即在资源文件中设置多个具有相同url地址，但具有不同用户名和密码的数据库连接信息。  </p>
+<h3 id="事务处理"><a href="#事务处理" class="headerlink" title="事务处理"></a>事务处理</h3><p>我们知道，事务具有原子性，此时要求对数据库的操作符合“ALL-ALL-NOTHING”原则,即对于一组SQL语句要么全做，要么全不做。   </p>
+<p>在Java语言中，Connection类本身提供了对事务的支持，可以通过设置Connection的AutoCommit属性为 false,然后显式的调用commit或rollback方法来实现。但要高效的进行Connection复用，就必须提供相应的事务支持机制。可采用 每一个事务独占一个连接来实现，这种方法可以大大降低事务管理的复杂性。    </p>
+<h3 id="连接池的分配与释放"><a href="#连接池的分配与释放" class="headerlink" title="连接池的分配与释放"></a>连接池的分配与释放</h3><p>连接池的分配与释放，对系统的性能有很大的影响。合理的分配与释放，可以提高连接的复用度，从而降低建立新连接的开销，同时还可以加快用户的访问速度。  </p>
+<p>对于连接的管理可使用空闲池。即把已经创建但尚未分配出去的连接按创建时间存放到一个空闲池中。每当用户请求一个连接时，系统首先检查空闲池内 有没有空闲连接。如果有就把建立时间最长(通过容器的顺序存放实现)的那个连接分配给他(实际是先做连接是否有效的判断，如果可用就分配给用户，如不可用 就把这个连接从空闲池删掉，重新检测空闲池是否还有连接);如果没有则检查当前所开连接池是否达到连接池所允许的最大连接数(maxConn),如果没有 达到，就新建一个连接，如果已经达到，就等待一定的时间(timeout)。如果在等待的时间内有连接被释放出来就可以把这个连接分配给等待的用户，如果 等待时间超过预定时间timeout,则返回空值(null)。系统对已经分配出去正在使用的连接只做计数，当使用完后再返还给空闲池。对于空闲连接的状 态，可开辟专门的线程定时检测，这样会花费一定的系统开销，但可以保证较快的响应速度。也可采取不开辟专门线程，只是在分配前检测的方法。  </p>
+<h3 id="连接池的配置与维护"><a href="#连接池的配置与维护" class="headerlink" title="连接池的配置与维护"></a>连接池的配置与维护</h3><p>连接池中到底应该放置多少连接，才能使系统的性能最佳?系统可采取设置最小连接数(minConn)和最大连接数(maxConn)来控制连接 池中的连接。最小连接数是系统启动时连接池所创建的连接数。如果创建过多，则系统启动就慢，但创建后系统的响应速度会很快;如果创建过少，则系统启动的很 快，响应起来却慢。这样，可以在开发时，设置较小的最小连接数，开发起来会快，而在系统实际使用时设置较大的，因为这样对访问客户来说速度会快些。最大连 接数是连接池中允许连接的最大数目，具体设置多少，要看系统的访问量，可通过反复测试，找到最佳点。<br>​<br>如何确保连接池中的最小连接数呢?有动态和静态两种策略。动态即每隔一定时间就对连接池进行检测，如果发现连接数量小于最小连接数，则补充相应数量的新连接,以保证连接池的正常运转。静态是发现空闲连接不够时再去检查。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/数据库连接池介绍/" data-id="cj5utptau008q2wbl0jng6cjr" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/分页时计算总页数的方法" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/">分页时计算总页数的方法</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>我们一般分页是这样来计算页码的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">int row=200; //记录总数     </div><div class="line">int page=5;//每页数量   </div><div class="line">int count = (row%5==0?row/page:row/page+1);</div></pre></td></tr></table></figure>
+<p>上面这种是用的最多的!</p>
+<p>那么下面我们来一种最简单的，不用任何判断！<br>看代码：    </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">int row=21;</div><div class="line">int pageCount=5;</div><div class="line">int sum=(row-1)/pageCount+1;//这样就计算好了页码数量，逢1进1</div><div class="line">System.out.println(sum);</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" data-id="cj5utptau008s2wblczpr2qec" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -694,203 +1003,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/存储过程/" data-id="cj5uthv10005t0mblr03h2m8p" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-数据库相关/mysql/设置mysql可以远程登录" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/">设置mysql可以远程登录</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="打开远程连接"><a href="#打开远程连接" class="headerlink" title="打开远程连接"></a>打开远程连接</h1><h3 id="登陆"><a href="#登陆" class="headerlink" title="登陆"></a>登陆</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql -u root -h localhost -p</div></pre></td></tr></table></figure>
-<h3 id="使用mysql数据库"><a href="#使用mysql数据库" class="headerlink" title="使用mysql数据库"></a>使用mysql数据库</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">use mysql  #打开mysql数据库</div></pre></td></tr></table></figure>
-<h3 id="更改用户连接的地址"><a href="#更改用户连接的地址" class="headerlink" title="更改用户连接的地址"></a>更改用户连接的地址</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">#将host设置为%表示任何ip都能连接mysql，当然您也可以将host指定为某个ip</div><div class="line"></div><div class="line"></div><div class="line">update user set host=&apos;%&apos; where user=&apos;root&apos; and host=&apos;localhost&apos;;</div><div class="line"></div><div class="line">flush privileges;        #刷新权限表，使配置生效</div><div class="line"></div><div class="line">然后我们就能远程连接我们的mysql了。</div></pre></td></tr></table></figure>
-<h1 id="关闭远程连接"><a href="#关闭远程连接" class="headerlink" title="关闭远程连接"></a>关闭远程连接</h1><p>如果您想关闭远程连接，恢复mysql的默认设置（只能本地连接），您可以通过以下步骤操作：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">use mysql  #打开mysql数据库</div><div class="line"></div><div class="line">#将host设置为localhost表示只能本地连接mysql</div><div class="line"></div><div class="line">update user set host=&apos;localhost&apos; where user=&apos;root&apos;;</div><div class="line"></div><div class="line">flush privileges;        #刷新权限表，使配置生效</div></pre></td></tr></table></figure></p>
-<h1 id="添加可以远程连接的用户"><a href="#添加可以远程连接的用户" class="headerlink" title="添加可以远程连接的用户"></a>添加可以远程连接的用户</h1><p>您也可以添加一个用户名为yuancheng，密码为123456，权限为%（表示任意ip都能连接）的远程连接用户。命令参考如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">grant all on *.* to &apos;yuancheng&apos;@&apos;%&apos; identified by &apos;123456&apos;;</div><div class="line"></div><div class="line">flush privileges;</div></pre></td></tr></table></figure></p>
-<h1 id="更改3306端口监听所有地址（默认只监听127-0-0-1）"><a href="#更改3306端口监听所有地址（默认只监听127-0-0-1）" class="headerlink" title="更改3306端口监听所有地址（默认只监听127.0.0.1）"></a>更改3306端口监听所有地址（默认只监听127.0.0.1）</h1><h3 id="第一步：查看是都3306端口开启"><a href="#第一步：查看是都3306端口开启" class="headerlink" title="第一步：查看是都3306端口开启"></a>第一步：查看是都3306端口开启</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">netstat -an | grep 3306</div></pre></td></tr></table></figure>
-<p>如果结果显示类似：tcp        0      0 127.0.0.1:3306          0.0.0.0:*               LISTEN<br>从结果可以看出3306端口只是在IP 127.0.0.1上监听，所以拒绝了其他IP的访问。</p>
-<h3 id="第二步：修改配置文件"><a href="#第二步：修改配置文件" class="headerlink" title="第二步：修改配置文件"></a>第二步：修改配置文件</h3><p>修改文件 /etc/mysql/my.cnf文件，打开文件，找到下面内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"># Instead of skip-networking the default is now to listen only on</div><div class="line"># localhost which is more compatible and is not less secure.</div><div class="line">bind-address  = 127.0.0.1</div></pre></td></tr></table></figure></p>
-<p>把上面这一行注释掉或者把127.0.0.1换成合适的IP，建议注释掉。<br>重新启动后，重新使用netstat检测：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">~# netstat -an | grep 3306</div><div class="line">tcp        0      0 0.0.0.0:3306            0.0.0.0:*               LISTEN</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/" data-id="cj5uthv11005w0mbln4eze0pi" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-数据库相关/mysql/数据库连接池介绍" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/数据库连接池介绍/">数据库连接池介绍</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/数据库连接池介绍/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="连接池的基本工作原理"><a href="#连接池的基本工作原理" class="headerlink" title="连接池的基本工作原理"></a>连接池的基本工作原理</h2><h3 id="基本概念及原理"><a href="#基本概念及原理" class="headerlink" title="基本概念及原理"></a>基本概念及原理</h3><p>由上面的分析可以看出，问题的根源就在于对数据库连接资源的低效管理。我们知道，对于共享资源，有一个很著名的设计模式：资源池 (Resource Pool)。该模式正是为了解决资源的频繁分配?释放所造成的问题。为解决上述问题，可以采用数据库连接池技术。数据库连接池的基本思想就是为数据库连接 建立一个“缓冲池”。预先在缓冲池中放入一定数量的连接，当需要建立数据库连接时，只需从“缓冲池”中取出一个，使用完毕之后再放回去。我们可以通过设定 连接池最大连接数来防止系统无尽的与数据库连接。更为重要的是我们可以通过连接池的管理机制监视数据库的连接的数量?使用情况，为系统开发?测试及性能调 整提供依据。    </p>
-<h3 id="服务器自带的连接池"><a href="#服务器自带的连接池" class="headerlink" title="服务器自带的连接池"></a>服务器自带的连接池</h3><p>JDBC的API中没有提供连接池的方法。一些大型的WEB应用服务器如BEA的WebLogic和IBM的WebSphere等提供了连接池的机制，但是必须有其第三方的专用类方法支持连接池的用法。    </p>
-<h2 id="连接池关键问题分析"><a href="#连接池关键问题分析" class="headerlink" title="连接池关键问题分析"></a>连接池关键问题分析</h2><h3 id="并发问题"><a href="#并发问题" class="headerlink" title="并发问题"></a>并发问题</h3><p>为了使连接管理服务具有最大的通用性，必须考虑多线程环境，即并发问题。这个问题相对比较好解决，因为Java语言自身提供了对并发管理的支 持，使用synchronized关键字即可确保线程是同步的。使用方法为直接在类方法前面加上synchronized关键字，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public synchronized Connection getConnection()</div></pre></td></tr></table></figure></p>
-<h3 id="多数据库服务器和多用户"><a href="#多数据库服务器和多用户" class="headerlink" title="多数据库服务器和多用户"></a>多数据库服务器和多用户</h3><p>对于大型的企业级应用，常常需要同时连接不同的数据库(如连接Oracle和Sybase)。如何连接不同的数据库呢?我们采用的策略是：设计 一个符合单例模式的连接池管理类，在连接池管理类的唯一实例被创建时读取一个资源文件，其中资源文件中存放着多个数据库的url地址()?用户名()?密 码()等信息。如 tx.url=172.21.15.123：5000/tx_it，tx.user=yang，tx.password=yang321。根据资源文件提 供的信息，创建多个连接池类的实例，每一个实例都是一个特定数据库的连接池。连接池管理类实例为每个连接池实例取一个名字，通过不同的名字来管理不同的连 接池。 </p>
-<p>对于同一个数据库有多个用户使用不同的名称和密码访问的情况，也可以通过资源文件处理，即在资源文件中设置多个具有相同url地址，但具有不同用户名和密码的数据库连接信息。  </p>
-<h3 id="事务处理"><a href="#事务处理" class="headerlink" title="事务处理"></a>事务处理</h3><p>我们知道，事务具有原子性，此时要求对数据库的操作符合“ALL-ALL-NOTHING”原则,即对于一组SQL语句要么全做，要么全不做。   </p>
-<p>在Java语言中，Connection类本身提供了对事务的支持，可以通过设置Connection的AutoCommit属性为 false,然后显式的调用commit或rollback方法来实现。但要高效的进行Connection复用，就必须提供相应的事务支持机制。可采用 每一个事务独占一个连接来实现，这种方法可以大大降低事务管理的复杂性。    </p>
-<h3 id="连接池的分配与释放"><a href="#连接池的分配与释放" class="headerlink" title="连接池的分配与释放"></a>连接池的分配与释放</h3><p>连接池的分配与释放，对系统的性能有很大的影响。合理的分配与释放，可以提高连接的复用度，从而降低建立新连接的开销，同时还可以加快用户的访问速度。  </p>
-<p>对于连接的管理可使用空闲池。即把已经创建但尚未分配出去的连接按创建时间存放到一个空闲池中。每当用户请求一个连接时，系统首先检查空闲池内 有没有空闲连接。如果有就把建立时间最长(通过容器的顺序存放实现)的那个连接分配给他(实际是先做连接是否有效的判断，如果可用就分配给用户，如不可用 就把这个连接从空闲池删掉，重新检测空闲池是否还有连接);如果没有则检查当前所开连接池是否达到连接池所允许的最大连接数(maxConn),如果没有 达到，就新建一个连接，如果已经达到，就等待一定的时间(timeout)。如果在等待的时间内有连接被释放出来就可以把这个连接分配给等待的用户，如果 等待时间超过预定时间timeout,则返回空值(null)。系统对已经分配出去正在使用的连接只做计数，当使用完后再返还给空闲池。对于空闲连接的状 态，可开辟专门的线程定时检测，这样会花费一定的系统开销，但可以保证较快的响应速度。也可采取不开辟专门线程，只是在分配前检测的方法。  </p>
-<h3 id="连接池的配置与维护"><a href="#连接池的配置与维护" class="headerlink" title="连接池的配置与维护"></a>连接池的配置与维护</h3><p>连接池中到底应该放置多少连接，才能使系统的性能最佳?系统可采取设置最小连接数(minConn)和最大连接数(maxConn)来控制连接 池中的连接。最小连接数是系统启动时连接池所创建的连接数。如果创建过多，则系统启动就慢，但创建后系统的响应速度会很快;如果创建过少，则系统启动的很 快，响应起来却慢。这样，可以在开发时，设置较小的最小连接数，开发起来会快，而在系统实际使用时设置较大的，因为这样对访问客户来说速度会快些。最大连 接数是连接池中允许连接的最大数目，具体设置多少，要看系统的访问量，可通过反复测试，找到最佳点。<br>​<br>如何确保连接池中的最小连接数呢?有动态和静态两种策略。动态即每隔一定时间就对连接池进行检测，如果发现连接数量小于最小连接数，则补充相应数量的新连接,以保证连接池的正常运转。静态是发现空闲连接不够时再去检查。</p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/数据库连接池介绍/" data-id="cj5uthv11005y0mblnzwobgzg" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-数据库相关/mysql/锁机制" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/锁机制/">锁机制</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/锁机制/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>MySQL有三种锁的级别：</p>
-<ul>
-<li>页级</li>
-<li>表级</li>
-<li>行级。</li>
-</ul>
-<p>MyISAM和MEMORY存储引擎采用的是表级锁（table-level locking）； </p>
-<p>BDB存储引擎采用的是页面锁（page-level locking），但也支持表级锁；</p>
-<p>InnoDB存储引擎既支持行级锁（row-level locking），也支持表级锁，但默认情况下是采用行级锁。</p>
-<p>MySQL这3种锁的特性可大致归纳如下：</p>
-<ul>
-<li>表级锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。</li>
-<li>行级锁：开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低,并发度也最高。</li>
-<li>页面锁：开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。</li>
-</ul>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/锁机制/" data-id="cj5uthv1300610mblgajo2gpv" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/存储过程/" data-id="cj5utptaw008x2wblv1fpuvqx" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       

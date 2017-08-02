@@ -80,6 +80,75 @@
         <div class="col-sm-8 blog-main">
           
   
+    <article id="post-Java/队列/SynchronousQueue" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/队列/SynchronousQueue/">SynchronousQueue</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/队列/SynchronousQueue/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/队列/">队列</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Java 6的并发编程包中的SynchronousQueue是一个没有数据缓冲的BlockingQueue，生产者线程对其的插入操作put必须等待消费者的移除操作take，反过来也一样。  </p>
+<p>不像ArrayBlockingQueue或LinkedListBlockingQueue，SynchronousQueue内部并没有数据缓存空间，你不能调用peek()方法来看队列中是否有数据元素，因为数据元素只有当你试着取走的时候才可能存在，不取走而只想偷窥一下是不行的，当然遍历这个队列的操作也是不允许的。队列头元素是第一个排队要插入数据的线程，而不是要交换的数据。数据是在配对的生产者和消费者线程之间直接传递的，并不会将数据缓冲数据到队列中。可以这样来理解：生产者和消费者互相等待对方，握手，然后一起离开。</p>
+<p>SynchronousQueue的一个使用场景是在线程池里。Executors.newCachedThreadPool()就使用了SynchronousQueue，这个线程池根据需要（新任务到来时）创建新的线程，如果有空闲线程则会重复使用，线程空闲了60秒后会被回收。</p>
+<h2 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h2><p>阻塞队列的实现方法有许多：</p>
+<h3 id="阻塞算法实现"><a href="#阻塞算法实现" class="headerlink" title="阻塞算法实现"></a>阻塞算法实现</h3><p>阻塞算法实现通常在内部采用一个锁来保证多个线程中的put()和take()方法是串行执行的。采用锁的开销是比较大的，还会存在一种情况是线程A持有线程B需要的锁，B必须一直等待A释放锁，即使A可能一段时间内因为B的优先级比较高而得不到时间片运行。所以在高性能的应用中我们常常希望规避锁的使用。<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/26CDD26BE102496CBEB84C9BCC5937CE/15027" alt="image"> </p>
+<h3 id="信号量实现"><a href="#信号量实现" class="headerlink" title="信号量实现"></a>信号量实现</h3><p>经典同步队列实现采用了三个信号量，代码很简单，比较容易理解：<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/51C18BA4A67E47F0B776D2DD8824DB07/15029" alt="image"><br>在多核机器上，上面方法的同步代价仍然较高，操作系统调度器需要上千个时间片来阻塞或唤醒线程，而上面的实现即使在生产者put()时已经有一个消费者在等待的情况下，阻塞和唤醒的调用仍然需要。    </p>
+<h3 id="Java-5实现"><a href="#Java-5实现" class="headerlink" title="Java 5实现"></a>Java 5实现</h3><p><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/4ED247A432A7420D8F897E7A560111B2/15031" alt="image"><br>Java 5的实现相对来说做了一些优化，只使用了一个锁，使用队列代替信号量也可以允许发布者直接发布数据，而不是要首先从阻塞在信号量处被唤醒。</p>
+<h3 id="Java6实现"><a href="#Java6实现" class="headerlink" title="Java6实现"></a>Java6实现</h3><p>Java 6的SynchronousQueue的实现采用了一种性能更好的无锁算法 — 扩展的“Dual stack and Dual queue”算法。性能比Java5的实现有较大提升。竞争机制支持公平和非公平两种：非公平竞争模式使用的数据结构是后进先出栈(Lifo Stack)；公平竞争模式则使用先进先出队列（Fifo Queue），性能上两者是相当的，一般情况下，Fifo通常可以支持更大的吞吐量，但Lifo可以更大程度的保持线程的本地化。  </p>
+<p>代码实现里的Dual Queue或Stack内部是用链表(LinkedList)来实现的，其节点状态为以下三种情况：</p>
+<ol>
+<li>持有数据 – put()方法的元素</li>
+<li>持有请求 – take()方法</li>
+<li>空</li>
+</ol>
+<p>这个算法的特点就是任何操作都可以根据节点的状态判断执行，而不需要用到锁。<br>其核心接口是Transfer，生产者的put或消费者的take都使用这个接口，根据第一个参数来区别是入列（栈）还是出列（栈）。<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/8FB195601A51459D90C39738F6BBE592/15033" alt="image"><br>TransferQueue实现如下(摘自Java 6源代码)，入列和出列都基于Spin和CAS方法：<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/101149A90ECC4B448CC14845FEF32306/15035" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/B4D7DB29F70744C6ADDC03C128CDFEAF/15055" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/E6BF3C98735C42EE83D3AC88D35863CC/15022" alt="image"></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/SynchronousQueue/" data-id="cj5utpt8v004q2wblueximgyl" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-Java/队列/ConcurrentLinkedQueue" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
@@ -140,7 +209,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/ConcurrentLinkedQueue/" data-id="cj5uthv04004d0mbl2bkineb0" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/ConcurrentLinkedQueue/" data-id="cj5utpt8w004t2wblxwi9r5lw" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -154,13 +223,13 @@
 
 
   
-    <article id="post-Java/队列/SynchronousQueue" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/Application Event/mq+spring event实现跨系统异步事件机制" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/队列/SynchronousQueue/">SynchronousQueue</a>
+      <a class="article-title" href="/2017/07/19/Spring/Application Event/mq+spring event实现跨系统异步事件机制/">mq+spring event实现跨系统异步事件机制</a>
     </h1>
   
 
@@ -169,13 +238,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Java/队列/SynchronousQueue/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/Application Event/mq+spring event实现跨系统异步事件机制/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/队列/">队列</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Application-Event/">Application Event</a>
   </div>
 
 
@@ -184,22 +253,21 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Java 6的并发编程包中的SynchronousQueue是一个没有数据缓冲的BlockingQueue，生产者线程对其的插入操作put必须等待消费者的移除操作take，反过来也一样。  </p>
-<p>不像ArrayBlockingQueue或LinkedListBlockingQueue，SynchronousQueue内部并没有数据缓存空间，你不能调用peek()方法来看队列中是否有数据元素，因为数据元素只有当你试着取走的时候才可能存在，不取走而只想偷窥一下是不行的，当然遍历这个队列的操作也是不允许的。队列头元素是第一个排队要插入数据的线程，而不是要交换的数据。数据是在配对的生产者和消费者线程之间直接传递的，并不会将数据缓冲数据到队列中。可以这样来理解：生产者和消费者互相等待对方，握手，然后一起离开。</p>
-<p>SynchronousQueue的一个使用场景是在线程池里。Executors.newCachedThreadPool()就使用了SynchronousQueue，这个线程池根据需要（新任务到来时）创建新的线程，如果有空闲线程则会重复使用，线程空闲了60秒后会被回收。</p>
-<h2 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h2><p>阻塞队列的实现方法有许多：</p>
-<h3 id="阻塞算法实现"><a href="#阻塞算法实现" class="headerlink" title="阻塞算法实现"></a>阻塞算法实现</h3><p>阻塞算法实现通常在内部采用一个锁来保证多个线程中的put()和take()方法是串行执行的。采用锁的开销是比较大的，还会存在一种情况是线程A持有线程B需要的锁，B必须一直等待A释放锁，即使A可能一段时间内因为B的优先级比较高而得不到时间片运行。所以在高性能的应用中我们常常希望规避锁的使用。<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/26CDD26BE102496CBEB84C9BCC5937CE/15027" alt="image"> </p>
-<h3 id="信号量实现"><a href="#信号量实现" class="headerlink" title="信号量实现"></a>信号量实现</h3><p>经典同步队列实现采用了三个信号量，代码很简单，比较容易理解：<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/51C18BA4A67E47F0B776D2DD8824DB07/15029" alt="image"><br>在多核机器上，上面方法的同步代价仍然较高，操作系统调度器需要上千个时间片来阻塞或唤醒线程，而上面的实现即使在生产者put()时已经有一个消费者在等待的情况下，阻塞和唤醒的调用仍然需要。    </p>
-<h3 id="Java-5实现"><a href="#Java-5实现" class="headerlink" title="Java 5实现"></a>Java 5实现</h3><p><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/4ED247A432A7420D8F897E7A560111B2/15031" alt="image"><br>Java 5的实现相对来说做了一些优化，只使用了一个锁，使用队列代替信号量也可以允许发布者直接发布数据，而不是要首先从阻塞在信号量处被唤醒。</p>
-<h3 id="Java6实现"><a href="#Java6实现" class="headerlink" title="Java6实现"></a>Java6实现</h3><p>Java 6的SynchronousQueue的实现采用了一种性能更好的无锁算法 — 扩展的“Dual stack and Dual queue”算法。性能比Java5的实现有较大提升。竞争机制支持公平和非公平两种：非公平竞争模式使用的数据结构是后进先出栈(Lifo Stack)；公平竞争模式则使用先进先出队列（Fifo Queue），性能上两者是相当的，一般情况下，Fifo通常可以支持更大的吞吐量，但Lifo可以更大程度的保持线程的本地化。  </p>
-<p>代码实现里的Dual Queue或Stack内部是用链表(LinkedList)来实现的，其节点状态为以下三种情况：</p>
-<ol>
-<li>持有数据 – put()方法的元素</li>
-<li>持有请求 – take()方法</li>
-<li>空</li>
-</ol>
-<p>这个算法的特点就是任何操作都可以根据节点的状态判断执行，而不需要用到锁。<br>其核心接口是Transfer，生产者的put或消费者的take都使用这个接口，根据第一个参数来区别是入列（栈）还是出列（栈）。<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/8FB195601A51459D90C39738F6BBE592/15033" alt="image"><br>TransferQueue实现如下(摘自Java 6源代码)，入列和出列都基于Spin和CAS方法：<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/101149A90ECC4B448CC14845FEF32306/15035" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/B4D7DB29F70744C6ADDC03C128CDFEAF/15055" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/E6BF3C98735C42EE83D3AC88D35863CC/15022" alt="image"></p>
-
+        <h2 id="基础配置"><a href="#基础配置" class="headerlink" title="基础配置"></a>基础配置</h2><p>思路：生成spring event-》发布到mq队列-》mq队列监听到事件，解析和发布spring event到applicationContext-》spring事件监听器捕抓到事件，进行逻辑处理</p>
+<h3 id="配置事件发送service"><a href="#配置事件发送service" class="headerlink" title="配置事件发送service"></a>配置事件发送service</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">public abstract interface AppEventSendingService &#123;</div><div class="line">  public abstract void send(BaseAppEvent&lt;?&gt; paramBaseAppEvent);</div><div class="line">  </div><div class="line">  public abstract void sendAfterCommit(BaseAppEvent&lt;?&gt; paramBaseAppEvent);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="配置事件发送service实现类"><a href="#配置事件发送service实现类" class="headerlink" title="配置事件发送service实现类"></a>配置事件发送service实现类</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">public class AppEventSendingServiceImpl implements AppEventSendingService, InitializingBean &#123;</div><div class="line">	private static final Logger logger = LoggerFactory.getLogger(AppEventSendingServiceImpl.class);</div><div class="line">	AppEventMessageSender sender;</div><div class="line"></div><div class="line">	public void setSender(AppEventMessageSender sender) &#123;</div><div class="line">		this.sender = sender;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void send(BaseAppEvent&lt;?&gt; appEvent) &#123;</div><div class="line">		logger.info(&quot;AppEventSendingServiceImpl.send  start&quot;);</div><div class="line">		this.sender.send(appEvent);</div><div class="line">		logger.info(&quot;AppEventSendingServiceImpl.send  end&quot;);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">    //事务提交后触发</div><div class="line">	public void sendAfterCommit(BaseAppEvent&lt;?&gt; appEvent) &#123;</div><div class="line">		try &#123;</div><div class="line">			logger.info(&quot;sending &#123;&#125;&quot;, appEvent);</div><div class="line">			SpringTxUtils.registerSynchronization(new AppEventSendingSynchronization(appEvent, this.sender));</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			logger.error(&quot;[MessageSendingService error] - &quot; + appEvent, e);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void afterPropertiesSet() throws Exception &#123;</div><div class="line">		Assert.notNull(this.sender);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="定义基础事件"><a href="#定义基础事件" class="headerlink" title="定义基础事件"></a>定义基础事件</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">public class BaseAppEvent&lt;T&gt; extends ApplicationEvent &#123;</div><div class="line">	private static final long serialVersionUID = -4328665988986363581L;</div><div class="line">	private T payload;</div><div class="line"></div><div class="line">	public BaseAppEvent(Object source) &#123;</div><div class="line">		super(source);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public T getPayload() &#123;</div><div class="line">		return (T) this.payload;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void setPayload(T payload) &#123;</div><div class="line">		this.payload = payload;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="mq-sender：用于将spring-event发送到mq队列中，实现跨系统"><a href="#mq-sender：用于将spring-event发送到mq队列中，实现跨系统" class="headerlink" title="mq sender：用于将spring event发送到mq队列中，实现跨系统"></a>mq sender：用于将spring event发送到mq队列中，实现跨系统</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">public class AppEventMessageSender &#123;</div><div class="line"></div><div class="line">    private static final Logger logger = LoggerFactory.getLogger(AppEventMessageSender.class);</div><div class="line">    </div><div class="line">	private Queue queue;</div><div class="line"></div><div class="line">	private JmsTemplate jmsTemplate;</div><div class="line">	</div><div class="line">	public void setQueue(Queue queue) &#123;</div><div class="line">		this.queue = queue;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void setJmsTemplate(JmsTemplate jmsTemplate) &#123;</div><div class="line">		this.jmsTemplate = jmsTemplate;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void send(final BaseAppEvent&lt;?&gt; event) &#123;</div><div class="line">		logger.info(&quot;sending event message: &#123;&#125;&quot;, event);</div><div class="line">		if(event == null) &#123;</div><div class="line">            return;</div><div class="line">        &#125;</div><div class="line">		jmsTemplate.send(queue, new MessageCreator() &#123;</div><div class="line">			@Override</div><div class="line">			public Message createMessage(Session session) throws JMSException &#123;</div><div class="line">				return session.createObjectMessage(event);</div><div class="line">			&#125;</div><div class="line">		&#125;);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="事务工具类"><a href="#事务工具类" class="headerlink" title="事务工具类"></a>事务工具类</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">public class SpringTxUtils &#123;</div><div class="line">	public static void registerSynchronization(TransactionSynchronization transactionSynchronization) &#123;</div><div class="line">		TransactionSynchronizationManager.registerSynchronization(transactionSynchronization);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="AppEventSendingSynchronization-用于事物提交后再发送事件"><a href="#AppEventSendingSynchronization-用于事物提交后再发送事件" class="headerlink" title="AppEventSendingSynchronization:用于事物提交后再发送事件"></a>AppEventSendingSynchronization:用于事物提交后再发送事件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">public class AppEventSendingSynchronization extends TransactionSynchronizationAdapter &#123;</div><div class="line"></div><div class="line">    private static final Logger logger = LoggerFactory.getLogger(AppEventSendingSynchronization.class);</div><div class="line"></div><div class="line">    private final BaseAppEvent&lt;?&gt; appEvent;</div><div class="line">    private final AppEventMessageSender sender;</div><div class="line"></div><div class="line">    public AppEventSendingSynchronization(BaseAppEvent&lt;?&gt; appEvent, AppEventMessageSender sender) &#123;</div><div class="line">        this.appEvent = appEvent;</div><div class="line">        this.sender = sender;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public void afterCommit() &#123;</div><div class="line">        if (sender == null) &#123;</div><div class="line">        	logger.error(&quot;sender is null, msg &#123;&#125; not sended.&quot;, appEvent);</div><div class="line">            return;</div><div class="line">        &#125;</div><div class="line">        try &#123;</div><div class="line">            sender.send(appEvent);</div><div class="line">        &#125; catch (Exception e) &#123;</div><div class="line">        	logger.error(&quot;[ Event Sending Failed ]:&quot; + appEvent, e);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="mq事件监听器，用于解析和发布spring-event事件"><a href="#mq事件监听器，用于解析和发布spring-event事件" class="headerlink" title="mq事件监听器，用于解析和发布spring event事件"></a>mq事件监听器，用于解析和发布spring event事件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">public class AppEventMessageListener implements MessageListener, ApplicationContextAware &#123;</div><div class="line"></div><div class="line">	private static final Logger logger = LoggerFactory.getLogger(AppEventMessageListener.class);</div><div class="line"></div><div class="line">	private ApplicationContext context;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException &#123;</div><div class="line">		this.context = applicationContext;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void onMessage(Message message) &#123;</div><div class="line">		if (message instanceof ObjectMessage) &#123;</div><div class="line">			try &#123;</div><div class="line">				Object event = (Object) ((ObjectMessage) message).getObject();</div><div class="line">				if (!BaseAppEvent.class.isAssignableFrom(event.getClass())) &#123;</div><div class="line">					logger.warn(&quot;not an application event: &#123;&#125;&quot;, event);</div><div class="line">					return;</div><div class="line">				&#125;</div><div class="line">				context.publishEvent((BaseAppEvent&lt;?&gt;) event);</div><div class="line">			&#125; catch (Exception ex) &#123;</div><div class="line">				logger.error(&quot;error publishing event&quot;, ex);</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line"></div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="mq-xml配置"><a href="#mq-xml配置" class="headerlink" title="mq xml配置"></a>mq xml配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">&lt;amq:connectionFactory id=&quot;amqConnectionFactory&quot;</div><div class="line">		brokerURL=&quot;$&#123;activemq.brokerURL&#125;&quot; userName=&quot;$&#123;activemq.username&#125;&quot;</div><div class="line">		password=&quot;$&#123;activemq.password&#125;&quot; /&gt;</div><div class="line">		</div><div class="line">	&lt;bean id=&quot;connectionFactory&quot;</div><div class="line">		class=&quot;org.springframework.jms.connection.CachingConnectionFactory&quot;&gt;</div><div class="line">		&lt;constructor-arg ref=&quot;amqConnectionFactory&quot; /&gt;</div><div class="line">		&lt;property name=&quot;sessionCacheSize&quot; value=&quot;100&quot; /&gt;</div><div class="line">	&lt;/bean&gt;</div><div class="line"></div><div class="line">	&lt;bean id=&quot;jmsQueueTemplate&quot; class=&quot;org.springframework.jms.core.JmsTemplate&quot;&gt;</div><div class="line">		&lt;constructor-arg ref=&quot;connectionFactory&quot; /&gt;</div><div class="line">		&lt;property name=&quot;pubSubDomain&quot; value=&quot;false&quot; /&gt;</div><div class="line">	&lt;/bean&gt;</div><div class="line"></div><div class="line">    &lt;!-- CLQ专用的Application Event队列 --&gt;</div><div class="line">    &lt;amq:queue id=&quot;CLQ_APP_EVENT_QUEUE&quot; physicalName=&quot;clq.app.event.queue&quot; /&gt;</div></pre></td></tr></table></figure>
+<h3 id="mq-sender-xml"><a href="#mq-sender-xml" class="headerlink" title="mq sender xml"></a>mq sender xml</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;appEventSendingService&quot; class=&quot;com.clq.base.service.impl.AppEventSendingServiceImpl&quot;&gt;</div><div class="line">	&lt;property name=&quot;sender&quot;&gt;</div><div class="line">		&lt;bean class=&quot;com.clq.base.mq.sender.AppEventMessageSender&quot;&gt;</div><div class="line">			&lt;property name=&quot;queue&quot; ref=&quot;CLQ_APP_EVENT_QUEUE&quot; /&gt;</div><div class="line">			&lt;property name=&quot;jmsTemplate&quot; ref=&quot;jmsQueueTemplate&quot; /&gt;</div><div class="line">		&lt;/bean&gt;</div><div class="line">	&lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
+<h3 id="mq-listener-xml"><a href="#mq-listener-xml" class="headerlink" title="mq listener xml"></a>mq listener xml</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;appEventMessageListener&quot;</div><div class="line">		class=&quot;com.clq.base.mq.listener.AppEventMessageListener&quot;&gt;</div><div class="line">	&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;jms:listener-container destination-type=&quot;queue&quot;</div><div class="line">	container-type=&quot;default&quot; connection-factory=&quot;connectionFactory&quot;</div><div class="line">	acknowledge=&quot;auto&quot;&gt;</div><div class="line">	&lt;jms:listener destination=&quot;clq.app.event.queue&quot; ref=&quot;appEventMessageListener&quot; /&gt;</div><div class="line">&lt;/jms:listener-container&gt;</div></pre></td></tr></table></figure>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><h3 id="定义数据载体payload"><a href="#定义数据载体payload" class="headerlink" title="定义数据载体payload"></a>定义数据载体payload</h3><p>用于事件传播数据载体<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public class EmailPL implements Serializable &#123;</div><div class="line">	private static final long serialVersionUID = 1L;</div><div class="line">	private String sendTo;</div><div class="line">	private String subject;</div><div class="line">	private String body;</div><div class="line"></div><div class="line">    //getter and setter</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="定义事件"><a href="#定义事件" class="headerlink" title="定义事件"></a>定义事件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public class EmailEvent extends BaseAppEvent&lt;EmailPL&gt; &#123;</div><div class="line">	private static final long serialVersionUID = 1L;</div><div class="line"></div><div class="line">	public EmailEvent(Object source) &#123;</div><div class="line">		super(source);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="发送事件"><a href="#发送事件" class="headerlink" title="发送事件"></a>发送事件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">@Resource(name=&quot;appEventSendingService&quot;)</div><div class="line">AppEventSendingService appEventSendingService;</div><div class="line"></div><div class="line">//method</div><div class="line">EmailPL emailPL = new EmailPL();</div><div class="line">emailPL.setSendTo(&quot;收件人&quot;);</div><div class="line">emailPL.setSubject(&quot;主题&quot;);</div><div class="line">emailPL.setBody(&quot;内容&quot;);</div><div class="line">EmailEvent emailEvent = new EmailEvent(this);</div><div class="line">emailEvent.setPayload(emailPL);</div><div class="line">this.appEventSendingService.send(emailEvent);</div></pre></td></tr></table></figure>
+<h3 id="Spring-event监听器"><a href="#Spring-event监听器" class="headerlink" title="Spring event监听器"></a>Spring event监听器</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">@Component</div><div class="line">public class EmailListener implements ApplicationListener&lt;EmailEvent&gt; &#123;</div><div class="line">	private static Logger logger = Logger.getLogger(EmailListener.class);</div><div class="line">	@Resource</div><div class="line">	EmailService emailService;</div><div class="line"></div><div class="line">	public void onApplicationEvent(EmailEvent event) &#123;</div><div class="line">		logger.info(&quot;EmailListener start&#123;&#125;&quot;);</div><div class="line">		EmailPL payLoad = (EmailPL) event.getPayload();</div><div class="line">		String sendTo = payLoad.getSendTo();</div><div class="line">		String subject = payLoad.getSubject();</div><div class="line">		String body = payLoad.getBody();</div><div class="line">		try &#123;</div><div class="line">			//逻辑处理</div><div class="line">		&#125; catch (MessagingException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">		&#125;</div><div class="line">		logger.info(&quot;EmailListener end&#123;&#125;&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -209,126 +277,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/SynchronousQueue/" data-id="cj5uthv07004g0mblpipf6s4z" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Linux/vi命令" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Linux/vi命令/">vi命令</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Linux/vi命令/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="vi命令"><a href="#vi命令" class="headerlink" title="vi命令"></a>vi命令</h2><p>vi命令是UNIX操作系统和类UNIX操作系统中最通用的全屏幕纯文本编辑器。</p>
-<p>Linux中的vi编辑器叫vim，它是vi的增强版（vi Improved），与vi编辑器完全兼容，而且实现了很多增强功能。 vi编辑器支持编辑模式和命令模式，编辑模式下可以完成文本的编辑功能，命令模式下可以完成对文件的操作命令，要正确使用vi编辑器就必须熟练掌握着两种模式的切换。默认情况下，打开vi编辑器后自动进入命令模式。从编辑模式切换到命令模式使用“esc”键，从命令模式切换到编辑模式使用“A”、“a”、“O”、“o”、“I”、“i”键。      </p>
-<p>vi编辑器提供了丰富的内置命令，有些内置命令使用键盘组合键即可完成，有些内置命令则需要以冒号“：”开头输入。常用内置命令如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">Ctrl+u：向文件首翻半屏；  </div><div class="line">Ctrl+d：向文件尾翻半屏；  </div><div class="line">Ctrl+f：向文件尾翻一屏；</div><div class="line">Ctrl+b：向文件首翻一屏；</div><div class="line">Esc：从编辑模式切换到命令模式；</div><div class="line">ZZ：命令模式下保存当前文件所做的修改后退出vi；</div><div class="line">:行号：光标跳转到指定行的行首；</div><div class="line">:$：光标跳转到最后一行的行首；</div><div class="line">x或X：删除一个字符，x删除光标后的，而X删除光标前的；</div><div class="line">D：删除从当前光标到光标所在行尾的全部字符；</div><div class="line">dd：删除光标行正行内容；</div><div class="line">ndd：删除当前行及其后n-1行； nyy：将当前行及其下n行的内容保存到寄存器？中，其中？为一个字母，n为一个数字；</div><div class="line">p：粘贴文本操作，用于将缓存区的内容粘贴到当前光标所在位置的下方；</div><div class="line">P：粘贴文本操作，用于将缓存区的内容粘贴到当前光标所在位置的上方；</div><div class="line">/字符串：文本查找操作，用于从当前光标所在位置开始向文件尾部查找指定字符串的内容，查找的字符串会被加亮显示； </div><div class="line">？name：文本查找操作，用于从当前光标所在位置开始向文件头部查找指定字符串的内容，查找的字符串会被加亮显示； </div><div class="line">a，bs/F/T：替换文本操作，用于在第a行到第b行之间，将F字符串换成T字符串。其中，“s/”表示进行替换操作；</div><div class="line">a：在当前字符后添加文本；</div><div class="line">A：在行末添加文本；</div><div class="line">i：在当前字符前插入文本；</div><div class="line">I：在行首插入文本；</div><div class="line">o：在当前行后面插入一空行；</div><div class="line">O：在当前行前面插入一空行；</div><div class="line">:wq：在命令模式下，执行存盘退出操作； </div><div class="line">:w：在命令模式下，执行存盘操作；</div><div class="line">:w！：在命令模式下，执行强制存盘操作； </div><div class="line">:q：在命令模式下，执行退出vi操作；</div><div class="line">:q！：在命令模式下，执行强制退出vi操作； </div><div class="line">:e文件名：在命令模式下，打开并编辑指定名称的文件；</div><div class="line">:n：在命令模式下，如果同时打开多个文件，则继续编辑下一个文件；</div><div class="line">:f：在命令模式下，用于显示当前的文件名、光标所在行的行号以及显示比例； </div><div class="line">:set number：在命令模式下，用于在最左端显示行号； </div><div class="line">:set nonumber：在命令模式下，用于在最左端不显示行号；</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/vi命令/" data-id="cj5uthuwv000e0mbl1v1nv18u" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/JPA/GeneratedValue主键生成策略" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/">GeneratedValue主键生成策略</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="GeneratedValue-主键的产生策略，通过strategy属性指定。"><a href="#GeneratedValue-主键的产生策略，通过strategy属性指定。" class="headerlink" title="@GeneratedValue:主键的产生策略，通过strategy属性指定。"></a>@GeneratedValue:主键的产生策略，通过strategy属性指定。</h2><p>主键产生策略通过GenerationType来指定。GenerationType是一个枚举，它定义了主键产生策略的类型。</p>
-<ol>
-<li>AUTO　自动选择一个最适合底层数据库的主键生成策略。如MySQL会自动对应auto increment。这个是默认选项，即如果只写@GeneratedValue，等价于@GeneratedValue(strategy=GenerationType.AUTO)。</li>
-<li>IDENTITY　表自增长字段，Oracle不支持这种方式。</li>
-<li>SEQUENCE　通过序列产生主键，MySQL不支持这种方式。</li>
-<li>TABLE　通过表产生主键，框架借由表模拟序列产生主键，使用该策略可以使应用更易于数据库移植。不同的JPA实现商生成的表名是不同的，如 OpenJPA生成openjpa_sequence_table表，Hibernate生成一个hibernate_sequences表，而TopLink则生成sequence表。这些表都具有一个序列名和对应值两个字段，如SEQ_NAME和SEQ_COUNT。</li>
-</ol>
-<p>在我们的应用中，一般选用@GeneratedValue(strategy=GenerationType.AUTO)这种方式，自动选择主键生成策略，以适应不同的数据库移植。</p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/" data-id="cj5uthv0c004l0mblshqlwe8s" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Application Event/mq+spring event实现跨系统异步事件机制/" data-id="cj5utpt8x004v2wblb22spjpf" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -397,7 +346,69 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/Cascade和orphanRemoval/" data-id="cj5uthv0e004n0mbl5sqaqd9u" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/Cascade和orphanRemoval/" data-id="cj5utpt8z004y2wblfe99hhnr" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/JPA/GeneratedValue主键生成策略" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/">GeneratedValue主键生成策略</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="GeneratedValue-主键的产生策略，通过strategy属性指定。"><a href="#GeneratedValue-主键的产生策略，通过strategy属性指定。" class="headerlink" title="@GeneratedValue:主键的产生策略，通过strategy属性指定。"></a>@GeneratedValue:主键的产生策略，通过strategy属性指定。</h2><p>主键产生策略通过GenerationType来指定。GenerationType是一个枚举，它定义了主键产生策略的类型。</p>
+<ol>
+<li>AUTO　自动选择一个最适合底层数据库的主键生成策略。如MySQL会自动对应auto increment。这个是默认选项，即如果只写@GeneratedValue，等价于@GeneratedValue(strategy=GenerationType.AUTO)。</li>
+<li>IDENTITY　表自增长字段，Oracle不支持这种方式。</li>
+<li>SEQUENCE　通过序列产生主键，MySQL不支持这种方式。</li>
+<li>TABLE　通过表产生主键，框架借由表模拟序列产生主键，使用该策略可以使应用更易于数据库移植。不同的JPA实现商生成的表名是不同的，如 OpenJPA生成openjpa_sequence_table表，Hibernate生成一个hibernate_sequences表，而TopLink则生成sequence表。这些表都具有一个序列名和对应值两个字段，如SEQ_NAME和SEQ_COUNT。</li>
+</ol>
+<p>在我们的应用中，一般选用@GeneratedValue(strategy=GenerationType.AUTO)这种方式，自动选择主键生成策略，以适应不同的数据库移植。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/" data-id="cj5utpt9000502wblgb88zpd5" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -525,7 +536,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/JPA 2.0 锁机制/" data-id="cj5uthv0f004q0mbl21dujgrr" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/JPA 2.0 锁机制/" data-id="cj5utpt9100532wbl4exsmthi" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -733,7 +744,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/JPA高级查询/" data-id="cj5uthv0g004s0mblnoh3l01v" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/JPA高级查询/" data-id="cj5utpt9200552wbl41htpujs" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -792,7 +803,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/Specification实例/" data-id="cj5uthv0h004v0mblc5arycmd" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/Specification实例/" data-id="cj5utpt9400582wbl36u4o8uw" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -859,7 +870,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/利用hibernate实现/" data-id="cj5uthv0i004x0mbl3u8npgjq" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/利用hibernate实现/" data-id="cj5utpt94005a2wblfc17gw1v" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -919,7 +930,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/对应关系映射配置/" data-id="cj5uthv0k00500mblm88fwodm" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/对应关系映射配置/" data-id="cj5utpt96005d2wbll6gx5i2j" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
