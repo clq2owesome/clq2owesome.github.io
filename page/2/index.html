@@ -80,6 +80,697 @@
         <div class="col-sm-8 blog-main">
           
   
+    <article id="post-数据库相关/mysql/乐观锁和悲观锁" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/">乐观锁和悲观锁</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="锁（-locking-）"><a href="#锁（-locking-）" class="headerlink" title="锁（ locking ）"></a>锁（ locking ）</h3><p>业务逻辑的实现过程中，往往需要保证数据访问的排他性。如在金融系统的日终结算<br>处理中，我们希望针对某个 cut-off 时间点的数据进行处理，而不希望在结算进行过程中<br>（可能是几秒种，也可能是几个小时），数据再发生变化。此时，我们就需要通过一些机<br>制来保证这些数据在某个操作过程中不会被外界修改，这样的机制，在这里，也就是所谓<br>的 “ 锁 ” ，即给我们选定的目标数据上锁，使其无法被其他程序修改。</p>
+<p>Hibernate 支持两种锁机制：即通常所说的 “ 悲观锁（ Pessimistic Locking ） ”<br>和 “ 乐观锁（ Optimistic Locking ） ” 。</p>
+<h3 id="悲观锁（-Pessimistic-Locking-）"><a href="#悲观锁（-Pessimistic-Locking-）" class="headerlink" title="悲观锁（ Pessimistic Locking ）"></a>悲观锁（ Pessimistic Locking ）</h3><p>悲观锁，正如其名，它指的是对数据被外界（包括本系统当前的其他事务，以及来自<br>外部系统的事务处理）修改持保守态度，因此，在整个数据处理过程中，将数据处于锁定<br>状态。悲观锁的实现，往往依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能<br>真正保证数据访问的排他性，否则，即使在本系统中实现了加锁机制，也无法保证外部系<br>统不会修改数据）。</p>
+<p>一个典型的倚赖数据库的悲观锁调用：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">select * from account where name=”Erica” for update</div></pre></td></tr></table></figure></p>
+<p>这条 sql 语句锁定了 account 表中所有符合检索条件（ name=”Erica” ）的记录。<br>本次事务提交之前（事务提交时会释放事务过程中的锁），外界无法修改这些记录。<br>Hibernate 的悲观锁，也是基于数据库的锁机制实现。</p>
+<p>注意，只有在查询开始之前（也就是 Hiberate 生成 SQL 之前）设定加锁，才会<br>真正通过数据库的锁机制进行加锁处理，否则，数据已经通过不包含 for update<br>子句的 Select SQL 加载进来，所谓数据库加锁也就无从谈起。</p>
+<h3 id="乐观锁（-Optimistic-Locking-）"><a href="#乐观锁（-Optimistic-Locking-）" class="headerlink" title="乐观锁（ Optimistic Locking ）"></a>乐观锁（ Optimistic Locking ）</h3><p>相对悲观锁而言，乐观锁机制采取了更加宽松的加锁机制。悲观锁大多数情况下依<br>靠数据库的锁机制实现，以保证操作最大程度的独占性。但随之而来的就是数据库<br>性能的大量开销，特别是对长事务而言，这样的开销往往无法承受。<br>如一个金融系统，当某个操作员读取用户的数据，并在读出的用户数据的基础上进<br>行修改时（如更改用户帐户余额），如果采用悲观锁机制，也就意味着整个操作过<br>程中（从操作员读出数据、开始修改直至提交修改结果的全过程，甚至还包括操作<br>员中途去煮咖啡的时间），数据库记录始终处于加锁状态，可以想见，如果面对几<br>百上千个并发，这样的情况将导致怎样的后果。</p>
+<p>乐观锁机制在一定程度上解决了这个问题。乐观锁，大多是基于数据版本<br>（ Version ）记录机制实现。何谓数据版本？即为数据增加一个版本标识，在基于<br>数据库表的版本解决方案中，一般是通过为数据库表增加一个 “version” 字段来<br>实现。  </p>
+<p>读取出数据时，将此版本号一同读出，之后更新时，对此版本号加一。此时，将提<br>交数据的版本数据与数据库表对应记录的当前版本信息进行比对，如果提交的数据<br>版本号大于数据库表当前版本号，则予以更新，否则认为是过期数据。<br>对于上面修改用户帐户信息的例子而言，假设数据库中帐户信息表中有一个<br>version 字段，当前值为 1 ；而当前帐户余额字段（ balance ）为 $100 。     </p>
+<ol>
+<li>操作员 A 此时将其读出（ version=1 ），并从其帐户余额中扣除 $50<br>（ $100-$50 ）。</li>
+<li>在操作员 A 操作的过程中，操作员 B 也读入此用户信息（ version=1 ），并<br>从其帐户余额中扣除 $20 （ $100-$20 ）。</li>
+<li>操作员 A 完成了修改工作，将数据版本号加一（ version=2 ），连同帐户扣<br>除后余额（ balance=$50 ），提交至数据库更新，此时由于提交数据版本大<br>于数据库记录当前版本，数据被更新，数据库记录 version 更新为 2 。</li>
+<li>操作员 B 完成了操作，也将版本号加一（ version=2 ）试图向数据库提交数<br>据（ balance=$80 ），但此时比对数据库记录版本时发现，操作员 B 提交的<br>数据版本号为 2 ，数据库记录当前版本也为 2 ，不满足 “ 提交版本必须大于记<br>录当前版本才能执行更新 “ 的乐观锁策略，因此，操作员 B 的提交被驳回。<br>这样，就避免了操作员 B 用基于 version=1 的旧数据修改的结果覆盖操作<br>员 A 的操作结果的可能。 </li>
+</ol>
+<p>从上面的例子可以看出，乐观锁机制避免了长事务中的数据库加锁开销（操作员 A<br>和操作员 B 操作过程中，都没有对数据库数据加锁），大大提升了大并发量下的系<br>统整体性能表现。</p>
+<p>需要注意的是，乐观锁机制往往基于系统中的数据存储逻辑，因此也具备一定的局<br>限性，如在上例中，由于乐观锁机制是在我们的系统中实现，来自外部系统的用户<br>余额更新操作不受我们系统的控制，因此可能会造成脏数据被更新到数据库中。在<br>系统设计阶段，我们应该充分考虑到这些情况出现的可能性，并进行相应调整（如<br>将乐观锁策略在数据库存储过程中实现，对外只开放基于此存储过程的数据更新途<br>径，而不是将数据库表直接对外公开）。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/" data-id="cj5uthv0s005e0mbltod3v5e3" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/mysql索引原理" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/mysql索引原理/">mysql索引原理</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/mysql索引原理/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>本篇介绍下Mysql的InnoDB索引相关知识，从各种树到索引原理到存储的细节。</p>
+<p>　　InnoDB是Mysql的默认存储引擎(Mysql5.5.5之前是MyISAM，文档)。本着高效学习的目的，本篇以介绍InnoDB为主，少量涉及MyISAM作为对比。</p>
+<p>　　这篇文章是我在学习过程中总结完成的，内容主要来自书本和博客(参考文献会给出)，过程中加入了一些自己的理解，描述不准确的地方烦请指出。</p>
+<h2 id="各种树形结构"><a href="#各种树形结构" class="headerlink" title="各种树形结构"></a>各种树形结构</h2><p>本来不打算从二叉搜索树开始，因为网上已经有太多相关文章，但是考虑到清晰的图示对理解问题有很大帮助，也为了保证文章完整性，最后还是加上了这部分。  </p>
+<p>先看看几种树形结构：</p>
+<ol>
+<li><p>搜索二叉树：每个节点有两个子节点，数据量的增大必然导致高度的快速增加，显然这个不适合作为大量数据存储的基础结构。</p>
+</li>
+<li><p>B树：一棵m阶B树是一棵平衡的m路搜索树。最重要的性质是每个非根节点所包含的关键字个数 j 满足：┌m/2┐ - 1 &lt;= j &lt;= m - 1；一个节点的子节点数量会比关键字个数多1，这样关键字就变成了子节点的分割标志。一般会在图示中把关键字画到子节点中间，非常形象，也容易和后面的B+树区分。由于数据同时存在于叶子节点和非叶子结点中，无法简单完成按顺序遍历B树中的关键字，必须用中序遍历的方法。    </p>
+</li>
+<li><p>B+树：一棵m阶B树是一棵平衡的m路搜索树。最重要的性质是每个非根节点所包含的关键字个数 j 满足：┌m/2┐ - 1 &lt;= j &lt;= m；子树的个数最多可以与关键字一样多。非叶节点存储的是子树里最小的关键字。同时数据节点只存在于叶子节点中，且叶子节点间增加了横向的指针，这样顺序遍历所有数据将变得非常容易。    </p>
+</li>
+<li><p>B*树：一棵m阶B树是一棵平衡的m路搜索树。最重要的两个性质是1每个非根节点所包含的关键字个数 j 满足：┌m2/3┐ - 1 &lt;= j &lt;= m；2非叶节点间添加了横向指针。  </p>
+</li>
+</ol>
+<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091300383225.PNG" alt="image"><br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091308112206.PNG" alt="image"><br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091317678858.PNG" alt="image"> </p>
+<p>B/B+/B*三种树有相似的操作，比如检索/插入/删除节点。这里只重点关注插入节点的情况，且只分析他们在当前节点已满情况下的插入操作，因为这个动作稍微复杂且能充分体现几种树的差异。与之对比的是检索节点比较容易实现，而删除节点只要完成与插入相反的过程即可（在实际应用中删除并不是插入的完全逆操作，往往只删除数据而保留下空间为后续使用）。</p>
+<p>先看B树的分裂，下图的红色值即为每次新插入的节点。每当一个节点满后，就需要发生分裂（分裂是一个递归过程，参考下面7的插入导致了两层分裂），由于B树的非叶子节点同样保存了键值，所以已满节点分裂后的值将分布在三个地方：1原节点，2原节点的父节点，3原节点的新建兄弟节点（参考5，7的插入过程）。分裂有可能导致树的高度增加（参考3，7的插入过程），也可能不影响树的高度（参考5，6的插入过程）。    </p>
+<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091402944893.PNG" alt="image"><br>B+树的分裂：当一个结点满时，分配一个新的结点，并将原结点中1/2的数据复制到新结点，最后在父结点中增加新结点的指针；B+树的分裂只影响原结点和父结点，而不会影响兄弟结点，所以它不需要指向兄弟节点的指针。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091412822063.PNG" alt="image"><br>B<em>树的分裂：当一个结点满时，如果它的下一个兄弟结点未满，那么将一部分数据移到兄弟结点中，再在原结点插入关键字，最后修改父结点中兄弟结点的关键字（因为兄弟结点的关键字范围改变了）。如果兄弟也满了，则在原结点与兄弟结点之间增加新结点，并各复制1/3的数据到新结点，最后在父结点增加新结点的指针。可以看到B</em>树的分裂非常巧妙，因为B<em>树要保证分裂后的节点还要2/3满，如果采用B+树的方法，只是简单的将已满的节点一分为二，会导致每个节点只有1/2满，这不满足B</em>树的要求了。所以B<em>树采取的策略是在本节点满后，继续插入兄弟节点（这也是为什么B</em>树需要在非叶子节点加一个兄弟间的链表），直到把兄弟节点也塞满，然后拉上兄弟节点一起凑份子，自己和兄弟节点各出资1/3成立新节点，这样的结果是3个节点刚好是2/3满，达到B*树的要求，皆大欢喜。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091423290770.PNG" alt="image"><br>B+树适合作为数据库的基础结构，完全是因为计算机的内存-机械硬盘两层存储结构。内存可以完成快速的随机访问（随机访问即给出任意一个地址，要求返回这个地址存储的数据）但是容量较小。而硬盘的随机访问要经过机械动作（1磁头移动 2盘片转动），访问效率比内存低几个数量级，但是硬盘容量较大。典型的数据库容量大大超过可用内存大小，这就决定了在B+树中检索一条数据很可能要借助几次磁盘IO操作来完成。如下图所示：通常向下读取一个节点的动作可能会是一次磁盘IO操作，不过非叶节点通常会在初始阶段载入内存以加快访问速度。同时为提高在节点间横向遍历速度，真实数据库中可能会将图中蓝色的CPU计算/内存读取优化成二叉搜索树（InnoDB中的page directory机制）。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091432578535.PNG" alt="image"><br>真实数据库中的B+树应该是非常扁平的，可以通过向表中顺序插入足够数据的方式来验证InnoDB中的B+树到底有多扁平。我们通过如下图的CREATE语句建立一个只有简单字段的测试表，然后不断添加数据来填充这个表。通过下图的统计数据（来源见参考文献1）可以分析出几个直观的结论，这几个结论宏观的展现了数据库里B+树的尺度。  </p>
+<ol>
+<li><p>每个叶子节点存储了468行数据，每个非叶子节点存储了大约1200个键值，这是一棵平衡的1200路搜索树！</p>
+</li>
+<li><p>对于一个22.1G容量的表，也只需要高度为3的B+树就能存储了，这个容量大概能满足很多应用的需要了。如果把高度增大到4，则B+树的存储容量立刻增大到25.9T之巨！</p>
+</li>
+<li><p>对于一个22.1G容量的表，B+树的高度是3，如果要把非叶节点全部加载到内存也只需要少于18.8M的内存（如何得出的这个结论？因为对于高度为2的树，1203个叶子节点也只需要18.8M空间，而22.1G从良表的高度是3，非叶节点1204个。同时我们假设叶子节点的尺寸是大于非叶节点的，因为叶子节点存储了行数据而非叶节点只有键和少量数据。），只使用如此少的内存就可以保证只需要一次磁盘IO操作就检索出所需的数据，效率是非常之高的。    </p>
+</li>
+</ol>
+<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091442379434.PNG" alt="image"> </p>
+<h2 id="Mysql的存储引擎和索引"><a href="#Mysql的存储引擎和索引" class="headerlink" title="Mysql的存储引擎和索引"></a>Mysql的存储引擎和索引</h2><p>可以说数据库必须有索引，没有索引则检索过程变成了顺序查找，O(n)的时间复杂度几乎是不能忍受的。我们非常容易想象出一个只有单关键字组成的表如何使用B+树进行索引，只要将关键字存储到树的节点即可。当数据库一条记录里包含多个字段时，一棵B+树就只能存储主键，如果检索的是非主键字段，则主键索引失去作用，又变成顺序查找了。这时应该在第二个要检索的列上建立第二套索引。 这个索引由独立的B+树来组织。有两种常见的方法可以解决多个B+树访问同一套表数据的问题，一种叫做<strong>聚簇索引</strong>（clustered index ），一种叫做<strong>非聚簇索引</strong>（secondary index）。这两个名字虽然都叫做索引，但这并不是一种单独的索引类型，而是一种数据存储方式。对于聚簇索引存储来说，行数据和主键B+树存储在一起，辅助键B+树只存储辅助键和主键，主键和非主键B+树几乎是两种类型的树。对于非聚簇索引存储来说，主键B+树在叶子节点存储指向真正数据行的指针，而非主键。  </p>
+<p><strong>InnoDB使用的是聚簇索引，将主键组织到一棵B+树中，而行数据就储存在叶子节点上，若使用”where id = 14”这样的条件查找主键，则按照B+树的检索算法即可查找到对应的叶节点，之后获得行数据。若对Name列进行条件搜索，则需要两个步骤：第一步在辅助索引B+树中检索Name，到达其叶子节点获取对应的主键。第二步使用主键在主索引B+树种再执行一次B+树检索操作，最终到达叶子节点即可获取整行数据。</strong>  </p>
+<p><strong>MyISM使用的是非聚簇索引，非聚簇索引的两棵B+树看上去没什么不同，节点的结构完全一致只是存储的内容不同而已，主键索引B+树的节点存储了主键，辅助键索引B+树存储了辅助键。表数据存储在独立的地方，这两棵B+树的叶子节点都使用一个地址指向真正的表数据，对于表数据来说，这两个键没有任何差别。由于索引树是独立的，通过辅助键检索无需访问主键的索引树。</strong></p>
+<p>为了更形象说明这两种索引的区别，我们假想一个表如下图存储了4行数据。其中Id作为主索引，Name作为辅助索引。图示清晰的显示了聚簇索引和非聚簇索引的差异。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091453469704.PNG" alt="image"><br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091503903957.PNG" alt="image"><br>我们重点关注聚簇索引，看上去聚簇索引的效率明显要低于非聚簇索引，因为每次使用辅助索引检索都要经过两次B+树查找，这不是多此一举吗？聚簇索引的优势在哪？</p>
+<ol>
+<li>由于行数据和叶子节点存储在一起，这样主键和行数据是一起被载入内存的，找到叶子节点就可以立刻将行数据返回了，如果按照主键Id来组织数据，获得数据更快。</li>
+<li>辅助索引使用主键作为”指针” 而不是使用地址值作为指针的好处是，减少了当出现行移动或者数据页分裂时辅助索引的维护工作，使用主键值当作指针会让辅助索引占用更多的空间，换来的好处是InnoDB在移动行时无须更新辅助索引中的这个”指针”。也就是说行的位置（实现中通过16K的Page来定位，后面会涉及）会随着数据库里数据的修改而发生变化（前面的B+树节点分裂以及Page的分裂），使用聚簇索引就可以保证不管这个主键B+树的节点如何变化，辅助索引树都不受影响。    </li>
+</ol>
+<h2 id="Page结构"><a href="#Page结构" class="headerlink" title="Page结构"></a>Page结构</h2><p>如果说前面的内容偏向于解释原理，那后面就开始涉及具体实现了。<br>理解InnoDB的实现不得不提Page结构，Page是整个InnoDB存储的最基本构件，也是InnoDB磁盘管理的最小单位，与数据库相关的所有内容都存储在这种Page结构里。Page分为几种类型，常见的页类型有<strong>数据页（B-tree Node）Undo页（Undo Log Page）系统页（System Page） 事务数据页（Transaction System Page）</strong>等。  </p>
+<p>单个Page的大小是16K（编译宏UNIV_PAGE_SIZE控制），每个Page使用一个32位的int值来唯一标识，这也正好对应InnoDB最大64TB的存储容量（16Kib * 2^32 = 64Tib）。一个Page的基本结构如下图所示：<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091512695110.PNG" alt="image"><br>每个Page都有通用的头和尾，但是中部的内容根据Page的类型不同而发生变化。Page的头部里有我们关心的一些数据，下图把Page的头部详细信息显示出来：<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091523976520.PNG" alt="image"><br>我们重点关注和数据组织结构相关的字段：Page的头部保存了两个指针，分别指向前一个Page和后一个Page，头部还有Page的类型信息和用来唯一标识Page的编号。根据这两个指针我们很容易想象出Page链接起来就是一个双向链表的结构。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091532199537.PNG" alt="image"><br>再看看Page的主体内容，我们主要关注行数据和索引的存储，他们都位于Page的User Records部分，User Records占据Page的大部分空间，User Records由一条一条的Record组成，每条记录代表索引树上的一个节点（非叶子节点和叶子节点）。在一个Page内部，单链表的头尾由固定内容的两条记录来表示，字符串形式的”Infimum”代表开头，”Supremum”代表结尾。这两个用来代表开头结尾的Record存储在System Records的段里，这个System Records和User Records是两个平行的段。 </p>
+<p>InnoDB存在4种不同的Record:</p>
+<ol>
+<li>主键索引树非叶节点</li>
+<li>主键索引树叶子节点</li>
+<li>辅助键索引树非叶节点</li>
+<li>辅助键索引树叶子节点。</li>
+</ol>
+<p>这4种节点的Record格式有一些差异，但是它们都存储着Next指针指向下一个Record。后续我们会详细介绍这4种节点，现在只需要把Record当成一个存储了数据同时含有Next指针的单链表节点即可。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091541081339.PNG" alt="image"><br>User Record在Page内以单链表的形式存在，最初数据是按照插入的先后顺序排列的，但是随着新数据的插入和旧数据的删除，数据物理顺序会变得混乱，但他们依然保持着逻辑上的先后顺序。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091551111655.PNG" alt="image"><br>把User Record的组织形式和若干Page组合起来，就看到了稍微完整的形式。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091600910753.PNG" alt="image">         </p>
+<p>现在看下如何定位一个Record：</p>
+<ol>
+<li>通过根节点开始遍历一个索引的B+树，通过各层非叶子节点最终到达一个Page，这个Page里存放的都是叶子节点。</li>
+<li>在Page内从”Infimum”节点开始遍历单链表（这种遍历往往会被优化），如果找到该键则成功返回。如果记录到达了”supremum”，说明当前Page里没有合适的键，这时要借助Page的Next Page指针，跳转到下一个Page继续从”Infimum”开始逐个查找。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091608678237.PNG" alt="image">    </li>
+</ol>
+<p>详细看下不同类型的Record里到底存储了什么数据，根据B+树节点的不同，User Record可以被分成四种格式，下图种按照颜色予以区分。  </p>
+<h3 id="主索引树非叶节点（绿色）"><a href="#主索引树非叶节点（绿色）" class="headerlink" title="主索引树非叶节点（绿色）"></a>主索引树非叶节点（绿色）</h3><ol>
+<li>子节点存储的主键里最小的值（Min Cluster Key on Child），这是B+树必须的，作用是在一个Page里定位到具体的记录的位置。</li>
+<li>最小的值所在的Page的编号（Child Page Number），作用是定位Record。</li>
+</ol>
+<h3 id="主索引树叶子节点（黄色）"><a href="#主索引树叶子节点（黄色）" class="headerlink" title="主索引树叶子节点（黄色）"></a>主索引树叶子节点（黄色）</h3><ol>
+<li>主键（Cluster Key Fields），B+树必须的，也是数据行的一部分</li>
+<li>除去主键以外的所有列（Non-Key Fields），这是数据行的除去主键的其他所有列的集合。</li>
+</ol>
+<p>这里的1和2两部分加起来就是一个完整的数据行。</p>
+<h3 id="辅助索引树非叶节点非（蓝色）"><a href="#辅助索引树非叶节点非（蓝色）" class="headerlink" title="辅助索引树非叶节点非（蓝色）"></a>辅助索引树非叶节点非（蓝色）</h3><ol>
+<li>子节点里存储的辅助键值里的最小的值（Min Secondary-Key on Child），这是B+树必须的，作用是在一个Page里定位到具体的记录的位置。</li>
+<li>主键值（Cluster Key Fields），非叶子节点为什么要存储主键呢？因为辅助索引是可以不唯一的，但是B+树要求键的值必须唯一，所以这里把辅助键的值和主键的值合并起来作为在B+树中的真正键值，保证了唯一性。但是这也导致在辅助索引B+树中非叶节点反而比叶子节点多了4个字节。（即下图中蓝色节点反而比红色多了4字节）</li>
+<li>最小的值所在的Page的编号（Child Page Number），作用是定位Record。</li>
+</ol>
+<h3 id="辅助索引树叶子节点（红色）"><a href="#辅助索引树叶子节点（红色）" class="headerlink" title="辅助索引树叶子节点（红色）"></a>辅助索引树叶子节点（红色）</h3><ol>
+<li>辅助索引键值（Secondary Key Fields），这是B+树必须的。</li>
+<li>主键值（Cluster Key Fields），用来在主索引树里再做一次B+树检索来找到整条记录。</li>
+</ol>
+<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091620754769.PNG" alt="image"><br>下面是本篇最重要的部分了，结合B+树的结构和前面介绍的4种Record的内容，我们终于可以画出一幅全景图。由于辅助索引的B+树与主键索引有相似的结构，这里只画出了主键索引树的结构图，只包含了”主键非叶节点”和”主键叶子节点”两种节点，也就是上图的的绿色和黄色的部分。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091631948071.PNG" alt="image"><br>把上图还原成下面这个更简洁的树形示意图，这就是B+树的一部分。注意Page和B+树节点之间并没有一一对应的关系，Page只是作为一个Record的保存容器，它存在的目的是便于对磁盘空间进行批量管理，上图中的编号为47的Page在树形结构上就被拆分成了两个独立节点。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091642165340.PNG" alt="image"><br>至此本篇就算结束了，本篇只是对InnoDB索引相关的数据结构和实现进行了一些梳理总结，并未涉及到Mysql的实战经验。这主要是基于几点原因：</p>
+<ol>
+<li>原理是基石，只有充分了解InnoDB索引的工作方式，我们才有能力高效的使用好它。</li>
+<li>原理性知识特别适合使用图示，我个人非常喜欢这种表达方式。</li>
+<li>关于InnoDB优化，在《高性能Mysql》里有更加全面的介绍，</li>
+</ol>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql索引原理/" data-id="cj5uthv0v005h0mblufvnr9fw" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/not null 和 default" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/not null 和 default/">not null 和 default</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/not null 和 default/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="没有设置default"><a href="#没有设置default" class="headerlink" title="没有设置default"></a>没有设置default</h3><ul>
+<li><p>当插入数据时，没有操作某一字段，并且该字段为null且没有defualt值时，mysql会自动出入null值；</p>
+</li>
+<li><p>当该字段为not null且没有defualt值时，会报错</p>
+</li>
+</ul>
+<h3 id="有设置default"><a href="#有设置default" class="headerlink" title="有设置default"></a>有设置default</h3><p>若有设置default值并且插入数据时没有操作该字段，不管该字段是否设置not null 还是null，mysql统一设置default的值</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/not null 和 default/" data-id="cj5uthv0w005j0mblpcs340g7" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/事务的ACID特性和隔离级别" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/事务的ACID特性和隔离级别/">事务的ACID特性和隔离级别</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/事务的ACID特性和隔离级别/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>事务(Transaction)是并发控制的基本单位。所谓事务，它是一个操作序列，这些操作要么都执行，要么都不执行，它是一个不可分割的工作单位。例如，银行转帐工作：从一个帐号扣款并使另一个帐号增款，这两个操作要么都执行，要么都不执行。  </p>
+<h3 id="数据库事务必须具备ACID特性，ACID是Atomic（原子性）、Consistency（一致性）、Isolation（隔离性）和Durability（持久性）的英文缩写。"><a href="#数据库事务必须具备ACID特性，ACID是Atomic（原子性）、Consistency（一致性）、Isolation（隔离性）和Durability（持久性）的英文缩写。" class="headerlink" title="数据库事务必须具备ACID特性，ACID是Atomic（原子性）、Consistency（一致性）、Isolation（隔离性）和Durability（持久性）的英文缩写。"></a>数据库事务必须具备ACID特性，ACID是Atomic（原子性）、Consistency（一致性）、Isolation（隔离性）和Durability（持久性）的英文缩写。</h3><h4 id="原子性（Atomicity）"><a href="#原子性（Atomicity）" class="headerlink" title="原子性（Atomicity）"></a>原子性（Atomicity）</h4><p>一个事务(transaction)中的所有操作，要么全部完成，要么全部不完成，不会结束在中间某个环节。事务在执行过程中发生错误，会被回滚（Rollback）到事务开始前的状态，就像这个事务从来没有执行过一样。</p>
+<h4 id="一致性（Consistency）"><a href="#一致性（Consistency）" class="headerlink" title="一致性（Consistency）"></a>一致性（Consistency）</h4><p>事务的一致性指的是在一个事务执行之前和执行之后数据库都必须处于一致性状态。如果事务成功地完成，那么系统中所有变化将正确地应用，系统处于有效状态。如果在事务中出现错误，那么系统中的所有变化将自动地回滚，系统返回到原始状态。    </p>
+<h4 id="隔离性（Isolation）"><a href="#隔离性（Isolation）" class="headerlink" title="隔离性（Isolation）"></a>隔离性（Isolation）</h4><p>指的是在并发环境中，当不同的事务同时操纵相同的数据时，每个事务都有各自的完整数据空间。由并发事务所做的修改必须与任何其他并发事务所做的修改隔离。事务查看数据更新时，数据所处的状态要么是另一事务修改它之前的状态，要么是另一事务修改它之后的状态，事务不会查看到中间状态的数据。</p>
+<h4 id="持久性（Durability）"><a href="#持久性（Durability）" class="headerlink" title="持久性（Durability）"></a>持久性（Durability）</h4><p>指的是只要事务成功结束，它对数据库所做的更新就必须永久保存下来。即使发生系统崩溃，重新启动数据库系统后，数据库还能恢复到事务成功结束时的状态。</p>
+<p>事务的（ACID）特性是由关系数据库管理系统（RDBMS，数据库系统）来实现的。<strong>数据库管理系统采用日志来保证事务的原子性、一致性和持久性</strong>。日志记录了事务对数据库所做的更新，如果某个事务在执行过程中发生错误，就可以根据日志，撤销事务对数据库已做的更新，使数据库退回到执行事务前的初始状态。  </p>
+<p><strong>数据库管理系统采用锁机制来实现事务的隔离性</strong>。当多个事务同时更新数据库中相同的数据时，只允许持有锁的事务能更新该数据，其他事务必须等待，直到前一个事务释放了锁，其他事务才有机会更新该数据。  </p>
+<p>在关系型数据库中，事务的隔离性分为四个隔离级别，在解读这四个级别前先介绍几个关于读数据的概念。</p>
+<ol>
+<li><p>脏读（Dirty Reads）：所谓脏读就是对脏数据（Drity Data）的读取，而脏数据所指的就是未提交的数据。也就是说，一个事务正在对一条记录做修改，在这个事务完成并提交之前，这条数据是处于待定状态的（可能提交也可能回滚），这时，第二个事务来读取这条没有提交的数据，并据此做进一步的处理，就会产生未提交的数据依赖关系。这种现象被称为脏读。</p>
+</li>
+<li><p>不可重复读（Non-Repeatable Reads）：一个事务先后读取同一条记录，但两次读取的数据不同，我们称之为不可重复读。也就是说，这个事务在两次读取之间该数据被其它事务所修改。</p>
+</li>
+<li><p>幻读（Phantom Reads）：一个事务按相同的查询条件重新读取以前检索过的数据，却发现其他事务插入了满足其查询条件的新数据，这种现象就称为幻读。</p>
+</li>
+</ol>
+<h3 id="事务四个隔离级别对比"><a href="#事务四个隔离级别对比" class="headerlink" title="事务四个隔离级别对比"></a>事务四个隔离级别对比</h3><ol>
+<li><p>未提交读（Read Uncommitted）：SELECT语句以非锁定方式被执行，所以有可能读到脏数据，隔离级别最低。</p>
+</li>
+<li><p>提交读（Read Committed）：只能读取到已经提交的数据。即解决了脏读，但未解决不可重复读。</p>
+</li>
+<li><p>可重复读（Repeated Read）：在同一个事务内的查询都是事务开始时刻一致的，InnoDB的默认级别。在SQL标准中，该隔离级别消除了不可重复读，但是还存在幻读。</p>
+</li>
+<li><p>串行读（Serializable）：完全的串行化读，所有SELECT语句都被隐式的转换成SELECT … LOCK IN SHARE MODE，即读取使用表级共享锁，读写相互都会阻塞。隔离级别最高。</p>
+</li>
+</ol>
+<p>隔离级别对比表：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th>脏读</th>
+<th>可重复读</th>
+<th>幻读</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>未提交读</td>
+<td>✖️️</td>
+<td>✖️️</td>
+<td>✖️ ️️️</td>
+</tr>
+<tr>
+<td>提交读</td>
+<td>☑️</td>
+<td>✖️️</td>
+<td>️✖️️</td>
+</tr>
+<tr>
+<td>可重复读</td>
+<td>☑️</td>
+<td>☑️</td>
+<td>✖️</td>
+</tr>
+<tr>
+<td>串行读</td>
+<td>☑️</td>
+<td>☑️</td>
+<td>☑️  </td>
+</tr>
+</tbody>
+</table>
+<h4 id="事务隔离级别的设置"><a href="#事务隔离级别的设置" class="headerlink" title="事务隔离级别的设置"></a>事务隔离级别的设置</h4><p>服务启动选项–transaction-isolation或在配置文件中设置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">[mysqld]</div><div class="line">transaction-isolation = &#123;READ-UNCOMMITTED | READ-COMMITTED</div><div class="line"> | REPEATABLE-READ | SERIALIZABLE&#125;</div></pre></td></tr></table></figure></p>
+<p>2）服务启动后的设置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">SET [GLOBAL | SESSION] TRANSACTION ISOLATION LEVEL</div><div class="line">&#123; READ UNCOMMITTED | READ COMMITTED | REPEATABLE READ | SERIALIZABLE &#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/事务的ACID特性和隔离级别/" data-id="cj5uthv0x005m0mblnvgwcx5f" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/分页时计算总页数的方法" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/">分页时计算总页数的方法</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>我们一般分页是这样来计算页码的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">int row=200; //记录总数     </div><div class="line">int page=5;//每页数量   </div><div class="line">int count = (row%5==0?row/page:row/page+1);</div></pre></td></tr></table></figure>
+<p>上面这种是用的最多的!</p>
+<p>那么下面我们来一种最简单的，不用任何判断！<br>看代码：    </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">int row=21;</div><div class="line">int pageCount=5;</div><div class="line">int sum=(row-1)/pageCount+1;//这样就计算好了页码数量，逢1进1</div><div class="line">System.out.println(sum);</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" data-id="cj5uthv0y005o0mbl7iih7bat" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/启动和停止命令" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/启动和停止命令/">启动和停止命令</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/启动和停止命令/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><ol>
+<li><p>使用linux命令service 启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysqld start</div></pre></td></tr></table></figure>
+</li>
+<li><p>使用 mysqld 脚本启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/etc/inint.d/mysqld start</div></pre></td></tr></table></figure>
+</li>
+<li><p>使用 safe_mysqld 启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">safe_mysqld&amp;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="登录mysql后台"><a href="#登录mysql后台" class="headerlink" title="登录mysql后台"></a>登录mysql后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">格式： mysql -h主机地址 -u用户名 -p</div><div class="line"></div><div class="line">mysql -h110.110.110.110 -u root -p</div><div class="line"></div><div class="line">本地可以直接mysql –u root -p</div></pre></td></tr></table></figure>
+<h2 id="退出mysql后台"><a href="#退出mysql后台" class="headerlink" title="退出mysql后台"></a>退出mysql后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">quit</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><ol>
+<li><p>使用 service 启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysqld stop</div></pre></td></tr></table></figure>
+</li>
+<li><p>使用 mysqld 脚本启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/etc/inint.d/mysqld stop</div></pre></td></tr></table></figure>
+</li>
+<li><p>客户端退出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysqladmin shutdown</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="重启"><a href="#重启" class="headerlink" title="重启"></a>重启</h2><ol>
+<li><p>使用 service 启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysqld restart</div></pre></td></tr></table></figure>
+</li>
+<li><p>使用 mysqld 脚本启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/etc/inint.d/mysqld restart</div></pre></td></tr></table></figure>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/启动和停止命令/" data-id="cj5uthv0z005r0mbloxyq9ssk" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/存储过程" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/存储过程/">存储过程</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/存储过程/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="那么存储过程与一般的SQL语句有什么区别呢"><a href="#那么存储过程与一般的SQL语句有什么区别呢" class="headerlink" title="那么存储过程与一般的SQL语句有什么区别呢?"></a>那么存储过程与一般的SQL语句有什么区别呢?</h3><h4 id="存储过程的优点："><a href="#存储过程的优点：" class="headerlink" title="存储过程的优点："></a>存储过程的优点：</h4><ol>
+<li>存储过程只在创造时进行编译，以后每次执行存储过程都不需再重新编译，而一般SQL语句每执行一次就编译一次,所以使用存储过程可提高数据库执行速度。</li>
+<li>当对数据库进行复杂操作时(如对多个表进行Update,Insert,Query,Delete时)，可将此复杂操作用存储过程封装起来与数据库提供的事务处理结合一起使用。</li>
+<li>存储过程可以重复使用,可减少数据库开发人员的工作量</li>
+<li>安全性高,可设定只有某此用户才具有对指定存储过程的使用权</li>
+</ol>
+<h4 id="存储过程的种类："><a href="#存储过程的种类：" class="headerlink" title="存储过程的种类："></a>存储过程的种类：</h4><ol>
+<li>系统存储过程：以sp_开头,用来进行系统的各项设定.取得信息.相关管理工作,<br>如 sp_help就是取得指定对象的相关信息</li>
+<li>扩展存储过程 以XP_开头,用来调用操作系统提供的功能<br>以下为引用的内容：<br>exec master..xp_cmdshell ‘ping 10.8.16.1’</li>
+<li>用户自定义的存储过程,这是我们所指的存储过程</li>
+</ol>
+<h4 id="常用格式"><a href="#常用格式" class="headerlink" title="常用格式"></a>常用格式</h4><p>以下为引用的内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">Create procedure procedue_name</div><div class="line">[@parameter data_type][output]</div><div class="line">[with]&#123;recompile|encryption&#125;</div><div class="line">as</div><div class="line">sql_statement</div></pre></td></tr></table></figure></p>
+<p>解释:<br>output：表示此参数是可传回的<br>with {recompile|encryption}<br>recompile:表示每次执行此存储过程时都重新编译一次<br>encryption:所创建的存储过程的内容会被加密   </p>
+<h3 id="存储过程的创建"><a href="#存储过程的创建" class="headerlink" title="存储过程的创建"></a>存储过程的创建</h3><p>实例1:查询表Book的内容的存储过程<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">create proc query_book</div><div class="line">as</div><div class="line">select * from book</div><div class="line">go</div><div class="line">exec query_book</div></pre></td></tr></table></figure></p>
+<p>实例2:加入一笔记录到表book,并查询此表中所有书籍的总金额<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">Create proc insert_book</div><div class="line">@param1 char(10),@param2 varchar(20),@param3 money,@param4 money output</div><div class="line">with encryption ---------加密</div><div class="line">as</div><div class="line">insert book(编号,书名，价格) Values(@param1,@param2,@param3)</div><div class="line">select @param4=sum(价格) from book</div><div class="line">go</div></pre></td></tr></table></figure></p>
+<h4 id="存储过程的3种传回值"><a href="#存储过程的3种传回值" class="headerlink" title="存储过程的3种传回值:"></a>存储过程的3种传回值:</h4><ol>
+<li>以Return传回整数</li>
+<li>以output格式传回参数</li>
+<li>Recordset</li>
+</ol>
+<h5 id="传回值的区别"><a href="#传回值的区别" class="headerlink" title="传回值的区别:"></a>传回值的区别:</h5><p>output和return都可在批次程式中用变量接收,而recordset则传回到执行批次的客户端中</p>
+<p>实例3：设有两个表为Product,Order,其表内容如下：<br>以下为引用的内容：<br>Product<br>| 产品编号 | 产品名称 | 客户订数 |<br>| —- | —- | —- |<br>| 001  | 钢笔   | 30   |<br>| 002  | 毛笔   | 50   |<br>| 003  | 铅笔   | 100  |</p>
+<p>order<br>| 产品编号 | 客户名  | 客户订金 |<br>| —- | —- | —- |<br>| 001  | 南山区  | $30  |<br>| 002  | 罗湖区  | $50  |<br>| 003  | 宝安区  | $4   |</p>
+<p>请实现按编号为连接条件,将两个表连接成一个临时表,该表只含编号.产品名.客户名.订金.总金额<br>总金额=订金*订数,临时表放在存储过程中<br>代码如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">Create proc temp_sale</div><div class="line">as</div><div class="line">select a.产品编号,a.产品名称,b.客户名,b.客户订金,a.客户订数* b.客户订金 as总金额</div><div class="line">into #temptable from Product a inner join order b on a.产品编号=b.产品编号</div><div class="line">if @@error=0</div><div class="line">print &apos;Good&apos;</div><div class="line">else</div><div class="line">print &apos;Fail&apos;</div><div class="line">go</div></pre></td></tr></table></figure></p>
+<h3 id="存储过程的调用"><a href="#存储过程的调用" class="headerlink" title="存储过程的调用"></a>存储过程的调用</h3><h4 id="调用带参数存储过程的几种方式"><a href="#调用带参数存储过程的几种方式" class="headerlink" title="调用带参数存储过程的几种方式"></a>调用带参数存储过程的几种方式</h4><ol>
+<li><p>这也是最简单的方法,两个输入参数，无返回值,用于Insert,Update,Delete操作较多。<br>以下为引用的内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">conn.Execute &quot;procname varvalue1,varvalue2&quot;</div></pre></td></tr></table></figure>
+</li>
+<li><p>如果要返回 Recordset 集:<br>以下为引用的内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">set rs = server.createobject(&quot;adodb.recordset&quot;)</div><div class="line">rs.Open &quot;Exec procname varvalue1, varvalue2&quot;,conn</div></pre></td></tr></table></figure>
+</li>
+<li><p>以上两种方法都不能有返回值，(Recordset除外)，如果要得到返回值，需要用Command的方法。</p>
+</li>
+</ol>
+<p>首先说明，返回值有两种。一种是在存储过程中直接return一个值，就象C和VB的函数返回值那样;另一种是可以返回多个值，存储这些值的变量名称需要在调用参数中先行指定。</p>
+<h3 id="触发器"><a href="#触发器" class="headerlink" title="触发器"></a>触发器</h3><h4 id="触发器的概念及作用"><a href="#触发器的概念及作用" class="headerlink" title="触发器的概念及作用"></a>触发器的概念及作用</h4><p>触发器是一种特殊类型的存储过程，它不同于我们前面介绍过的存储过程。触发器主要是通过事件进行触发而被执行的，而存储过程可以通过存储过程名字而被直接调用。当对某一表进行诸如Update、 Insert、 Delete 这些操作时，SQL Server 就会自动执行触发器所定义的SQL 语句，从而确保对数据的处理必须符合由这些SQL 语句所定义的规则。<br>触发器的主要作用就是其能够实现由主键和外键所不能保证的复杂的参照完整性和数据的一致性。除此之外，触发器还有其它许多不同的功能：</p>
+<ol>
+<li>强化约束(Enforce restriction)<br>触发器能够实现比CHECK 语句更为复杂的约束。</li>
+<li>跟踪变化Auditing changes<br>触发器可以侦测数据库内的操作，从而不允许数据库中未经许可的指定更新和变化。</li>
+<li>级联运行(Cascaded operation)。<br>触发器可以侦测数据库内的操作，并自动地级联影响整个数据库的各项内容。例如，某个表上的触发器中包含有对另外一个表的数据操作(如删除，更新，插入)而该操作又导致该表上触发器被触发。</li>
+<li>存储过程的调用(Stored procedure invocation)。    </li>
+</ol>
+<p>为了响应数据库更新，触发器可以调用一个或多个存储过程，甚至可以通过外部过程的调用而在DBMS( 数据库管理系统)本身之外进行操作。   </p>
+<p>由此可见，触发器可以解决高级形式的业务规则或复杂行为限制以及实现定制记录等一些方面的问题。例如，触发器能够找出某一表在数据修改前后状态发生的差异，并根据这种差异执行一定的处理。此外一个表的同一类型(Insert、 Update、 Delete)的多个触发器能够对同一种数据操作采取多种不同的处理。</p>
+<p>总体而言，触发器性能通常比较低。当运行触发器时，系统处理的大部分时间花费在参照其它表的这一处理上，因为这些表既不在内存中也不在数据库设备上，而删除表和插入表总是位于内存中。可见触发器所参照的其它表的位置决定了操作要花费的时间长短。    </p>
+<h4 id="触发器的种类"><a href="#触发器的种类" class="headerlink" title="触发器的种类"></a>触发器的种类</h4><p>SQL Server 2000 支持两种类型的触发器：AFTER 触发器和INSTEAD OF 触发器。其中AFTER 触发器即为SQL Server 2000 版本以前所介绍的触发器。该类型触发器要求只有执行某一操作(Insert Update Delete) 之后，触发器才被触发，且只能在表上定义。可以为针对表的同一操作定义多个触发器。对于AFTER 触发器，可以定义哪一个触发器被最先触发，哪一个被最后触发，通常使用系统过程sp_settriggerorder 来完成此任务。</p>
+<p>INSTEAD OF 触发器表示并不执行其所定义的操作(Insert、 Update、 Delete)，而仅是执行触发器本身。既可在表上定义INSTEAD OF 触发器，也可以在视图上定义INSTEAD OF 触发器，但对同一操作只能定义一个INSTEAD OF 触发器。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/存储过程/" data-id="cj5uthv10005t0mblr03h2m8p" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/设置mysql可以远程登录" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/">设置mysql可以远程登录</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="打开远程连接"><a href="#打开远程连接" class="headerlink" title="打开远程连接"></a>打开远程连接</h1><h3 id="登陆"><a href="#登陆" class="headerlink" title="登陆"></a>登陆</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql -u root -h localhost -p</div></pre></td></tr></table></figure>
+<h3 id="使用mysql数据库"><a href="#使用mysql数据库" class="headerlink" title="使用mysql数据库"></a>使用mysql数据库</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">use mysql  #打开mysql数据库</div></pre></td></tr></table></figure>
+<h3 id="更改用户连接的地址"><a href="#更改用户连接的地址" class="headerlink" title="更改用户连接的地址"></a>更改用户连接的地址</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">#将host设置为%表示任何ip都能连接mysql，当然您也可以将host指定为某个ip</div><div class="line"></div><div class="line"></div><div class="line">update user set host=&apos;%&apos; where user=&apos;root&apos; and host=&apos;localhost&apos;;</div><div class="line"></div><div class="line">flush privileges;        #刷新权限表，使配置生效</div><div class="line"></div><div class="line">然后我们就能远程连接我们的mysql了。</div></pre></td></tr></table></figure>
+<h1 id="关闭远程连接"><a href="#关闭远程连接" class="headerlink" title="关闭远程连接"></a>关闭远程连接</h1><p>如果您想关闭远程连接，恢复mysql的默认设置（只能本地连接），您可以通过以下步骤操作：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">use mysql  #打开mysql数据库</div><div class="line"></div><div class="line">#将host设置为localhost表示只能本地连接mysql</div><div class="line"></div><div class="line">update user set host=&apos;localhost&apos; where user=&apos;root&apos;;</div><div class="line"></div><div class="line">flush privileges;        #刷新权限表，使配置生效</div></pre></td></tr></table></figure></p>
+<h1 id="添加可以远程连接的用户"><a href="#添加可以远程连接的用户" class="headerlink" title="添加可以远程连接的用户"></a>添加可以远程连接的用户</h1><p>您也可以添加一个用户名为yuancheng，密码为123456，权限为%（表示任意ip都能连接）的远程连接用户。命令参考如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">grant all on *.* to &apos;yuancheng&apos;@&apos;%&apos; identified by &apos;123456&apos;;</div><div class="line"></div><div class="line">flush privileges;</div></pre></td></tr></table></figure></p>
+<h1 id="更改3306端口监听所有地址（默认只监听127-0-0-1）"><a href="#更改3306端口监听所有地址（默认只监听127-0-0-1）" class="headerlink" title="更改3306端口监听所有地址（默认只监听127.0.0.1）"></a>更改3306端口监听所有地址（默认只监听127.0.0.1）</h1><h3 id="第一步：查看是都3306端口开启"><a href="#第一步：查看是都3306端口开启" class="headerlink" title="第一步：查看是都3306端口开启"></a>第一步：查看是都3306端口开启</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">netstat -an | grep 3306</div></pre></td></tr></table></figure>
+<p>如果结果显示类似：tcp        0      0 127.0.0.1:3306          0.0.0.0:*               LISTEN<br>从结果可以看出3306端口只是在IP 127.0.0.1上监听，所以拒绝了其他IP的访问。</p>
+<h3 id="第二步：修改配置文件"><a href="#第二步：修改配置文件" class="headerlink" title="第二步：修改配置文件"></a>第二步：修改配置文件</h3><p>修改文件 /etc/mysql/my.cnf文件，打开文件，找到下面内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"># Instead of skip-networking the default is now to listen only on</div><div class="line"># localhost which is more compatible and is not less secure.</div><div class="line">bind-address  = 127.0.0.1</div></pre></td></tr></table></figure></p>
+<p>把上面这一行注释掉或者把127.0.0.1换成合适的IP，建议注释掉。<br>重新启动后，重新使用netstat检测：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">~# netstat -an | grep 3306</div><div class="line">tcp        0      0 0.0.0.0:3306            0.0.0.0:*               LISTEN</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/" data-id="cj5uthv11005w0mbln4eze0pi" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-数据库相关/mysql/数据库连接池介绍" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
@@ -130,7 +821,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/数据库连接池介绍/" data-id="cj5pao4q0005usvblxupa1v4c" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/数据库连接池介绍/" data-id="cj5uthv11005y0mblnzwobgzg" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -144,13 +835,13 @@
 
 
   
-    <article id="post-Spring/Spring Data Redis/配置" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-数据库相关/mysql/锁机制" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/Spring Data Redis/配置/">配置</a>
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/锁机制/">锁机制</a>
     </h1>
   
 
@@ -159,13 +850,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/Spring Data Redis/配置/" class="article-date"><time datetime="2017-07-19T02:20:04.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/29/数据库相关/mysql/锁机制/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-data-redis/">spring data redis</a>
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
   </div>
 
 
@@ -174,334 +865,21 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="官方文档"><a href="#官方文档" class="headerlink" title="官方文档"></a>官方文档</h2><p><a href="http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/" target="_blank" rel="external">http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/</a></p>
-<h2 id="Maven依赖包"><a href="#Maven依赖包" class="headerlink" title="Maven依赖包"></a>Maven依赖包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;org.springframework.session&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;spring-session-data-redis&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;1.3.0.RELEASE&lt;/version&gt;</div><div class="line">    &lt;type&gt;pom&lt;/type&gt;</div><div class="line">&lt;/dependency&gt;</div><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;biz.paluch.redis&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;lettuce&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;3.5.0.Final&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;org.springframework&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;spring-web&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;4.3.4.RELEASE&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
-<h2 id="增加配置文件applicationContext-sdr-xml"><a href="#增加配置文件applicationContext-sdr-xml" class="headerlink" title="增加配置文件applicationContext-sdr.xml"></a>增加配置文件applicationContext-sdr.xml</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></div><div class="line">  <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></div><div class="line">  <span class="attr">xmlns:p</span>=<span class="string">"http://www.springframework.org/schema/p"</span></div><div class="line">  <span class="attr">xsi:schemaLocation</span>=<span class="string">"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"</span>&gt;</div><div class="line"></div><div class="line">  <span class="comment">&lt;!-- Spring data redis configuration  --&gt;</span></div><div class="line"></div><div class="line">  <span class="comment">&lt;!-- 方法1  --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"jedisConnectionFactory"</span> <span class="attr">class</span>=<span class="string">"org.springframework.data.redis.connection.jedis.JedisConnectionFactory"</span> </span></div><div class="line">  <span class="attr">p:host-name</span>=<span class="string">"127.0.0.1"</span> <span class="attr">p:port</span>=<span class="string">"6379"</span> /&gt;</div><div class="line">  </div><div class="line">  <span class="comment">&lt;!-- redis template definition --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"redisTemplate"</span> <span class="attr">class</span>=<span class="string">"org.springframework.data.redis.core.RedisTemplate"</span> </span></div><div class="line">  			 <span class="attr">p:connection-factory-ref</span>=<span class="string">"jedisConnectionFactory"</span>/&gt;</div><div class="line">  			 </div><div class="line">  <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"stringRedisTemplate"</span> <span class="attr">class</span>=<span class="string">"org.springframework.data.redis.core.StringRedisTemplate"</span> </span></div><div class="line">  			 <span class="attr">p:connection-factory-ref</span>=<span class="string">"jedisConnectionFactory"</span>/&gt;</div><div class="line">  </div><div class="line">  <span class="comment">&lt;!-- 方法2 --&gt;</span></div><div class="line">  <span class="comment">&lt;!-- &lt;bean id="lettuceConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory" </span></div><div class="line">  p:host-name="127.0.0.1" p:port="6379"/&gt; --&gt;</div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></div></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Data Redis/配置/" data-id="cj5pao4pk004ysvblv75nemuk" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/线程/线程的同步和锁定" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/线程/线程的同步和锁定/">线程的同步和锁定</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/线程/线程的同步和锁定/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/线程/">线程</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>线程的同步是为了防止多个线程访问一个数据对象时，对数据造成的破坏。</p>
-</blockquote>
-<h2 id="锁的原理"><a href="#锁的原理" class="headerlink" title="锁的原理"></a>锁的原理</h2><p><strong>Java中每个对象都有一个内置锁。</strong><br>JVM负责跟踪对象被加锁的次数。如果一个对象被解锁，其计数变为0。在任务（线程）第一次给对象加锁的时候，计数变为1。每当这个相同的任务（线程）在此对象上获得锁时，计数会递增。只有首先获得锁的任务（线程）才能继续获取该对象上的多个锁。每当任务离开一个synchronized方法，计数递减，当计数为0的时候，锁被完全释放，此时别的任务就可以使用此资源。    </p>
-<p>当程序运行到非静态的synchronized同步方法上时，自动获得与正在执行代码类的当前实例（this实例）有关的锁。获得一个对象的锁也称为获取锁、锁定对象、在对象上锁定或在对象上同步。</p>
-<p>当程序运行到synchronized同步方法或代码块时该对象锁才起作用。</p>
-<p>一个对象只有一个锁。所以，如果一个线程获得该锁，就没有其他线程可以获得锁，直到第一个线程释放（或返回）锁。这也意味着任何其他线程都不能进入该对象上的synchronized方法或代码块，直到该锁被释放。</p>
-<p>释放锁是指持锁线程退出了synchronized同步方法或代码块。</p>
-<p>关于锁和同步，有以下几个要点：</p>
-<ol>
-<li>只能同步方法，而不能同步变量和类；</li>
-<li>每个对象只有一个锁；当提到同步时，应该清楚在什么上同步？也就是说，在哪个对象上同步？</li>
-<li>不必同步类中所有的方法，类可以同时拥有同步和非同步方法。</li>
-<li>如果两个线程要执行一个类中的synchronized方法，并且两个线程使用相同的实例来调用方法，那么一次只能有一个线程能够执行方法，另一个需要等待，直到锁被释放。也就是说：如果一个线程在对象上获得一个锁，就没有任何其他线程可以进入（该对象的）类中的任何一个同步方法。</li>
-<li>如果线程拥有同步和非同步方法，则非同步方法可以被多个线程自由访问而不受锁的限制。</li>
-<li>线程睡眠时，它所持的任何锁都不会释放。</li>
-<li>线程可以获得多个锁。比如，在一个对象的同步方法里面调用另外一个对象的同步方法，则获取了两个对象的同步锁。</li>
-<li>同步损害并发性，应该尽可能缩小同步范围。同步不但可以同步整个方法，还可以同步方法中一部分代码块。</li>
-<li>在使用同步代码块时候，应该指定在哪个对象上同步，也就是说要获取哪个对象的锁。</li>
-</ol>
-<h2 id="静态方法同步"><a href="#静态方法同步" class="headerlink" title="静态方法同步"></a>静态方法同步</h2><p><strong>要同步静态方法，需要一个用于整个类对象的锁，这个对象就是这个类（XXX.class)。</strong><br>例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public static synchronized int setName(String name)&#123;</div><div class="line">    Xxx.name = name;</div><div class="line">&#125;</div><div class="line">等价于</div><div class="line">public static int setName(String name)&#123;</div><div class="line">    synchronized(Xxx.class)&#123;</div><div class="line">      Xxx.name = name;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h2 id="如果线程不能获得锁会怎么样"><a href="#如果线程不能获得锁会怎么样" class="headerlink" title="如果线程不能获得锁会怎么样"></a>如果线程不能获得锁会怎么样</h2><p><strong>如果线程试图进入同步方法，而其锁已经被占用，则线程在该对象上被阻塞直到其锁被释放，该线程再次变为可运行状态。</strong></p>
-<p>当考虑阻塞时，一定要注意哪个对象正被用于锁定：</p>
-<ol>
-<li>调用同一个对象中非静态同步方法的线程将彼此阻塞。如果是不同对象，则每个线程有自己的对象的锁，线程间彼此互不干预。</li>
-<li>调用同一个类中的静态同步方法的线程将彼此阻塞，它们都是锁定在相同的Class对象上。</li>
-<li>静态同步方法和非静态同步方法将永远不会彼此阻塞，因为静态方法锁定在Class对象上，非静态方法锁定在该类的对象上。</li>
-<li>对于同步代码块，要看清楚什么对象已经用于锁定（synchronized后面括号的内容）。在同一个对象上进行同步的线程将彼此阻塞，在不同对象上锁定的线程将永远不会彼此阻塞。</li>
-</ol>
-<h2 id="何时需要同步"><a href="#何时需要同步" class="headerlink" title="何时需要同步"></a>何时需要同步</h2><p>当多个线程同时访问并修改同一个数据时，应该需要线程同步，以保证数据的正确性</p>
-<h2 id="线程同步小结"><a href="#线程同步小结" class="headerlink" title="线程同步小结"></a>线程同步小结</h2><ol>
-<li>线程同步的目的是为了保护多个线程访问一个资源时对资源的破坏。</li>
-<li>线程同步方法是通过锁来实现，每个对象都有且仅有一个锁，这个锁与一个特定的对象关联，线程一旦获取了对象锁，其他访问该对象的线程就无法再访问该对象的其他同步方法。</li>
-<li>对于静态同步方法，锁是针对这个类的，锁对象是该类的Class对象。静态和非静态方法的锁互不干预。一个线程获得锁，当在一个同步方法中访问另外对象上的同步方法时，会获取这两个对象锁。</li>
-<li>对于同步，要时刻清醒在哪个对象上同步，这是关键。</li>
-<li>编写线程安全的类，需要时刻注意对多个线程竞争访问资源的逻辑和安全做出正确的判断，对“原子”操作做出分析，并保证原子操作期间别的线程无法访问竞争资源。</li>
-<li>当多个线程等待一个对象锁时，没有获取到锁的线程将发生阻塞。</li>
-<li>死锁是线程间相互等待锁锁造成的，在实际中发生的概率非常的小。真让你写个死锁程序，不一定好使，呵呵。但是，一旦程序发生死锁，程序将死掉。</li>
-</ol>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/线程/线程的同步和锁定/" data-id="cj5pao4p00042svblrd1fvx0l" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Maven/不同环境加载不同的配置文件" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/不同环境加载不同的配置文件/">不同环境加载不同的配置文件</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Maven/不同环境加载不同的配置文件/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="先配置不同环境的配置"><a href="#先配置不同环境的配置" class="headerlink" title="先配置不同环境的配置"></a>先配置不同环境的配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line">&lt;!--  根据不同的环境取不同的配置 --&gt;</div><div class="line">&lt;profiles&gt;</div><div class="line">  &lt;!--  开发环境 --&gt;</div><div class="line">  &lt;profile&gt;</div><div class="line">	&lt;id&gt;dev&lt;/id&gt;</div><div class="line">	&lt;!--  设置默认环境 --&gt;</div><div class="line">	&lt;activation&gt;</div><div class="line">		&lt;activeByDefault&gt;true&lt;/activeByDefault&gt;</div><div class="line">	&lt;/activation&gt;</div><div class="line">	&lt;!--  配置属性 --&gt;</div><div class="line">	&lt;properties&gt;</div><div class="line">    	&lt;env&gt;dev&lt;/env&gt;</div><div class="line">    	&lt;test.skip&gt;true&lt;/test.skip&gt;</div><div class="line">	&lt;/properties&gt;</div><div class="line">  &lt;/profile&gt;</div><div class="line">	&lt;!--  开发环境 --&gt;</div><div class="line">	&lt;!--  测试环境 --&gt;</div><div class="line">	&lt;profile&gt;</div><div class="line">		&lt;id&gt;sit&lt;/id&gt;</div><div class="line">		&lt;properties&gt;</div><div class="line">			&lt;env&gt;sit&lt;/env&gt;</div><div class="line">			&lt;test.skip&gt;true&lt;/test.skip&gt;</div><div class="line">		&lt;/properties&gt;</div><div class="line">	&lt;/profile&gt;</div><div class="line">	&lt;!--  测试环境 --&gt;</div><div class="line">	&lt;!--  线上环境 --&gt;</div><div class="line">	&lt;profile&gt;</div><div class="line">		&lt;id&gt;prd&lt;/id&gt;</div><div class="line">		&lt;!-- &lt;activation&gt;</div><div class="line">			&lt;activeByDefault&gt;true&lt;/activeByDefault&gt;</div><div class="line">		&lt;/activation&gt; --&gt;</div><div class="line">		&lt;properties&gt;</div><div class="line">			&lt;env&gt;prd&lt;/env&gt;</div><div class="line">			&lt;test.skip&gt;true&lt;/test.skip&gt;</div><div class="line">		&lt;/properties&gt;</div><div class="line">	&lt;/profile&gt;</div><div class="line">	&lt;!--  线上环境 --&gt;</div><div class="line">&lt;/profiles&gt;</div><div class="line">&lt;!--  根据不同的环境取不同的配置 --&gt;</div></pre></td></tr></table></figure>
-<h2 id="build"><a href="#build" class="headerlink" title="build"></a>build</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div></pre></td><td class="code"><pre><div class="line">&lt;build&gt;</div><div class="line">  &lt;!-- 打包的包名 --&gt;</div><div class="line">  &lt;finalName&gt;roaster&lt;/finalName&gt;</div><div class="line">    &lt;!-- 过滤的原文件，配置时将filters中文件的key对应的value替换资源文件中的$&#123;key&#125;  --&gt;</div><div class="line">  	&lt;filters&gt;</div><div class="line">		&lt;filter&gt;profiles/dev/META-INF/config1/application.properties&lt;/filter&gt;</div><div class="line">	&lt;/filters&gt;</div><div class="line">	&lt;!-- 配置资源文件 --&gt;</div><div class="line">	&lt;resources&gt;</div><div class="line">	</div><div class="line">		&lt;resource&gt;</div><div class="line">		    &lt;!-- 资源文件目录 --&gt;</div><div class="line">			&lt;directory&gt;profiles/$&#123;env&#125;&lt;/directory&gt;</div><div class="line">			&lt;!--是否使用上面filters配置的文件中的key对应的value替换下面资源文件中对应的$&#123;key&#125;值 --&gt;</div><div class="line">			&lt;filtering&gt;false&lt;/filtering&gt;</div><div class="line">			&lt;!-- 配置不包括的文件，在directory配置的目录中，除了下面的文件，其它文件都将加入打包 --&gt;</div><div class="line">			&lt;excludes&gt;</div><div class="line">				&lt;exclude&gt;META-INF/config/application.properties&lt;/exclude&gt;</div><div class="line">			&lt;/excludes&gt;</div><div class="line">			</div><div class="line">			&lt;!-- 打包包括的文件 --&gt;</div><div class="line">			&lt;!-- &lt;includes&gt;</div><div class="line">				&lt;include&gt;META-INF/config/application.properties&lt;/include&gt;</div><div class="line">				&lt;include&gt;META-INF/config/jdbc.properties&lt;/include&gt;</div><div class="line">				&lt;include&gt;META-INF/config/memcached.properties&lt;/include&gt;</div><div class="line">			&lt;/includes&gt; --&gt;</div><div class="line">		&lt;/resource&gt;</div><div class="line">		</div><div class="line">		</div><div class="line">		&lt;resource&gt;</div><div class="line">			&lt;directory&gt;src/main/resources&lt;/directory&gt;</div><div class="line">			&lt;filtering&gt;true&lt;/filtering&gt;</div><div class="line">				&lt;includes&gt;</div><div class="line">					&lt;include&gt;META-INF/config/common.properties&lt;/include&gt;</div><div class="line">				&lt;/includes&gt;</div><div class="line">		&lt;/resource&gt;</div><div class="line">	</div><div class="line">	&lt;/resources&gt; </div><div class="line">    &lt;sourceDirectory&gt;src&lt;/sourceDirectory&gt;</div><div class="line">    &lt;plugins&gt;</div><div class="line">      &lt;plugin&gt;</div><div class="line">        &lt;artifactId&gt;maven-war-plugin&lt;/artifactId&gt;</div><div class="line">        &lt;version&gt;2.3&lt;/version&gt;</div><div class="line">        &lt;configuration&gt;</div><div class="line">          &lt;warSourceDirectory&gt;webapp&lt;/warSourceDirectory&gt;</div><div class="line">          &lt;failOnMissingWebXml&gt;false&lt;/failOnMissingWebXml&gt;</div><div class="line">        &lt;/configuration&gt;</div><div class="line">      &lt;/plugin&gt;</div><div class="line">      &lt;plugin&gt;</div><div class="line">        &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;</div><div class="line">        &lt;version&gt;3.1&lt;/version&gt;</div><div class="line">        &lt;configuration&gt;</div><div class="line">          &lt;source&gt;1.7&lt;/source&gt;</div><div class="line">          &lt;target&gt;1.7&lt;/target&gt;</div><div class="line">        &lt;/configuration&gt;</div><div class="line">      &lt;/plugin&gt;</div><div class="line">    &lt;/plugins&gt;</div><div class="line">  &lt;/build&gt;</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/不同环境加载不同的配置文件/" data-id="cj5pao4lr000psvbl98clp28x" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Maven/pom文件解析" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/pom文件解析/">pom文件解析</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Maven/pom文件解析/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div><div class="line">171</div><div class="line">172</div><div class="line">173</div><div class="line">174</div><div class="line">175</div><div class="line">176</div><div class="line">177</div><div class="line">178</div><div class="line">179</div><div class="line">180</div><div class="line">181</div><div class="line">182</div><div class="line">183</div><div class="line">184</div><div class="line">185</div><div class="line">186</div><div class="line">187</div><div class="line">188</div><div class="line">189</div><div class="line">190</div><div class="line">191</div><div class="line">192</div><div class="line">193</div><div class="line">194</div><div class="line">195</div><div class="line">196</div><div class="line">197</div><div class="line">198</div><div class="line">199</div><div class="line">200</div><div class="line">201</div><div class="line">202</div><div class="line">203</div><div class="line">204</div><div class="line">205</div><div class="line">206</div><div class="line">207</div><div class="line">208</div><div class="line">209</div><div class="line">210</div><div class="line">211</div><div class="line">212</div><div class="line">213</div><div class="line">214</div><div class="line">215</div><div class="line">216</div><div class="line">217</div><div class="line">218</div><div class="line">219</div><div class="line">220</div><div class="line">221</div><div class="line">222</div><div class="line">223</div><div class="line">224</div><div class="line">225</div><div class="line">226</div><div class="line">227</div><div class="line">228</div><div class="line">229</div><div class="line">230</div><div class="line">231</div><div class="line">232</div><div class="line">233</div><div class="line">234</div><div class="line">235</div><div class="line">236</div><div class="line">237</div><div class="line">238</div><div class="line">239</div><div class="line">240</div><div class="line">241</div><div class="line">242</div><div class="line">243</div><div class="line">244</div><div class="line">245</div><div class="line">246</div><div class="line">247</div><div class="line">248</div><div class="line">249</div><div class="line">250</div><div class="line">251</div><div class="line">252</div><div class="line">253</div><div class="line">254</div><div class="line">255</div><div class="line">256</div><div class="line">257</div><div class="line">258</div><div class="line">259</div><div class="line">260</div><div class="line">261</div><div class="line">262</div><div class="line">263</div><div class="line">264</div><div class="line">265</div><div class="line">266</div><div class="line">267</div><div class="line">268</div><div class="line">269</div><div class="line">270</div><div class="line">271</div><div class="line">272</div><div class="line">273</div><div class="line">274</div><div class="line">275</div><div class="line">276</div><div class="line">277</div><div class="line">278</div><div class="line">279</div><div class="line">280</div><div class="line">281</div><div class="line">282</div><div class="line">283</div><div class="line">284</div><div class="line">285</div><div class="line">286</div><div class="line">287</div><div class="line">288</div><div class="line">289</div><div class="line">290</div><div class="line">291</div><div class="line">292</div><div class="line">293</div><div class="line">294</div><div class="line">295</div><div class="line">296</div><div class="line">297</div><div class="line">298</div><div class="line">299</div><div class="line">300</div><div class="line">301</div><div class="line">302</div><div class="line">303</div><div class="line">304</div><div class="line">305</div><div class="line">306</div><div class="line">307</div><div class="line">308</div><div class="line">309</div><div class="line">310</div><div class="line">311</div><div class="line">312</div><div class="line">313</div><div class="line">314</div><div class="line">315</div><div class="line">316</div><div class="line">317</div><div class="line">318</div><div class="line">319</div><div class="line">320</div><div class="line">321</div><div class="line">322</div><div class="line">323</div><div class="line">324</div><div class="line">325</div><div class="line">326</div><div class="line">327</div><div class="line">328</div><div class="line">329</div><div class="line">330</div><div class="line">331</div><div class="line">332</div><div class="line">333</div><div class="line">334</div><div class="line">335</div><div class="line">336</div><div class="line">337</div><div class="line">338</div><div class="line">339</div><div class="line">340</div><div class="line">341</div><div class="line">342</div><div class="line">343</div><div class="line">344</div><div class="line">345</div><div class="line">346</div><div class="line">347</div><div class="line">348</div><div class="line">349</div><div class="line">350</div><div class="line">351</div><div class="line">352</div><div class="line">353</div><div class="line">354</div><div class="line">355</div><div class="line">356</div><div class="line">357</div><div class="line">358</div><div class="line">359</div><div class="line">360</div><div class="line">361</div><div class="line">362</div><div class="line">363</div><div class="line">364</div><div class="line">365</div><div class="line">366</div><div class="line">367</div><div class="line">368</div><div class="line">369</div><div class="line">370</div><div class="line">371</div><div class="line">372</div><div class="line">373</div><div class="line">374</div><div class="line">375</div><div class="line">376</div><div class="line">377</div><div class="line">378</div><div class="line">379</div><div class="line">380</div><div class="line">381</div><div class="line">382</div><div class="line">383</div><div class="line">384</div><div class="line">385</div><div class="line">386</div><div class="line">387</div><div class="line">388</div><div class="line">389</div><div class="line">390</div><div class="line">391</div><div class="line">392</div><div class="line">393</div><div class="line">394</div><div class="line">395</div><div class="line">396</div><div class="line">397</div><div class="line">398</div><div class="line">399</div><div class="line">400</div><div class="line">401</div><div class="line">402</div><div class="line">403</div><div class="line">404</div><div class="line">405</div><div class="line">406</div><div class="line">407</div><div class="line">408</div><div class="line">409</div><div class="line">410</div><div class="line">411</div><div class="line">412</div><div class="line">413</div><div class="line">414</div><div class="line">415</div><div class="line">416</div><div class="line">417</div><div class="line">418</div><div class="line">419</div><div class="line">420</div><div class="line">421</div><div class="line">422</div><div class="line">423</div><div class="line">424</div><div class="line">425</div><div class="line">426</div><div class="line">427</div><div class="line">428</div><div class="line">429</div><div class="line">430</div><div class="line">431</div><div class="line">432</div><div class="line">433</div><div class="line">434</div><div class="line">435</div><div class="line">436</div><div class="line">437</div><div class="line">438</div><div class="line">439</div><div class="line">440</div><div class="line">441</div><div class="line">442</div><div class="line">443</div><div class="line">444</div><div class="line">445</div><div class="line">446</div><div class="line">447</div><div class="line">448</div><div class="line">449</div><div class="line">450</div><div class="line">451</div><div class="line">452</div><div class="line">453</div><div class="line">454</div><div class="line">455</div><div class="line">456</div><div class="line">457</div><div class="line">458</div><div class="line">459</div><div class="line">460</div><div class="line">461</div><div class="line">462</div><div class="line">463</div><div class="line">464</div><div class="line">465</div><div class="line">466</div><div class="line">467</div><div class="line">468</div><div class="line">469</div><div class="line">470</div><div class="line">471</div><div class="line">472</div><div class="line">473</div><div class="line">474</div><div class="line">475</div><div class="line">476</div><div class="line">477</div><div class="line">478</div><div class="line">479</div><div class="line">480</div><div class="line">481</div><div class="line">482</div><div class="line">483</div><div class="line">484</div><div class="line">485</div><div class="line">486</div><div class="line">487</div><div class="line">488</div><div class="line">489</div><div class="line">490</div><div class="line">491</div><div class="line">492</div><div class="line">493</div><div class="line">494</div><div class="line">495</div><div class="line">496</div><div class="line">497</div><div class="line">498</div><div class="line">499</div><div class="line">500</div><div class="line">501</div><div class="line">502</div><div class="line">503</div><div class="line">504</div><div class="line">505</div><div class="line">506</div><div class="line">507</div><div class="line">508</div><div class="line">509</div><div class="line">510</div><div class="line">511</div><div class="line">512</div><div class="line">513</div><div class="line">514</div><div class="line">515</div><div class="line">516</div><div class="line">517</div><div class="line">518</div><div class="line">519</div><div class="line">520</div><div class="line">521</div><div class="line">522</div><div class="line">523</div><div class="line">524</div><div class="line">525</div><div class="line">526</div><div class="line">527</div><div class="line">528</div><div class="line">529</div><div class="line">530</div><div class="line">531</div><div class="line">532</div><div class="line">533</div><div class="line">534</div><div class="line">535</div><div class="line">536</div><div class="line">537</div><div class="line">538</div><div class="line">539</div><div class="line">540</div><div class="line">541</div><div class="line">542</div><div class="line">543</div><div class="line">544</div><div class="line">545</div><div class="line">546</div><div class="line">547</div><div class="line">548</div><div class="line">549</div><div class="line">550</div><div class="line">551</div><div class="line">552</div><div class="line">553</div><div class="line">554</div><div class="line">555</div><div class="line">556</div><div class="line">557</div><div class="line">558</div><div class="line">559</div><div class="line">560</div><div class="line">561</div><div class="line">562</div><div class="line">563</div><div class="line">564</div><div class="line">565</div><div class="line">566</div><div class="line">567</div><div class="line">568</div><div class="line">569</div><div class="line">570</div><div class="line">571</div><div class="line">572</div><div class="line">573</div><div class="line">574</div><div class="line">575</div><div class="line">576</div><div class="line">577</div><div class="line">578</div><div class="line">579</div><div class="line">580</div><div class="line">581</div><div class="line">582</div><div class="line">583</div><div class="line">584</div><div class="line">585</div><div class="line">586</div><div class="line">587</div><div class="line">588</div><div class="line">589</div><div class="line">590</div><div class="line">591</div><div class="line">592</div><div class="line">593</div><div class="line">594</div><div class="line">595</div><div class="line">596</div><div class="line">597</div><div class="line">598</div><div class="line">599</div><div class="line">600</div><div class="line">601</div><div class="line">602</div><div class="line">603</div><div class="line">604</div><div class="line">605</div><div class="line">606</div><div class="line">607</div><div class="line">608</div><div class="line">609</div><div class="line">610</div><div class="line">611</div><div class="line">612</div><div class="line">613</div><div class="line">614</div><div class="line">615</div><div class="line">616</div><div class="line">617</div><div class="line">618</div><div class="line">619</div><div class="line">620</div><div class="line">621</div><div class="line">622</div><div class="line">623</div><div class="line">624</div><div class="line">625</div><div class="line">626</div><div class="line">627</div><div class="line">628</div><div class="line">629</div><div class="line">630</div><div class="line">631</div><div class="line">632</div><div class="line">633</div><div class="line">634</div><div class="line">635</div><div class="line">636</div><div class="line">637</div><div class="line">638</div><div class="line">639</div><div class="line">640</div><div class="line">641</div><div class="line">642</div><div class="line">643</div><div class="line">644</div><div class="line">645</div><div class="line">646</div><div class="line">647</div><div class="line">648</div><div class="line">649</div><div class="line">650</div><div class="line">651</div><div class="line">652</div><div class="line">653</div><div class="line">654</div><div class="line">655</div><div class="line">656</div><div class="line">657</div><div class="line">658</div><div class="line">659</div><div class="line">660</div><div class="line">661</div><div class="line">662</div><div class="line">663</div><div class="line">664</div><div class="line">665</div><div class="line">666</div><div class="line">667</div><div class="line">668</div><div class="line">669</div><div class="line">670</div><div class="line">671</div><div class="line">672</div><div class="line">673</div><div class="line">674</div><div class="line">675</div><div class="line">676</div><div class="line">677</div><div class="line">678</div><div class="line">679</div><div class="line">680</div><div class="line">681</div><div class="line">682</div><div class="line">683</div><div class="line">684</div><div class="line">685</div><div class="line">686</div><div class="line">687</div><div class="line">688</div><div class="line">689</div><div class="line">690</div><div class="line">691</div><div class="line">692</div><div class="line">693</div><div class="line">694</div><div class="line">695</div><div class="line">696</div><div class="line">697</div><div class="line">698</div><div class="line">699</div><div class="line">700</div><div class="line">701</div><div class="line">702</div><div class="line">703</div><div class="line">704</div><div class="line">705</div><div class="line">706</div><div class="line">707</div><div class="line">708</div><div class="line">709</div><div class="line">710</div><div class="line">711</div><div class="line">712</div><div class="line">713</div><div class="line">714</div><div class="line">715</div><div class="line">716</div><div class="line">717</div><div class="line">718</div><div class="line">719</div><div class="line">720</div><div class="line">721</div><div class="line">722</div><div class="line">723</div><div class="line">724</div><div class="line">725</div><div class="line">726</div><div class="line">727</div><div class="line">728</div><div class="line">729</div><div class="line">730</div><div class="line">731</div><div class="line">732</div><div class="line">733</div><div class="line">734</div><div class="line">735</div><div class="line">736</div><div class="line">737</div><div class="line">738</div><div class="line">739</div><div class="line">740</div><div class="line">741</div><div class="line">742</div><div class="line">743</div><div class="line">744</div><div class="line">745</div><div class="line">746</div><div class="line">747</div><div class="line">748</div><div class="line">749</div><div class="line">750</div><div class="line">751</div><div class="line">752</div><div class="line">753</div><div class="line">754</div><div class="line">755</div><div class="line">756</div><div class="line">757</div><div class="line">758</div><div class="line">759</div><div class="line">760</div><div class="line">761</div><div class="line">762</div><div class="line">763</div><div class="line">764</div><div class="line">765</div><div class="line">766</div><div class="line">767</div><div class="line">768</div><div class="line">769</div><div class="line">770</div><div class="line">771</div><div class="line">772</div><div class="line">773</div><div class="line">774</div><div class="line">775</div><div class="line">776</div><div class="line">777</div><div class="line">778</div><div class="line">779</div><div class="line">780</div><div class="line">781</div><div class="line">782</div><div class="line">783</div><div class="line">784</div><div class="line">785</div><div class="line">786</div><div class="line">787</div><div class="line">788</div><div class="line">789</div><div class="line">790</div><div class="line">791</div><div class="line">792</div><div class="line">793</div><div class="line">794</div><div class="line">795</div><div class="line">796</div><div class="line">797</div><div class="line">798</div><div class="line">799</div><div class="line">800</div><div class="line">801</div><div class="line">802</div><div class="line">803</div><div class="line">804</div><div class="line">805</div><div class="line">806</div><div class="line">807</div><div class="line">808</div><div class="line">809</div><div class="line">810</div><div class="line">811</div><div class="line">812</div><div class="line">813</div><div class="line">814</div><div class="line">815</div><div class="line">816</div><div class="line">817</div><div class="line">818</div><div class="line">819</div><div class="line">820</div><div class="line">821</div><div class="line">822</div><div class="line">823</div><div class="line">824</div><div class="line">825</div><div class="line">826</div><div class="line">827</div><div class="line">828</div><div class="line">829</div><div class="line">830</div><div class="line">831</div><div class="line">832</div><div class="line">833</div><div class="line">834</div><div class="line">835</div><div class="line">836</div><div class="line">837</div><div class="line">838</div><div class="line">839</div><div class="line">840</div><div class="line">841</div><div class="line">842</div><div class="line">843</div><div class="line">844</div><div class="line">845</div><div class="line">846</div><div class="line">847</div><div class="line">848</div><div class="line">849</div><div class="line">850</div><div class="line">851</div><div class="line">852</div><div class="line">853</div><div class="line">854</div><div class="line">855</div><div class="line">856</div><div class="line">857</div><div class="line">858</div><div class="line">859</div><div class="line">860</div><div class="line">861</div><div class="line">862</div><div class="line">863</div><div class="line">864</div><div class="line">865</div><div class="line">866</div><div class="line">867</div><div class="line">868</div><div class="line">869</div><div class="line">870</div><div class="line">871</div><div class="line">872</div><div class="line">873</div><div class="line">874</div><div class="line">875</div><div class="line">876</div><div class="line">877</div><div class="line">878</div><div class="line">879</div><div class="line">880</div><div class="line">881</div><div class="line">882</div><div class="line">883</div><div class="line">884</div><div class="line">885</div><div class="line">886</div><div class="line">887</div><div class="line">888</div><div class="line">889</div><div class="line">890</div><div class="line">891</div><div class="line">892</div><div class="line">893</div><div class="line">894</div><div class="line">895</div><div class="line">896</div><div class="line">897</div><div class="line">898</div><div class="line">899</div><div class="line">900</div><div class="line">901</div><div class="line">902</div><div class="line">903</div><div class="line">904</div><div class="line">905</div><div class="line">906</div><div class="line">907</div><div class="line">908</div><div class="line">909</div><div class="line">910</div><div class="line">911</div><div class="line">912</div><div class="line">913</div><div class="line">914</div><div class="line">915</div><div class="line">916</div><div class="line">917</div><div class="line">918</div><div class="line">919</div><div class="line">920</div><div class="line">921</div><div class="line">922</div><div class="line">923</div><div class="line">924</div><div class="line">925</div><div class="line">926</div><div class="line">927</div><div class="line">928</div><div class="line">929</div><div class="line">930</div><div class="line">931</div><div class="line">932</div><div class="line">933</div><div class="line">934</div><div class="line">935</div><div class="line">936</div><div class="line">937</div><div class="line">938</div><div class="line">939</div><div class="line">940</div><div class="line">941</div><div class="line">942</div><div class="line">943</div><div class="line">944</div><div class="line">945</div><div class="line">946</div><div class="line">947</div><div class="line">948</div><div class="line">949</div><div class="line">950</div><div class="line">951</div><div class="line">952</div><div class="line">953</div><div class="line">954</div><div class="line">955</div><div class="line">956</div><div class="line">957</div><div class="line">958</div><div class="line">959</div><div class="line">960</div><div class="line">961</div><div class="line">962</div><div class="line">963</div><div class="line">964</div><div class="line">965</div><div class="line">966</div><div class="line">967</div><div class="line">968</div><div class="line">969</div><div class="line">970</div><div class="line">971</div><div class="line">972</div><div class="line">973</div><div class="line">974</div><div class="line">975</div><div class="line">976</div><div class="line">977</div><div class="line">978</div><div class="line">979</div><div class="line">980</div><div class="line">981</div><div class="line">982</div><div class="line">983</div><div class="line">984</div><div class="line">985</div><div class="line">986</div><div class="line">987</div><div class="line">988</div><div class="line">989</div><div class="line">990</div><div class="line">991</div><div class="line">992</div><div class="line">993</div><div class="line">994</div><div class="line">995</div><div class="line">996</div><div class="line">997</div><div class="line">998</div><div class="line">999</div><div class="line">1000</div><div class="line">1001</div><div class="line">1002</div><div class="line">1003</div><div class="line">1004</div><div class="line">1005</div><div class="line">1006</div><div class="line">1007</div><div class="line">1008</div><div class="line">1009</div><div class="line">1010</div><div class="line">1011</div><div class="line">1012</div><div class="line">1013</div><div class="line">1014</div><div class="line">1015</div><div class="line">1016</div><div class="line">1017</div><div class="line">1018</div><div class="line">1019</div><div class="line">1020</div><div class="line">1021</div><div class="line">1022</div><div class="line">1023</div><div class="line">1024</div><div class="line">1025</div><div class="line">1026</div><div class="line">1027</div><div class="line">1028</div><div class="line">1029</div><div class="line">1030</div><div class="line">1031</div><div class="line">1032</div><div class="line">1033</div><div class="line">1034</div><div class="line">1035</div><div class="line">1036</div><div class="line">1037</div><div class="line">1038</div><div class="line">1039</div><div class="line">1040</div><div class="line">1041</div><div class="line">1042</div><div class="line">1043</div><div class="line">1044</div><div class="line">1045</div><div class="line">1046</div><div class="line">1047</div><div class="line">1048</div><div class="line">1049</div><div class="line">1050</div><div class="line">1051</div><div class="line">1052</div><div class="line">1053</div><div class="line">1054</div><div class="line">1055</div><div class="line">1056</div><div class="line">1057</div><div class="line">1058</div><div class="line">1059</div><div class="line">1060</div><div class="line">1061</div><div class="line">1062</div><div class="line">1063</div><div class="line">1064</div><div class="line">1065</div><div class="line">1066</div><div class="line">1067</div><div class="line">1068</div><div class="line">1069</div><div class="line">1070</div><div class="line">1071</div><div class="line">1072</div><div class="line">1073</div><div class="line">1074</div><div class="line">1075</div><div class="line">1076</div><div class="line">1077</div><div class="line">1078</div><div class="line">1079</div><div class="line">1080</div><div class="line">1081</div><div class="line">1082</div><div class="line">1083</div><div class="line">1084</div><div class="line">1085</div><div class="line">1086</div><div class="line">1087</div><div class="line">1088</div><div class="line">1089</div><div class="line">1090</div><div class="line">1091</div><div class="line">1092</div><div class="line">1093</div><div class="line">1094</div><div class="line">1095</div><div class="line">1096</div><div class="line">1097</div><div class="line">1098</div><div class="line">1099</div><div class="line">1100</div><div class="line">1101</div><div class="line">1102</div><div class="line">1103</div><div class="line">1104</div><div class="line">1105</div><div class="line">1106</div><div class="line">1107</div><div class="line">1108</div><div class="line">1109</div><div class="line">1110</div><div class="line">1111</div><div class="line">1112</div><div class="line">1113</div><div class="line">1114</div><div class="line">1115</div><div class="line">1116</div><div class="line">1117</div><div class="line">1118</div><div class="line">1119</div><div class="line">1120</div><div class="line">1121</div><div class="line">1122</div><div class="line">1123</div><div class="line">1124</div><div class="line">1125</div><div class="line">1126</div><div class="line">1127</div><div class="line">1128</div><div class="line">1129</div><div class="line">1130</div><div class="line">1131</div><div class="line">1132</div><div class="line">1133</div><div class="line">1134</div><div class="line">1135</div><div class="line">1136</div><div class="line">1137</div><div class="line">1138</div><div class="line">1139</div><div class="line">1140</div><div class="line">1141</div><div class="line">1142</div><div class="line">1143</div><div class="line">1144</div><div class="line">1145</div><div class="line">1146</div><div class="line">1147</div><div class="line">1148</div><div class="line">1149</div><div class="line">1150</div><div class="line">1151</div><div class="line">1152</div><div class="line">1153</div><div class="line">1154</div><div class="line">1155</div><div class="line">1156</div><div class="line">1157</div><div class="line">1158</div><div class="line">1159</div><div class="line">1160</div><div class="line">1161</div><div class="line">1162</div><div class="line">1163</div><div class="line">1164</div><div class="line">1165</div><div class="line">1166</div><div class="line">1167</div><div class="line">1168</div><div class="line">1169</div><div class="line">1170</div><div class="line">1171</div><div class="line">1172</div><div class="line">1173</div><div class="line">1174</div><div class="line">1175</div><div class="line">1176</div><div class="line">1177</div><div class="line">1178</div><div class="line">1179</div><div class="line">1180</div><div class="line">1181</div><div class="line">1182</div><div class="line">1183</div><div class="line">1184</div><div class="line">1185</div><div class="line">1186</div><div class="line">1187</div><div class="line">1188</div><div class="line">1189</div><div class="line">1190</div><div class="line">1191</div><div class="line">1192</div><div class="line">1193</div><div class="line">1194</div><div class="line">1195</div><div class="line">1196</div><div class="line">1197</div><div class="line">1198</div><div class="line">1199</div><div class="line">1200</div><div class="line">1201</div><div class="line">1202</div></pre></td><td class="code"><pre><div class="line">[xml] view plain copy print?在CODE上查看代码片派生到我的代码片</div><div class="line">&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;   </div><div class="line">  </div><div class="line">xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;   </div><div class="line">  </div><div class="line">xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd &quot;&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 父项目的坐标。如果项目中没有规定某个元素的值，那么父项目中的对应值即为项目的默认值。 坐标包括group ID，artifact ID和 version。 --&gt;   </div><div class="line">  </div><div class="line">&lt;parent&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 被继承的父项目的构件标识符 --&gt;   </div><div class="line">  </div><div class="line">&lt;artifactId /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 被继承的父项目的全球唯一标识符 --&gt;   </div><div class="line">  </div><div class="line">&lt;groupId /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 被继承的父项目的版本 --&gt;   </div><div class="line">  </div><div class="line">&lt;version /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 父项目的pom.xml文件的相对路径。相对路径允许你选择一个不同的路径。默认值是../pom.xml。Maven首先在构建当前项目的地方寻找父项目的pom，其次在文件系统的这个位置（relativePath位置），然后在本地仓库，最后在远程仓库寻找父项目的pom。 --&gt;   </div><div class="line">  </div><div class="line">&lt;relativePath /&gt;   </div><div class="line">  </div><div class="line">&lt;/parent&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 声明项目描述符遵循哪一个POM模型版本。模型本身的版本很少改变，虽然如此，但它仍然是必不可少的，这是为了当Maven引入了新的特性或者其他模型变更的时候，确保稳定性。 --&gt;   </div><div class="line">  </div><div class="line">&lt;modelVersion&gt; 4.0.0 &lt;/modelVersion&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目的全球唯一标识符，通常使用全限定的包名区分该项目和其他项目。并且构建时生成的路径也是由此生成， 如com.mycompany.app生成的相对路径为：/com/mycompany/app --&gt;   </div><div class="line">  </div><div class="line">&lt;groupId&gt; asia.banseon &lt;/groupId&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构件的标识符，它和group ID一起唯一标识一个构件。换句话说，你不能有两个不同的项目拥有同样的artifact ID和groupID；在某个特定的group ID下，artifact ID也必须是唯一的。构件是项目产生的或使用的一个东西，Maven为项目产生的构件包括：JARs，源码，二进制发布和WARs等。 --&gt;   </div><div class="line">  </div><div class="line">&lt;artifactId&gt; banseon-maven2 &lt;/artifactId&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目产生的构件类型，例如jar、war、ear、pom。插件可以创建他们自己的构件类型，所以前面列的不是全部构件类型 --&gt;   </div><div class="line">  </div><div class="line">&lt;packaging&gt; jar &lt;/packaging&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目当前版本，格式为:主版本.次版本.增量版本-限定版本号 --&gt;   </div><div class="line">  </div><div class="line">&lt;version&gt; 1.0-SNAPSHOT &lt;/version&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目的名称, Maven产生的文档用 --&gt;   </div><div class="line">  </div><div class="line">&lt;name&gt; banseon-maven &lt;/name&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目主页的URL, Maven产生的文档用 --&gt;   </div><div class="line">  </div><div class="line">&lt;url&gt; http://www.baidu.com/banseon &lt;/url&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目的详细描述, Maven 产生的文档用。 当这个元素能够用HTML格式描述时（例如，CDATA中的文本会被解析器忽略，就可以包含HTML标签）， 不鼓励使用纯文本描述。如果你需要修改产生的web站点的索引页面，你应该修改你自己的索引页文件，而不是调整这里的文档。 --&gt;   </div><div class="line">  </div><div class="line">&lt;description&gt; A maven project to study maven. &lt;/description&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 描述了这个项目构建环境中的前提条件。 --&gt;   </div><div class="line">  </div><div class="line">&lt;prerequisites&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构建该项目或使用该插件所需要的Maven的最低版本 --&gt;   </div><div class="line">  </div><div class="line">&lt;maven /&gt;   </div><div class="line">  </div><div class="line">&lt;/prerequisites&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目的问题管理系统(Bugzilla, Jira, Scarab,或任何你喜欢的问题管理系统)的名称和URL，本例为 jira --&gt;   </div><div class="line">  </div><div class="line">&lt;issueManagement&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 问题管理系统（例如jira）的名字， --&gt;   </div><div class="line">  </div><div class="line">&lt;system&gt; jira &lt;/system&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 该项目使用的问题管理系统的URL --&gt;   </div><div class="line">  </div><div class="line">&lt;url&gt; http://jira.baidu.com/banseon &lt;/url&gt;   </div><div class="line">  </div><div class="line">&lt;/issueManagement&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目持续集成信息 --&gt;   </div><div class="line">  </div><div class="line">&lt;ciManagement&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 持续集成系统的名字，例如continuum --&gt;   </div><div class="line">  </div><div class="line">&lt;system /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 该项目使用的持续集成系统的URL（如果持续集成系统有web接口的话）。 --&gt;   </div><div class="line">  </div><div class="line">&lt;url /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构建完成时，需要通知的开发者/用户的配置项。包括被通知者信息和通知条件（错误，失败，成功，警告） --&gt;   </div><div class="line">  </div><div class="line">&lt;notifiers&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 配置一种方式，当构建中断时，以该方式通知用户/开发者 --&gt;   </div><div class="line">  </div><div class="line">&lt;notifier&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 传送通知的途径 --&gt;   </div><div class="line">  </div><div class="line">&lt;type /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 发生错误时是否通知 --&gt;   </div><div class="line">  </div><div class="line">&lt;sendOnError /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构建失败时是否通知 --&gt;   </div><div class="line">  </div><div class="line">&lt;sendOnFailure /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构建成功时是否通知 --&gt;   </div><div class="line">  </div><div class="line">&lt;sendOnSuccess /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 发生警告时是否通知 --&gt;   </div><div class="line">  </div><div class="line">&lt;sendOnWarning /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 不赞成使用。通知发送到哪里 --&gt;   </div><div class="line">  </div><div class="line">&lt;address /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 扩展配置项 --&gt;   </div><div class="line">  </div><div class="line">&lt;configuration /&gt;   </div><div class="line">  </div><div class="line">&lt;/notifier&gt;   </div><div class="line">  </div><div class="line">&lt;/notifiers&gt;   </div><div class="line">  </div><div class="line">&lt;/ciManagement&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目创建年份，4位数字。当产生版权信息时需要使用这个值。 --&gt;   </div><div class="line">  </div><div class="line">&lt;inceptionYear /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目相关邮件列表信息 --&gt;   </div><div class="line">  </div><div class="line">&lt;mailingLists&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 该元素描述了项目相关的所有邮件列表。自动产生的网站引用这些信息。 --&gt;   </div><div class="line">  </div><div class="line">&lt;mailingList&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 邮件的名称 --&gt;   </div><div class="line">  </div><div class="line">&lt;name&gt; Demo &lt;/name&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 发送邮件的地址或链接，如果是邮件地址，创建文档时，mailto: 链接会被自动创建 --&gt;   </div><div class="line">  </div><div class="line">&lt;post&gt; banseon@126.com &lt;/post&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 订阅邮件的地址或链接，如果是邮件地址，创建文档时，mailto: 链接会被自动创建 --&gt;   </div><div class="line">  </div><div class="line">&lt;subscribe&gt; banseon@126.com &lt;/subscribe&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 取消订阅邮件的地址或链接，如果是邮件地址，创建文档时，mailto: 链接会被自动创建 --&gt;   </div><div class="line">  </div><div class="line">&lt;unsubscribe&gt; banseon@126.com &lt;/unsubscribe&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 你可以浏览邮件信息的URL --&gt;   </div><div class="line">  </div><div class="line">&lt;archive&gt; http:/hi.baidu.com/banseon/demo/dev/ &lt;/archive&gt;   </div><div class="line">  </div><div class="line">&lt;/mailingList&gt;   </div><div class="line">  </div><div class="line">&lt;/mailingLists&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目开发者列表 --&gt;   </div><div class="line">  </div><div class="line">&lt;developers&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 某个项目开发者的信息 --&gt;   </div><div class="line">  </div><div class="line">&lt;developer&gt;   </div><div class="line">  </div><div class="line">&lt;!-- SCM里项目开发者的唯一标识符 --&gt;   </div><div class="line">  </div><div class="line">&lt;id&gt; HELLO WORLD &lt;/id&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目开发者的全名 --&gt;   </div><div class="line">  </div><div class="line">&lt;name&gt; banseon &lt;/name&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目开发者的email --&gt;   </div><div class="line">  </div><div class="line">&lt;email&gt; banseon@126.com &lt;/email&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目开发者的主页的URL --&gt;   </div><div class="line">  </div><div class="line">&lt;url /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目开发者在项目中扮演的角色，角色元素描述了各种角色 --&gt;   </div><div class="line">  </div><div class="line">&lt;roles&gt;   </div><div class="line">  </div><div class="line">&lt;role&gt; Project Manager &lt;/role&gt;   </div><div class="line">  </div><div class="line">&lt;role&gt; Architect &lt;/role&gt;   </div><div class="line">  </div><div class="line">&lt;/roles&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目开发者所属组织 --&gt;   </div><div class="line">  </div><div class="line">&lt;organization&gt; demo &lt;/organization&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目开发者所属组织的URL --&gt;   </div><div class="line">  </div><div class="line">&lt;organizationUrl&gt; http://hi.baidu.com/banseon &lt;/organizationUrl&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目开发者属性，如即时消息如何处理等 --&gt;   </div><div class="line">  </div><div class="line">&lt;properties&gt;   </div><div class="line">  </div><div class="line">&lt;dept&gt; No &lt;/dept&gt;   </div><div class="line">  </div><div class="line">&lt;/properties&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目开发者所在时区， -11到12范围内的整数。 --&gt;   </div><div class="line">  </div><div class="line">&lt;timezone&gt; -5 &lt;/timezone&gt;   </div><div class="line">  </div><div class="line">&lt;/developer&gt;   </div><div class="line">  </div><div class="line">&lt;/developers&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目的其他贡献者列表 --&gt;   </div><div class="line">  </div><div class="line">&lt;contributors&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目的其他贡献者。参见developers/developer元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;contributor&gt;   </div><div class="line">  </div><div class="line">&lt;name /&gt;&lt;email /&gt;&lt;url /&gt;&lt;organization /&gt;&lt;organizationUrl /&gt;&lt;roles /&gt;&lt;timezone /&gt;&lt;properties /&gt;   </div><div class="line">  </div><div class="line">&lt;/contributor&gt;   </div><div class="line">  </div><div class="line">&lt;/contributors&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 该元素描述了项目所有License列表。 应该只列出该项目的license列表，不要列出依赖项目的 license列表。如果列出多个license，用户可以选择它们中的一个而不是接受所有license。 --&gt;   </div><div class="line">  </div><div class="line">&lt;licenses&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 描述了项目的license，用于生成项目的web站点的license页面，其他一些报表和validation也会用到该元素。 --&gt;   </div><div class="line">  </div><div class="line">&lt;license&gt;   </div><div class="line">  </div><div class="line">&lt;!-- license用于法律上的名称 --&gt;   </div><div class="line">  </div><div class="line">&lt;name&gt; Apache 2 &lt;/name&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 官方的license正文页面的URL --&gt;   </div><div class="line">  </div><div class="line">&lt;url&gt; http://www.baidu.com/banseon/LICENSE-2.0.txt &lt;/url&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目分发的主要方式：   </div><div class="line">  </div><div class="line">repo，可以从Maven库下载   </div><div class="line">  </div><div class="line">manual， 用户必须手动下载和安装依赖 --&gt;   </div><div class="line">  </div><div class="line">&lt;distribution&gt; repo &lt;/distribution&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 关于license的补充信息 --&gt;   </div><div class="line">  </div><div class="line">&lt;comments&gt; A business-friendly OSS license &lt;/comments&gt;   </div><div class="line">  </div><div class="line">&lt;/license&gt;   </div><div class="line">  </div><div class="line">&lt;/licenses&gt;   </div><div class="line">  </div><div class="line">&lt;!-- SCM(Source Control Management)标签允许你配置你的代码库，供Maven web站点和其它插件使用。 --&gt;   </div><div class="line">  </div><div class="line">&lt;scm&gt;   </div><div class="line">  </div><div class="line">&lt;!-- SCM的URL,该URL描述了版本库和如何连接到版本库。欲知详情，请看SCMs提供的URL格式和列表。该连接只读。 --&gt;   </div><div class="line">  </div><div class="line">&lt;connection&gt;   </div><div class="line">  </div><div class="line">scm:svn:http://svn.baidu.com/banseon/maven/banseon/banseon-maven2-trunk(dao-trunk)   </div><div class="line">  </div><div class="line">&lt;/connection&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 给开发者使用的，类似connection元素。即该连接不仅仅只读 --&gt;   </div><div class="line">  </div><div class="line">&lt;developerConnection&gt;   </div><div class="line">  </div><div class="line">scm:svn:http://svn.baidu.com/banseon/maven/banseon/dao-trunk   </div><div class="line">  </div><div class="line">&lt;/developerConnection&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 当前代码的标签，在开发阶段默认为HEAD --&gt;   </div><div class="line">  </div><div class="line">&lt;tag /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 指向项目的可浏览SCM库（例如ViewVC或者Fisheye）的URL。 --&gt;   </div><div class="line">  </div><div class="line">&lt;url&gt; http://svn.baidu.com/banseon &lt;/url&gt;   </div><div class="line">  </div><div class="line">&lt;/scm&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 描述项目所属组织的各种属性。Maven产生的文档用 --&gt;   </div><div class="line">  </div><div class="line">&lt;organization&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 组织的全名 --&gt;   </div><div class="line">  </div><div class="line">&lt;name&gt; demo &lt;/name&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 组织主页的URL --&gt;   </div><div class="line">  </div><div class="line">&lt;url&gt; http://www.baidu.com/banseon &lt;/url&gt;   </div><div class="line">  </div><div class="line">&lt;/organization&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构建项目需要的信息 --&gt;   </div><div class="line">  </div><div class="line">&lt;build&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 该元素设置了项目源码目录，当构建项目的时候，构建系统会编译目录里的源码。该路径是相对于pom.xml的相对路径。 --&gt;   </div><div class="line">  </div><div class="line">&lt;sourceDirectory /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 该元素设置了项目脚本源码目录，该目录和源码目录不同：绝大多数情况下，该目录下的内容 会被拷贝到输出目录(因为脚本是被解释的，而不是被编译的)。 --&gt;   </div><div class="line">  </div><div class="line">&lt;scriptSourceDirectory /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 该元素设置了项目单元测试使用的源码目录，当测试项目的时候，构建系统会编译目录里的源码。该路径是相对于pom.xml的相对路径。 --&gt;   </div><div class="line">  </div><div class="line">&lt;testSourceDirectory /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 被编译过的应用程序class文件存放的目录。 --&gt;   </div><div class="line">  </div><div class="line">&lt;outputDirectory /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 被编译过的测试class文件存放的目录。 --&gt;   </div><div class="line">  </div><div class="line">&lt;testOutputDirectory /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 使用来自该项目的一系列构建扩展 --&gt;   </div><div class="line">  </div><div class="line">&lt;extensions&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 描述使用到的构建扩展。 --&gt;   </div><div class="line">  </div><div class="line">&lt;extension&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构建扩展的groupId --&gt;   </div><div class="line">  </div><div class="line">&lt;groupId /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构建扩展的artifactId --&gt;   </div><div class="line">  </div><div class="line">&lt;artifactId /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构建扩展的版本 --&gt;   </div><div class="line">  </div><div class="line">&lt;version /&gt;   </div><div class="line">  </div><div class="line">&lt;/extension&gt;   </div><div class="line">  </div><div class="line">&lt;/extensions&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 当项目没有规定目标（Maven2 叫做阶段）时的默认值 --&gt;   </div><div class="line">  </div><div class="line">&lt;defaultGoal /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 这个元素描述了项目相关的所有资源路径列表，例如和项目相关的属性文件，这些资源被包含在最终的打包文件里。 --&gt;   </div><div class="line">  </div><div class="line">&lt;resources&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 这个元素描述了项目相关或测试相关的所有资源路径 --&gt;   </div><div class="line">  </div><div class="line">&lt;resource&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 描述了资源的目标路径。该路径相对target/classes目录（例如$&#123;project.build.outputDirectory&#125;）。举个例子，如果你想资源在特定的包里(org.apache.maven.messages)，你就必须该元素设置为org/apache/maven/messages。然而，如果你只是想把资源放到源码目录结构里，就不需要该配置。 --&gt;   </div><div class="line">  </div><div class="line">&lt;targetPath /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 是否使用参数值代替参数名。参数值取自properties元素或者文件里配置的属性，文件在filters元素里列出。 --&gt;   </div><div class="line">  </div><div class="line">&lt;filtering /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 描述存放资源的目录，该路径相对POM路径 --&gt;   </div><div class="line">  </div><div class="line">&lt;directory /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 包含的模式列表，例如**/*.xml. --&gt;   </div><div class="line">  </div><div class="line">&lt;includes /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 排除的模式列表，例如**/*.xml --&gt;   </div><div class="line">  </div><div class="line">&lt;excludes /&gt;   </div><div class="line">  </div><div class="line">&lt;/resource&gt;   </div><div class="line">  </div><div class="line">&lt;/resources&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 这个元素描述了单元测试相关的所有资源路径，例如和单元测试相关的属性文件。 --&gt;   </div><div class="line">  </div><div class="line">&lt;testResources&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 这个元素描述了测试相关的所有资源路径，参见build/resources/resource元素的说明 --&gt;   </div><div class="line">  </div><div class="line">&lt;testResource&gt;   </div><div class="line">  </div><div class="line">&lt;targetPath /&gt;&lt;filtering /&gt;&lt;directory /&gt;&lt;includes /&gt;&lt;excludes /&gt;   </div><div class="line">  </div><div class="line">&lt;/testResource&gt;   </div><div class="line">  </div><div class="line">&lt;/testResources&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构建产生的所有文件存放的目录 --&gt;   </div><div class="line">  </div><div class="line">&lt;directory /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 产生的构件的文件名，默认值是$&#123;artifactId&#125;-$&#123;version&#125;。 --&gt;   </div><div class="line">  </div><div class="line">&lt;finalName /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 当filtering开关打开时，使用到的过滤器属性文件列表 --&gt;   </div><div class="line">  </div><div class="line">&lt;filters /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 子项目可以引用的默认插件信息。该插件配置项直到被引用时才会被解析或绑定到生命周期。给定插件的任何本地配置都会覆盖这里的配置 --&gt;   </div><div class="line">  </div><div class="line">&lt;pluginManagement&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 使用的插件列表 。 --&gt;   </div><div class="line">  </div><div class="line">&lt;plugins&gt;   </div><div class="line">  </div><div class="line">&lt;!-- plugin元素包含描述插件所需要的信息。 --&gt;   </div><div class="line">  </div><div class="line">&lt;plugin&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 插件在仓库里的group ID --&gt;   </div><div class="line">  </div><div class="line">&lt;groupId /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 插件在仓库里的artifact ID --&gt;   </div><div class="line">  </div><div class="line">&lt;artifactId /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 被使用的插件的版本（或版本范围） --&gt;   </div><div class="line">  </div><div class="line">&lt;version /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 是否从该插件下载Maven扩展（例如打包和类型处理器），由于性能原因，只有在真需要下载时，该元素才被设置成enabled。 --&gt;   </div><div class="line">  </div><div class="line">&lt;extensions /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 在构建生命周期中执行一组目标的配置。每个目标可能有不同的配置。 --&gt;   </div><div class="line">  </div><div class="line">&lt;executions&gt;   </div><div class="line">  </div><div class="line">&lt;!-- execution元素包含了插件执行需要的信息 --&gt;   </div><div class="line">  </div><div class="line">&lt;execution&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 执行目标的标识符，用于标识构建过程中的目标，或者匹配继承过程中需要合并的执行目标 --&gt;   </div><div class="line">  </div><div class="line">&lt;id /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 绑定了目标的构建生命周期阶段，如果省略，目标会被绑定到源数据里配置的默认阶段 --&gt;   </div><div class="line">  </div><div class="line">&lt;phase /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 配置的执行目标 --&gt;   </div><div class="line">  </div><div class="line">&lt;goals /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 配置是否被传播到子POM --&gt;   </div><div class="line">  </div><div class="line">&lt;inherited /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 作为DOM对象的配置 --&gt;   </div><div class="line">  </div><div class="line">&lt;configuration /&gt;   </div><div class="line">  </div><div class="line">&lt;/execution&gt;   </div><div class="line">  </div><div class="line">&lt;/executions&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目引入插件所需要的额外依赖 --&gt;   </div><div class="line">  </div><div class="line">&lt;dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见dependencies/dependency元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;dependency&gt;   </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">&lt;/dependency&gt;   </div><div class="line">  </div><div class="line">&lt;/dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 任何配置是否被传播到子项目 --&gt;   </div><div class="line">  </div><div class="line">&lt;inherited /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 作为DOM对象的配置 --&gt;   </div><div class="line">  </div><div class="line">&lt;configuration /&gt;   </div><div class="line">  </div><div class="line">&lt;/plugin&gt;   </div><div class="line">  </div><div class="line">&lt;/plugins&gt;   </div><div class="line">  </div><div class="line">&lt;/pluginManagement&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 使用的插件列表 --&gt;   </div><div class="line">  </div><div class="line">&lt;plugins&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见build/pluginManagement/plugins/plugin元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;plugin&gt;   </div><div class="line">  </div><div class="line">&lt;groupId /&gt;&lt;artifactId /&gt;&lt;version /&gt;&lt;extensions /&gt;   </div><div class="line">  </div><div class="line">&lt;executions&gt;   </div><div class="line">  </div><div class="line">&lt;execution&gt;   </div><div class="line">  </div><div class="line">&lt;id /&gt;&lt;phase /&gt;&lt;goals /&gt;&lt;inherited /&gt;&lt;configuration /&gt;   </div><div class="line">  </div><div class="line">&lt;/execution&gt;   </div><div class="line">  </div><div class="line">&lt;/executions&gt;   </div><div class="line">  </div><div class="line">&lt;dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见dependencies/dependency元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;dependency&gt;   </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">&lt;/dependency&gt;   </div><div class="line">  </div><div class="line">&lt;/dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;goals /&gt;&lt;inherited /&gt;&lt;configuration /&gt;   </div><div class="line">  </div><div class="line">&lt;/plugin&gt;   </div><div class="line">  </div><div class="line">&lt;/plugins&gt;   </div><div class="line">  </div><div class="line">&lt;/build&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 在列的项目构建profile，如果被激活，会修改构建处理 --&gt;   </div><div class="line">  </div><div class="line">&lt;profiles&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 根据环境参数或命令行参数激活某个构建处理 --&gt;   </div><div class="line">  </div><div class="line">&lt;profile&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构建配置的唯一标识符。即用于命令行激活，也用于在继承时合并具有相同标识符的profile。 --&gt;   </div><div class="line">  </div><div class="line">&lt;id /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 自动触发profile的条件逻辑。Activation是profile的开启钥匙。profile的力量来自于它   </div><div class="line">  </div><div class="line">能够在某些特定的环境中自动使用某些特定的值；这些环境通过activation元素指定。activation元素并不是激活profile的唯一方式。 --&gt;   </div><div class="line">  </div><div class="line">&lt;activation&gt;   </div><div class="line">  </div><div class="line">&lt;!-- profile默认是否激活的标志 --&gt;   </div><div class="line">  </div><div class="line">&lt;activeByDefault /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 当匹配的jdk被检测到，profile被激活。例如，1.4激活JDK1.4，1.4.0_2，而!1.4激活所有版本不是以1.4开头的JDK。 --&gt;   </div><div class="line">  </div><div class="line">&lt;jdk /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 当匹配的操作系统属性被检测到，profile被激活。os元素可以定义一些操作系统相关的属性。 --&gt;   </div><div class="line">  </div><div class="line">&lt;os&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 激活profile的操作系统的名字 --&gt;   </div><div class="line">  </div><div class="line">&lt;name&gt; Windows XP &lt;/name&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 激活profile的操作系统所属家族(如 &apos;windows&apos;) --&gt;   </div><div class="line">  </div><div class="line">&lt;family&gt; Windows &lt;/family&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 激活profile的操作系统体系结构 --&gt;   </div><div class="line">  </div><div class="line">&lt;arch&gt; x86 &lt;/arch&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 激活profile的操作系统版本 --&gt;   </div><div class="line">  </div><div class="line">&lt;version&gt; 5.1.2600 &lt;/version&gt;   </div><div class="line">  </div><div class="line">&lt;/os&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 如果Maven检测到某一个属性（其值可以在POM中通过$&#123;名称&#125;引用），其拥有对应的名称和值，Profile就会被激活。如果值   </div><div class="line">  </div><div class="line">字段是空的，那么存在属性名称字段就会激活profile，否则按区分大小写方式匹配属性值字段 --&gt;   </div><div class="line">  </div><div class="line">&lt;property&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 激活profile的属性的名称 --&gt;   </div><div class="line">  </div><div class="line">&lt;name&gt; mavenVersion &lt;/name&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 激活profile的属性的值 --&gt;   </div><div class="line">  </div><div class="line">&lt;value&gt; 2.0.3 &lt;/value&gt;   </div><div class="line">  </div><div class="line">&lt;/property&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 提供一个文件名，通过检测该文件的存在或不存在来激活profile。missing检查文件是否存在，如果不存在则激活   </div><div class="line">  </div><div class="line">profile。另一方面，exists则会检查文件是否存在，如果存在则激活profile。 --&gt;   </div><div class="line">  </div><div class="line">&lt;file&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 如果指定的文件存在，则激活profile。 --&gt;   </div><div class="line">  </div><div class="line">&lt;exists&gt; /usr/local/hudson/hudson-home/jobs/maven-guide-zh-to-production/workspace/ &lt;/exists&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 如果指定的文件不存在，则激活profile。 --&gt;   </div><div class="line">  </div><div class="line">&lt;missing&gt; /usr/local/hudson/hudson-home/jobs/maven-guide-zh-to-production/workspace/ &lt;/missing&gt;   </div><div class="line">  </div><div class="line">&lt;/file&gt;   </div><div class="line">  </div><div class="line">&lt;/activation&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构建项目所需要的信息。参见build元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;build&gt;   </div><div class="line">  </div><div class="line">&lt;defaultGoal /&gt;   </div><div class="line">  </div><div class="line">&lt;resources&gt;   </div><div class="line">  </div><div class="line">&lt;resource&gt;   </div><div class="line">  </div><div class="line">&lt;targetPath /&gt;&lt;filtering /&gt;&lt;directory /&gt;&lt;includes /&gt;&lt;excludes /&gt;   </div><div class="line">  </div><div class="line">&lt;/resource&gt;   </div><div class="line">  </div><div class="line">&lt;/resources&gt;   </div><div class="line">  </div><div class="line">&lt;testResources&gt;   </div><div class="line">  </div><div class="line">&lt;testResource&gt;   </div><div class="line">  </div><div class="line">&lt;targetPath /&gt;&lt;filtering /&gt;&lt;directory /&gt;&lt;includes /&gt;&lt;excludes /&gt;   </div><div class="line">  </div><div class="line">&lt;/testResource&gt;   </div><div class="line">  </div><div class="line">&lt;/testResources&gt;   </div><div class="line">  </div><div class="line">&lt;directory /&gt;&lt;finalName /&gt;&lt;filters /&gt;   </div><div class="line">  </div><div class="line">&lt;pluginManagement&gt;   </div><div class="line">  </div><div class="line">&lt;plugins&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见build/pluginManagement/plugins/plugin元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;plugin&gt;   </div><div class="line">  </div><div class="line">&lt;groupId /&gt;&lt;artifactId /&gt;&lt;version /&gt;&lt;extensions /&gt;   </div><div class="line">  </div><div class="line">&lt;executions&gt;   </div><div class="line">  </div><div class="line">&lt;execution&gt;   </div><div class="line">  </div><div class="line">&lt;id /&gt;&lt;phase /&gt;&lt;goals /&gt;&lt;inherited /&gt;&lt;configuration /&gt;   </div><div class="line">  </div><div class="line">&lt;/execution&gt;   </div><div class="line">  </div><div class="line">&lt;/executions&gt;   </div><div class="line">  </div><div class="line">&lt;dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见dependencies/dependency元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;dependency&gt;   </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">&lt;/dependency&gt;   </div><div class="line">  </div><div class="line">&lt;/dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;goals /&gt;&lt;inherited /&gt;&lt;configuration /&gt;   </div><div class="line">  </div><div class="line">&lt;/plugin&gt;   </div><div class="line">  </div><div class="line">&lt;/plugins&gt;   </div><div class="line">  </div><div class="line">&lt;/pluginManagement&gt;   </div><div class="line">  </div><div class="line">&lt;plugins&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见build/pluginManagement/plugins/plugin元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;plugin&gt;   </div><div class="line">  </div><div class="line">&lt;groupId /&gt;&lt;artifactId /&gt;&lt;version /&gt;&lt;extensions /&gt;   </div><div class="line">  </div><div class="line">&lt;executions&gt;   </div><div class="line">  </div><div class="line">&lt;execution&gt;   </div><div class="line">  </div><div class="line">&lt;id /&gt;&lt;phase /&gt;&lt;goals /&gt;&lt;inherited /&gt;&lt;configuration /&gt;   </div><div class="line">  </div><div class="line">&lt;/execution&gt;   </div><div class="line">  </div><div class="line">&lt;/executions&gt;   </div><div class="line">  </div><div class="line">&lt;dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见dependencies/dependency元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;dependency&gt;   </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">&lt;/dependency&gt;   </div><div class="line">  </div><div class="line">&lt;/dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;goals /&gt;&lt;inherited /&gt;&lt;configuration /&gt;   </div><div class="line">  </div><div class="line">&lt;/plugin&gt;   </div><div class="line">  </div><div class="line">&lt;/plugins&gt;   </div><div class="line">  </div><div class="line">&lt;/build&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 模块（有时称作子项目） 被构建成项目的一部分。列出的每个模块元素是指向该模块的目录的相对路径 --&gt;   </div><div class="line">  </div><div class="line">&lt;modules /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 发现依赖和扩展的远程仓库列表。 --&gt;   </div><div class="line">  </div><div class="line">&lt;repositories&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见repositories/repository元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;repository&gt;   </div><div class="line">  </div><div class="line">&lt;releases&gt;   </div><div class="line">  </div><div class="line">&lt;enabled /&gt;&lt;updatePolicy /&gt;&lt;checksumPolicy /&gt;   </div><div class="line">  </div><div class="line">&lt;/releases&gt;   </div><div class="line">  </div><div class="line">&lt;snapshots&gt;   </div><div class="line">  </div><div class="line">&lt;enabled /&gt;&lt;updatePolicy /&gt;&lt;checksumPolicy /&gt;   </div><div class="line">  </div><div class="line">&lt;/snapshots&gt;   </div><div class="line">  </div><div class="line">&lt;id /&gt;&lt;name /&gt;&lt;url /&gt;&lt;layout /&gt;   </div><div class="line">  </div><div class="line">&lt;/repository&gt;   </div><div class="line">  </div><div class="line">&lt;/repositories&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 发现插件的远程仓库列表，这些插件用于构建和报表 --&gt;   </div><div class="line">  </div><div class="line">&lt;pluginRepositories&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 包含需要连接到远程插件仓库的信息.参见repositories/repository元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;pluginRepository&gt;   </div><div class="line">  </div><div class="line">&lt;releases&gt;   </div><div class="line">  </div><div class="line">&lt;enabled /&gt;&lt;updatePolicy /&gt;&lt;checksumPolicy /&gt;   </div><div class="line">  </div><div class="line">&lt;/releases&gt;   </div><div class="line">  </div><div class="line">&lt;snapshots&gt;   </div><div class="line">  </div><div class="line">&lt;enabled /&gt;&lt;updatePolicy /&gt;&lt;checksumPolicy /&gt;   </div><div class="line">  </div><div class="line">&lt;/snapshots&gt;   </div><div class="line">  </div><div class="line">&lt;id /&gt;&lt;name /&gt;&lt;url /&gt;&lt;layout /&gt;   </div><div class="line">  </div><div class="line">&lt;/pluginRepository&gt;   </div><div class="line">  </div><div class="line">&lt;/pluginRepositories&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 该元素描述了项目相关的所有依赖。 这些依赖组成了项目构建过程中的一个个环节。它们自动从项目定义的仓库中下载。要获取更多信息，请看项目依赖机制。 --&gt;   </div><div class="line">  </div><div class="line">&lt;dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见dependencies/dependency元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;dependency&gt;   </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">&lt;/dependency&gt;   </div><div class="line">  </div><div class="line">&lt;/dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 不赞成使用. 现在Maven忽略该元素. --&gt;   </div><div class="line">  </div><div class="line">&lt;reports /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 该元素包括使用报表插件产生报表的规范。当用户执行“mvn site”，这些报表就会运行。 在页面导航栏能看到所有报表的链接。参见reporting元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;reporting&gt;   </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">&lt;/reporting&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见dependencyManagement元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;dependencyManagement&gt;   </div><div class="line">  </div><div class="line">&lt;dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见dependencies/dependency元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;dependency&gt;   </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">&lt;/dependency&gt;   </div><div class="line">  </div><div class="line">&lt;/dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;/dependencyManagement&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见distributionManagement元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;distributionManagement&gt;   </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">&lt;/distributionManagement&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见properties元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;properties /&gt;   </div><div class="line">  </div><div class="line">&lt;/profile&gt;   </div><div class="line">  </div><div class="line">&lt;/profiles&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 模块（有时称作子项目） 被构建成项目的一部分。列出的每个模块元素是指向该模块的目录的相对路径 --&gt;   </div><div class="line">  </div><div class="line">&lt;modules /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 发现依赖和扩展的远程仓库列表。 --&gt;   </div><div class="line">  </div><div class="line">&lt;repositories&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 包含需要连接到远程仓库的信息 --&gt;   </div><div class="line">  </div><div class="line">&lt;repository&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 如何处理远程仓库里发布版本的下载 --&gt;   </div><div class="line">  </div><div class="line">&lt;releases&gt;   </div><div class="line">  </div><div class="line">&lt;!-- true或者false表示该仓库是否为下载某种类型构件（发布版，快照版）开启。 --&gt;   </div><div class="line">  </div><div class="line">&lt;enabled /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 该元素指定更新发生的频率。Maven会比较本地POM和远程POM的时间戳。这里的选项是：always（一直），daily（默认，每日），interval：X（这里X是以分钟为单位的时间间隔），或者never（从不）。 --&gt;   </div><div class="line">  </div><div class="line">&lt;updatePolicy /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 当Maven验证构件校验文件失败时该怎么做：ignore（忽略），fail（失败），或者warn（警告）。 --&gt;   </div><div class="line">  </div><div class="line">&lt;checksumPolicy /&gt;   </div><div class="line">  </div><div class="line">&lt;/releases&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 如何处理远程仓库里快照版本的下载。有了releases和snapshots这两组配置，POM就可以在每个单独的仓库中，为每种类型的构件采取不同的策略。例如，可能有人会决定只为开发目的开启对快照版本下载的支持。参见repositories/repository/releases元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;snapshots&gt;   </div><div class="line">  </div><div class="line">&lt;enabled /&gt;&lt;updatePolicy /&gt;&lt;checksumPolicy /&gt;   </div><div class="line">  </div><div class="line">&lt;/snapshots&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 远程仓库唯一标识符。可以用来匹配在settings.xml文件里配置的远程仓库 --&gt;   </div><div class="line">  </div><div class="line">&lt;id&gt; banseon-repository-proxy &lt;/id&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 远程仓库名称 --&gt;   </div><div class="line">  </div><div class="line">&lt;name&gt; banseon-repository-proxy &lt;/name&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 远程仓库URL，按protocol://hostname/path形式 --&gt;   </div><div class="line">  </div><div class="line">&lt;url&gt; http://192.168.1.169:9999/repository/ &lt;/url&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 用于定位和排序构件的仓库布局类型-可以是default（默认）或者legacy（遗留）。Maven 2为其仓库提供了一个默认的布局；然而，Maven 1.x有一种不同的布局。我们可以使用该元素指定布局是default（默认）还是legacy（遗留）。 --&gt;   </div><div class="line">  </div><div class="line">&lt;layout&gt; default &lt;/layout&gt;   </div><div class="line">  </div><div class="line">&lt;/repository&gt;   </div><div class="line">  </div><div class="line">&lt;/repositories&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 发现插件的远程仓库列表，这些插件用于构建和报表 --&gt;   </div><div class="line">  </div><div class="line">&lt;pluginRepositories&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 包含需要连接到远程插件仓库的信息.参见repositories/repository元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;pluginRepository&gt;   </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">&lt;/pluginRepository&gt;   </div><div class="line">  </div><div class="line">&lt;/pluginRepositories&gt;   </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">&lt;!-- 该元素描述了项目相关的所有依赖。 这些依赖组成了项目构建过程中的一个个环节。它们自动从项目定义的仓库中下载。要获取更多信息，请看项目依赖机制。 --&gt;   </div><div class="line">  </div><div class="line">&lt;dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;dependency&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 依赖的group ID --&gt;   </div><div class="line">  </div><div class="line">&lt;groupId&gt; org.apache.maven &lt;/groupId&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 依赖的artifact ID --&gt;   </div><div class="line">  </div><div class="line">&lt;artifactId&gt; maven-artifact &lt;/artifactId&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 依赖的版本号。 在Maven 2里, 也可以配置成版本号的范围。 --&gt;   </div><div class="line">  </div><div class="line">&lt;version&gt; 3.8.1 &lt;/version&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 依赖类型，默认类型是jar。它通常表示依赖的文件的扩展名，但也有例外。一个类型可以被映射成另外一个扩展名或分类器。类型经常和使用的打包方式对应，尽管这也有例外。一些类型的例子：jar，war，ejb-client和test-jar。如果设置extensions为 true，就可以在plugin里定义新的类型。所以前面的类型的例子不完整。 --&gt;   </div><div class="line">  </div><div class="line">&lt;type&gt; jar &lt;/type&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 依赖的分类器。分类器可以区分属于同一个POM，但不同构建方式的构件。分类器名被附加到文件名的版本号后面。例如，如果你想要构建两个单独的构件成JAR，一个使用Java 1.4编译器，另一个使用Java 6编译器，你就可以使用分类器来生成两个单独的JAR构件。 --&gt;   </div><div class="line">  </div><div class="line">&lt;classifier&gt;&lt;/classifier&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 依赖范围。在项目发布过程中，帮助决定哪些构件被包括进来。欲知详情请参考依赖机制。   </div><div class="line">  </div><div class="line">- compile ：默认范围，用于编译   </div><div class="line">  </div><div class="line">- provided：类似于编译，但支持你期待jdk或者容器提供，类似于classpath   </div><div class="line">  </div><div class="line">- runtime: 在执行时需要使用   </div><div class="line">  </div><div class="line">- test: 用于test任务时使用   </div><div class="line">  </div><div class="line">- system: 需要外在提供相应的元素。通过systemPath来取得   </div><div class="line">  </div><div class="line">- systemPath: 仅用于范围为system。提供相应的路径   </div><div class="line">  </div><div class="line">- optional: 当项目自身被依赖时，标注依赖是否传递。用于连续依赖时使用 --&gt;   </div><div class="line">  </div><div class="line">&lt;scope&gt; test &lt;/scope&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 仅供system范围使用。注意，不鼓励使用这个元素，并且在新的版本中该元素可能被覆盖掉。该元素为依赖规定了文件系统上的路径。需要绝对路径而不是相对路径。推荐使用属性匹配绝对路径，例如$&#123;java.home&#125;。 --&gt;   </div><div class="line">  </div><div class="line">&lt;systemPath&gt;&lt;/systemPath&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 当计算传递依赖时， 从依赖构件列表里，列出被排除的依赖构件集。即告诉maven你只依赖指定的项目，不依赖项目的依赖。此元素主要用于解决版本冲突问题 --&gt;   </div><div class="line">  </div><div class="line">&lt;exclusions&gt;   </div><div class="line">  </div><div class="line">&lt;exclusion&gt;   </div><div class="line">  </div><div class="line">&lt;artifactId&gt; spring-core &lt;/artifactId&gt;   </div><div class="line">  </div><div class="line">&lt;groupId&gt; org.springframework &lt;/groupId&gt;   </div><div class="line">  </div><div class="line">&lt;/exclusion&gt;   </div><div class="line">  </div><div class="line">&lt;/exclusions&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 可选依赖，如果你在项目B中把C依赖声明为可选，你就需要在依赖于B的项目（例如项目A）中显式的引用对C的依赖。可选依赖阻断依赖的传递性。 --&gt;   </div><div class="line">  </div><div class="line">&lt;optional&gt; true &lt;/optional&gt;   </div><div class="line">  </div><div class="line">&lt;/dependency&gt;   </div><div class="line">  </div><div class="line">&lt;/dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 不赞成使用. 现在Maven忽略该元素. --&gt;   </div><div class="line">  </div><div class="line">&lt;reports&gt;&lt;/reports&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 该元素描述使用报表插件产生报表的规范。当用户执行“mvn site”，这些报表就会运行。 在页面导航栏能看到所有报表的链接。 --&gt;   </div><div class="line">  </div><div class="line">&lt;reporting&gt;   </div><div class="line">  </div><div class="line">&lt;!-- true，则，网站不包括默认的报表。这包括“项目信息”菜单中的报表。 --&gt;   </div><div class="line">  </div><div class="line">&lt;excludeDefaults /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 所有产生的报表存放到哪里。默认值是$&#123;project.build.directory&#125;/site。 --&gt;   </div><div class="line">  </div><div class="line">&lt;outputDirectory /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 使用的报表插件和他们的配置。 --&gt;   </div><div class="line">  </div><div class="line">&lt;plugins&gt;   </div><div class="line">  </div><div class="line">&lt;!-- plugin元素包含描述报表插件需要的信息 --&gt;   </div><div class="line">  </div><div class="line">&lt;plugin&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 报表插件在仓库里的group ID --&gt;   </div><div class="line">  </div><div class="line">&lt;groupId /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 报表插件在仓库里的artifact ID --&gt;   </div><div class="line">  </div><div class="line">&lt;artifactId /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 被使用的报表插件的版本（或版本范围） --&gt;   </div><div class="line">  </div><div class="line">&lt;version /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 任何配置是否被传播到子项目 --&gt;   </div><div class="line">  </div><div class="line">&lt;inherited /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 报表插件的配置 --&gt;   </div><div class="line">  </div><div class="line">&lt;configuration /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 一组报表的多重规范，每个规范可能有不同的配置。一个规范（报表集）对应一个执行目标 。例如，有1，2，3，4，5，6，7，8，9个报表。1，2，5构成A报表集，对应一个执行目标。2，5，8构成B报表集，对应另一个执行目标 --&gt;   </div><div class="line">  </div><div class="line">&lt;reportSets&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 表示报表的一个集合，以及产生该集合的配置 --&gt;   </div><div class="line">  </div><div class="line">&lt;reportSet&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 报表集合的唯一标识符，POM继承时用到 --&gt;   </div><div class="line">  </div><div class="line">&lt;id /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 产生报表集合时，被使用的报表的配置 --&gt;   </div><div class="line">  </div><div class="line">&lt;configuration /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 配置是否被继承到子POMs --&gt;   </div><div class="line">  </div><div class="line">&lt;inherited /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 这个集合里使用到哪些报表 --&gt;   </div><div class="line">  </div><div class="line">&lt;reports /&gt;   </div><div class="line">  </div><div class="line">&lt;/reportSet&gt;   </div><div class="line">  </div><div class="line">&lt;/reportSets&gt;   </div><div class="line">  </div><div class="line">&lt;/plugin&gt;   </div><div class="line">  </div><div class="line">&lt;/plugins&gt;   </div><div class="line">  </div><div class="line">&lt;/reporting&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 继承自该项目的所有子项目的默认依赖信息。这部分的依赖信息不会被立即解析,而是当子项目声明一个依赖（必须描述group ID和artifact ID信息），如果group ID和artifact ID以外的一些信息没有描述，则通过group ID和artifact ID匹配到这里的依赖，并使用这里的依赖信息。 --&gt;   </div><div class="line">  </div><div class="line">&lt;dependencyManagement&gt;   </div><div class="line">  </div><div class="line">&lt;dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 参见dependencies/dependency元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;dependency&gt;   </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">&lt;/dependency&gt;   </div><div class="line">  </div><div class="line">&lt;/dependencies&gt;   </div><div class="line">  </div><div class="line">&lt;/dependencyManagement&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目分发信息，在执行mvn deploy后表示要发布的位置。有了这些信息就可以把网站部署到远程服务器或者把构件部署到远程仓库。 --&gt;   </div><div class="line">  </div><div class="line">&lt;distributionManagement&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 部署项目产生的构件到远程仓库需要的信息 --&gt;   </div><div class="line">  </div><div class="line">&lt;repository&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 是分配给快照一个唯一的版本号（由时间戳和构建流水号）？还是每次都使用相同的版本号？参见repositories/repository元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;uniqueVersion /&gt;   </div><div class="line">  </div><div class="line">&lt;id&gt; banseon-maven2 &lt;/id&gt;   </div><div class="line">  </div><div class="line">&lt;name&gt; banseon maven2 &lt;/name&gt;   </div><div class="line">  </div><div class="line">&lt;url&gt; file://$&#123;basedir&#125;/target/deploy &lt;/url&gt;   </div><div class="line">  </div><div class="line">&lt;layout /&gt;   </div><div class="line">  </div><div class="line">&lt;/repository&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构件的快照部署到哪里？如果没有配置该元素，默认部署到repository元素配置的仓库，参见distributionManagement/repository元素 --&gt;   </div><div class="line">  </div><div class="line">&lt;snapshotRepository&gt;   </div><div class="line">  </div><div class="line">&lt;uniqueVersion /&gt;   </div><div class="line">  </div><div class="line">&lt;id&gt; banseon-maven2 &lt;/id&gt;   </div><div class="line">  </div><div class="line">&lt;name&gt; Banseon-maven2 Snapshot Repository &lt;/name&gt;   </div><div class="line">  </div><div class="line">&lt;url&gt; scp://svn.baidu.com/banseon:/usr/local/maven-snapshot &lt;/url&gt;   </div><div class="line">  </div><div class="line">&lt;layout /&gt;   </div><div class="line">  </div><div class="line">&lt;/snapshotRepository&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 部署项目的网站需要的信息 --&gt;   </div><div class="line">  </div><div class="line">&lt;site&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 部署位置的唯一标识符，用来匹配站点和settings.xml文件里的配置 --&gt;   </div><div class="line">  </div><div class="line">&lt;id&gt; banseon-site &lt;/id&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 部署位置的名称 --&gt;   </div><div class="line">  </div><div class="line">&lt;name&gt; business api website &lt;/name&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 部署位置的URL，按protocol://hostname/path形式 --&gt;   </div><div class="line">  </div><div class="line">&lt;url&gt;   </div><div class="line">  </div><div class="line">scp://svn.baidu.com/banseon:/var/www/localhost/banseon-web   </div><div class="line">  </div><div class="line">&lt;/url&gt;   </div><div class="line">  </div><div class="line">&lt;/site&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 项目下载页面的URL。如果没有该元素，用户应该参考主页。使用该元素的原因是：帮助定位那些不在仓库里的构件（由于license限制）。 --&gt;   </div><div class="line">  </div><div class="line">&lt;downloadUrl /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 如果构件有了新的group ID和artifact ID（构件移到了新的位置），这里列出构件的重定位信息。 --&gt;   </div><div class="line">  </div><div class="line">&lt;relocation&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构件新的group ID --&gt;   </div><div class="line">  </div><div class="line">&lt;groupId /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构件新的artifact ID --&gt;   </div><div class="line">  </div><div class="line">&lt;artifactId /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 构件新的版本号 --&gt;   </div><div class="line">  </div><div class="line">&lt;version /&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 显示给用户的，关于移动的额外信息，例如原因。 --&gt;   </div><div class="line">  </div><div class="line">&lt;message /&gt;   </div><div class="line">  </div><div class="line">&lt;/relocation&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 给出该构件在远程仓库的状态。不得在本地项目中设置该元素，因为这是工具自动更新的。有效的值有：none（默认），converted（仓库管理员从Maven 1 POM转换过来），partner（直接从伙伴Maven 2仓库同步过来），deployed（从Maven 2实例部署），verified（被核实时正确的和最终的）。 --&gt;   </div><div class="line">  </div><div class="line">&lt;status /&gt;   </div><div class="line">  </div><div class="line">&lt;/distributionManagement&gt;   </div><div class="line">  </div><div class="line">&lt;!-- 以值替代名称，Properties可以在整个POM中使用，也可以作为触发条件（见settings.xml配置文件里activation元素的说明）。格式是&lt;name&gt;value&lt;/name&gt;。 --&gt;   </div><div class="line">  </div><div class="line">&lt;properties /&gt;   </div><div class="line">  </div><div class="line">&lt;/project&gt;</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/pom文件解析/" data-id="cj5pao4ls000qsvblppoj4bu2" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Maven/使用命令行下载jar包" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/使用命令行下载jar包/">使用命令行下载jar包</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Maven/使用命令行下载jar包/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="使用eclipse或者sts下载jar包很慢时，可以使用命令行下载"><a href="#使用eclipse或者sts下载jar包很慢时，可以使用命令行下载" class="headerlink" title="使用eclipse或者sts下载jar包很慢时，可以使用命令行下载"></a>使用eclipse或者sts下载jar包很慢时，可以使用命令行下载</h3><ol>
-<li>进入到项目的根目录</li>
-<li>执行mvn clean</li>
-<li>执行mvn install</li>
-</ol>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/使用命令行下载jar包/" data-id="cj5pao4lu000tsvbliftf8lh9" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Maven/将jar包安装到本地仓库" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/将jar包安装到本地仓库/">将jar包安装到本地仓库</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Maven/将jar包安装到本地仓库/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>cmd 进入jar包所在路径，执行以下命令</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn install:install-file -Dfile=cloud.jar -DgroupId=com.hope.cloud -DartifactId=cloud -Dversion=1.0 -Dpackaging=jar</div></pre></td></tr></table></figure>
+        <p>MySQL有三种锁的级别：</p>
 <ul>
-<li>==-Dfile=jar包所在目录==</li>
-<li>==-DgroupId=包的groupId==</li>
-<li>==-DartifactId=包的artifactId==</li>
-<li>==-Dversion=版本==</li>
-<li>==-Dpackaging=打包类型==</li>
+<li>页级</li>
+<li>表级</li>
+<li>行级。</li>
 </ul>
-<p>引入：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;com.hope.cloud&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;cloud&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;1.0&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure></p>
+<p>MyISAM和MEMORY存储引擎采用的是表级锁（table-level locking）； </p>
+<p>BDB存储引擎采用的是页面锁（page-level locking），但也支持表级锁；</p>
+<p>InnoDB存储引擎既支持行级锁（row-level locking），也支持表级锁，但默认情况下是采用行级锁。</p>
+<p>MySQL这3种锁的特性可大致归纳如下：</p>
+<ul>
+<li>表级锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。</li>
+<li>行级锁：开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低,并发度也最高。</li>
+<li>页面锁：开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。</li>
+</ul>
 
       
     </div>
@@ -512,196 +890,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/将jar包安装到本地仓库/" data-id="cj5pao4lv000usvblnrdse1y1" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Maven/常用命令" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/常用命令/">Maven常用命令</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Maven/常用命令/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="Maven常用命令："><a href="#Maven常用命令：" class="headerlink" title="Maven常用命令："></a>Maven常用命令：</h2><p>maven缺少依赖包，强制更新命令<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">mvn clean compile install -e -U </div><div class="line">-e详细异常，-U强制更新</div></pre></td></tr></table></figure></p>
-<p>创建Maven普通Java项目：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">mvn archetype:create </div><div class="line">-DgroupId=packageName </div><div class="line">-DartifactId=projectName</div></pre></td></tr></table></figure></p>
-<p>创建Maven Web项目：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">mvn archetype:create </div><div class="line">-DgroupId=packageName    </div><div class="line">-DartifactId=webappName </div><div class="line">-DarchetypeArtifactId=maven-archetype-webapp</div></pre></td></tr></table></figure></p>
-<p>编译源代码：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn compile</div></pre></td></tr></table></figure></p>
-<p>运行应用程序中的单元测试：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn test</div></pre></td></tr></table></figure></p>
-<p>打包：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn package</div></pre></td></tr></table></figure></p>
-<p>在本地Repository中安装jar：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn install（打包项目，并在本地 Repository 中安装供其他项目依赖和使用， 安装目录为/Users/clq-pc/.m2/repository）</div></pre></td></tr></table></figure></p>
-<p>清除产生的项目(target)：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn clean</div></pre></td></tr></table></figure></p>
-<p>指定本地仓库地址：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">-Dmaven.repo.local=/Users/clq-pc/.m2/repository</div></pre></td></tr></table></figure></p>
-<p>忽略测试文档编译：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn -Dmaven.test.skip=true（打包时跳过测试）</div></pre></td></tr></table></figure></p>
-<p>查看帮助信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn help:help 或 mvn help:help -Ddetail=true</div></pre></td></tr></table></figure></p>
-<p>分析项目的依赖信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn dependency:analyze 或 mvn dependency:tree</div></pre></td></tr></table></figure></p>
-<p>查看实际pom信息:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn help:effective-pom</div></pre></td></tr></table></figure></p>
-<p>显示版本信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn -version/-v</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/常用命令/" data-id="cj5pao4lw000xsvblo6cl05ia" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/Cookie/secure和HttpOnly属性" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/Cookie/secure和HttpOnly属性/">secure和HttpOnly属性</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/Cookie/secure和HttpOnly属性/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/Cookie/">Cookie</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="Cookie属性"><a href="#Cookie属性" class="headerlink" title="Cookie属性"></a>Cookie属性</h2><ol>
-<li><p>secure属性<br>当设置为true时，表示创建的 Cookie 会被以安全的形式向服务器传输，也就是只能在 HTTPS 连接中被浏览器传递到服务器端进行会话验证，如果是 HTTP 连接则不会传递该信息，所以不会被窃取到Cookie 的具体内容。</p>
-</li>
-<li><p>HttpOnly属性<br>如果在Cookie中设置了”HttpOnly”属性，那么通过程序(JS脚本、Applet等)将无法读取到Cookie信息，这样能有效的防止XSS攻击。</p>
-</li>
-</ol>
-<p>对于以上两个属性,secure属性是防止信息在传递的过程中被监听捕获后信息泄漏，HttpOnly属性的目的是防止程序获取cookie后进行攻击。</p>
-<p>以上两个属性，并不能解决cookie在本机出现的信息泄漏的问题(FireFox的插件FireBug能直接看到cookie的相关信息)。</p>
-<h2 id="配置web-xml"><a href="#配置web-xml" class="headerlink" title="配置web.xml"></a>配置web.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;session-config&gt;</div><div class="line">	&lt;cookie-config&gt;</div><div class="line">	  &lt;http-only&gt;true&lt;/http-only&gt;</div><div class="line">	 &lt;/cookie-config&gt;</div><div class="line">&lt;/session-config&gt;</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/Cookie/secure和HttpOnly属性/" data-id="cj5pao4mz001fsvbl07ormtgm" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/Cookie/设置Session超时时间" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/Cookie/设置Session超时时间/">设置Session超时时间</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/Cookie/设置Session超时时间/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/Cookie/">Cookie</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="方法一：在web-xml中设置session-config如下-针对单个应用而言："><a href="#方法一：在web-xml中设置session-config如下-针对单个应用而言：" class="headerlink" title="方法一：在web.xml中设置session-config如下-针对单个应用而言："></a>方法一：在web.xml中设置session-config如下-针对单个应用而言：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;session-config&gt;</div><div class="line">  &lt;session-timeout&gt;2&lt;/session-timeout&gt;</div><div class="line">&lt;/session-config&gt;</div></pre></td></tr></table></figure>
-<p>2表示2分钟</p>
-<h2 id="方法二：在Tomcat的-conf-web-xml中session-config-默认值为：30分钟，针对整个容器而言"><a href="#方法二：在Tomcat的-conf-web-xml中session-config-默认值为：30分钟，针对整个容器而言" class="headerlink" title="方法二：在Tomcat的/conf/web.xml中session-config,默认值为：30分钟，针对整个容器而言"></a>方法二：在Tomcat的/conf/web.xml中session-config,默认值为：30分钟，针对整个容器而言</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;session-config&gt;</div><div class="line">    &lt;session-timeout&gt;30&lt;/session-timeout&gt;</div><div class="line">&lt;/session-config&gt;</div></pre></td></tr></table></figure>
-<h2 id="方法三：在Servlet中设置"><a href="#方法三：在Servlet中设置" class="headerlink" title="方法三：在Servlet中设置"></a>方法三：在Servlet中设置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">HttpSession session = request.getSession();</div><div class="line">session.setMaxInactiveInterval(60);//单位为秒</div></pre></td></tr></table></figure>
-<p><code>优先级：Servlet中API设置 &gt; 程序/web.xml设置 &gt; Tomcat/conf/web.xml设置</code></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/Cookie/设置Session超时时间/" data-id="cj5pao4n0001gsvblafajttvv" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/锁机制/" data-id="cj5uthv1300610mblgajo2gpv" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -718,7 +907,7 @@
 
 
   <div id="page-nav">
-    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="active"><span class="page-number">2</span></li><li><a class="page-number" href="/page/3/">3</a></li><li><a class="page-number" href="/page/4/">4</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/13/">13</a></li><li><a class="page-next" rel="next" href="/page/3/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
+    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="active"><span class="page-number">2</span></li><li><a class="page-number" href="/page/3/">3</a></li><li><a class="page-number" href="/page/4/">4</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/14/">14</a></li><li><a class="page-next" rel="next" href="/page/3/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
   </div>
 
 
@@ -736,7 +925,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">47</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">32</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">2</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">16</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">2</span></li></ul></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">47</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">32</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">2</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">18</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">2</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
   </div>
 
 
@@ -749,7 +938,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
   </div>
 
 
@@ -760,23 +949,23 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/07/29/数据库相关/mysql/事务的ACID特性和隔离级别/">事务的ACID特性和隔离级别</a>
+          <a href="/2017/08/02/服务器相关/Hessian/整合spring/">整合spring</a>
         </li>
       
         <li>
-          <a href="/2017/07/29/数据库相关/mysql/锁机制/">锁机制</a>
+          <a href="/2017/08/02/网络/HTTP 消息结构/">HTTP 消息结构</a>
         </li>
       
         <li>
-          <a href="/2017/07/29/数据库相关/mysql/mysql存储引擎/">mysql存储引擎</a>
+          <a href="/2017/08/02/网络/HTTP 简介/">HTTP 简介</a>
         </li>
       
         <li>
-          <a href="/2017/07/29/数据库相关/mysql/mysql索引原理/">mysql索引原理</a>
+          <a href="/2017/08/02/网络/HTTP请求方法/">HTTP请求方法</a>
         </li>
       
         <li>
-          <a href="/2017/07/29/数据库相关/mysql/not null 和 default/">not null 和 default</a>
+          <a href="/2017/08/02/网络/TCP和UDP的区别/">TCP和UDP的区别</a>
         </li>
       
     </ul>
