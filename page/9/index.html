@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-Spring/JPA/Specification实例" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/队列/ConcurrentLinkedQueue" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/JPA/Specification实例/">Specification实例</a>
+      <a class="article-title" href="/2017/07/19/Java/队列/ConcurrentLinkedQueue/">ConcurrentLinkedQueue</a>
     </h1>
   
 
@@ -95,7 +95,325 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/JPA/Specification实例/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Java/队列/ConcurrentLinkedQueue/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/队列/">队列</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>在并发编程中我们有时候需要使用线程安全的队列。如果我们要实现一个线程安全的队列有两种实现方式：<strong>一种是使用阻塞算法，另一种是使用非阻塞算法。使用阻塞算法的队列可以用一个锁（入队和出队用同一把锁）或两个锁（入队和出队用不同的锁）等方式来实现，而非阻塞的实现方式则可以使用循环CAS的方式来实现</strong>，本文让我们一起来研究下Doug Lea是如何使用非阻塞的方式来实现线程安全队列ConcurrentLinkedQueue的，相信从大师身上我们能学到不少并发编程的技巧。</p>
+<h2 id="ConcurrentLinkedQueue的介绍"><a href="#ConcurrentLinkedQueue的介绍" class="headerlink" title="ConcurrentLinkedQueue的介绍"></a>ConcurrentLinkedQueue的介绍</h2><p>ConcurrentLinkedQueue是一个基于链接节点的无界线程安全队列，它采用先进先出的规则对节点进行排序，当我们添加一个元素的时候，它会添加到队列的尾部，当我们获取一个元素时，它会返回队列头部的元素。它采用了“wait－free”算法来实现</p>
+<h2 id="ConcurrentLinkedQueue的结构"><a href="#ConcurrentLinkedQueue的结构" class="headerlink" title="ConcurrentLinkedQueue的结构"></a>ConcurrentLinkedQueue的结构</h2><p>我们通过ConcurrentLinkedQueue的类图来分析一下它的结构。<br><img src="http://note.youdao.com/yws/public/resource/b299e8a32f715e491bb49795389cec7f/xmlnote/11A45794B82740B1941218F351969D77/8255" alt="image"><br>ConcurrentLinkedQueue由head节点和tair节点组成，每个节点（Node）由节点元素（item）和指向下一个节点的引用(next)组成，节点与节点之间就是通过这个next关联起来，从而组成一张链表结构的队列。默认情况下head节点存储的元素为空，tair节点等于head节点。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">private transient volatile Node&lt;E&gt; tail = head;</div></pre></td></tr></table></figure></p>
+<h3 id="入队列"><a href="#入队列" class="headerlink" title="入队列"></a>入队列</h3><p>入队列就是将入队节点添加到队列的尾部。为了方便理解入队时队列的变化，以及head节点和tair节点的变化，每添加一个节点我就做了一个队列的快照图。<br><img src="http://note.youdao.com/yws/public/resource/b299e8a32f715e491bb49795389cec7f/xmlnote/2A9DB2F6414142E3967BE758764AF0A4/8257" alt="image">       </p>
+<ul>
+<li>第一步添加元素1。队列更新head节点的next节点为元素1节点。又因为tail节点默认情况下等于head节点，所以它们的next节点都指向元素1节点。</li>
+<li>第二步添加元素2。队列首先设置元素1节点的next节点为元素2节点，然后更新tail节点指向元素2节点。</li>
+<li>第三步添加元素3，设置tail节点的next节点为元素3节点。</li>
+<li>第四步添加元素4，设置元素3的next节点为元素4节点，然后将tail节点指向元素4节点。</li>
+</ul>
+<p>通过debug入队过程并观察head节点和tail节点的变化，发现入队主要做两件事情，第一是将入队节点设置成当前队列尾节点的下一个节点。第二是更新tail节点，如果tail节点的next节点不为空，则将入队节点设置成tail节点，如果tail节点的next节点为空，则将入队节点设置成tail的next节点，所以tail节点不总是尾节点，理解这一点对于我们研究源码会非常有帮助。  </p>
+<p>上面的分析让我们从单线程入队的角度来理解入队过程，但是多个线程同时进行入队情况就变得更加复杂，因为可能会出现其他线程插队的情况。如果有一个线程正在入队，那么它必须先获取尾节点，然后设置尾节点的下一个节点为入队节点，但这时可能有另外一个线程插队了，那么队列的尾节点就会发生变化，这时当前线程要暂停入队操作，然后重新获取尾节点。让我们再通过源码来详细分析下它是如何使用CAS算法来入队的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line">public boolean offer(E e) &#123;</div><div class="line">    if (e == null) throw new NullPointerException();</div><div class="line">    //入队前，创建一个入队节点</div><div class="line">    Node&lt;E&gt; n = new Node&lt;E&gt;(e);</div><div class="line">    retry:</div><div class="line">    //死循环，入队不成功反复入队。</div><div class="line">    for (;;) &#123;</div><div class="line">        //创建一个指向tail节点的引用</div><div class="line">        Node&lt;E&gt; t = tail;</div><div class="line">        //p用来表示队列的尾节点，默认情况下等于tail节点。</div><div class="line">        Node&lt;E&gt; p = t;</div><div class="line">        for (int hops = 0; ; hops++) &#123;</div><div class="line">        //获得p节点的下一个节点。</div><div class="line">            Node&lt;E&gt; next = succ(p);</div><div class="line">        //next节点不为空，说明p不是尾节点，需要更新p后在将它指向next节点</div><div class="line">            if (next != null) &#123;</div><div class="line">               //循环了两次及其以上，并且当前节点还是不等于尾节点</div><div class="line">                if (hops &gt; HOPS &amp;&amp; t != tail)</div><div class="line">                    continue retry; </div><div class="line">                p = next;</div><div class="line">            &#125; </div><div class="line">            //如果p是尾节点，则设置p节点的next节点为入队节点。</div><div class="line">            else if (p.casNext(null, n)) &#123;</div><div class="line">              //如果tail节点有大于等于1个next节点，则将入队节点设置成tair节点，更新失败了也</div><div class="line">没关系，因为失败了表示有其他线程成功更新了tair节点。</div><div class="line">                if (hops &gt;= HOPS)</div><div class="line">                    casTail(t, n); // 更新tail节点，允许失败</div><div class="line">                return true;  </div><div class="line">            &#125; </div><div class="line">           // p有next节点,表示p的next节点是尾节点，则重新设置p节点</div><div class="line">            else &#123;</div><div class="line">                p = succ(p);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>从源代码角度来看整个入队过程主要做二件事情。第一是定位出尾节点，第二是使用CAS算法能将入队节点设置成尾节点的next节点，如不成功则重试。        </p>
+<p>第一步定位尾节点。tail节点并不总是尾节点，所以每次入队都必须先通过tail节点来找到尾节点，尾节点可能就是tail节点，也可能是tail节点的next节点。代码中循环体中的第一个if就是判断tail是否有next节点，有则表示next节点可能是尾节点。获取tail节点的next节点需要注意的是p节点等于p的next节点的情况，只有一种可能就是p节点和p的next节点都等于空，表示这个队列刚初始化，正准备添加第一次节点，所以需要返回head节点。获取p节点的next节点代码如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">final Node&lt;E&gt; succ(Node&lt;E&gt; p) &#123;</div><div class="line">     Node&lt;E&gt; next = p.getNext();</div><div class="line">     return (p == next) ? head : next;</div><div class="line"> &#125;</div></pre></td></tr></table></figure></p>
+<p>第二步设置入队节点为尾节点。p.casNext(null, n)方法用于将入队节点设置为当前队列尾节点的next节点，p如果是null表示p是当前队列的尾节点，如果不为null表示有其他线程更新了尾节点，则需要重新获取当前队列的尾节点。  </p>
+<p>hops的设计意图。上面分析过对于先进先出的队列入队所要做的事情就是将入队节点设置成尾节点，doug lea写的代码和逻辑还是稍微有点复杂。那么我用以下方式来实现行不行？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public boolean offer(E e) &#123;</div><div class="line">    if (e == null)</div><div class="line">        throw new NullPointerException();</div><div class="line">    Node&lt;E&gt; n = new Node&lt;E&gt;(e);</div><div class="line">    for (;;) &#123;</div><div class="line">        Node&lt;E&gt; t = tail;</div><div class="line">        if (t.casNext(null, n) &amp;&amp; casTail(t, n)) &#123;</div><div class="line">            return true;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>让tail节点永远作为队列的尾节点，这样实现代码量非常少，而且逻辑非常清楚和易懂。但是这么做有个缺点就是每次都需要使用循环CAS更新tail节点。如果能减少CAS更新tail节点的次数，就能提高入队的效率，所以doug lea使用hops变量来控制并减少tail节点的更新频率，并不是每次节点入队后都将 tail节点更新成尾节点，而是当 tail节点和尾节点的距离大于等于常量HOPS的值（默认等于1）时才更新tail节点，tail和尾节点的距离越长使用CAS更新tail节点的次数就会越少，但是距离越长带来的负面效果就是每次入队时定位尾节点的时间就越长，因为循环体需要多循环一次来定位出尾节点，但是这样仍然能提高入队的效率，因为从本质上来看它通过增加对volatile变量的读操作来减少了对volatile变量的写操作，而对volatile变量的写操作开销要远远大于读操作，所以入队效率会有所提升。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">private static final int HOPS = 1;</div></pre></td></tr></table></figure></p>
+<p>还有一点需要注意的是入队方法永远返回true，所以不要通过返回值判断入队是否成功。</p>
+<h3 id="出队列"><a href="#出队列" class="headerlink" title="出队列"></a>出队列</h3><p>出队列的就是从队列里返回一个节点元素，并清空该节点对元素的引用。让我们通过每个节点出队的快照来观察下head节点的变化。<br><img src="http://note.youdao.com/yws/public/resource/b299e8a32f715e491bb49795389cec7f/xmlnote/1C3CDD6AD2034801945BD638E19CD689/8256" alt="image"><br>从上图可知，并不是每次出队时都更新head节点，当head节点里有元素时，直接弹出head节点里的元素，而不会更新head节点。只有当head节点里没有元素时，出队操作才会更新head节点。这种做法也是通过hops变量来减少使用CAS更新head节点的消耗，从而提高出队效率。让我们再通过源码来深入分析下出队过程。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">public E poll() &#123;</div><div class="line">    Node&lt;E&gt; h = head;</div><div class="line">   // p表示头节点，需要出队的节点</div><div class="line">    Node&lt;E&gt; p = h;</div><div class="line">    for (int hops = 0;; hops++) &#123;</div><div class="line">        // 获取p节点的元素</div><div class="line">        E item = p.getItem();</div><div class="line">        // 如果p节点的元素不为空，使用CAS设置p节点引用的元素为null,如果成功则返回p节点的元素。</div><div class="line">        if (item != null &amp;&amp; p.casItem(item, null)) &#123;</div><div class="line">            if (hops &gt;= HOPS) &#123;</div><div class="line">                //将p节点下一个节点设置成head节点</div><div class="line">                Node&lt;E&gt; q = p.getNext();</div><div class="line">                updateHead(h, (q != null) ? q : p);</div><div class="line">            &#125;</div><div class="line">            return item;</div><div class="line">        &#125;</div><div class="line">        // 如果头节点的元素为空或头节点发生了变化，这说明头节点已经被另外一个线程修改了。那么获取p节点的下一个节点 </div><div class="line">        Node&lt;&gt; next = succ(p);</div><div class="line">        // 如果p的下一个节点也为空，说明这个队列已经空了</div><div class="line">        if (next == null) &#123;</div><div class="line">          // 更新头节点。</div><div class="line">            updateHead(h, p);</div><div class="line">            break;</div><div class="line">        &#125;</div><div class="line">        // 如果下一个元素不为空，则将头节点的下一个节点设置成头节点</div><div class="line">        p = next;</div><div class="line">    &#125;</div><div class="line">    return null;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>首先获取头节点的元素，然后判断头节点元素是否为空，如果为空，表示另外一个线程已经进行了一次出队操作将该节点的元素取走，如果不为空，则使用CAS的方式将头节点的引用设置成null，如果CAS成功，则直接返回头节点的元素，如果不成功，表示另外一个线程已经进行了一次出队操作更新了head节点，导致元素发生了变化，需要重新获取头节点。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/ConcurrentLinkedQueue/" data-id="cj6995wpw0057qhblpjpbj7ag" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/队列/SynchronousQueue" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/队列/SynchronousQueue/">SynchronousQueue</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/队列/SynchronousQueue/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/队列/">队列</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Java 6的并发编程包中的SynchronousQueue是一个没有数据缓冲的BlockingQueue，生产者线程对其的插入操作put必须等待消费者的移除操作take，反过来也一样。  </p>
+<p>不像ArrayBlockingQueue或LinkedListBlockingQueue，SynchronousQueue内部并没有数据缓存空间，你不能调用peek()方法来看队列中是否有数据元素，因为数据元素只有当你试着取走的时候才可能存在，不取走而只想偷窥一下是不行的，当然遍历这个队列的操作也是不允许的。队列头元素是第一个排队要插入数据的线程，而不是要交换的数据。数据是在配对的生产者和消费者线程之间直接传递的，并不会将数据缓冲数据到队列中。可以这样来理解：生产者和消费者互相等待对方，握手，然后一起离开。</p>
+<p>SynchronousQueue的一个使用场景是在线程池里。Executors.newCachedThreadPool()就使用了SynchronousQueue，这个线程池根据需要（新任务到来时）创建新的线程，如果有空闲线程则会重复使用，线程空闲了60秒后会被回收。</p>
+<h2 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h2><p>阻塞队列的实现方法有许多：</p>
+<h3 id="阻塞算法实现"><a href="#阻塞算法实现" class="headerlink" title="阻塞算法实现"></a>阻塞算法实现</h3><p>阻塞算法实现通常在内部采用一个锁来保证多个线程中的put()和take()方法是串行执行的。采用锁的开销是比较大的，还会存在一种情况是线程A持有线程B需要的锁，B必须一直等待A释放锁，即使A可能一段时间内因为B的优先级比较高而得不到时间片运行。所以在高性能的应用中我们常常希望规避锁的使用。<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/26CDD26BE102496CBEB84C9BCC5937CE/15027" alt="image"> </p>
+<h3 id="信号量实现"><a href="#信号量实现" class="headerlink" title="信号量实现"></a>信号量实现</h3><p>经典同步队列实现采用了三个信号量，代码很简单，比较容易理解：<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/51C18BA4A67E47F0B776D2DD8824DB07/15029" alt="image"><br>在多核机器上，上面方法的同步代价仍然较高，操作系统调度器需要上千个时间片来阻塞或唤醒线程，而上面的实现即使在生产者put()时已经有一个消费者在等待的情况下，阻塞和唤醒的调用仍然需要。    </p>
+<h3 id="Java-5实现"><a href="#Java-5实现" class="headerlink" title="Java 5实现"></a>Java 5实现</h3><p><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/4ED247A432A7420D8F897E7A560111B2/15031" alt="image"><br>Java 5的实现相对来说做了一些优化，只使用了一个锁，使用队列代替信号量也可以允许发布者直接发布数据，而不是要首先从阻塞在信号量处被唤醒。</p>
+<h3 id="Java6实现"><a href="#Java6实现" class="headerlink" title="Java6实现"></a>Java6实现</h3><p>Java 6的SynchronousQueue的实现采用了一种性能更好的无锁算法 — 扩展的“Dual stack and Dual queue”算法。性能比Java5的实现有较大提升。竞争机制支持公平和非公平两种：非公平竞争模式使用的数据结构是后进先出栈(Lifo Stack)；公平竞争模式则使用先进先出队列（Fifo Queue），性能上两者是相当的，一般情况下，Fifo通常可以支持更大的吞吐量，但Lifo可以更大程度的保持线程的本地化。  </p>
+<p>代码实现里的Dual Queue或Stack内部是用链表(LinkedList)来实现的，其节点状态为以下三种情况：</p>
+<ol>
+<li>持有数据 – put()方法的元素</li>
+<li>持有请求 – take()方法</li>
+<li>空</li>
+</ol>
+<p>这个算法的特点就是任何操作都可以根据节点的状态判断执行，而不需要用到锁。<br>其核心接口是Transfer，生产者的put或消费者的take都使用这个接口，根据第一个参数来区别是入列（栈）还是出列（栈）。<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/8FB195601A51459D90C39738F6BBE592/15033" alt="image"><br>TransferQueue实现如下(摘自Java 6源代码)，入列和出列都基于Spin和CAS方法：<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/101149A90ECC4B448CC14845FEF32306/15035" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/B4D7DB29F70744C6ADDC03C128CDFEAF/15055" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/E6BF3C98735C42EE83D3AC88D35863CC/15022" alt="image"></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/SynchronousQueue/" data-id="cj6995wpx0059qhblva8iidql" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/集合/集合遍历" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/集合/集合遍历/">集合遍历</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/集合/集合遍历/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/集合/">集合</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h1><h2 id="第一种-通过Map-keySet-遍历key和value"><a href="#第一种-通过Map-keySet-遍历key和value" class="headerlink" title="第一种:通过Map.keySet()遍历key和value"></a>第一种:通过Map.keySet()遍历key和value</h2><p>这里有一个二次取值的过程,所以并不推荐<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(Integer key:map.keySet())&#123; </div><div class="line"> System.out.println(&quot;key=&quot;+key+&quot;and value=&quot;+map.get(key)); </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="第二种-通过Map-entrySet-使用iterator-遍历key和value"><a href="#第二种-通过Map-entrySet-使用iterator-遍历key和value" class="headerlink" title="第二种:通过Map.entrySet()使用iterator()遍历key和value"></a>第二种:通过Map.entrySet()使用iterator()遍历key和value</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">Iterator&lt;Map.Entry&lt;Integer, String&gt;&gt; iterator=map.entrySet().iterator(); </div><div class="line"></div><div class="line">while(iterator.hasNext()) &#123; </div><div class="line"> Map.Entry&lt;Integer,String&gt; entry = iterator.next(); </div><div class="line"></div><div class="line"> System.out.println(&quot;key=&quot;+ entry.getKey() + &quot;and value = &quot;+entry.getValue()); </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="通过Map-entrySet-遍历key和value"><a href="#通过Map-entrySet-遍历key和value" class="headerlink" title="通过Map.entrySet()遍历key和value"></a>通过Map.entrySet()遍历key和value</h2><p>//JDK1.5后的遍历形式,代码看起来比较整洁,更推荐采用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(Map.Entry&lt;Integer, String&gt; entry :map.entrySet()) &#123; </div><div class="line"> System.out.println(&quot;key=&quot;+entry.getKey()+&quot; and value=&quot;+entry.getValue()); </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="Set"><a href="#Set" class="headerlink" title="Set"></a>Set</h1><h2 id="迭代遍历："><a href="#迭代遍历：" class="headerlink" title="迭代遍历："></a>迭代遍历：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Set&lt;String&gt;  set=new HashSet&lt;String&gt;(); </div><div class="line">Iterator&lt;String&gt; it = set.iterator();</div><div class="line">while(it.hasNext()) &#123;</div><div class="line">    String str = it.next();</div><div class="line">    System.out.println(str);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="for循环遍历："><a href="#for循环遍历：" class="headerlink" title="for循环遍历："></a>for循环遍历：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(Object obj : set) &#123;</div><div class="line">    System.out.println(obj);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="List"><a href="#List" class="headerlink" title="List"></a>List</h1><h2 id="迭代遍历"><a href="#迭代遍历" class="headerlink" title="迭代遍历"></a>迭代遍历</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">Iterator it1 = list.iterator();</div><div class="line">while(it1.hasNext())&#123;</div><div class="line">    System.out.println(it1.next());</div><div class="line">&#125;</div><div class="line"></div><div class="line">for(Iterator it2 = list.iterator();it2.hasNext();)&#123;</div><div class="line">    System.out.println(it2.next());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="for…each方式"><a href="#for…each方式" class="headerlink" title="for…each方式"></a>for…each方式</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(String tmp:list)&#123;</div><div class="line">    System.out.println(tmp);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="下标值遍历"><a href="#下标值遍历" class="headerlink" title="下标值遍历"></a>下标值遍历</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(int i = 0;i &lt; list.size(); i ++)&#123;</div><div class="line">    System.out.println(list.get(i));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/集合/集合遍历/" data-id="cj6995wpy005cqhbl0qjhk6qv" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/集合/Collections排序" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/集合/Collections排序/">Collections排序</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/集合/Collections排序/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/集合/">集合</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="方法一"><a href="#方法一" class="headerlink" title="方法一"></a>方法一</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Collections.sort(list, <span class="keyword">new</span> Comparator&lt;实体&gt;() &#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(实体 arg0, 实体 arg1)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span>(比较条件) <span class="keyword">return</span> <span class="number">1</span>;</div><div class="line">        <span class="keyword">else</span> <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<h2 id="方法二：实现Comparable接口"><a href="#方法二：实现Comparable接口" class="headerlink" title="方法二：实现Comparable接口"></a>方法二：实现Comparable接口</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> <span class="keyword">implements</span> <span class="title">Comparable</span>&lt;<span class="title">User</span>&gt;</span>&#123;</div><div class="line">    <span class="keyword">private</span> String name;</div><div class="line">    <span class="keyword">private</span> Integer order;</div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> name;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.name = name;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">getOrder</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> order;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setOrder</span><span class="params">(Integer order)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.order = order;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(User arg0)</span> </span>&#123;</div><div class="line">        比较条件</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">使用： Collections.sort(list);</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/集合/Collections排序/" data-id="cj6995wpz005eqhbl4te8vygv" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/集合/集合排序" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/集合/集合排序/">集合排序</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/集合/集合排序/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/集合/">集合</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Map排序"><a href="#Map排序" class="headerlink" title="Map排序"></a>Map排序</h1><h2 id="TreeMap-能够把它保存的记录根据键-key-排序-默认是按升序排序-，也可以指定排序的比较器，-遍历TreeMap时，得到的记录是排过序的。TreeMap不允许key的值为null。非同步的。"><a href="#TreeMap-能够把它保存的记录根据键-key-排序-默认是按升序排序-，也可以指定排序的比较器，-遍历TreeMap时，得到的记录是排过序的。TreeMap不允许key的值为null。非同步的。" class="headerlink" title="TreeMap: 能够把它保存的记录根据键(key)排序,==默认是按升序排序==，也可以指定排序的比较器， 遍历TreeMap时，得到的记录是排过序的。TreeMap不允许key的值为null。非同步的。"></a>TreeMap: 能够把它保存的记录根据键(key)排序,==默认是按升序排序==，也可以指定排序的比较器， 遍历TreeMap时，得到的记录是排过序的。TreeMap不允许key的值为null。非同步的。</h2><h3 id="指定按key降序排序"><a href="#指定按key降序排序" class="headerlink" title="指定按key降序排序"></a>指定按key降序排序</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Map&lt;String,String&gt; map = new TreeMap&lt;String,String&gt;(new Comparator&lt;String&gt;()&#123; </div><div class="line">   public int compare(String obj1,String obj2)&#123; </div><div class="line">        //降序排序 </div><div class="line">        return obj2.compareTo(obj1); </div><div class="line">   &#125; </div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<h2 id="HashMap-最常用的Map-它根据键的HashCode-值存储数据-根据键可以直接获取它的值，具有很快的访问速度。HashMap最多只允许一条记录的键为Null-多条会覆盖-允许多条记录的值为-Null。非同步的。"><a href="#HashMap-最常用的Map-它根据键的HashCode-值存储数据-根据键可以直接获取它的值，具有很快的访问速度。HashMap最多只允许一条记录的键为Null-多条会覆盖-允许多条记录的值为-Null。非同步的。" class="headerlink" title="HashMap: 最常用的Map,它根据键的HashCode 值存储数据,根据键可以直接获取它的值，具有很快的访问速度。HashMap最多只允许一条记录的键为Null(多条会覆盖);允许多条记录的值为 Null。非同步的。"></a>HashMap: 最常用的Map,它根据键的HashCode 值存储数据,根据键可以直接获取它的值，具有很快的访问速度。HashMap最多只允许一条记录的键为Null(多条会覆盖);允许多条记录的值为 Null。非同步的。</h2><h2 id="Hashtable-与-HashMap类似-不同的是-key和value的值均不允许为null-它支持线程的同步，即任一时刻只有一个线程能写Hashtable-因此也导致了Hashtale在写入时会比较慢。"><a href="#Hashtable-与-HashMap类似-不同的是-key和value的值均不允许为null-它支持线程的同步，即任一时刻只有一个线程能写Hashtable-因此也导致了Hashtale在写入时会比较慢。" class="headerlink" title="Hashtable: 与 HashMap类似,不同的是:key和value的值均不允许为null;它支持线程的同步，即任一时刻只有一个线程能写Hashtable,因此也导致了Hashtale在写入时会比较慢。"></a>Hashtable: 与 HashMap类似,不同的是:key和value的值均不允许为null;它支持线程的同步，即任一时刻只有一个线程能写Hashtable,因此也导致了Hashtale在写入时会比较慢。</h2><h2 id="LinkedHashMap-保存了记录的插入顺序，在遍历LinkedHashMap时，先得到的记录肯定是先插入的-在遍历的时候会比HashMap慢。key和value均允许为空，非同步的。"><a href="#LinkedHashMap-保存了记录的插入顺序，在遍历LinkedHashMap时，先得到的记录肯定是先插入的-在遍历的时候会比HashMap慢。key和value均允许为空，非同步的。" class="headerlink" title="LinkedHashMap: 保存了记录的插入顺序，在遍历LinkedHashMap时，先得到的记录肯定是先插入的.在遍历的时候会比HashMap慢。key和value均允许为空，非同步的。"></a>LinkedHashMap: 保存了记录的插入顺序，在遍历LinkedHashMap时，先得到的记录肯定是先插入的.在遍历的时候会比HashMap慢。key和value均允许为空，非同步的。</h2><h1 id="统一排序方法"><a href="#统一排序方法" class="headerlink" title="统一排序方法"></a>统一排序方法</h1><p>如果要对TreeMap按照value的值进行排序，或者对HashMap,Hashtable,LinkedHashMap进行排序，则可以使用Map.Entry<k,v>接口结合List实现：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">Map&lt;String,String&gt; map = new TreeMap&lt;String,String&gt;(); </div><div class="line">map.put(&quot;aaaa&quot;, &quot;month&quot;); </div><div class="line">map.put(&quot;bbbb&quot;, &quot;bread&quot;); </div><div class="line">map.put(&quot;ccccc&quot;, &quot;attack&quot;); </div><div class="line">  </div><div class="line">  </div><div class="line">//通过ArrayList构造函数把map.entrySet()转换成list </div><div class="line">List&lt;Map.Entry&lt;String,String&gt;&gt; mappingList = new ArrayList&lt;Map.Entry&lt;String,String&gt;&gt;(map.entrySet()); </div><div class="line">//通过比较器实现比较排序,按照value值升序 </div><div class="line">Collections.sort(mappingList, new Comparator&lt;Map.Entry&lt;String,String&gt;&gt;()&#123; </div><div class="line">    public int compare(Map.Entry&lt;String,String&gt; mapping1,Map.Entry&lt;String,String&gt; mapping2)&#123; </div><div class="line">        return mapping1.getValue().compareTo(mapping2.getValue()); </div><div class="line">    &#125; </div><div class="line">&#125;); </div><div class="line"></div><div class="line">for(Map.Entry&lt;String,String&gt; mapping:mappingList)&#123; </div><div class="line">    System.out.println(mapping.getKey()+&quot;:&quot;+mapping.getValue()); </div><div class="line">&#125;</div></pre></td></tr></table></figure></k,v></p>
+<h1 id="List排序"><a href="#List排序" class="headerlink" title="List排序"></a>List排序</h1><h3 id="方法一：包装类排序"><a href="#方法一：包装类排序" class="headerlink" title="方法一：包装类排序"></a>方法一：包装类排序</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">List&lt;Integer&gt; nums = new ArrayList&lt;Integer&gt;();  </div><div class="line">nums.add(3);  </div><div class="line">nums.add(5);  </div><div class="line">nums.add(1);  </div><div class="line">nums.add(0);  </div><div class="line">Collections.sort(nums);</div></pre></td></tr></table></figure>
+<h3 id="方法二：对象排序"><a href="#方法二：对象排序" class="headerlink" title="方法二：对象排序"></a>方法二：对象排序</h3><h4 id="升序"><a href="#升序" class="headerlink" title="升序"></a>升序</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">Collections.sort(list, new Comparator&lt;Student&gt;()&#123;  </div><div class="line">  </div><div class="line">    public int compare(Student o1, Student o2) &#123;  </div><div class="line">      </div><div class="line">        //按照学生的年龄进行升序排列  </div><div class="line">        if(o1.getAge() &gt;= o2.getAge())&#123;  </div><div class="line">            return 1;  </div><div class="line">        &#125;  </div><div class="line">        return -1;  </div><div class="line">    &#125;  </div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<h4 id="降序"><a href="#降序" class="headerlink" title="降序"></a>降序</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">Collections.sort(list, new Comparator&lt;Student&gt;()&#123;  </div><div class="line">  </div><div class="line">    public int compare(Student o1, Student o2) &#123;  </div><div class="line">      </div><div class="line">        //按照学生的年龄进行降序排列  </div><div class="line">        if(o1.getAge() &lt;= o2.getAge())&#123;  </div><div class="line">            return 1;  </div><div class="line">        &#125;  </div><div class="line">        return -1;  </div><div class="line">    &#125;  </div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/集合/集合排序/" data-id="cj6995wq0005hqhblwxzdea9w" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/JPA/Cascade和orphanRemoval" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/JPA/Cascade和orphanRemoval/">Cascade和orphanRemoval</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/JPA/Cascade和orphanRemoval/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
@@ -110,12 +428,22 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="事例一"><a href="#事例一" class="headerlink" title="事例一"></a>事例一</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">Specification&lt;UserModel&gt; spec = new Specification&lt;UserModel&gt;() &#123;  </div><div class="line">    public Predicate toPredicate(Root&lt;UserModel&gt; root,  </div><div class="line">            CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;  </div><div class="line">        List&lt;Predicate&gt; list = new ArrayList&lt;Predicate&gt;();  </div><div class="line">              </div><div class="line">        if(um.getName()!=null &amp;&amp; um.getName().trim().length()&gt;0)&#123;  </div><div class="line">            list.add(cb.like(root.get(&quot;name&quot;).as(String.class), &quot;%&quot;+um.getName()+&quot;%&quot;));  </div><div class="line">        &#125;  </div><div class="line">        if(um.getUuid()&gt;0)&#123;  </div><div class="line">            list.add(cb.equal(root.get(&quot;uuid&quot;).as(Integer.class), um.getUuid()));  </div><div class="line">        &#125;  </div><div class="line">        Predicate[] p = new Predicate[list.size()];  </div><div class="line">        return cb.and(list.toArray(p));  </div><div class="line">    &#125;  </div><div class="line">&#125;;</div></pre></td></tr></table></figure>
-<h2 id="事例二"><a href="#事例二" class="headerlink" title="事例二"></a>事例二</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">Specification&lt;UserModel&gt; spec = new Specification&lt;UserModel&gt;() &#123;  </div><div class="line">    public Predicate toPredicate(Root&lt;UserModel&gt; root,  </div><div class="line">            CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;  </div><div class="line">        Predicate p1 = cb.like(root.get(&quot;name&quot;).as(String.class), &quot;%&quot;+um.getName()+&quot;%&quot;);  </div><div class="line">        Predicate p2 = cb.equal(root.get(&quot;uuid&quot;).as(Integer.class), um.getUuid());  </div><div class="line">        Predicate p3 = cb.gt(root.get(&quot;age&quot;).as(Integer.class), um.getAge());  </div><div class="line">        //把Predicate应用到CriteriaQuery中去,因为还可以给CriteriaQuery添加其他的功能，比如排序、分组啥的  </div><div class="line">        query.where(cb.and(p3,cb.or(p1,p2)));  </div><div class="line">        //添加排序的功能  </div><div class="line">        query.orderBy(cb.desc(root.get(&quot;uuid&quot;).as(Integer.class)));  </div><div class="line">          </div><div class="line">        return query.getRestriction();  </div><div class="line">    &#125;  </div><div class="line">&#125;;</div></pre></td></tr></table></figure>
-<h2 id="事例三"><a href="#事例三" class="headerlink" title="事例三"></a>事例三</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">public Predicate toPredicate(Root&lt;ExpressOrderEntity&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;</div><div class="line">    </div><div class="line">    List&lt;Predicate&gt; conditions = new ArrayList&lt;Predicate&gt;();</div><div class="line">    </div><div class="line">    //改为由店铺获取，为了子帐号和主帐号可以互相看到对方的订单</div><div class="line">    Predicate p1 = cb.equal(root.get(ExpressOrderEntity_.shop), shopEntity);</div><div class="line">    conditions.add(p1);</div><div class="line"></div><div class="line">    if (searchType != ExpressOrderConstants.APP_SEARCH_ALL) &#123;</div><div class="line">        In&lt;Byte&gt; in = cb.in(root.get(ExpressOrderEntity_.status));</div><div class="line">        Byte[] status = getOrderStatus(searchType);</div><div class="line">        for (Byte b : status) &#123;</div><div class="line">            in.value(b);</div><div class="line">        &#125;</div><div class="line">        conditions.add(in);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    //根据id降序排序</div><div class="line">    Order idOrder = cb.desc(root.get(ExpressOrderEntity_.id));</div><div class="line"></div><div class="line">    return query.where(conditions.toArray(new Predicate[conditions.size()])).orderBy(idOrder).getRestriction();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="实例四"><a href="#实例四" class="headerlink" title="实例四"></a>实例四</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">public Predicate toPredicate(Root&lt;AppBannerEntity&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;</div><div class="line">	Predicate enabled = cb.equal(root.get(AppBannerEntity_.isEnabled), true);</div><div class="line">	Join&lt;AppBannerEntity, AppBannerTypeEntity&gt; typeJoin = root.join(AppBannerEntity_.appBannerType);</div><div class="line">	Predicate bannerPd = typeJoin.get(AppBannerTypeEntity_.type).in(types);</div><div class="line">	Predicate notExpired = cb.greaterThan(root.get(AppBannerEntity_.expireTime), new Date());</div><div class="line">	return cb.and(enabled, bannerPd, notExpired);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="实例五：多对多关联查询"><a href="#实例五：多对多关联查询" class="headerlink" title="实例五：多对多关联查询"></a>实例五：多对多关联查询</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">List&lt;BusinessCircleEntity&gt; entities = businessCircleJpaRepository.findAll(new Specification&lt;BusinessCircleEntity&gt;() &#123;</div><div class="line">			</div><div class="line">    @Override</div><div class="line">    public Predicate toPredicate(Root&lt;BusinessCircleEntity&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;</div><div class="line">    	List&lt;Predicate&gt; conditions = new ArrayList&lt;Predicate&gt;();</div><div class="line">    	Join&lt;BusinessCircleEntity, MarketEntity&gt; market=root.joinList(BusinessCircleEntity_.listOfMarket.getName());</div><div class="line">    	Join&lt;MarketEntity, ProductCategoryEntity&gt; productCategory = market.joinList(MarketEntity_.listOfProductCategory.getName());</div><div class="line">    	</div><div class="line">    	Predicate p1 = cb.equal(productCategory.get(ProductCategoryEntity_.id), categoryId); </div><div class="line">    	conditions.add(p1);</div><div class="line">    	</div><div class="line">    	Predicate p2 = cb.equal(root.get(BusinessCircleEntity_.city), cityEntity); </div><div class="line">    	conditions.add(p2);</div><div class="line">    	</div><div class="line">    	return query.where(conditions.toArray(new Predicate[conditions.size()])).getRestriction();</div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
-<h2 id="实例六：多对多关联查询"><a href="#实例六：多对多关联查询" class="headerlink" title="实例六：多对多关联查询"></a>实例六：多对多关联查询</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">List&lt;MarketEntity&gt; entities = marketJpaRepository.findList(new Specification&lt;MarketEntity&gt;() &#123;</div><div class="line">			</div><div class="line">	@Override</div><div class="line">	public Predicate toPredicate(Root&lt;MarketEntity&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;</div><div class="line">		List&lt;Predicate&gt; conditions = new ArrayList&lt;Predicate&gt;();</div><div class="line">		Join&lt;MarketEntity, ProductCategoryEntity&gt; productCategory = root.joinList(MarketEntity_.listOfProductCategory.getName());</div><div class="line">		Join&lt;MarketEntity, BusinessCircleEntity&gt; businessCircle = root.join(MarketEntity_.businessCircle);</div><div class="line">		</div><div class="line">		Predicate p1 = cb.equal(productCategory.get(ProductCategoryEntity_.id), categoryId); </div><div class="line">		conditions.add(p1);</div><div class="line">		</div><div class="line">		Predicate p2 = cb.equal(businessCircle.get(BusinessCircleEntity_.city), cityEntity); </div><div class="line">		conditions.add(p2);</div><div class="line">		</div><div class="line">		return query.where(conditions.toArray(new Predicate[conditions.size()])).getRestriction();</div><div class="line">	&#125;</div><div class="line">&#125;, start, limit);</div></pre></td></tr></table></figure>
+        <h2 id="Cascade"><a href="#Cascade" class="headerlink" title="Cascade"></a>Cascade</h2><p>对于关联实体而言，Hibernate默认不会启用级联操作，当父对象被保存时，他关联的子实体不会被保存。为了启用不同持久化操作的级联行为，Hibernate定了如下级联风格：</p>
+<ul>
+<li><code>CascadeType.ALL</code>:指定Hibernate将所有的持久化操作都级联到关联实体。</li>
+<li><code>CascadeType.MERGE</code>:指定Hibernate将级联更新操作都级联到关联实体。</li>
+<li><code>CascadeType.PERSIST</code>:指定Hibernate将级联保存操作都级联到关联实体。</li>
+<li><code>CascadeType.REFRESH</code>:指定Hibernate将级联同步操作都级联到关联实体。</li>
+<li><code>CascadeType.REMOVE</code>:指定Hibernate将级联移除持久化操作都级联到关联实体。</li>
+</ul>
+<p>对于级联的设定，Hibernate有如下建议</p>
+<ol>
+<li>在@ManyToOne中指定级联没有什么意义。级联通常在@OneToOne和@OneToMany关系中，因为级联操作应该是由主表记录传播到从表记录，通常从表记录不应该传播到主表记录。</li>
+<li>如果从表记录被完全限制在主表记录之内，则可以指定cascade=Cascade.ALL,再配合orphanRemoval=true级联策略，将从表实体的生命周期完全交给主表实体管理。</li>
+<li>如果经常在某个事务中同时使用主表实体和从表实体，则可以考虑cascade={CascadeType.PERSIST,CascadeType.MERGE}级联策略。</li>
+</ol>
+<h2 id="orphanRemoval"><a href="#orphanRemoval" class="headerlink" title="orphanRemoval"></a>orphanRemoval</h2><p>只适用于@OneToMany,@OneToOne<br>Hibernate还支持一个特殊的级联策略：删除孤儿对象<br>该策略只能对应当前实体1的一端，且底层数据表为主表时有效。对于启用了roaphanRemoval策略的级联操作而言，当程序通过主表实体切断与从表实体的关联关系时-虽然此时主表实体对应的记录并没有删除，但由于从表实体失去了对主表实体的引用，因此这些从表实体成为了“孤儿”，hibernate会自动删除这些记录。</p>
+
       
     </div>
 
@@ -125,7 +453,197 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/Specification实例/" data-id="cj65wiwdj005frlbl48hl3hc0" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/Cascade和orphanRemoval/" data-id="cj6995wq1005jqhblvg6m5ir1" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/JPA/GeneratedValue主键生成策略" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/">GeneratedValue主键生成策略</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="GeneratedValue-主键的产生策略，通过strategy属性指定。"><a href="#GeneratedValue-主键的产生策略，通过strategy属性指定。" class="headerlink" title="@GeneratedValue:主键的产生策略，通过strategy属性指定。"></a>@GeneratedValue:主键的产生策略，通过strategy属性指定。</h2><p>主键产生策略通过GenerationType来指定。GenerationType是一个枚举，它定义了主键产生策略的类型。</p>
+<ol>
+<li>AUTO　自动选择一个最适合底层数据库的主键生成策略。如MySQL会自动对应auto increment。这个是默认选项，即如果只写@GeneratedValue，等价于@GeneratedValue(strategy=GenerationType.AUTO)。</li>
+<li>IDENTITY　表自增长字段，Oracle不支持这种方式。</li>
+<li>SEQUENCE　通过序列产生主键，MySQL不支持这种方式。</li>
+<li>TABLE　通过表产生主键，框架借由表模拟序列产生主键，使用该策略可以使应用更易于数据库移植。不同的JPA实现商生成的表名是不同的，如 OpenJPA生成openjpa_sequence_table表，Hibernate生成一个hibernate_sequences表，而TopLink则生成sequence表。这些表都具有一个序列名和对应值两个字段，如SEQ_NAME和SEQ_COUNT。</li>
+</ol>
+<p>在我们的应用中，一般选用@GeneratedValue(strategy=GenerationType.AUTO)这种方式，自动选择主键生成策略，以适应不同的数据库移植。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/GeneratedValue主键生成策略/" data-id="cj6995wq2005mqhblf5bbarzq" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/JPA/JPA 2.0 锁机制" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/JPA/JPA 2.0 锁机制/">JPA 2.0 锁机制</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/JPA/JPA 2.0 锁机制/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>锁是处理数据库事务并发的一种技术，当两个或更多数据库事务并发地访问相同数据时，锁可以保证同一时间只有一个事务可以修改数据。  </p>
+<p>锁的方法通常有两种：<strong>乐观锁</strong>和<strong>悲观锁</strong>。</p>
+<p>乐观锁认为多个并发事务之间很少出现冲突，也就是说不会经常出现同一时间读取或修改相同数据，在乐观锁中，其目标是让并发事务自由地同时得到处理，而不是发现或预防冲突。两个事务在同一时刻可以访问相同的数据，但为了预防冲突，需要对数据执行一次检查，检查自上次读取数据以来发生的任何变化。<br>悲观锁认为事务会经常发生冲突，在悲观锁中，读取数据的事务会锁定数据，在前面的事务提交之前，其它事务都不能修改数据。</p>
+<h3 id="乐观锁的工作原理"><a href="#乐观锁的工作原理" class="headerlink" title="乐观锁的工作原理"></a>乐观锁的工作原理</h3><p>乐观锁基于的假设是实际中冲突很少发生，即使发生，抛出一个错误也比想办法避免它们更容易接受和简单。在乐观锁中，允许一个事务正确完成，但另一个事务需要抛出异常并回滚，并且必须被重新执行或者丢弃。<br>我们以Adam和Barbara为例，下面是一个使用乐观锁可能发生的情形：<br>1.Adam的事务读取数据 X<br>2.Barbara的事务读取数据 X<br>3.Adam的事务修改数据 X，并将其修改为 XA<br>4.Adam的事务写入数据 XA<br>5.Barbara的事务修改数据 X，并将其修改为 XB<br>6.Barbara的事务试图写入数据 XB，但是收到一个错误<br>7.Barbara需要读取数据 XA（或者重新开始一个新的事务）<br>8.Barbara的事务修改数据 XA，并将其修改为 XAB<br>9.Barbara的事务写入数据 XAB     </p>
+<p>如你所见，Barbara被强制要求检查Adam的修改，并且她可以选择继续修改Adam的结果并保存（合并修改）。最后的数据将同时包括Adam和Barbara的修改。<br>乐观锁完全由JPA控制。它需要在DB表中额外存储一个版本号列。它完全依靠于底层用来存储关系型数据的DB引擎来工作。</p>
+<h3 id="悲观锁的工作原理"><a href="#悲观锁的工作原理" class="headerlink" title="悲观锁的工作原理"></a>悲观锁的工作原理</h3><p>对于某些人来说，悲观锁更容易接受。当事务需要修改一个可能被其他事务同时修改的实体时，事务会发起一个命令将实体锁住。所有的锁会持续到事务结束后再自动释放。<br>使用悲观锁的情形可能如下所示：<br>1.Adam的事务读取数据 X<br>2.Adam的事务锁住 X<br>3.Barbara的事务希望读取数据 X，但是因为 X 已经被锁住，只好等待<br>4.Adam的事务修改数据 X，并将其修改为 XA<br>5.Adam的事务写入数据 XA<br>6.Barbara的事务读取数据 XA<br>7.Barbara的事务修改数据  XA，并将其修改为 XAB<br>8.Barbara的事务写入数据 XAB </p>
+<p>如你所见，Barbara又一次被强制的写入 XAB，同时也包含了Adam的修改。但是，这个方案与乐观锁完全不同——Barbara需要等待Adam的事务完成以后才能够读取数据。更甚的是，为了让该场景正确工作，我们需要在两个事务中都手动发起一个lock命令。（因为我们并不确定那个事务先运行，所以两个事务都需要在修改数据前先进行锁定）虽然乐观锁要为每个实体增加一个版本列，比悲观锁工作略多，但是之后我们不需要再在事务中发起锁操作了。JPA会自动完成所有的检查，我们只需要处理可能的异常即可。    </p>
+<p><strong>悲观锁使用底层数据库提供的锁机制来锁住表中已有的记录</strong>。JPA需要知道如何触发这些锁，并且尚不能完全支持某些数据库。</p>
+<h3 id="JPA1-0-锁机制"><a href="#JPA1-0-锁机制" class="headerlink" title="JPA1.0 锁机制"></a>JPA1.0 锁机制</h3><p>JPA 1.0只支持乐观锁，你可以使用EntityManager类的lock()方法指定锁模式的值，可以是READ或WRITE，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">EntityManager em = ... ;</div><div class="line">em.lock(p1, READ);</div></pre></td></tr></table></figure></p>
+<p>对于READ锁模式，JPA实体管理器在事务提交前都会锁定实体，检查实体的版本属性确定实体自上次被读取以来是否有更新，如果版本属性被更新了，实体管理器会抛出一个OptimisticLockException异常，并回滚事务。<br>对于WRITE锁模式，实体管理器执行和READ锁模式相同的乐观锁操作，但它也会更新实体的版本列。 </p>
+<h3 id="JPA2-0锁机制"><a href="#JPA2-0锁机制" class="headerlink" title="JPA2.0锁机制"></a>JPA2.0锁机制</h3><p>JPA 2.0增加了6种新的锁模式，其中两个是乐观锁。JPA 2.0也允许悲观锁，并增加了3种悲观锁，第6种锁模式是无锁。<br>下面是新增的两个乐观锁模式： </p>
+<ol>
+<li><strong>OPTIMISTIC</strong>：它和READ锁模式相同，JPA 2.0仍然支持READ锁模式，但明确指出在新应用程序中推荐使用OPTIMISTIC。 </li>
+<li><strong>OPTIMISTIC_FORCE_INCREMENT</strong>：它和WRITE锁模式相同，JPA 2.0仍然支持WRITE锁模式，但明确指出在新应用程序中推荐使用OPTIMISTIC_FORCE_INCREMENT。 </li>
+</ol>
+<p>下面是新增的三个悲观锁模式： </p>
+<ol>
+<li><strong>PESSIMISTIC_READ</strong>：只要事务读实体，实体管理器就锁定实体，直到事务完成锁才会解开，当你想使用重复读语义查询数据时使用这种锁模式，换句话说就是，当你想确保数据在连续读期间不被修改，这种锁模式不会阻碍其它事务读取数据。 </li>
+<li><strong>PESSIMISTIC_WRITE</strong>：只要事务更新实体，实体管理器就会锁定实体，这种锁模式强制尝试修改实体数据的事务串行化，当多个并发更新事务出现更新失败几率较高时使用这种锁模式。 </li>
+<li><strong>PESSIMISTIC_FORCE_INCREMENT</strong>：当事务读实体时，实体管理器就锁定实体，当事务结束时会增加实体的版本属性，即使实体没有修改。<br>你也可以指定新的锁模式NONE，在这种情况下表示没有锁发生。 </li>
+</ol>
+<h3 id="LockModeType类型"><a href="#LockModeType类型" class="headerlink" title="LockModeType类型"></a>LockModeType类型</h3><h4 id="JPA-2-0"><a href="#JPA-2-0" class="headerlink" title="JPA 2.0"></a>JPA 2.0</h4><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NONE</td>
+<td>没有锁</td>
+</tr>
+<tr>
+<td>OPTIMISTIC</td>
+<td>乐观锁，类似于READ</td>
+</tr>
+<tr>
+<td>OPTIMISTIC_FORCE_INCREMENT</td>
+<td>乐观锁，类似于WRITE</td>
+</tr>
+<tr>
+<td>PESSIMISTIC_READ</td>
+<td>悲观读锁（Pessimistic read lock）</td>
+</tr>
+<tr>
+<td>PESSIMISTIC_WRITE</td>
+<td>悲观写锁（Pessimistic write lock）</td>
+</tr>
+<tr>
+<td>PESSIMISTIC_FORCE_INCREMENT</td>
+<td>悲观写锁，事务结束后会增加版本号（Pessimistic write lock, with version update）</td>
+</tr>
+</tbody>
+</table>
+<h4 id="JPA-1-0"><a href="#JPA-1-0" class="headerlink" title="JPA 1.0"></a>JPA 1.0</h4><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>READ</td>
+<td>乐观读锁</td>
+</tr>
+<tr>
+<td>WRITE</td>
+<td>乐观写锁</td>
+</tr>
+</tbody>
+</table>
+<p>@Version 注解用于支持乐观锁版本控制。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/JPA 2.0 锁机制/" data-id="cj6995wq3005oqhblulwukg8b" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -333,7 +851,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/JPA高级查询/" data-id="cj65wiwdk005irlbl5kx137q0" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/JPA高级查询/" data-id="cj6995wq4005rqhblgmz0fsg4" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -400,428 +918,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/利用hibernate实现/" data-id="cj65wiwdl005krlbl2dpzl2at" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/JPA/对应关系映射配置" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/JPA/对应关系映射配置/">对应关系映射配置</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/JPA/对应关系映射配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="ManyToMany"><a href="#ManyToMany" class="headerlink" title="ManyToMany"></a>ManyToMany</h2><p>主控方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@ManyToMany(targetEntity=SysRoleEntity.class, fetch=FetchType.LAZY)</div><div class="line">@JoinTable(name=&quot;sys_admin_role&quot;, </div><div class="line">  joinColumns=@JoinColumn(name=&quot;admin_id&quot;, referencedColumnName=&quot;id&quot;),</div><div class="line">  inverseJoinColumns=@JoinColumn(name=&quot;role_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line"> ) </div><div class="line">private List&lt;SysRoleEntity&gt; listOfSysRole;</div></pre></td></tr></table></figure></p>
-<p>被动方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@ManyToMany(mappedBy=&quot;listOfSysRole&quot;, targetEntity=SysAdminEntity.class)</div><div class="line">private List&lt;SysAdminEntity&gt; listOfSysAdmin;</div></pre></td></tr></table></figure></p>
-<h2 id="ManyToOne-And-OneToMany"><a href="#ManyToOne-And-OneToMany" class="headerlink" title="ManyToOne And OneToMany"></a>ManyToOne And OneToMany</h2><p>主控方配置：一般是多的一方为主控<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@ManyToOne</div><div class="line">@JoinColumn(name=&quot;role_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line">private SysRoleEntity sysRole;</div></pre></td></tr></table></figure></p>
-<p>被动方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@OneToMany(mappedBy=&quot;sysRole&quot;, targetEntity=SysAuthorityEntity.class)</div><div class="line">private List&lt;SysAuthorityEntity&gt; listOfsysAuthority;</div></pre></td></tr></table></figure></p>
-<h2 id="OneToOne"><a href="#OneToOne" class="headerlink" title="OneToOne"></a>OneToOne</h2><p>主控方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@OneToOne(fetch=FetchType.LAZY)</div><div class="line">@JoinColumn(name=&quot;code_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line">private CodeEntity codeEntity;</div></pre></td></tr></table></figure></p>
-<p>被动方配置:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@OneToOne(mappedBy=&quot;codeEntity&quot;, targetEntity=OddsEntity.class, fetch=FetchType.LAZY)</div><div class="line">private OddsEntity oddsEntity;</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/对应关系映射配置/" data-id="cj65wiwdn005nrlblcgsuduz3" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Maven/不同环境加载不同的配置文件" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/不同环境加载不同的配置文件/">不同环境加载不同的配置文件</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Maven/不同环境加载不同的配置文件/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="先配置不同环境的配置"><a href="#先配置不同环境的配置" class="headerlink" title="先配置不同环境的配置"></a>先配置不同环境的配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line">&lt;!--  根据不同的环境取不同的配置 --&gt;</div><div class="line">&lt;profiles&gt;</div><div class="line">  &lt;!--  开发环境 --&gt;</div><div class="line">  &lt;profile&gt;</div><div class="line">	&lt;id&gt;dev&lt;/id&gt;</div><div class="line">	&lt;!--  设置默认环境 --&gt;</div><div class="line">	&lt;activation&gt;</div><div class="line">		&lt;activeByDefault&gt;true&lt;/activeByDefault&gt;</div><div class="line">	&lt;/activation&gt;</div><div class="line">	&lt;!--  配置属性 --&gt;</div><div class="line">	&lt;properties&gt;</div><div class="line">    	&lt;env&gt;dev&lt;/env&gt;</div><div class="line">    	&lt;test.skip&gt;true&lt;/test.skip&gt;</div><div class="line">	&lt;/properties&gt;</div><div class="line">  &lt;/profile&gt;</div><div class="line">	&lt;!--  开发环境 --&gt;</div><div class="line">	&lt;!--  测试环境 --&gt;</div><div class="line">	&lt;profile&gt;</div><div class="line">		&lt;id&gt;sit&lt;/id&gt;</div><div class="line">		&lt;properties&gt;</div><div class="line">			&lt;env&gt;sit&lt;/env&gt;</div><div class="line">			&lt;test.skip&gt;true&lt;/test.skip&gt;</div><div class="line">		&lt;/properties&gt;</div><div class="line">	&lt;/profile&gt;</div><div class="line">	&lt;!--  测试环境 --&gt;</div><div class="line">	&lt;!--  线上环境 --&gt;</div><div class="line">	&lt;profile&gt;</div><div class="line">		&lt;id&gt;prd&lt;/id&gt;</div><div class="line">		&lt;!-- &lt;activation&gt;</div><div class="line">			&lt;activeByDefault&gt;true&lt;/activeByDefault&gt;</div><div class="line">		&lt;/activation&gt; --&gt;</div><div class="line">		&lt;properties&gt;</div><div class="line">			&lt;env&gt;prd&lt;/env&gt;</div><div class="line">			&lt;test.skip&gt;true&lt;/test.skip&gt;</div><div class="line">		&lt;/properties&gt;</div><div class="line">	&lt;/profile&gt;</div><div class="line">	&lt;!--  线上环境 --&gt;</div><div class="line">&lt;/profiles&gt;</div><div class="line">&lt;!--  根据不同的环境取不同的配置 --&gt;</div></pre></td></tr></table></figure>
-<h2 id="build"><a href="#build" class="headerlink" title="build"></a>build</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div></pre></td><td class="code"><pre><div class="line">&lt;build&gt;</div><div class="line">  &lt;!-- 打包的包名 --&gt;</div><div class="line">  &lt;finalName&gt;roaster&lt;/finalName&gt;</div><div class="line">    &lt;!-- 过滤的原文件，配置时将filters中文件的key对应的value替换资源文件中的$&#123;key&#125;  --&gt;</div><div class="line">  	&lt;filters&gt;</div><div class="line">		&lt;filter&gt;profiles/dev/META-INF/config1/application.properties&lt;/filter&gt;</div><div class="line">	&lt;/filters&gt;</div><div class="line">	&lt;!-- 配置资源文件 --&gt;</div><div class="line">	&lt;resources&gt;</div><div class="line">	</div><div class="line">		&lt;resource&gt;</div><div class="line">		    &lt;!-- 资源文件目录 --&gt;</div><div class="line">			&lt;directory&gt;profiles/$&#123;env&#125;&lt;/directory&gt;</div><div class="line">			&lt;!--是否使用上面filters配置的文件中的key对应的value替换下面资源文件中对应的$&#123;key&#125;值 --&gt;</div><div class="line">			&lt;filtering&gt;false&lt;/filtering&gt;</div><div class="line">			&lt;!-- 配置不包括的文件，在directory配置的目录中，除了下面的文件，其它文件都将加入打包 --&gt;</div><div class="line">			&lt;excludes&gt;</div><div class="line">				&lt;exclude&gt;META-INF/config/application.properties&lt;/exclude&gt;</div><div class="line">			&lt;/excludes&gt;</div><div class="line">			</div><div class="line">			&lt;!-- 打包包括的文件 --&gt;</div><div class="line">			&lt;!-- &lt;includes&gt;</div><div class="line">				&lt;include&gt;META-INF/config/application.properties&lt;/include&gt;</div><div class="line">				&lt;include&gt;META-INF/config/jdbc.properties&lt;/include&gt;</div><div class="line">				&lt;include&gt;META-INF/config/memcached.properties&lt;/include&gt;</div><div class="line">			&lt;/includes&gt; --&gt;</div><div class="line">		&lt;/resource&gt;</div><div class="line">		</div><div class="line">		</div><div class="line">		&lt;resource&gt;</div><div class="line">			&lt;directory&gt;src/main/resources&lt;/directory&gt;</div><div class="line">			&lt;filtering&gt;true&lt;/filtering&gt;</div><div class="line">				&lt;includes&gt;</div><div class="line">					&lt;include&gt;META-INF/config/common.properties&lt;/include&gt;</div><div class="line">				&lt;/includes&gt;</div><div class="line">		&lt;/resource&gt;</div><div class="line">	</div><div class="line">	&lt;/resources&gt; </div><div class="line">    &lt;sourceDirectory&gt;src&lt;/sourceDirectory&gt;</div><div class="line">    &lt;plugins&gt;</div><div class="line">      &lt;plugin&gt;</div><div class="line">        &lt;artifactId&gt;maven-war-plugin&lt;/artifactId&gt;</div><div class="line">        &lt;version&gt;2.3&lt;/version&gt;</div><div class="line">        &lt;configuration&gt;</div><div class="line">          &lt;warSourceDirectory&gt;webapp&lt;/warSourceDirectory&gt;</div><div class="line">          &lt;failOnMissingWebXml&gt;false&lt;/failOnMissingWebXml&gt;</div><div class="line">        &lt;/configuration&gt;</div><div class="line">      &lt;/plugin&gt;</div><div class="line">      &lt;plugin&gt;</div><div class="line">        &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;</div><div class="line">        &lt;version&gt;3.1&lt;/version&gt;</div><div class="line">        &lt;configuration&gt;</div><div class="line">          &lt;source&gt;1.7&lt;/source&gt;</div><div class="line">          &lt;target&gt;1.7&lt;/target&gt;</div><div class="line">        &lt;/configuration&gt;</div><div class="line">      &lt;/plugin&gt;</div><div class="line">    &lt;/plugins&gt;</div><div class="line">  &lt;/build&gt;</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/不同环境加载不同的配置文件/" data-id="cj65wiwa1000prlbl9ccqe8sv" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/Security/获取所有登录用户" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/Security/获取所有登录用户/">获取所有登录用户</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/Security/获取所有登录用户/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Security/">Security</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="web-xml"><a href="#web-xml" class="headerlink" title="web.xml"></a>web.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;listener&gt;</div><div class="line">    &lt;listener-class&gt;</div><div class="line">      org.springframework.security.web.session.HttpSessionEventPublisher</div><div class="line">    &lt;/listener-class&gt;</div><div class="line">&lt;/listener&gt;</div></pre></td></tr></table></figure>
-<h2 id="security-xml"><a href="#security-xml" class="headerlink" title="security.xml"></a>security.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;http&gt;</div><div class="line">    &lt;session-management &gt;</div><div class="line">    	&lt;concurrency-control max-sessions=&quot;1&quot; session-registry-ref=&quot;sessionRegistry&quot;</div><div class="line">    	expired-url=&quot;/admin/none/session_expired.jsp&quot; /&gt; </div><div class="line">    &lt;/session-management&gt;</div><div class="line">&lt;/http&gt;</div><div class="line"></div><div class="line">&lt;beans:bean id=&quot;sessionRegistry&quot; class=&quot;org.springframework.security.core.session.SessionRegistryImpl&quot; /&gt;</div></pre></td></tr></table></figure>
-<h2 id="java中使用"><a href="#java中使用" class="headerlink" title="java中使用"></a>java中使用</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sessionRegistry.getAllPrincipals()</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Security/获取所有登录用户/" data-id="cj65wiwdp005srlblv2ad2s5t" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/基础/Spring获取ApplicationContext，并获取所有Bean" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/">Spring获取ApplicationContext，并获取所有Bean</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/基础/">基础</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="方法一（推荐）"><a href="#方法一（推荐）" class="headerlink" title="方法一（推荐）"></a>方法一（推荐）</h2><h3 id="实现接口ApplicationContextAware"><a href="#实现接口ApplicationContextAware" class="headerlink" title="实现接口ApplicationContextAware"></a>实现接口ApplicationContextAware</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line">package com.lhc.utils;</div><div class="line"></div><div class="line">import java.util.Map;</div><div class="line"></div><div class="line">import org.springframework.beans.BeansException;</div><div class="line">import org.springframework.context.ApplicationContext;</div><div class="line">import org.springframework.context.ApplicationContextAware;</div><div class="line"></div><div class="line">public class SpringContextHolder implements ApplicationContextAware &#123;</div><div class="line">	private static ApplicationContext applicationContext = null;  </div><div class="line">	  @Override  </div><div class="line">	  public  void setApplicationContext(ApplicationContext applicationContext)  throws BeansException &#123;  </div><div class="line">		    if(SpringContextHolder.applicationContext == null) &#123;  </div><div class="line">		    	SpringContextHolder.applicationContext  = applicationContext;  </div><div class="line">		    &#125;  </div><div class="line">	  &#125;  </div><div class="line"></div><div class="line">	public static ApplicationContext getApplicationContext() &#123;</div><div class="line">		checkApplicationContext();</div><div class="line">		return applicationContext;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public static &lt;T&gt; T getBean(String name) &#123;</div><div class="line">		checkApplicationContext();</div><div class="line">		return (T) applicationContext.getBean(name);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public static &lt;T&gt; T getBean(String beanName, Class&lt;T&gt; type) &#123;</div><div class="line">		checkApplicationContext();</div><div class="line">		return applicationContext.getBean(beanName, type);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public static &lt;T&gt; T getBean(Class&lt;T&gt; clazz) &#123;</div><div class="line">		checkApplicationContext();</div><div class="line"></div><div class="line">		Map&lt;String, T&gt; beanMaps = applicationContext.getBeansOfType(clazz);</div><div class="line">		if ((beanMaps != null) &amp;&amp; (!beanMaps.isEmpty())) &#123;</div><div class="line">			return beanMaps.values().iterator().next();</div><div class="line">		&#125;</div><div class="line">		return null;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	private static void checkApplicationContext() &#123;</div><div class="line">		if (applicationContext == null) &#123;</div><div class="line">			throw new IllegalStateException(&quot;applicaitonContext未注入,请在applicationContext.xml中定义SpringContextHolder&quot;);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="配置文件中配置"><a href="#配置文件中配置" class="headerlink" title="配置文件中配置"></a>配置文件中配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;!--  bean管理工具 --&gt;</div><div class="line">&lt;bean id=&quot;springContextHolder&quot; class=&quot;com.lhc.utils.SpringContextHolder&quot;/&gt;</div><div class="line">&lt;!--  bean管理工具 --&gt;</div></pre></td></tr></table></figure>
-<h2 id="方法二"><a href="#方法二" class="headerlink" title="方法二"></a>方法二</h2><h3 id="继承自抽象类ApplicationObjectSupport"><a href="#继承自抽象类ApplicationObjectSupport" class="headerlink" title="继承自抽象类ApplicationObjectSupport"></a>继承自抽象类ApplicationObjectSupport</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line">import javax.faces.application.Application;  </div><div class="line">import org.springframework.beans.BeansException;  </div><div class="line">import org.springframework.context.ApplicationContext;  </div><div class="line">import org.springframework.context.ApplicationContextAware;  </div><div class="line">import org.springframework.context.support.ApplicationObjectSupport;  </div><div class="line">import org.springframework.web.context.support.WebApplicationObjectSupport;  </div><div class="line">/** </div><div class="line"> * 获取spring信息的工具类 </div><div class="line"> * @author Administrator </div><div class="line"> * </div><div class="line"> */  </div><div class="line">public final class SpringContextHolder extends ApplicationObjectSupport &#123;  </div><div class="line">  private static ApplicationContext applicationContext = null;  </div><div class="line">  @Override  </div><div class="line">  protected void initApplicationContext(ApplicationContext context)  </div><div class="line">  throws BeansException &#123;  </div><div class="line">    super.initApplicationContext(context);  </div><div class="line">    if(ToolSpring.applicationContext == null)&#123;  </div><div class="line">      ToolSpring.applicationContext = context;  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println(&quot;========ApplicationContext配置成功,在普通类可以通过调用ToolSpring.getAppContext()获取applicationContext对象,applic      ationContext=&quot;+applicationContext+&quot;========&quot;);  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">    &#125;  </div><div class="line">  &#125;  </div><div class="line">  public static ApplicationContext getAppContext() &#123;  </div><div class="line">    return applicationContext;  </div><div class="line">  &#125;  </div><div class="line">  public static Object getBean(String name)&#123;  </div><div class="line">    return getAppContext().getBean(name);  </div><div class="line">  &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="配置文件中配置-1"><a href="#配置文件中配置-1" class="headerlink" title="配置文件中配置"></a>配置文件中配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;!--  bean管理工具 --&gt;</div><div class="line">&lt;bean id=&quot;springContextHolder&quot; class=&quot;com.lhc.utils.SpringContextHolder&quot;/&gt;</div><div class="line">&lt;!--  bean管理工具 --&gt;</div></pre></td></tr></table></figure>
-<h2 id="方法三"><a href="#方法三" class="headerlink" title="方法三"></a>方法三</h2><h3 id="继承自抽象类WebApplicationObjectSupport"><a href="#继承自抽象类WebApplicationObjectSupport" class="headerlink" title="继承自抽象类WebApplicationObjectSupport"></a>继承自抽象类WebApplicationObjectSupport</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">import javax.faces.application.Application;  </div><div class="line">import org.springframework.beans.BeansException;  </div><div class="line">import org.springframework.context.ApplicationContext;  </div><div class="line">import org.springframework.context.support.ApplicationObjectSupport;  </div><div class="line">import org.springframework.web.context.support.WebApplicationObjectSupport;  </div><div class="line">/** </div><div class="line"> * 获取spring信息的工具类 </div><div class="line"> * @author Administrator </div><div class="line"> * </div><div class="line"> */  </div><div class="line">public final class SpringContextHolder extends WebApplicationObjectSupport&#123;  </div><div class="line">  private static ApplicationContext applicationContext = null;  </div><div class="line">  @Override  </div><div class="line">  protected void initApplicationContext(ApplicationContext context) &#123;  </div><div class="line">    super.initApplicationContext(context);  </div><div class="line">    if(applicationContext == null)&#123;  </div><div class="line">      applicationContext = context;  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println(&quot;========ApplicationContext配置成功,在普通类可以通过调用ToolSpring.getAppContext()获取applicationContext对象,applicationContext=&quot;+applicationContext+&quot;========&quot;);  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">    &#125;  </div><div class="line">  &#125;  </div><div class="line">  public static ApplicationContext getAppContext() &#123;  </div><div class="line">    return applicationContext;  </div><div class="line">  &#125;  </div><div class="line">  public static Object getBean(String name)&#123;  </div><div class="line">    return applicationContext.getBean(name);  </div><div class="line">  &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="配置文件中配置-2"><a href="#配置文件中配置-2" class="headerlink" title="配置文件中配置"></a>配置文件中配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;!--  bean管理工具 --&gt;</div><div class="line">&lt;bean id=&quot;springContextHolder&quot; class=&quot;com.lhc.utils.SpringContextHolder&quot;/&gt;</div><div class="line">&lt;!--  bean管理工具 --&gt;</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/" data-id="cj65wiwdq005urlblnczhyfjp" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/基础/spring官方文档" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/基础/spring官方文档/">spring官方文档</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/基础/spring官方文档/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/基础/">基础</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="总的文档："><a href="#总的文档：" class="headerlink" title="总的文档："></a>总的文档：</h2><p><a href="https://spring.io/docs/reference" target="_blank" rel="external">https://spring.io/docs/reference</a></p>
-<h2 id="spring-framework-reference"><a href="#spring-framework-reference" class="headerlink" title="spring-framework-reference"></a>spring-framework-reference</h2><p><a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/" target="_blank" rel="external">http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/</a></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/基础/spring官方文档/" data-id="cj65wiwdr005xrlblgo0nt0on" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Maven/将jar包安装到本地仓库" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/将jar包安装到本地仓库/">将jar包安装到本地仓库</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Maven/将jar包安装到本地仓库/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>cmd 进入jar包所在路径，执行以下命令</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn install:install-file -Dfile=cloud.jar -DgroupId=com.hope.cloud -DartifactId=cloud -Dversion=1.0 -Dpackaging=jar</div></pre></td></tr></table></figure>
-<ul>
-<li>==-Dfile=jar包所在目录==</li>
-<li>==-DgroupId=包的groupId==</li>
-<li>==-DartifactId=包的artifactId==</li>
-<li>==-Dversion=版本==</li>
-<li>==-Dpackaging=打包类型==</li>
-</ul>
-<p>引入：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;com.hope.cloud&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;cloud&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;1.0&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/将jar包安装到本地仓库/" data-id="cj65wiwa1000qrlbl5phwbarf" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-服务器相关/Hessian/几种通信协议的比较" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/服务器相关/Hessian/几种通信协议的比较/">几种通信协议的比较</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/服务器相关/Hessian/几种通信协议的比较/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/Hessian/">Hessian</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="RMI、Hessian、Burlap、Httpinvoker、WebService的比较"><a href="#RMI、Hessian、Burlap、Httpinvoker、WebService的比较" class="headerlink" title="RMI、Hessian、Burlap、Httpinvoker、WebService的比较"></a>RMI、Hessian、Burlap、Httpinvoker、WebService的比较</h2><p>一. <strong>综述</strong><br>本文比较了RMI、Hessian、Burlap、Httpinvoker、WebService5这种通讯协议的在不同的数据结构和不同数据量时的传输性能。<br><strong>RMI</strong>是java语言本身提供的远程通讯协议，稳定高效，是EJB的基础。但它只能用于JAVA程序之间的通讯。<br><strong>Hessian</strong>和<strong>Burlap</strong>是caucho公司提供的开源协议，基于HTTP传输，服务端不用开防火墙端口。协议的规范公开，可以用于任意语言。<br><strong>Httpinvoker</strong>是SpringFramework提供的远程通讯协议，只能用于JAVA程序间的通讯，且服务端和客户端必须使用SpringFramework。<br><strong>Web service</strong>是连接异构系统或异构语言的首选协议，它使用SOAP形式通讯，可以用于任何语言，目前的许多开发工具对其的支持也很好。    </p>
-<p>测试结果显示，几种协议的通讯效率依次为：<br><strong>RMI &gt; Httpinvoker &gt;= Hessian &gt;&gt; Burlap&gt;&gt; web service</strong><br><strong>RMI</strong>不愧是JAVA的首选远程调用协议，非常高效稳定，特别是在大数据量的情况下，与其他通讯协议的差距尤为明显。<br><strong>HttpInvoker</strong>使用java的序列化技术传输对象，与RMI在本质上是一致的。从效率上看，两者也相差无几，HttpInvoker与RMI的传输时间基本持平。<br><strong>Hessian在传输少量对象时</strong>，比RMI还要快速高效，但传输数据结构复杂的对象或大量数据对象时，较RMI要慢20%左右。<br><strong>Burlap</strong>仅在传输1条数据时速度尚可，通常情况下，它的毫时是RMI的3倍。<br><strong>Web Service</strong>的效率低下是众所周知的，平均来看，Web Service的通讯毫时是RMI的10倍。</p>
-<p>二. <strong>结果分析</strong>    </p>
-<ol>
-<li><p><strong>直接调用</strong>:<br>直接调用的所有毫时都接近0，这说明程序处理几乎没有花费时间，记录的全部时间都是远程调用耗费的。</p>
-</li>
-<li><p><strong>RMI调用</strong>:<br>与设想的一样，RMI理所当然是最快的，在几乎所有的情况下，它的毫时都是最少的。特别是在数据结构复杂，数据量大的情况下，与其他协议的差距尤为明显。  为了充分发挥RMI的性能，另外做了测试类，不使用Spring，用原始的RMI形式（继承UnicastRemoteObject对象）提供服务并远程调用，与Spring对POJO包装成的RMI进行效率比较。结果显示：两者基本持平，Spring提供的服务还稍快些。  初步认为，这是因为Spring的代理和缓存机制比较强大，节省了对象重新获取的时间。</p>
-</li>
-<li><p><strong>Hessian调用</strong>：<br>caucho 公司的resin服务器号称是最快的服务器，在java领域有一定的知名度。Hessian做为resin的组成部分，其设计也非常精简高效，实际运行情况也证明了这一点。平均来看，Hessian较RMI要慢20%左右，但这只是在数据量特别大，数据结构很复杂的情况下才能体现出来，中等或少量数据时，Hessian并不比RMI慢。<br>Hessian的好处是精简高效，可以跨语言使用，而且协议规范公开，我们可以针对任意语言开发对其协议的实现。目前已有实现的语言有：java, c++, .net, python,ruby。还没有delphi的实现。<br>另外，Hessian与WEB服务器结合非常好，借助WEB服务器的成熟功能，在处理大量用户并发访问时会有很大优势，在资源分配，线程排队，异常处理等方 面都可以由成熟的WEB服务器保证。而RMI本身并不提供多线程的服务器。而且，RMI需要开防火墙端口，Hessian不用。</p>
-</li>
-<li><p><strong>Burlap调用</strong>:<br>Burlap与Hessian都是caucho公司的开源产品，只不过Hessian采用二进制的方式，而Burlap采用xml的格式。<br>测试结果显示，Burlap在数据结构不复杂，数据量中等的情况下，效率还是可以接受的，但如果数据量大，效率会急剧下降。平均计算，Burlap的调用毫时是RMI的3倍。 我认为，其效率低有两方面的原因，一个是XML数据描述内容太多，同样的数据结构，其传输量要大很多；另一方面，众所周知，对xml的解析是比较费资源的，特别对于大数据量情况下更是如此。</p>
-</li>
-<li><p><strong>HttpInvoker调用</strong>:<br>HttpInvoker是SpringFramework提供的JAVA远程调用方法，使用java的序列化机制处理对象的传输。从测试结果看，其效率还是可以的，与RMI基本持平。  不过，它只能用于JAVA语言之间的通讯，而且，要求客户端和服务端都使用SPRING框架。<br>另外，HttpInvoker 并没有经过实践的检验，目前还没有找到应用该协议的项目。</p>
-</li>
-<li><p><strong>web service调用</strong>:<br>本次测试选用了apache的AXIS组件作为WEB SERVICE的实现，AXIS在WEBSERVICE领域相对成熟老牌。<br>为了仅测试数据传输和编码、解码的时间，客户端和服务端都使用了缓存，对象只需实例化一次。但是，测试结果显示，webservice的效率还是要比其他通讯协议慢10倍。如果考虑到多个引用指向同一对象的传输情况，webservice要落后更多。因为RMI，Hessian等协议都可以传递引用，而web service有多少个引用，就要复制多少份对象实体。<br>Web service传输的冗余信息过多是其速度慢的原因之一，监控发现，同样的访问请求，描述相同的数据，webservice返回的数据量是hessian协议的6.5倍。另外，WEB SERVICE的处理也很毫时，目前的xml解析器效率普遍不高，处理xml &lt;-&gt; bean很毫资源。从测试结果看，异地调用比本地调用要快，也从侧面说明了其毫时主要用在编码和解码xml文件上。这比冗余信息更为严重，冗余信息占用的 只是网络带宽，而每次调用的资源耗费直接影响到服务器的负载能力。（MS的工程师曾说过，用WEB SERVICE不能负载100个以上的并发用户。）<br>测试过程中还发现，web service编码不甚方便，对非基本类型需要逐个注册序列化和反序列化类，很麻烦，生成stub更累，不如spring + RMI/hessian处理那么流畅简洁。而且，web service不支持集合类型，只能用数组，不方便。</p>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/Hessian/几种通信协议的比较/" data-id="cj65wiwdt0062rlbln225y8rs" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/利用hibernate实现/" data-id="cj6995wq5005tqhblqktp41p4" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -838,7 +935,7 @@
 
 
   <div id="page-nav">
-    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/8/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/7/">7</a></li><li><a class="page-number" href="/page/8/">8</a></li><li class="active"><span class="page-number">9</span></li><li><a class="page-number" href="/page/10/">10</a></li><li><a class="page-number" href="/page/11/">11</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/14/">14</a></li><li><a class="page-next" rel="next" href="/page/10/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
+    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/8/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/7/">7</a></li><li><a class="page-number" href="/page/8/">8</a></li><li class="active"><span class="page-number">9</span></li><li><a class="page-number" href="/page/10/">10</a></li><li><a class="page-number" href="/page/11/">11</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/15/">15</a></li><li><a class="page-next" rel="next" href="/page/10/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
   </div>
 
 
@@ -856,7 +953,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">52</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">32</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">2</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">18</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">2</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">32</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">2</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">21</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">2</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
   </div>
 
 
@@ -869,7 +966,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">14</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">25</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
   </div>
 
 
@@ -880,23 +977,23 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/10/Java/加密解密／编码解码/AES加密算法简单介绍/">AES加密算法简单介绍</a>
+          <a href="/2017/08/12/Java/基础/静态代码块和静态方法/">静态代码块和静态方法</a>
         </li>
       
         <li>
-          <a href="/2017/08/10/Java/加密解密／编码解码/AES完整实现（Java）/">AES完整实现（Java）</a>
+          <a href="/2017/08/12/服务器相关/Memcached/memcached命令/">memcached命令</a>
         </li>
       
         <li>
-          <a href="/2017/08/10/Java/加密解密／编码解码/RAS完整实现(Java)/">RAS完整实现(Java)</a>
+          <a href="/2017/08/12/服务器相关/Memcached/Memcached内存管理和回收机制/">Memcached内存管理和回收机制</a>
         </li>
       
         <li>
-          <a href="/2017/08/10/Java/加密解密／编码解码/RAS简单介绍/">RAS简单介绍</a>
+          <a href="/2017/08/12/服务器相关/Memcached/Memcached线程模型/">Memcached线程模型</a>
         </li>
       
         <li>
-          <a href="/2017/08/10/Java/加密解密／编码解码/对称加密算法与非对称加密算法/">对称加密算法与非对称加密算法</a>
+          <a href="/2017/08/12/Java/基础/java 垃圾回收机制/">java 垃圾回收机制</a>
         </li>
       
     </ul>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>java 垃圾回收机制 | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="JVM体系结构简介JVM Specification中的JVM整体架构主要包括两个子系统和两个组件，Class Loader(类装载)子系统，Execution Engine(执行引擎)子系统，Runtime Data Area(运行时数据区)组件，Native Interface(本地接口)组件。   Class loader 子系统的作用 ：根 据给定的全限定名类名(如 java.lang.O">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java 垃圾回收机制">
+<meta property="og:url" content="https://clq2owesome.github.io/2017/08/12/Java/基础/java 垃圾回收机制/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="JVM体系结构简介JVM Specification中的JVM整体架构主要包括两个子系统和两个组件，Class Loader(类装载)子系统，Execution Engine(执行引擎)子系统，Runtime Data Area(运行时数据区)组件，Native Interface(本地接口)组件。   Class loader 子系统的作用 ：根 据给定的全限定名类名(如 java.lang.O">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/7F3773507E124A918989B46388D81BAE/7802">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/6AA4AD5DE0324A3C8BEE06B56345725F/7804">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/51FF00BC6F604060B8EE5826F063E7FF/7803">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/605518F2B1504903B1A126803190723C/7805">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/D697D9F32C4B49B695E55BA6C17F05BA/7806">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/661FF2FC15A54B968D78771794964F82/7807">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/3055967862EE440593549C52A86D1BFA/7808">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/DCC7EA8095674A87A8B731179AD2C055/7810">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/360E2E4E55074C43A2CEC0BF1E984735/7809">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/D82167248EE1422F9E2E168A2E0BED2C/7811">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/02BD5695A74249788A952C94A2BB6C5B/7813">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/ECFFAB95FB884318BFBC4810FA24C7DE/7812">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/43B37C943BB94ACD98390B311FB7EEE0/7814">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/9C0C8EDA8702471AA5FDA2B245A38442/7816">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/074D37A977464B0A9666B29BEF481E9D/7815">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/4E881AF6D6A94548A6E537AF0C0DEC7F/7817">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/A30D42C7170E468E8C789FAA797ED51F/7819">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/B37B2D99E29543F98F46BFCA716CB9D8/7818">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/61FA00EA2A28452A98CB66A1348D1771/7820">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/C0BD54B605034553BE7F6CA3877DCD6D/7821">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/E3EBAC9AB610412AA408431B7A448D20/7822">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/4A2675338FF843A295210D7DC59557B3/7823">
+<meta property="og:updated_time" content="2017-08-12T11:59:03.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="java 垃圾回收机制">
+<meta name="twitter:description" content="JVM体系结构简介JVM Specification中的JVM整体架构主要包括两个子系统和两个组件，Class Loader(类装载)子系统，Execution Engine(执行引擎)子系统，Runtime Data Area(运行时数据区)组件，Native Interface(本地接口)组件。   Class loader 子系统的作用 ：根 据给定的全限定名类名(如 java.lang.O">
+<meta name="twitter:image" content="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/7F3773507E124A918989B46388D81BAE/7802">
+  
+    <link rel="alternate" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" integrity="sha384-XdYbMnZ/QjLh6iI4ogqCTaIjrFk87ip+ekIjefZch0Y+PvJ8CDYtEs1ipDmPorQ+" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="/css/styles.css">
+  
+
+</head>
+
+<body>
+  <nav class="navbar navbar-inverse">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-menu-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="main-menu-navbar">
+      <ul class="nav navbar-nav">
+        
+          <li><a class=""
+                 href="/index.html">Home</a></li>
+        
+          <li><a class=""
+                 href="/archives/">Archives</a></li>
+        
+      </ul>
+
+      <!--
+      <ul class="nav navbar-nav navbar-right">
+        
+          <li><a href="/atom.xml" title="RSS Feed"><i class="fa fa-rss"></i></a></li>
+        
+      </ul>
+      -->
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+  <div class="container">
+    <div class="blog-header">
+  <h1 class="blog-title">LeoChan&#39;s 个人博客</h1>
+  
+    <p class="lead blog-description">技术都是通用的，重要的是是否具有自主解决问题的能力！</p>
+  
+</div>
+
+    <div class="row">
+        <div class="col-sm-8 blog-main">
+          <article id="post-Java/基础/java 垃圾回收机制" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 class="article-title" itemprop="name">
+      java 垃圾回收机制
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/12/Java/基础/java 垃圾回收机制/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="JVM体系结构简介"><a href="#JVM体系结构简介" class="headerlink" title="JVM体系结构简介"></a>JVM体系结构简介</h2><h4 id="JVM-Specification中的JVM整体架构"><a href="#JVM-Specification中的JVM整体架构" class="headerlink" title="JVM Specification中的JVM整体架构"></a>JVM Specification中的JVM整体架构</h4><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/7F3773507E124A918989B46388D81BAE/7802" alt="image"><br>主要包括两个子系统和两个组件，<strong>Class Loader(类装载)子系统</strong>，<strong>Execution Engine(执行引擎)子系统</strong>，<strong>Runtime Data Area(运行时数据区)组件</strong>，<strong>Native Interface(本地接口)组件</strong>。 </p>
+<ul>
+<li>Class loader 子系统的作用 ：根 据给定的全限定名类名(如 java.lang.Object)来装载class文件的内容到 Runtime data area 中的method area(方法区域)。Java 程序员可以extends java.lang.ClassLoader 类来写自己的Class loader。</li>
+<li>Execution engine 子系统的作用 ：执 行 classes中的指令。任何 JVM specification实现(JDK)的核心是Execution engine， 换句话说：Sun 的JDK 和IBM的JDK好坏主要取决于他们各自实现的Execution  engine的好坏。每个运行中的线程都有一个 Execution engine的实例。 </li>
+<li>Native interface 组件 ：与native libraries 交互，是其它编程语言交互的接口。 </li>
+<li>Runtime data area 组件：这个组件就是 JVM中的内存。</li>
+</ul>
+<p>Runtime data area 的整体架构图：<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/6AA4AD5DE0324A3C8BEE06B56345725F/7804" alt="image"><br><strong>Runtime data area 主要包括五个部分：Heap (堆), Method Area(方法区域), Java Stack(java 的栈), Program Counter(程序计数器), Native method stack(本地方法栈)。Heap 和Method Area 是被所有线程的共享使用的；而Java stack, Program counter 和 Native method stack 是以线程为粒度的，每个线程独自拥有。</strong>   </p>
+<ul>
+<li><p><strong>Heap（堆内存）</strong><br>Java程序在运行时创建的所有类实例或数组都放在同一个堆中。而一个Java虚拟实例中只存在一个堆空间，因此所有线程都将共享这个堆。每一个 java程序独占一个JVM实例，因而每个 java程序都有它自己的堆空间，它们不会彼此干扰。但是同一java程序的多个线程都共享着同一个堆空间，就得考虑多线程访问对象（堆数据）的同步问 题。（这里可能出现的异常 java.lang.OutOfMemoryError: Java heap space）  </p>
+</li>
+<li><p><strong>Method area（方法区）</strong><br>在Java 虚拟机中，被装载的 class的信息存储在 Method area的内存中。当虚拟机装载某个类型时，它使用类装载器定位相应的 class文件，然后读入这个class文件内容并把它传输到虚拟机中。紧接着虚拟机提取其中的类型信息，并将这些信息存储到方法区。该类型中的类（静 态）变量同样也存储在方法区中。与Heap 一样，method area 是多线程共享的，因此要考虑多线程访问的同步问题。比如，假设同时两个线程都企图访问一个名为 Lava的类，而这个类还没有内装载入虚拟机，那么，这时应该只有一个线程去装载它，而另一个线程则只能等待。 （这里可能出现的异常 java.lang.OutOfMemoryError: PermGen full）  </p>
+</li>
+<li><p><strong>Java stack（java 栈）</strong><br>Java stack 以帧为单位保存线程的运行状态。虚拟机只会直接对 Java stack执行两种操作：以帧为单位的压栈或出栈。每当线程调用一个方法的时候，就对当前状态作为一个帧保存到 java stack 中(压栈)；当一个方法调用返回时，从java stack 弹出一个帧(出栈)。栈的大小是有一定的限制，这个可能出现StackOverFlow 问题，例如递归的层数太深。  </p>
+</li>
+<li><p><strong>Program counter（程序计数器）</strong><br>每个运行中的Java程序，每一个线程都有它自己的PC寄存器，也是该线程启动时创建的。PC寄存器的内容总是指向下一条将被执行指令的地址，这里的地址可以是一个本地指针，也可以是在方法区中相对应于该方法起始指令的偏移量。  </p>
+</li>
+<li><p><strong>Native method stack（本地方法栈）</strong><br>对于一个运行中的Java程序而言，它还能会用到一些跟本地方法相关的数据区。当某个线程调用一个本地方法时，它就进入了一个全新的并且不再受虚拟机限 制的世界。本地方法可以通过本地方法接口来访问虚拟机的运行时数据区，不止如此，它还可以做任何它想做的事情。比如，可以调用寄存器，或在操作系统中分配 内存等。总之，本地方法具有和JVM 相同的能力和权限。  (这里出现 JVM无法控制的内存溢出问题 native heap OutOfMemory ) 。  </p>
+</li>
+</ul>
+<h4 id="Sun-JVM-中对-JVM-Specification-的实现（内存部分）"><a href="#Sun-JVM-中对-JVM-Specification-的实现（内存部分）" class="headerlink" title="Sun JVM 中对 JVM Specification 的实现（内存部分）"></a>Sun JVM 中对 JVM Specification 的实现（内存部分）</h4><p>JVM Specification只是抽象的说明了 JVM 实例按照子系统、内存区、数据类型以及指令这几个术语来描述的，  但是规范并非是要强制规定 Java 虚拟机实现内部的体系结构，更多的是为了严格地定义这些实现的外部特征。  Sun JVM 实现中：Runtime data area(JVM  内存)  五个部分中的 Java Stack , Program Counter, Native method stack 三部分和规范中的描述基本一致；但对 Heap  和  Method Area 进行了自己独特的实现。这个实现和 Sun JVM  的Garbage collector（垃圾回收）机制有关。     </p>
+<h5 id="垃圾分代回收算法（Generational-Collecting）"><a href="#垃圾分代回收算法（Generational-Collecting）" class="headerlink" title="垃圾分代回收算法（Generational Collecting）"></a>垃圾分代回收算法（Generational Collecting）</h5><p>基于对对象生命周期分析后得出的垃圾回收算法。把对象分为年青代、年老代、持久代，对不同生命周期的对象使用不同的算法（上述方式中的一个）进行回收。现在的垃圾回收器（从J2SE1.2开始）都是使用此算法的。<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/51FF00BC6F604060B8EE5826F063E7FF/7803" alt="image">    </p>
+<p>如上图所示，为Java 堆中的各代分布。   </p>
+<ol>
+<li>Young（年轻代）JVM specification 中的  Heap的一部分。年轻代分三个区。一个Eden区，两个 Survivor区。大部分对象在Eden区中生成。当Eden区满时，还存活的对象将被复制到 Survivor区（两个中的一个），当这个 Survivor区满时，此区的存活对象将被复制到另外一个 Survivor区，当这个 Survivor去也满了的时候，从第一个Survivor区复制过来的并且此时还存活的对象，将被复制到年老区(Tenured)。需要注 意，Survivor的两个区是对称的，没先后关系，所以同一个区中可能同时存在从Eden复制过来的对象，和从前一个 Survivor复制过来的对象，而复制到年老区的只有从第一个 Survivor 区过来的对象。而且，Survivor 区总有一个是空的。  </li>
+<li>Tenured（年老代）JVM specification中的  Heap的一部分。年老代存放从年轻代存活的对象。一般来说年老代存放的都是生命期较长的对象。</li>
+<li>Perm（持久代）  JVM specification 中的  Method area 用于存放静态文件，如 Java 类、方法等。持久代对垃圾回收没有显著影响，但是有些应用可能动态生成或者调用一些 class，例如 Hibernate 等，在这种时候需要设置一个比较大的持久代空间来存放这些运行过程中新增的类。持久代大小通过-XX:MaxPermSize=进行设置。</li>
+</ol>
+<h2 id="内存分布"><a href="#内存分布" class="headerlink" title="内存分布"></a>内存分布</h2><p>JVM的内存分代管理结构：<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/605518F2B1504903B1A126803190723C/7805" alt="image"><br>下面是一些需要关注的常用的JVM内存配置参数，我们来看看它们是如何影响上图中的比例的。        </p>
+<h3 id="Heap-Size"><a href="#Heap-Size" class="headerlink" title="Heap Size"></a>Heap Size</h3><p><strong>-Xmx —最大Heap Size</strong>，即上图的Total size（包括Eden+form+to，Tenured，不包含Perm，见上图），限制了年轻代和年老代的可分配最大值；<br><strong>-Xms —初始化分配的Heap Size</strong><br>生产环境中ms一般设置成跟mx相等，因为若ms不等于mx那么在某些场景下JVM可能需要对Heap Size进行频繁的扩展和收缩，增加处理时间；</p>
+<h3 id="New-Young-Generation-Size"><a href="#New-Young-Generation-Size" class="headerlink" title="New/Young Generation Size"></a>New/Young Generation Size</h3><p><strong>-Xmn —最大年轻代大小</strong>，即上图中的Eden+S0+S1+Virtual<br><strong>-XX:NewSize —初始化年轻代大小</strong>，即上图中的Eden+S0+S1，在只设置了-Xmn不设置-XX:NewSize的情况下，NewSize等于mn。<br>生产环境中一般只需设置-Xmn或者设置mn和NewSize相等，理由和HeapSize的设置一样，避免容量震荡消耗资源；</p>
+<h3 id="Old-Generation-Size-（Tenured）"><a href="#Old-Generation-Size-（Tenured）" class="headerlink" title="Old Generation Size （Tenured）"></a>Old Generation Size （Tenured）</h3><p>-XX:NewRatio — Old Size/New Size，通过年老代和年轻代的比例和Heap Size就可以算出年老代的大小。一般默认为8，若Heap Size为1024m，则 NewSize=HeapSize/(NewRatio+1)=114m，OldSize=HeapSize-NewSize=910m；<br>注意：-Xmn的优先级比-XX:NewRatio高，若-Xmn已指定，则OldSize=HeapSize-NewSize，无需再按比例计算。生产环境中一般只需指定-Xmn就足够了。</p>
+<h3 id="Eden和S0、S1"><a href="#Eden和S0、S1" class="headerlink" title="Eden和S0、S1"></a>Eden和S0、S1</h3><p>-XX:SurvivorRatio — Eden/S0，即 Eden区和S0的比例，默认为8，若NewSize为114m，则S0=NewSize/(SurvivorRatio+2)=11.4m;<br>S0==S1，S0、S1的职能是一模一样的，又叫做From space和To space，在每一次minor gc后角色会交换。<br>注意：-XX类型的选项在不同的JDK版本或实现中定义可能有所区别，在近日的实践中发现，在Linux jdk_1_5_0_10_x86版本中，SurvivorRatio=(YoungSize/S0)，而Linux jdk_1_5_0_20_x64版本中，SurvivorRatio=(Eden/S0)，所以，我们在实际的工程实践中还是应该用jmap -heap输出的jvm内存结构信息为准，不要想当然。</p>
+<h3 id="Permanent-Generation-Size"><a href="#Permanent-Generation-Size" class="headerlink" title="Permanent Generation Size"></a>Permanent Generation Size</h3><p><strong>-XX:MaxPermSize</strong> —最大持久代大小，默认为64m；<br><strong>-XX:PermSize</strong> —初始化持久代大小，默认为16m；<br>生产环境中一般设置MaxPermSize和PermSize相等，理由和HeapSize的设置一样，避免容量震荡消耗资源；<br>当应用引用的类比较多或者应用了一些动态类生产技术时应该加大该区的值，一般256m对服务器程序都很足够了。  </p>
+<h3 id="Thread-Stack-Size"><a href="#Thread-Stack-Size" class="headerlink" title="Thread Stack Size"></a>Thread Stack Size</h3><p><strong>-Xss</strong> —线程堆栈大小，一般用于存放方法入口参数和返回值，以及原子类型的本地变量（即方法内部变量）；<br>一般可设置为128k.</p>
+<h3 id="Direct-Memory-Size"><a href="#Direct-Memory-Size" class="headerlink" title="Direct Memory Size"></a>Direct Memory Size</h3><p>-XX:MaxDirectMemorySize —direct byte buffer用到的本地内存，默认跟mx相等，所以生产环境中一般不设置mx大于物理内存的一半。</p>
+<h2 id="GC过程"><a href="#GC过程" class="headerlink" title="GC过程"></a>GC过程</h2><p>在讲述GC过程前我先解释一下JVM的两个控制参数：</p>
+<ul>
+<li>-XX:TargetSurvivorRatio — Survivor Space最大使用率，若存放对象的总大小超过该值，将引起对象向Old区迁移；</li>
+<li>-XX:MaxTenuringThreshold — Young区对象的最大任期阀值，即可经历minor gc的次数，超过该次数的对象直接迁移到Old区；</li>
+</ul>
+<h3 id="Heap在初始状态"><a href="#Heap在初始状态" class="headerlink" title="Heap在初始状态"></a>Heap在初始状态</h3><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/D697D9F32C4B49B695E55BA6C17F05BA/7806" alt="image">    </p>
+<h3 id="在Eden存放新对象"><a href="#在Eden存放新对象" class="headerlink" title="在Eden存放新对象"></a>在Eden存放新对象</h3><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/661FF2FC15A54B968D78771794964F82/7807" alt="image">    </p>
+<h3 id="Eden空间不足分配新对象，进行第一次minor-gc"><a href="#Eden空间不足分配新对象，进行第一次minor-gc" class="headerlink" title="Eden空间不足分配新对象，进行第一次minor gc"></a>Eden空间不足分配新对象，进行第一次minor gc</h3><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/3055967862EE440593549C52A86D1BFA/7808" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/DCC7EA8095674A87A8B731179AD2C055/7810" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/360E2E4E55074C43A2CEC0BF1E984735/7809" alt="image">    </p>
+<h3 id="Eden区再次被写满，进行第二次minor-gc"><a href="#Eden区再次被写满，进行第二次minor-gc" class="headerlink" title="Eden区再次被写满，进行第二次minor gc"></a>Eden区再次被写满，进行第二次minor gc</h3><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/D82167248EE1422F9E2E168A2E0BED2C/7811" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/02BD5695A74249788A952C94A2BB6C5B/7813" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/ECFFAB95FB884318BFBC4810FA24C7DE/7812" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/43B37C943BB94ACD98390B311FB7EEE0/7814" alt="image">   </p>
+<h3 id="Eden再次被写满，进行第3次minor-gc"><a href="#Eden再次被写满，进行第3次minor-gc" class="headerlink" title="Eden再次被写满，进行第3次minor gc"></a>Eden再次被写满，进行第3次minor gc</h3><p>第3次gc，发生了对象从from space提升到old区的迁移，然后也发生了from space到to space的copy<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/9C0C8EDA8702471AA5FDA2B245A38442/7816" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/074D37A977464B0A9666B29BEF481E9D/7815" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/4E881AF6D6A94548A6E537AF0C0DEC7F/7817" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/A30D42C7170E468E8C789FAA797ED51F/7819" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/B37B2D99E29543F98F46BFCA716CB9D8/7818" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/61FA00EA2A28452A98CB66A1348D1771/7820" alt="image">   </p>
+<p>以下是Survivor space空间不足但对象的minor gc次数未到达MaxTenuringThreshold时的gc情况：<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/C0BD54B605034553BE7F6CA3877DCD6D/7821" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/E3EBAC9AB610412AA408431B7A448D20/7822" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/4A2675338FF843A295210D7DC59557B3/7823" alt="image">   </p>
+<h2 id="GC实战"><a href="#GC实战" class="headerlink" title="GC实战"></a>GC实战</h2><p>在进行GC Tuning时有两个很强大的利器：   </p>
+<ul>
+<li>jstat：用于查看某java进程的gc情况；</li>
+<li>jmap：查看java进程堆栈分配和使用情况，以及dump出当前堆栈内容（可以用Eclipse MAT进行进一步分析） </li>
+</ul>
+<p>以上两个利器都是jdk自带，且无需java进程添加任何额外的debug信息输出参数的，直接就可以对任意java进程进行跟踪了。</p>
+<p>UseParNewGC表示对新生代采用并行gc；<br>ParallelGCThreads表示并行的线程数为8，一般是cpu的核个数，当核个数大于8时可能不是很适用；<br>UseConcMarkSweepGC表示对full gc采用CMS gc；</p>
+<p>另外还有几个跟GC有关的有用参数，这里没有用到：<br>-XX:+DisableExplicitGC 表示禁止显式gc，System.gc()<br>-XX:+UseCMSCompactAtFullCollection 适用于CMS gc，表示在进行gc的同时清理内存碎片，但会加长gc的总时间<br>-XX:CMSInitiatingOccupancyFraction=80 适用于CMS gc，表示在年老代达到80%使用率时马上进行回收</p>
+<p>另外下面是在JVM Crash时获heap信息的一些配置参数：<br>-XX:ErrorFile=./xxx.log   JVM Crash时记录heap信息<br>-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./yyy.log JVM OOM时记录heap信息<br>拿到heap文件后可以用Eclipse MAT进行分析，找出引起内存泄漏的class。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/java 垃圾回收机制/" data-id="cj6995wof002iqhbll3w18mvt" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+    
+<ul id="article-nav" class="nav nav-pills nav-justified">
+  
+  <li role="presentation">
+    <a href="/2017/08/12/Java/基础/生成随机数/" id="article-nav-older" class="article-nav-link-wrap">
+      <i class="fa fa-chevron-left pull-left"></i>
+      <span class="article-nav-link-title">生成随机数</span>
+    </a>
+  </li>
+  
+  
+  <li role="presentation">
+    <a href="/2017/08/12/服务器相关/Memcached/Memcached线程模型/" id="article-nav-newer" class="article-nav-link-wrap">
+      <span class="article-nav-link-title">Memcached线程模型</span>
+      <i class="fa fa-chevron-right pull-right"></i>
+    </a>
+  </li>
+  
+</ul>
+
+
+  
+</article>
+
+
+
+
+        </div>
+        <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+          
+  <div class="sidebar-module sidebar-module-inset">
+  <h4>关于</h4>
+  <p>该博客内的文章是博主在日常工作或者学习中总结出来，部分内容来自网络.</p>
+
+</div>
+
+
+  
+  <div class="sidebar-module">
+    <h4>分类</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">32</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">2</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">21</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">2</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+  </div>
+
+
+
+  
+
+
+  
+
+  
+  <div class="sidebar-module">
+    <h4>归档</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">25</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+  </div>
+
+
+
+  
+  <div class="sidebar-module">
+    <h4>最近文章</h4>
+    <ul class="sidebar-module-list">
+      
+        <li>
+          <a href="/2017/08/12/Java/基础/静态代码块和静态方法/">静态代码块和静态方法</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/12/服务器相关/Memcached/memcached命令/">memcached命令</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/12/服务器相关/Memcached/Memcached内存管理和回收机制/">Memcached内存管理和回收机制</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/12/服务器相关/Memcached/Memcached线程模型/">Memcached线程模型</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/12/Java/基础/java 垃圾回收机制/">java 垃圾回收机制</a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+
+        </div>
+    </div>
+  </div>
+  <footer class="blog-footer">
+  <div class="container">
+    <div id="footer-info" class="inner">
+      &copy; 2017 LeoChan<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+  
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" integrity="sha384-8gBf6Y4YYq7Jx97PIqmTwLPin4hxIzQw5aDmUg/DDhul9fFpbbLcLh3nTIIDJKhx" crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+
+
+<script src="/js/script.js"></script>
+
+</body>
+</html>
