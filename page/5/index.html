@@ -80,6 +80,182 @@
         <div class="col-sm-8 blog-main">
           
   
+    <article id="post-数据库相关/mysql/mysql存储引擎" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/mysql存储引擎/">mysql存储引擎</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/mysql存储引擎/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>MySQL数 据库引擎取决于MySQL在安装的时候是如何被编译的。要添加一个新的引擎，就必须重新编译MYSQL。在缺省情况下，MYSQL支持三个引擎：ISAM、MYISAM和HEAP。另外两种类型INNODB和BERKLEY（BDB），也常常可以使用。如果技术高超，还可以使用MySQL++ API自己做一个引擎。<br>下面介绍几种数据库引擎： </p>
+<ul>
+<li><p>ISAM：ISAM是一个定义明确且历经时间考验的数据表格管理方法，它在设计之时就考虑到 数据库被查询的次数要远大于更新的次数。因此，I<strong>SAM执行读取操作的速度很快，而且不占用大量的内存和存储资源。ISAM的两个主要不足之处在于，它不 支持事务处理，也不能够容错</strong>：如果你的硬盘崩溃了，那么数据文件就无法恢复了。如果你正在把ISAM用在关键任务应用程序里，那就必须经常备份你所有的实 时数据，通过其复制特性，MYSQL能够支持这样的备份应用程序。</p>
+</li>
+<li><p>MyISAM：MyISAM是MySQL的ISAM扩展格式和<strong>默认的数据库引擎（Mysql5.5.5之前）</strong>。除了提供ISAM里所没有的索引和字段管理的大量功能，MyISAM还使用一种表格锁定的机制，来优化多个并发的读写操作，其代价是你需要经常运行OPTIMIZE TABLE命令，来恢复被更新机制所浪费的空间。MyISAM还有一些有用的扩展，例如用来修复数据库文件的MyISAMCHK工具和用来恢复浪费空间的 MyISAMPACK工具。<strong>MYISAM强调了快速读取操作</strong>，这可能就是为什么MySQL受到了WEB开发如此青睐的主要原因：在WEB开发中你所进行的大量数据操作都是读取操作。所以，<strong>大多数虚拟主机提供商和INTERNET平台提供商只允许使用MYISAM格式。MyISAM格式的一个重要缺陷就是不能在表损坏后恢复数据。</strong></p>
+</li>
+<li><p>HEAP：<strong>HEAP允许只驻留在内存里的临时表格</strong>。驻留在内存里让HEAP要比ISAM和MYISAM都快，但是它所管理的数据是不稳定的，而且如果在关机之前没有进行保存，那么所有的数据都会丢失。在数据行被删除的时候，HEAP也不会浪费大量的空间。HEAP表格在你需要使用SELECT表达式来选择和操控数据的时候非常有用。要记住，在用完表格之后就删除表格。</p>
+</li>
+<li><p>InnoDB：InnoDB数据库引擎都是造就MySQL灵活性的技术的直接产品，这项技术就是MYSQL++ API。在使用MYSQL的时候，你所面对的每一个挑战几乎都源于ISAM和MyISAM数据库引擎不支持事务处理（transaction process）也不支持外键。尽管要比ISAM和 MyISAM引擎慢很多，但是<strong>InnoDB包括了对事务处理和外键的支持</strong>，这两点都是前两个引擎所没有的。如前所述，如果你的设计需要这些特性中的一者 或者两者，那你就要被迫使用后两个引擎中的一个了。 </p>
+</li>
+</ul>
+<h3 id="MySQL-官方对InnoDB是这样解释的"><a href="#MySQL-官方对InnoDB是这样解释的" class="headerlink" title="MySQL 官方对InnoDB是这样解释的"></a>MySQL 官方对InnoDB是这样解释的</h3><ul>
+<li><p>InnoDB给MySQL提供了具有提交、回滚和崩溃恢复能力的事务安全（ACID兼容）存储引擎。InnoDB锁定在行级并且也在SELECT语句提供一个Oracle风格一致的非锁定读，这些特色增加了多用户部署和性能。没有在InnoDB中扩大锁定的需要，因为在InnoDB中行级锁定适合非常小的空间。InnoDB也支持FOREIGN KEY强制。在SQL查询中，你可以自由地将InnoDB类型的表与其它MySQL的表的类型混合起来，甚至在同一个查询中也可以混合。</p>
+</li>
+<li><p>InnoDB是为处理巨大数据量时的最大性能设计，它的CPU效率可能是任何其它基于磁盘的关系数据库引擎所不能匹敌的。</p>
+</li>
+<li><p>InnoDB存储引擎被完全与MySQL服务器整合，InnoDB存储引擎为在主内存中缓存数据和索引而维持它自己的缓冲池。InnoDB存储它的表＆索引在一个表空间中，表空间可以包含数个文件（或原始磁盘分区）。这与MyISAM表不同，比如在MyISAM表中每个表被存在分离的文件中。InnoDB 表可以是任何尺寸，即使在文件尺寸被限制为2GB的操作系统上。</p>
+</li>
+<li><p>InnoDB默认地被包含在MySQL二进制分发中。Windows Essentials installer使InnoDB成为Windows上MySQL的默认表。</p>
+</li>
+<li><p>InnoDB被用来在众多需要高性能的大型数据库站点上产生。著名的Internet新闻站点Slashdot.org运行在InnoDB上。 Mytrix, Inc.在InnoDB上存储超过1TB的数据，还有一些其它站点在InnoDB上处理平均每秒800次插入/更新的</p>
+</li>
+</ul>
+<p>一般来说，MyISAM适合：  </p>
+<ol>
+<li>做很多count 的计算；</li>
+<li>插入不频繁，查询非常频繁；</li>
+<li>没有事务。</li>
+</ol>
+<p>InnoDB适合：    </p>
+<ol>
+<li>可靠性要求比较高，或者要求事务；</li>
+<li>表更新和查询都相当的频繁，并且表锁定的机会比较大的情况。</li>
+</ol>
+<p>一般情况下，MySQL会默认提供多种存储引擎，可以通过下面的查看:</p>
+<ol>
+<li>看你的MySQL现在已提供什么存储引擎: mysql&gt; show engines;</li>
+<li>看你的MySQL当前默认的存储引擎: mysql&gt; show variables like ‘%storage_engine%’;</li>
+<li>你要看某个表用了什么引擎(在显示结果里参数engine后面的就表示该表当前用的存储引擎): mysql&gt; show create table 表名;</li>
+</ol>
+<p> 所有的性能测试在：Micrisoft window xp sp2 ， Intel(R) Pentinum(R) M processor 1.6oGHz 1G 内存的电脑上测试。<br> 测试方法：连续提交10个query， 表记录总数：38万 ， 时间单位 s</p>
+<table>
+<thead>
+<tr>
+<th>引擎类型</th>
+<th>MyISAM</th>
+<th>InnoDB</th>
+<th>性能相差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>count</td>
+<td>0.0008357</td>
+<td>3.0163</td>
+<td>3609</td>
+</tr>
+<tr>
+<td>查询主键</td>
+<td>0.005708</td>
+<td>0.1574</td>
+<td>27.57</td>
+</tr>
+<tr>
+<td>查询非主键</td>
+<td>24.01</td>
+<td>80.37</td>
+<td>3.348</td>
+</tr>
+<tr>
+<td>更新主键</td>
+<td>0.008124</td>
+<td>0.8183</td>
+<td>100.7</td>
+</tr>
+<tr>
+<td>更新非主键</td>
+<td>0.004141</td>
+<td>0.02625</td>
+<td>6.338</td>
+</tr>
+<tr>
+<td>插入</td>
+<td>0.004188</td>
+<td>0.3694</td>
+<td>88.21</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>加了索引以后，对于MyISAM查询可以加快：4 206.09733倍，对InnoDB查询加快510.72921倍，同时对MyISAM更新速度减慢为原来的1/2，InnoDB的更新速度减慢为原来的1/30。要看情况决定是否要加索引，比如不查询的log表，不要做任何的索引。</li>
+<li>如果你的数据量是百万级别的，并且没有任何的事务处理，那么用MyISAM是性能最好的选择。</li>
+<li>InnoDB表的大小更加的大，用MyISAM可省很多的硬盘空间。 </li>
+</ol>
+<p>在我们测试的这个38w的表中，表占用空间的情况如下：</p>
+<table>
+<thead>
+<tr>
+<th>引擎类型</th>
+<th>MyISAM</th>
+<th>InnoDB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据</td>
+<td>53,924 KB</td>
+<td>58,976 KB</td>
+</tr>
+<tr>
+<td>索引</td>
+<td>13,640 KB</td>
+<td>21,072 KB</td>
+</tr>
+<tr>
+<td>占用总空间</td>
+<td>67,564 KB</td>
+<td>80,048 KB</td>
+</tr>
+</tbody>
+</table>
+<p>另外一个176W万记录的表， 表占用空间的情况如下：<br>| 引擎类型  | MyISAM     | InnoDB     |<br>| —– | ———- | ———- |<br>| 数据    | 56,166 KB  | 90,736 KB  |<br>| 索引    | 67,103 KB  | 88,848 KB  |<br>| 占用总空间 | 123,269 KB | 179,584 KB |</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql存储引擎/" data-id="cj6aobw560087udblzn9hz40s" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-数据库相关/mysql/mysql索引原理" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
@@ -196,68 +372,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql索引原理/" data-id="cj6ao83bh008dtcblsjnlyjkl" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-数据库相关/mysql/not null 和 default" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/not null 和 default/">not null 和 default</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/not null 和 default/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="没有设置default"><a href="#没有设置default" class="headerlink" title="没有设置default"></a>没有设置default</h3><ul>
-<li><p>当插入数据时，没有操作某一字段，并且该字段为null且没有defualt值时，mysql会自动出入null值；</p>
-</li>
-<li><p>当该字段为not null且没有defualt值时，会报错</p>
-</li>
-</ul>
-<h3 id="有设置default"><a href="#有设置default" class="headerlink" title="有设置default"></a>有设置default</h3><p>若有设置default值并且插入数据时没有操作该字段，不管该字段是否设置not null 还是null，mysql统一设置default的值</p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/not null 和 default/" data-id="cj6ao83bi008ftcblm7kqcfvc" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql索引原理/" data-id="cj6aobw590089udbla7osx695" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -314,7 +429,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Data Redis/配置/" data-id="cj6ao83aa006btcblu9zmytt5" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Data Redis/配置/" data-id="cj6aobw3k0065udblis1pjlbg" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -386,7 +501,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/ArrayBlockingQueue 和LinkedBlockingQueue源码解析/" data-id="cj6ao839s0055tcblxmzyaxe7" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/ArrayBlockingQueue 和LinkedBlockingQueue源码解析/" data-id="cj6aobw2p004zudblghi5pr1z" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -400,13 +515,13 @@
 
 
   
-    <article id="post-Eclipse/codetemplates变量解析" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-GitHub/安装gogs本地git服务器" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Eclipse/codetemplates变量解析/">codetemplates变量解析</a>
+      <a class="article-title" href="/2017/07/19/GitHub/安装gogs本地git服务器/">安装gogs本地git服务器</a>
     </h1>
   
 
@@ -415,13 +530,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Eclipse/codetemplates变量解析/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/GitHub/安装gogs本地git服务器/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Eclipse/">Eclipse</a>
+    <a class="article-category-link" href="/categories/Github/">Github</a>
   </div>
 
 
@@ -430,34 +545,13 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <ol>
-<li><p>在Java中的对应位置，输入/**三个字符，再按下回车键，就可以自动生成CodeTemplate中指定的模式了<br>CodeTemplate中的变量，都用美元符号后面的花括号围住，如${date}、${time}等，如果要在CodeTemplate中要写美元符号$，则用两个美元符号连写表示。<br>下面逐一解释一下这些变量的含义：</p>
-<ul>
-<li>${year}，代表当前年份，例如：2015</li>
-<li>${date}，代表当前日期，例如：2015年11月29日</li>
-<li>${time}，代表当前时间，例如：下午10:07:15</li>
-<li>${project_name}，代表项目名</li>
-<li>${package_name}，代表包名</li>
-<li>${file_name}，代表当前文件名</li>
-<li>${type_name}，代表当前类名</li>
-<li><p>${enclosing_type}，如果类A是在另一个类B内部声明的，则该变量记录了类B的名字，否则为空，代码举例如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * <span class="doctag">@enclosing</span>_type</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * <span class="doctag">@enclosing</span>_type VarTest</div><div class="line">     */</div><div class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest2</span> </span>&#123;</div><div class="line">        <span class="comment">/**</span></div><div class="line">         * <span class="doctag">@enclosing</span>_type VarTest.VarTest2</div><div class="line">         */</div><div class="line">        <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest3</span> </span>&#123;</div><div class="line">            </div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</li>
-<li><p>${tags}，输出函数的输入参数与返回值，例如有函数声明如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public int func(int a, String b, long c, boolean d) &#123;</div><div class="line">    return 0;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>CodeTemplate的Pattern如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * $&#123;tags&#125;</div><div class="line"> */</div></pre></td></tr></table></figure>
-<p>则生成的注释如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * </div><div class="line"> * @param a</div><div class="line"> * @param b</div><div class="line"> * @param c</div><div class="line"> * @param d</div><div class="line"> * @return</div><div class="line"> */</div></pre></td></tr></table></figure>
-<ul>
-<li>${todo}，有这个变量的位置，会生成一个TODO标签</li>
-<li>${user}，这个变量存储了当前Eclipse的用户名，这个用户名可以在eclipse.ini中设置<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">-Duser.name=你的名称</div></pre></td></tr></table></figure></li>
-</ul>
-</li>
-</ol>
-
+        <h2 id="gogs首页"><a href="#gogs首页" class="headerlink" title="gogs首页"></a>gogs首页</h2><p><a href="https://gogs.io/" target="_blank" rel="external">https://gogs.io/</a></p>
+<h2 id="下载二进制包"><a href="#下载二进制包" class="headerlink" title="下载二进制包"></a>下载二进制包</h2><p><a href="https://gogs.io/docs/installation/install_from_binary.html" target="_blank" rel="external">https://gogs.io/docs/installation/install_from_binary.html</a><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入解压目录：</div><div class="line">执行命令 ./gogs web</div></pre></td></tr></table></figure></p>
+<p>目录运行地址：<br><a href="http://localhost:3000/" target="_blank" rel="external">http://localhost:3000/</a></p>
+<p>登录地址：<a href="http://localhost:3000/user/login" target="_blank" rel="external">http://localhost:3000/user/login</a></p>
+<p>帐号：<code>root</code>      密码：<code>clq</code></p>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入go目录：/usr/local/Cellar/gogs</div><div class="line">执行命令./gogs web</div></pre></td></tr></table></figure>
+<h2 id="后台运行"><a href="#后台运行" class="headerlink" title="后台运行"></a>后台运行</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入go目录：/usr/local/Cellar/gogs</div><div class="line">执行命令 nohup ./gogs web &amp;</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -467,7 +561,66 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Eclipse/codetemplates变量解析/" data-id="cj6ao835h0000tcblf08t48j9" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/GitHub/安装gogs本地git服务器/" data-id="cj6aobvwy0003udblwdsutkg9" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/加密解密／编码解码/StandardPasswordEncoder" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/加密解密／编码解码/StandardPasswordEncoder/">StandardPasswordEncoder</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/加密解密／编码解码/StandardPasswordEncoder/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Spring-Security-3-1-中功能强大的加密工具-PasswordEncoder"><a href="#Spring-Security-3-1-中功能强大的加密工具-PasswordEncoder" class="headerlink" title="Spring Security 3.1 中功能强大的加密工具 PasswordEncoder"></a>Spring Security 3.1 中功能强大的加密工具 PasswordEncoder</h2><p>Spring-Security 3.1.0 版本之后，Spring-security-crypto模块中的password包提供了更给力的加密密码的支持，这个包中也有PasswordEncoder接口，接口定义如下。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Public <span class="class"><span class="keyword">interface</span> <span class="title">PasswordEncoder</span></span>&#123;  </div><div class="line">  <span class="function">String <span class="title">encode</span><span class="params">(String rawPassword)</span></span>;  </div><div class="line">  <span class="function">Boolean <span class="title">matches</span><span class="params">(String rawPassword,String encodedPassword)</span></span>;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>定义了两个方法，encode方法是对方法加密，而match方法是用来验证密码和加密后密码是否一致的，如果一致则返回true。和authentication.encoding包中的PasswordEncoder接口相比，简化了许多。  </p>
+<p>StandardPasswordEncoder类，是PasswordEncoder接口的(唯一)一个实现类，是本文所述加密方法的核心。它采用SHA-256算法，迭代1024次，使用一个密钥(site-wide secret)以及8位随机盐对原密码进行加密。    </p>
+<p>随机盐确保相同的密码使用多次时，产生的哈希都不同； 密钥应该与密码区别开来存放，加密时使用一个密钥即可；对hash算法迭代执行1024次增强了安全性，使暴力破解变得更困难些。    </p>
+<p>和上一个版本的PasswordEncoder比较，好处显而易见：盐值不用用户提供，每次随机生成；多重加密————迭代SHA算法+密钥+随机盐来对密码加密，大大增加密码破解难度。 </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> com.lhc.utils;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.springframework.security.crypto.password.PasswordEncoder;</div><div class="line"><span class="keyword">import</span> org.springframework.security.crypto.password.StandardPasswordEncoder;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> *  密码处理工具</div><div class="line"> * <span class="doctag">@author</span> chenliqiang</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EncryptUtil</span> </span>&#123;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String SITE_WIDE_SECRET = <span class="string">"clq"</span>;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> PasswordEncoder encoder = <span class="keyword">new</span> StandardPasswordEncoder(SITE_WIDE_SECRET);</div><div class="line"></div><div class="line">	<span class="comment">/**</span></div><div class="line">	 * 加密</div><div class="line">	 * <span class="doctag">@param</span> rawPassword</div><div class="line">	 * <span class="doctag">@return</span></div><div class="line">	 */</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">encrypt</span><span class="params">(String rawPassword)</span> </span>&#123;</div><div class="line">		<span class="keyword">return</span> encoder.encode(rawPassword);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">/**</span></div><div class="line">	 *  校验密码是否匹配</div><div class="line">	 * <span class="doctag">@param</span> rawPassword 原始密码</div><div class="line">	 * <span class="doctag">@param</span> password 加密后的密码</div><div class="line">	 * <span class="doctag">@return</span></div><div class="line">	 */</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">match</span><span class="params">(String rawPassword, String password)</span> </span>&#123;</div><div class="line">		<span class="keyword">return</span> encoder.matches(rawPassword, password);</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">		String s = <span class="string">"每次结果都不一样伐?"</span>;</div><div class="line">		String s1 = EncryptUtil.encrypt(s);</div><div class="line">		String s2 = EncryptUtil.encrypt(s);</div><div class="line">        System.out.println(s1);  </div><div class="line">        System.out.println(s2);  </div><div class="line">        System.out.println(match(s, s2));  </div><div class="line">        <span class="comment">//但是把每次结果拿出来进行match，你会发现可以得到true。  </span></div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/加密解密／编码解码/StandardPasswordEncoder/" data-id="cj6aobw0h002sudblkmax2pb7" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -525,77 +678,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/apt-get常用命令/" data-id="cj6ao835p0003tcblu70qpbbm" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Linux/mysql安装" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Linux/mysql安装/">mysql安装</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Linux/mysql安装/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="使用apt-get"><a href="#使用apt-get" class="headerlink" title="使用apt-get"></a>使用apt-get</h2><h3 id="1-升级apt-get"><a href="#1-升级apt-get" class="headerlink" title="1.升级apt-get"></a>1.升级apt-get</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get update</div></pre></td></tr></table></figure>
-<h3 id="2-安装mysql-client-core-5-7"><a href="#2-安装mysql-client-core-5-7" class="headerlink" title="2.安装mysql-client-core-5.7"></a>2.安装mysql-client-core-5.7</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install MySQL-client-core-5.7</div></pre></td></tr></table></figure>
-<h3 id="3-安装-mysql-server-5-7"><a href="#3-安装-mysql-server-5-7" class="headerlink" title="3.安装 mysql-server-5.7"></a>3.安装 mysql-server-5.7</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install mysql-server-5.7</div></pre></td></tr></table></figure>
-<h3 id="4-检查mysql是否启动"><a href="#4-检查mysql是否启动" class="headerlink" title="4.检查mysql是否启动"></a>4.检查mysql是否启动</h3><ul>
-<li>查看mysql进程是否运行：ps -ef | grep mysql</li>
-<li>查看msyql 监听端口：netstat -tap | grep mysql</li>
-</ul>
-<h3 id="5-msyql服务停止"><a href="#5-msyql服务停止" class="headerlink" title="5.msyql服务停止"></a>5.msyql服务停止</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysql stop</div></pre></td></tr></table></figure>
-<h3 id="6-Mysql-服务启动"><a href="#6-Mysql-服务启动" class="headerlink" title="6.Mysql 服务启动"></a>6.Mysql 服务启动</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysql start</div></pre></td></tr></table></figure>
-<h3 id="7-Mysql-服务重启"><a href="#7-Mysql-服务重启" class="headerlink" title="7.Mysql 服务重启"></a>7.Mysql 服务重启</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysql restart</div></pre></td></tr></table></figure>
-<h3 id="8-登录mysql后台"><a href="#8-登录mysql后台" class="headerlink" title="8.登录mysql后台"></a>8.登录mysql后台</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">mysql -u [username] -p</div><div class="line">如：mysql -u root -p</div></pre></td></tr></table></figure>
-<h3 id="9-查看mysql安装目录"><a href="#9-查看mysql安装目录" class="headerlink" title="9.查看mysql安装目录"></a>9.查看mysql安装目录</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">whereis mysql</div></pre></td></tr></table></figure>
-<h3 id="10-查询运行文件所在路径-文件夹地址"><a href="#10-查询运行文件所在路径-文件夹地址" class="headerlink" title="10.查询运行文件所在路径(文件夹地址)"></a>10.查询运行文件所在路径(文件夹地址)</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">which mysql</div></pre></td></tr></table></figure>
-<h3 id="11-查看mysql字符集"><a href="#11-查看mysql字符集" class="headerlink" title="11.查看mysql字符集"></a>11.查看mysql字符集</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">show variables like &apos;character%&apos;;</div></pre></td></tr></table></figure>
-<h3 id="12-修改字符编码"><a href="#12-修改字符编码" class="headerlink" title="12.修改字符编码"></a>12.修改字符编码</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">1. 停止服务，找到mysql.cnf文件</div><div class="line">2. 使用vi /etc/mysql/mysql.cnf编辑文件</div><div class="line">3. 加入：  </div><div class="line">###############################</div><div class="line">[client]</div><div class="line">default-character-set=utf8</div><div class="line"></div><div class="line">[mysqld]</div><div class="line">character-set-server=utf8</div><div class="line"></div><div class="line">[mysql]</div><div class="line">default-character-set=utf8</div><div class="line">###############################</div><div class="line">4. :wq保存退出</div><div class="line">5. 重启服务</div></pre></td></tr></table></figure>
-<h3 id="13-修改数据库root的密码"><a href="#13-修改数据库root的密码" class="headerlink" title="13.修改数据库root的密码"></a>13.修改数据库root的密码</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/usr/local/mysql/bin/mysqladmin -u root password &apos;rootroot&apos;</div></pre></td></tr></table></figure>
-<h3 id="14-卸载"><a href="#14-卸载" class="headerlink" title="14.卸载"></a>14.卸载</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">ps -ef | grep mysql</div><div class="line">/etc/init.d/mysql status</div><div class="line">whereis mysql</div><div class="line">find / -name mysql【找到所有文件名为mysql的文件列表】</div><div class="line">rm -rf /usr/local/mysql/【使用rm命令来移除列表中的文件】</div><div class="line">rm -rf /etc/my.cnf【使用rm命令来移除列表中的文件】</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/mysql安装/" data-id="cj6ao835q0004tcbl570x80bl" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/apt-get常用命令/" data-id="cj6aobvwz0004udbl1rp28ztz" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -657,7 +740,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/数据类型/BigDecimal/" data-id="cj6ao838p0033tcblhb2wmjjq" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/数据类型/BigDecimal/" data-id="cj6aobw0o002xudblnpv2mjib" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -721,7 +804,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/日记/spring配置log4j/" data-id="cj6ao838q0036tcblyfny20fv" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/日记/spring配置log4j/" data-id="cj6aobw0q002zudbliz745ocl" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -831,7 +914,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/线程/ExecutorService线程池/" data-id="cj6ao838s0038tcbliubg207g" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/线程/ExecutorService线程池/" data-id="cj6aobw0u0032udbl757r4qoo" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -890,11 +973,11 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
+          <a href="/2017/08/13/Spring/基础/AOP事务管理/">AOP事务管理</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
+          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
         </li>
       
         <li>
@@ -902,7 +985,7 @@
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
+          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
         </li>
       
         <li>

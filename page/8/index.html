@@ -128,7 +128,139 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/Pipe/" data-id="cj6ao839k004ntcblcfeureec" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/Pipe/" data-id="cj6aobw2b004hudblbg5lg1ao" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/网络NIO/ServerSocketChannel" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/ServerSocketChannel/">ServerSocketChannel</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/网络NIO/ServerSocketChannel/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Java NIO中的 ServerSocketChannel 是一个可以监听新进来的TCP连接的通道, 就像标准IO中的ServerSocket一样。ServerSocketChannel类在 java.nio.channels包中。</p>
+<p>这里有个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();</div><div class="line">serverSocketChannel.socket().bind(new InetSocketAddress(9999));</div><div class="line"></div><div class="line">while(true)&#123;</div><div class="line">    SocketChannel socketChannel = serverSocketChannel.accept();</div><div class="line">    //do something with socketChannel...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="打开-ServerSocketChannel"><a href="#打开-ServerSocketChannel" class="headerlink" title="打开 ServerSocketChannel"></a>打开 ServerSocketChannel</h3><p>通过调用 ServerSocketChannel.open() 方法来打开ServerSocketChannel.如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();</div></pre></td></tr></table></figure></p>
+<h3 id="关闭-ServerSocketChannel"><a href="#关闭-ServerSocketChannel" class="headerlink" title="关闭 ServerSocketChannel"></a>关闭 ServerSocketChannel</h3><p>通过调用ServerSocketChannel.close() 方法来关闭ServerSocketChannel. 如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">serverSocketChannel.close();</div></pre></td></tr></table></figure></p>
+<h3 id="监听新进来的连接"><a href="#监听新进来的连接" class="headerlink" title="监听新进来的连接"></a>监听新进来的连接</h3><p>通过 ServerSocketChannel.accept() 方法监听新进来的连接。当 accept()方法返回的时候,它返回一个包含新进来的连接的 SocketChannel。因此, accept()方法会一直阻塞到有新连接到达。</p>
+<p>通常不会仅仅只监听一个连接,在while循环中调用 accept()方法. 如下面的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">while(true)&#123;</div><div class="line"></div><div class="line">    SocketChannel socketChannel = serverSocketChannel.accept();</div><div class="line"></div><div class="line">    //do something with socketChannel...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>当然,也可以在while循环中使用除了true以外的其它退出准则。</p>
+<h3 id="非阻塞模式"><a href="#非阻塞模式" class="headerlink" title="非阻塞模式"></a>非阻塞模式</h3><p>ServerSocketChannel可以设置成非阻塞模式。在非阻塞模式下，accept() 方法会立刻返回，如果还没有新进来的连接,返回的将是null。 因此，需要检查返回的SocketChannel是否是null.如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();</div><div class="line">serverSocketChannel.socket().bind(new InetSocketAddress(9999));</div><div class="line">serverSocketChannel.configureBlocking(false);</div><div class="line">while(true)&#123;</div><div class="line"></div><div class="line">    SocketChannel socketChannel = serverSocketChannel.accept();</div><div class="line"></div><div class="line">    if(socketChannel != null)&#123;</div><div class="line">        //do something with socketChannel...</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/ServerSocketChannel/" data-id="cj6aobw2d004kudblqqp3kia5" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/网络NIO/channel" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/channel/">channel</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/网络NIO/channel/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Java NIO的通道类似流，但又有些不同：</p>
+<ul>
+<li>既可以从通道中读取数据，又可以写数据到通道。但流的读写通常是单向的。</li>
+<li>通道可以异步地读写。</li>
+<li>通道中的数据总是要先读到一个Buffer，或者总是要从一个Buffer中写入。</li>
+</ul>
+<p>正如上面所说，从通道读取数据到缓冲区，从缓冲区写入数据到通道。如下图所示：<br><img src="http://dl2.iteye.com/upload/attachment/0096/4760/147a85aa-2924-3652-aaf0-212b1002b561.png" alt="image"></p>
+<h3 id="Channel的实现"><a href="#Channel的实现" class="headerlink" title="Channel的实现"></a>Channel的实现</h3><p>这些是Java NIO中最重要的通道的实现：</p>
+<ul>
+<li>FileChannel：从文件中读写数据。</li>
+<li>DatagramChannel：能通过UDP读写网络中的数据。</li>
+<li>SocketChannel：能通过TCP读写网络中的数据。</li>
+<li>ServerSocketChannel：可以监听新进来的TCP连接，像Web服务器那样。对每一个新进来的连接都会创建一个SocketChannel。</li>
+</ul>
+<h3 id="基本的-Channel-示例"><a href="#基本的-Channel-示例" class="headerlink" title="基本的 Channel 示例"></a>基本的 Channel 示例</h3><p>下面是一个使用FileChannel读取数据到Buffer中的示例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">RandomAccessFile aFile = new RandomAccessFile(&quot;data/nio-data.txt&quot;, &quot;rw&quot;); </div><div class="line">FileChannel inChannel = aFile.getChannel(); </div><div class="line"> </div><div class="line">ByteBuffer buf = ByteBuffer.allocate(48); </div><div class="line"> </div><div class="line">int bytesRead = inChannel.read(buf); </div><div class="line">while (bytesRead != -1) &#123; </div><div class="line"> </div><div class="line">    System.out.println(&quot;Read &quot; + bytesRead); </div><div class="line">    buf.flip(); </div><div class="line">     </div><div class="line">    while(buf.hasRemaining()) &#123; </div><div class="line">        System.out.print((char) buf.get()); </div><div class="line">    &#125; </div><div class="line">     </div><div class="line">    buf.clear(); </div><div class="line">    bytesRead = inChannel.read(buf); </div><div class="line">&#125; </div><div class="line">aFile.close();</div></pre></td></tr></table></figure></p>
+<p>注意 buf.flip() 的调用，首先读取数据到Buffer，然后反转Buffer,接着再从Buffer中读取数据</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/channel/" data-id="cj6aobw2e004mudblowo3es00" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -237,69 +369,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/Selector/" data-id="cj6ao839l004qtcbl7nnf1s8m" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/网络NIO/ServerSocketChannel" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/网络NIO/ServerSocketChannel/">ServerSocketChannel</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/网络NIO/ServerSocketChannel/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Java NIO中的 ServerSocketChannel 是一个可以监听新进来的TCP连接的通道, 就像标准IO中的ServerSocket一样。ServerSocketChannel类在 java.nio.channels包中。</p>
-<p>这里有个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();</div><div class="line">serverSocketChannel.socket().bind(new InetSocketAddress(9999));</div><div class="line"></div><div class="line">while(true)&#123;</div><div class="line">    SocketChannel socketChannel = serverSocketChannel.accept();</div><div class="line">    //do something with socketChannel...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h3 id="打开-ServerSocketChannel"><a href="#打开-ServerSocketChannel" class="headerlink" title="打开 ServerSocketChannel"></a>打开 ServerSocketChannel</h3><p>通过调用 ServerSocketChannel.open() 方法来打开ServerSocketChannel.如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();</div></pre></td></tr></table></figure></p>
-<h3 id="关闭-ServerSocketChannel"><a href="#关闭-ServerSocketChannel" class="headerlink" title="关闭 ServerSocketChannel"></a>关闭 ServerSocketChannel</h3><p>通过调用ServerSocketChannel.close() 方法来关闭ServerSocketChannel. 如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">serverSocketChannel.close();</div></pre></td></tr></table></figure></p>
-<h3 id="监听新进来的连接"><a href="#监听新进来的连接" class="headerlink" title="监听新进来的连接"></a>监听新进来的连接</h3><p>通过 ServerSocketChannel.accept() 方法监听新进来的连接。当 accept()方法返回的时候,它返回一个包含新进来的连接的 SocketChannel。因此, accept()方法会一直阻塞到有新连接到达。</p>
-<p>通常不会仅仅只监听一个连接,在while循环中调用 accept()方法. 如下面的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">while(true)&#123;</div><div class="line"></div><div class="line">    SocketChannel socketChannel = serverSocketChannel.accept();</div><div class="line"></div><div class="line">    //do something with socketChannel...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>当然,也可以在while循环中使用除了true以外的其它退出准则。</p>
-<h3 id="非阻塞模式"><a href="#非阻塞模式" class="headerlink" title="非阻塞模式"></a>非阻塞模式</h3><p>ServerSocketChannel可以设置成非阻塞模式。在非阻塞模式下，accept() 方法会立刻返回，如果还没有新进来的连接,返回的将是null。 因此，需要检查返回的SocketChannel是否是null.如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();</div><div class="line">serverSocketChannel.socket().bind(new InetSocketAddress(9999));</div><div class="line">serverSocketChannel.configureBlocking(false);</div><div class="line">while(true)&#123;</div><div class="line"></div><div class="line">    SocketChannel socketChannel = serverSocketChannel.accept();</div><div class="line"></div><div class="line">    if(socketChannel != null)&#123;</div><div class="line">        //do something with socketChannel...</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/ServerSocketChannel/" data-id="cj6ao839m004stcblpop5a6e2" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/Selector/" data-id="cj6aobw2g004pudblanvh2r0i" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -370,77 +440,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/SocketChannel/" data-id="cj6ao839n004vtcbl6t9sd3qf" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/网络NIO/channel" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/网络NIO/channel/">channel</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/网络NIO/channel/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Java NIO的通道类似流，但又有些不同：</p>
-<ul>
-<li>既可以从通道中读取数据，又可以写数据到通道。但流的读写通常是单向的。</li>
-<li>通道可以异步地读写。</li>
-<li>通道中的数据总是要先读到一个Buffer，或者总是要从一个Buffer中写入。</li>
-</ul>
-<p>正如上面所说，从通道读取数据到缓冲区，从缓冲区写入数据到通道。如下图所示：<br><img src="http://dl2.iteye.com/upload/attachment/0096/4760/147a85aa-2924-3652-aaf0-212b1002b561.png" alt="image"></p>
-<h3 id="Channel的实现"><a href="#Channel的实现" class="headerlink" title="Channel的实现"></a>Channel的实现</h3><p>这些是Java NIO中最重要的通道的实现：</p>
-<ul>
-<li>FileChannel：从文件中读写数据。</li>
-<li>DatagramChannel：能通过UDP读写网络中的数据。</li>
-<li>SocketChannel：能通过TCP读写网络中的数据。</li>
-<li>ServerSocketChannel：可以监听新进来的TCP连接，像Web服务器那样。对每一个新进来的连接都会创建一个SocketChannel。</li>
-</ul>
-<h3 id="基本的-Channel-示例"><a href="#基本的-Channel-示例" class="headerlink" title="基本的 Channel 示例"></a>基本的 Channel 示例</h3><p>下面是一个使用FileChannel读取数据到Buffer中的示例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">RandomAccessFile aFile = new RandomAccessFile(&quot;data/nio-data.txt&quot;, &quot;rw&quot;); </div><div class="line">FileChannel inChannel = aFile.getChannel(); </div><div class="line"> </div><div class="line">ByteBuffer buf = ByteBuffer.allocate(48); </div><div class="line"> </div><div class="line">int bytesRead = inChannel.read(buf); </div><div class="line">while (bytesRead != -1) &#123; </div><div class="line"> </div><div class="line">    System.out.println(&quot;Read &quot; + bytesRead); </div><div class="line">    buf.flip(); </div><div class="line">     </div><div class="line">    while(buf.hasRemaining()) &#123; </div><div class="line">        System.out.print((char) buf.get()); </div><div class="line">    &#125; </div><div class="line">     </div><div class="line">    buf.clear(); </div><div class="line">    bytesRead = inChannel.read(buf); </div><div class="line">&#125; </div><div class="line">aFile.close();</div></pre></td></tr></table></figure></p>
-<p>注意 buf.flip() 的调用，首先读取数据到Buffer，然后反转Buffer,接着再从Buffer中读取数据</p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/channel/" data-id="cj6ao839o004xtcblvaw2i0yt" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/SocketChannel/" data-id="cj6aobw2j004rudblvrwm6b5x" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -505,7 +505,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/分散(Scatter) and 聚集(Gather)/" data-id="cj6ao839q0050tcbl9fc43gpb" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/分散(Scatter) and 聚集(Gather)/" data-id="cj6aobw2l004uudbl2wxe3ya1" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -566,7 +566,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/通道之间的数据传输/" data-id="cj6ao839r0052tcblhh4lqo15" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/通道之间的数据传输/" data-id="cj6aobw2n004wudbljz3wyqqn" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -634,7 +634,100 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/activemq安装和配置/" data-id="cj6ao835l0001tcblx76ksqlc" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/activemq安装和配置/" data-id="cj6aobvwr0001udbl5btq1urn" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/队列/CAS算法" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/队列/CAS算法/">CAS算法</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/队列/CAS算法/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/队列/">队列</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在JDK 5之前Java语言是靠synchronized关键字保证同步的，这会导致有锁。<br>锁机制存在以下问题：</p>
+<ol>
+<li>在多线程竞争下，加锁、释放锁会导致比较多的上下文切换和调度延时，引起性能问题。</li>
+<li>一个线程持有锁会导致其它所有需要此锁的线程挂起。</li>
+<li>如果一个优先级高的线程等待一个优先级低的线程释放锁会导致优先级倒置，引起性能风险。</li>
+</ol>
+<p>volatile是不错的机制，但是volatile不能保证原子性。因此对于同步最终还是要回到锁机制上来。<br>独占锁是一种悲观锁，synchronized就是一种独占锁，会导致其它所有需要锁的线程挂起，等待持有锁的线程释放锁。而另一个更加有效的锁就是乐观锁。所谓乐观锁就是，每次不加锁而是假设没有冲突而去完成某项操作，如果因为冲突失败就重试，直到成功为止。</p>
+<p><strong>CAS:Compare and Swap,是比较并交换的意思。</strong></p>
+<p>java.util.concurrent包中借助CAS实现了区别于synchronized悲观锁的一种乐观锁。<br>CAS简介：<br><strong>CAS有3个操作数，内存值V，旧的预期值A，要修改的新值B。当且仅当预期值A和内存值V相同时，将内存值V修改为B，否则什么都不做。</strong>  </p>
+<p>非阻塞算法 （nonblocking algorithms）<br>一个线程的失败或者挂起不应该影响其他线程的失败或挂起的算法。<br>现代的CPU提供了特殊的指令，可以自动更新共享数据，而且能够检测到其他线程的干扰，而 compareAndSet() 就用这些代替了锁定。<br>拿出AtomicInteger来研究在没有锁的情况下是如何做到数据正确性的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">private volatile int value;</div></pre></td></tr></table></figure></p>
+<p>首先毫无以为，在没有锁的机制下可能需要借助volatile原语，保证线程间的数据是可见的（共享的）。<br>这样才获取变量的值的时候才能直接读取。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public final int get() &#123;</div><div class="line">    return value;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>然后来看看++i是怎么做到的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public final int incrementAndGet() &#123;</div><div class="line">    for (;;) &#123;</div><div class="line">        int current = get();</div><div class="line">        int next = current + 1;</div><div class="line">        if (compareAndSet(current, next))</div><div class="line">            return next;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在这里采用了CAS操作，每次从内存中读取数据然后将此数据和+1后的结果进行CAS操作，如果成功就返回结果，否则重试直到成功为止。<br>而compareAndSet利用JNI来完成CPU指令的操作。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public final boolean compareAndSet(int expect, int update) &#123;   </div><div class="line">    return unsafe.compareAndSwapInt(this, valueOffset, expect, update);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>整体的过程就是这样子的，利用CPU的CAS指令，同时借助JNI来完成Java的非阻塞算法。其它原子操作都是利用类似的特性完成的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">unsafe.compareAndSwapInt(this, valueOffset, expect, update);</div></pre></td></tr></table></figure></p>
+<p>类似这样的逻辑：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">if (this == expect) &#123;</div><div class="line">  this = update</div><div class="line">    return true;</div><div class="line">&#125; else &#123;</div><div class="line">    return false;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>那么问题就来了，成功过程中需要2个步骤：比较this == expect，替换this = update，compareAndSwapInt如何这两个步骤的原子性呢？ </p>
+<h3 id="CAS缺点"><a href="#CAS缺点" class="headerlink" title="CAS缺点"></a>CAS缺点</h3><p>CAS虽然很高效的解决原子操作，但是CAS仍然存在三大问题。ABA问题，循环时间长开销大和只能保证一个共享变量的原子操作:</p>
+<ol>
+<li><p>ABA问题。因为CAS需要在操作值的时候检查下值有没有发生变化，如果没有发生变化则更新，但是如果一个值原来是A，变成了B，又变成了A，那么使用CAS进行检查时会发现它的值没有发生变化，但是实际上却变化了。ABA问题的解决思路就是使用版本号。在变量前面追加上版本号，每次变量更新的时候把版本号加一，那么A－B－A 就会变成1A-2B－3A。<br>从Java1.5开始JDK的atomic包里提供了一个类AtomicStampedReference来解决ABA问题。这个类的compareAndSet方法作用是首先检查当前引用是否等于预期引用，并且当前标志是否等于预期标志，如果全部相等，则以原子方式将该引用和该标志的值设置为给定的更新值。</p>
+</li>
+<li><p>循环时间长开销大。自旋CAS如果长时间不成功，会给CPU带来非常大的执行开销。如果JVM能支持处理器提供的pause指令那么效率会有一定的提升，pause指令有两个作用，第一它可以延迟流水线执行指令（de-pipeline）,使CPU不会消耗过多的执行资源，延迟的时间取决于具体实现的版本，在一些处理器上延迟时间是零。第二它可以避免在退出循环的时候因内存顺序冲突（memory order violation）而引起CPU流水线被清空（CPU pipeline flush），从而提高CPU的执行效率。</p>
+</li>
+<li><p>只能保证一个共享变量的原子操作。当对一个共享变量执行操作时，我们可以使用循环CAS的方式来保证原子操作，但是对多个共享变量操作时，循环CAS就无法保证操作的原子性，这个时候就可以用锁，或者有一个取巧的办法，就是把多个共享变量合并成一个共享变量来操作。比如有两个共享变量i＝2,j=a，合并一下ij=2a，然后用CAS来操作ij。从Java1.5开始JDK提供了AtomicReference类来保证引用对象之间的原子性，你可以把多个变量放在一个对象里来进行CAS操作。</p>
+</li>
+</ol>
+<h3 id="concurrent包的实现"><a href="#concurrent包的实现" class="headerlink" title="concurrent包的实现"></a>concurrent包的实现</h3><p>由于java的CAS同时具有 volatile 读和volatile写的内存语义，因此Java线程之间的通信现在有了下面四种方式：</p>
+<ol>
+<li>A线程写volatile变量，随后B线程读这个volatile变量。</li>
+<li>A线程写volatile变量，随后B线程用CAS更新这个volatile变量。</li>
+<li>A线程用CAS更新一个volatile变量，随后B线程用CAS更新这个volatile变量。</li>
+<li>A线程用CAS更新一个volatile变量，随后B线程读这个volatile变量。    </li>
+</ol>
+<p>Java的CAS会使用现代处理器上提供的高效机器级别原子指令，这些原子指令以原子方式对内存执行读-改-写操作，这是在多处理器中实现同步的关键。同时，volatile变量的读/写和CAS可以实现线程之间的通信。把这些特性整合在一起，就形成了整个concurrent包得以实现的基石。如果我们仔细分析concurrent包的源代码实现，会发现一个通用化的实现模式：</p>
+<ol>
+<li>首先，声明共享变量为volatile；</li>
+<li>然后，使用CAS的原子条件更新来实现线程之间的同步；</li>
+<li>同时，配合以volatile的读/写和CAS所具有的volatile读和写的内存语义来实现线程之间的通信。    </li>
+</ol>
+<p>AQS，非阻塞数据结构和原子变量类（java.util.concurrent.atomic包中的类），这些concurrent包中的基础类都是使用这种模式来实现的，而concurrent包中的高层类又是依赖于这些基础类来实现的。从整体来看，concurrent包的实现示意图如下：<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/67BFC99C9E3748A8ACC3BABFA65377B7/15060" alt="image">   </p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/CAS算法/" data-id="cj6aobw2q0051udbl2lsm40eo" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -732,100 +825,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/BlockingQueue/" data-id="cj6ao839t0057tcblgsawc0vd" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/队列/CAS算法" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/队列/CAS算法/">CAS算法</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/队列/CAS算法/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/队列/">队列</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>在JDK 5之前Java语言是靠synchronized关键字保证同步的，这会导致有锁。<br>锁机制存在以下问题：</p>
-<ol>
-<li>在多线程竞争下，加锁、释放锁会导致比较多的上下文切换和调度延时，引起性能问题。</li>
-<li>一个线程持有锁会导致其它所有需要此锁的线程挂起。</li>
-<li>如果一个优先级高的线程等待一个优先级低的线程释放锁会导致优先级倒置，引起性能风险。</li>
-</ol>
-<p>volatile是不错的机制，但是volatile不能保证原子性。因此对于同步最终还是要回到锁机制上来。<br>独占锁是一种悲观锁，synchronized就是一种独占锁，会导致其它所有需要锁的线程挂起，等待持有锁的线程释放锁。而另一个更加有效的锁就是乐观锁。所谓乐观锁就是，每次不加锁而是假设没有冲突而去完成某项操作，如果因为冲突失败就重试，直到成功为止。</p>
-<p><strong>CAS:Compare and Swap,是比较并交换的意思。</strong></p>
-<p>java.util.concurrent包中借助CAS实现了区别于synchronized悲观锁的一种乐观锁。<br>CAS简介：<br><strong>CAS有3个操作数，内存值V，旧的预期值A，要修改的新值B。当且仅当预期值A和内存值V相同时，将内存值V修改为B，否则什么都不做。</strong>  </p>
-<p>非阻塞算法 （nonblocking algorithms）<br>一个线程的失败或者挂起不应该影响其他线程的失败或挂起的算法。<br>现代的CPU提供了特殊的指令，可以自动更新共享数据，而且能够检测到其他线程的干扰，而 compareAndSet() 就用这些代替了锁定。<br>拿出AtomicInteger来研究在没有锁的情况下是如何做到数据正确性的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">private volatile int value;</div></pre></td></tr></table></figure></p>
-<p>首先毫无以为，在没有锁的机制下可能需要借助volatile原语，保证线程间的数据是可见的（共享的）。<br>这样才获取变量的值的时候才能直接读取。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public final int get() &#123;</div><div class="line">    return value;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>然后来看看++i是怎么做到的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public final int incrementAndGet() &#123;</div><div class="line">    for (;;) &#123;</div><div class="line">        int current = get();</div><div class="line">        int next = current + 1;</div><div class="line">        if (compareAndSet(current, next))</div><div class="line">            return next;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>在这里采用了CAS操作，每次从内存中读取数据然后将此数据和+1后的结果进行CAS操作，如果成功就返回结果，否则重试直到成功为止。<br>而compareAndSet利用JNI来完成CPU指令的操作。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public final boolean compareAndSet(int expect, int update) &#123;   </div><div class="line">    return unsafe.compareAndSwapInt(this, valueOffset, expect, update);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>整体的过程就是这样子的，利用CPU的CAS指令，同时借助JNI来完成Java的非阻塞算法。其它原子操作都是利用类似的特性完成的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">unsafe.compareAndSwapInt(this, valueOffset, expect, update);</div></pre></td></tr></table></figure></p>
-<p>类似这样的逻辑：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">if (this == expect) &#123;</div><div class="line">  this = update</div><div class="line">    return true;</div><div class="line">&#125; else &#123;</div><div class="line">    return false;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>那么问题就来了，成功过程中需要2个步骤：比较this == expect，替换this = update，compareAndSwapInt如何这两个步骤的原子性呢？ </p>
-<h3 id="CAS缺点"><a href="#CAS缺点" class="headerlink" title="CAS缺点"></a>CAS缺点</h3><p>CAS虽然很高效的解决原子操作，但是CAS仍然存在三大问题。ABA问题，循环时间长开销大和只能保证一个共享变量的原子操作:</p>
-<ol>
-<li><p>ABA问题。因为CAS需要在操作值的时候检查下值有没有发生变化，如果没有发生变化则更新，但是如果一个值原来是A，变成了B，又变成了A，那么使用CAS进行检查时会发现它的值没有发生变化，但是实际上却变化了。ABA问题的解决思路就是使用版本号。在变量前面追加上版本号，每次变量更新的时候把版本号加一，那么A－B－A 就会变成1A-2B－3A。<br>从Java1.5开始JDK的atomic包里提供了一个类AtomicStampedReference来解决ABA问题。这个类的compareAndSet方法作用是首先检查当前引用是否等于预期引用，并且当前标志是否等于预期标志，如果全部相等，则以原子方式将该引用和该标志的值设置为给定的更新值。</p>
-</li>
-<li><p>循环时间长开销大。自旋CAS如果长时间不成功，会给CPU带来非常大的执行开销。如果JVM能支持处理器提供的pause指令那么效率会有一定的提升，pause指令有两个作用，第一它可以延迟流水线执行指令（de-pipeline）,使CPU不会消耗过多的执行资源，延迟的时间取决于具体实现的版本，在一些处理器上延迟时间是零。第二它可以避免在退出循环的时候因内存顺序冲突（memory order violation）而引起CPU流水线被清空（CPU pipeline flush），从而提高CPU的执行效率。</p>
-</li>
-<li><p>只能保证一个共享变量的原子操作。当对一个共享变量执行操作时，我们可以使用循环CAS的方式来保证原子操作，但是对多个共享变量操作时，循环CAS就无法保证操作的原子性，这个时候就可以用锁，或者有一个取巧的办法，就是把多个共享变量合并成一个共享变量来操作。比如有两个共享变量i＝2,j=a，合并一下ij=2a，然后用CAS来操作ij。从Java1.5开始JDK提供了AtomicReference类来保证引用对象之间的原子性，你可以把多个变量放在一个对象里来进行CAS操作。</p>
-</li>
-</ol>
-<h3 id="concurrent包的实现"><a href="#concurrent包的实现" class="headerlink" title="concurrent包的实现"></a>concurrent包的实现</h3><p>由于java的CAS同时具有 volatile 读和volatile写的内存语义，因此Java线程之间的通信现在有了下面四种方式：</p>
-<ol>
-<li>A线程写volatile变量，随后B线程读这个volatile变量。</li>
-<li>A线程写volatile变量，随后B线程用CAS更新这个volatile变量。</li>
-<li>A线程用CAS更新一个volatile变量，随后B线程用CAS更新这个volatile变量。</li>
-<li>A线程用CAS更新一个volatile变量，随后B线程读这个volatile变量。    </li>
-</ol>
-<p>Java的CAS会使用现代处理器上提供的高效机器级别原子指令，这些原子指令以原子方式对内存执行读-改-写操作，这是在多处理器中实现同步的关键。同时，volatile变量的读/写和CAS可以实现线程之间的通信。把这些特性整合在一起，就形成了整个concurrent包得以实现的基石。如果我们仔细分析concurrent包的源代码实现，会发现一个通用化的实现模式：</p>
-<ol>
-<li>首先，声明共享变量为volatile；</li>
-<li>然后，使用CAS的原子条件更新来实现线程之间的同步；</li>
-<li>同时，配合以volatile的读/写和CAS所具有的volatile读和写的内存语义来实现线程之间的通信。    </li>
-</ol>
-<p>AQS，非阻塞数据结构和原子变量类（java.util.concurrent.atomic包中的类），这些concurrent包中的基础类都是使用这种模式来实现的，而concurrent包中的高层类又是依赖于这些基础类来实现的。从整体来看，concurrent包的实现示意图如下：<br><img src="http://note.youdao.com/yws/public/resource/1bff6f8c085cf77126d792c11702b606/xmlnote/67BFC99C9E3748A8ACC3BABFA65377B7/15060" alt="image">   </p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/CAS算法/" data-id="cj6ao839u005atcbl6fx1xblu" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/BlockingQueue/" data-id="cj6aobw2r0054udbli380fgo0" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -884,11 +884,11 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
+          <a href="/2017/08/13/Spring/基础/AOP事务管理/">AOP事务管理</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
+          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
         </li>
       
         <li>
@@ -896,7 +896,7 @@
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
+          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
         </li>
       
         <li>

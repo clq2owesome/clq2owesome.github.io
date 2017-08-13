@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-Spring/基础/Bean注入：Autowired和Resource" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/基础/AOP事务管理" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
+      <a class="article-title" href="/2017/08/13/Spring/基础/AOP事务管理/">AOP事务管理</a>
     </h1>
   
 
@@ -95,7 +95,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
+  <a href="/2017/08/13/Spring/基础/AOP事务管理/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
 </div>
 
     
@@ -110,11 +110,69 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <ol>
-<li>@Resource默认是按照名称来装配注入的，只有当找不到与名称匹配的bean才会按照类型来装配注入；</li>
-<li>@Autowired默认是按照类型装配注入的，如果想按照名称来转配注入，则需要结合@Qualifier一起使用；</li>
-<li>@Resource注解是由J2EE提供，而@Autowired是由Spring提供，故减少系统对spring的依赖建议使用@Resource的方式；</li>
-<li>@Resource和@Autowired都可以书写标注在字段或者该字段的setter方法之上</li>
+        <blockquote>
+<p>注意：service方法中必须能抛出异常，供aop事务捕获，才会进行事务控制，若service方法中捕获了异常，则需要在catch中重新抛出异常</p>
+</blockquote>
+<h3 id="使用基于注解的AOP事务管理"><a href="#使用基于注解的AOP事务管理" class="headerlink" title="使用基于注解的AOP事务管理"></a>使用基于注解的AOP事务管理</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&lt;tx:annotation-driven transaction-manager=&quot;transactionManager&quot;/&gt; </div><div class="line">&lt;aop:aspectj-autoproxy /&gt;</div></pre></td></tr></table></figure>
+<h4 id="tx-annotation-driven标签"><a href="#tx-annotation-driven标签" class="headerlink" title="tx:annotation-driven标签"></a>tx:annotation-driven标签</h4><p><code>&lt;tx:annotation-driven/&gt;</code>标签是注解驱动的事务管理支持的核心。</p>
+<p><tx:annotation-driven>标签的属性：</tx:annotation-driven></p>
+<ul>
+<li>transaction-manager：指定到现有的PlatformTransactionManager bean的引用，通知会使用该引用。default=”transactionManager” </li>
+<li>mode：指定Spring事务管理框架创建通知bean的方式。可用的值有proxy和aspectj。前者是默认值，表示通知对象是个JDK代理；后者表示Spring AOP会使用AspectJ创建代理。 </li>
+<li>order：指定创建的切面的顺序。只要目标对象有多个通知就可以使用该属性。 </li>
+<li>proxy-target-class：该属性如果为true就表示你想要代理目标类而不是bean所实现的所有接口。default=”false” </li>
+</ul>
+<h4 id="Transactional注解"><a href="#Transactional注解" class="headerlink" title="@Transactional注解"></a>@Transactional注解</h4><p>你可以指定传播、隔离级别、超时以及允许和不允许的异常。<br>@Transactional注解的属性:   </p>
+<ul>
+<li>propagation：指定事务定义中使用的传播</li>
+<li>isolation：设定事务的隔离级别</li>
+<li>timeout：指定事务的超时（秒）</li>
+<li>readOnly：指定事务是否是只读模式</li>
+<li>noRollbackFor：指定不捕获的异常所构成的数组</li>
+<li>rollbackFor：异常所构成的数组，如果目标方法抛出了这些异常，就会通知回滚事务</li>
+</ul>
+<h3 id="使用XML-AOP事务管理"><a href="#使用XML-AOP事务管理" class="headerlink" title="使用XML AOP事务管理"></a>使用XML AOP事务管理</h3><p><tx:advice>标签，该标签会创建一个事务处理通知<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">&lt;tx:advice id=&quot;txAdvice&quot; transaction-manager=&quot;transactionManager&quot;&gt; </div><div class="line">    &lt;tx:attributes&gt; </div><div class="line">        &lt;tx:method name=&quot;bulk*&quot; propagation=&quot;REQUIRED&quot; isolation=&quot;DEFAULT&quot; /&gt; </div><div class="line">        &lt;tx:method name=&quot;load*&quot; propagation=&quot;REQUIRED&quot; isolation=&quot;DEFAULT&quot; read-only=&quot;true&quot;/&gt; </div><div class="line">    &lt;/tx:attributes&gt; </div><div class="line">&lt;/tx:advice&gt; </div><div class="line">&lt;aop:config&gt; </div><div class="line">    &lt;aop:advisor pointcut=&quot;execution(* *..*Service*.*(..))&quot; advice-ref=&quot;txAdvice&quot; /&gt; </div><div class="line">&lt;/aop:config&gt; </div><div class="line"> </div><div class="line">或 </div><div class="line"> </div><div class="line">&lt;tx:advice id=&quot;defaultTransactionAdvice&quot; transaction-manager=&quot;transactionManager&quot;&gt; </div><div class="line">    &lt;tx:attributes&gt; </div><div class="line">        &lt;tx:method name=&quot;*&quot; isolation=&quot;DEFAULT&quot; propagation=&quot;REQUIRED&quot; no-rollback-for=&quot;java.lang.RuntimeException&quot; timeout=&quot;100&quot;/&gt;</div><div class="line">    &lt;tx:method name=&quot;get*&quot; read-only=&quot;true&quot;/&gt;</div><div class="line">    &lt;/tx:attributes&gt; </div><div class="line">&lt;/tx:advice&gt; </div><div class="line"> </div><div class="line">&lt;aop:config&gt; </div><div class="line">    &lt;aop:pointcut id=&quot;allServiceMethods&quot; </div><div class="line">    expression=&quot;execution(* com.apress.prospring2.ch16.services.*.*(..))&quot;/&gt; </div><div class="line">    &lt;aop:advisor advice-ref=&quot;defaultTransactionAdvice&quot; </div><div class="line">        pointcut-ref=&quot;allServiceMethods&quot;/&gt; </div><div class="line">&lt;/aop:config&gt;</div></pre></td></tr></table></figure></tx:advice></p>
+<h4 id="tx-advice标签简介"><a href="#tx-advice标签简介" class="headerlink" title="tx:advice标签简介"></a>tx:advice标签简介</h4><p>id是该advice bean的标识，而transaction-manager则必须引用一个PlatformTransactionManager bean。  </p>
+<p>还可以通过<tx:attributes>标签定制<tx:advice>标签所创建的通知的行为。</tx:advice></tx:attributes></p>
+<p><tx:method>标签的属性：    </tx:method></p>
+<ul>
+<li>name：方法名的匹配模式，通知根据该模式寻找匹配的方法。</li>
+<li>propagation：设定事务定义所用的传播级别。</li>
+<li>isolation：设置事务的隔离级别。</li>
+<li>timeout：指定事务的超时（秒）。</li>
+<li>read-only：该属性为true指示事务是只读的</li>
+<li>no-rollback-for：以逗号分隔的异常类的列表，目标方法可以跑出这些异常而不会导致通知执行回滚</li>
+<li>rollback-for：以逗号分隔的异常类的列表，当目标方法跑出这些异常时会导致通知执行回滚。默认情况下，该列表为空，因此不在no-rollback-for列表中的任何运行时异常都会导致回滚。</li>
+</ul>
+<h4 id="中isolation（隔离）和propagation（传播）参数的含义"><a href="#中isolation（隔离）和propagation（传播）参数的含义" class="headerlink" title="中isolation（隔离）和propagation（传播）参数的含义"></a><tx:method>中isolation（隔离）和propagation（传播）参数的含义</tx:method></h4><p>事务隔离级别：</p>
+<ol>
+<li><p><strong>ISOLATION_DEFAULT</strong>     默认级别（对大多数数据库来说就是ISOLATION_READ_COMMITTED）</p>
+</li>
+<li><p><strong>ISOLATION_READ_UNCOMMITTED</strong>    最低的隔离级别。事实上我们不推荐该隔离级别，因为在事务完成前，其他事务可以看到该事务所修改的数据。而在其他事务提交前，该事务也可以看到其他事务所做的修改。</p>
+</li>
+<li><p><strong>ISOLATION_READ_COMMITTED</strong>  大多数数据库的默认级别。在事务完成前，其他事务无法看到该事务所修改的数据。遗憾的是，在该事务提交后，你就可以查看其他事务插入活更新的数据。这意味着在事务的不同点上，如果其他事务修改数据，你会看到不同的数据。</p>
+</li>
+<li><p><strong>ISOLATION_REPEATABLE_READ</strong>     该隔离级别确保如果在事务中查询了某个数据集，你至少还能再次查询到相同的数据集，即使其他事务修改了所查询的数据。然而如果其他事务插入了新数据，你就可以查询到该新插入的数据。 </p>
+</li>
+<li><p><strong>ISOLATION_SERIALIZABLE</strong>    代价最大、可靠性最高的隔离级别，所有的事务都是按顺序一个接一个的执行。</p>
+</li>
+</ol>
+<p>传播行为指：</p>
+<ol>
+<li><p><strong>PROPAGATION_REQUIRED</strong>  当前如果有事务，Spring就会使用该事务；否则会开始一个新事务。</p>
+</li>
+<li><p><strong>PROPAGATION_SUPPORTS</strong>  当前如果有事务，Spring就会使用该事务；否则不会开启一个新事务。</p>
+</li>
+<li><p><strong>PROPAGATION_MANDATORY</strong>     当前如果有事务，Spring就会使用该事务；否则会抛出异常。</p>
+</li>
+<li><p><strong>PROPAGATION_REQUIRES_NEW</strong>  Spring总会开始一个新事务。如果当前有事务，则该事务挂起。</p>
+</li>
+<li><p><strong>PROPAGATION_NOT_SUPPORTED</strong>     Spring不会执行事务中的代码。代码总是在非事务环境下执行，如果当期有事务，则该事务挂起。</p>
+</li>
+<li><p><strong>PROPAGATION_NEVER</strong>     即使当前有事务，Spring也会在非事务环境下执行。如果当前有事务，则抛出异常。</p>
+</li>
+<li><p><strong>PROPAGATION_NESTED</strong>    如果当前有事务，则在嵌套事务中执行。如果没有，那么执行情况与PROPAGATION_REQUIRED一样。</p>
+</li>
 </ol>
 
       
@@ -126,115 +184,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/" data-id="cj6ao83b7007ptcblndha0fuw" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-前端技术相关/javascript/js中去掉空格的方法" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/前端技术相关/">前端技术相关</a> / <a class="article-category-link" href="/categories/前端技术相关/javascript/">javascript</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/" data-id="cj6ao83bf0088tcblzh2712pt" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-前端技术相关/forever/nohup node app.js &amp;" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/13/前端技术相关/forever/nohup node app.js &/">nohup node app.js &amp;</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/08/13/前端技术相关/forever/nohup node app.js &/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/前端技术相关/">前端技术相关</a> / <a class="article-category-link" href="/categories/前端技术相关/forever/">forever</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">nohup node app.js &amp;</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/forever/nohup node app.js &/" data-id="cj6ao83be0085tcbl7w5hskud" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/AOP事务管理/" data-id="cj6aobw4q007ludbleipmi3co" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -295,7 +245,115 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/" data-id="cj6ao83bd0083tcblhpmfz7lt" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/" data-id="cj6aobw520082udblcrlw1cc3" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-前端技术相关/forever/nohup node app.js &amp;" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/13/前端技术相关/forever/nohup node app.js &/">nohup node app.js &amp;</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/13/前端技术相关/forever/nohup node app.js &/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/前端技术相关/">前端技术相关</a> / <a class="article-category-link" href="/categories/前端技术相关/forever/">forever</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">nohup node app.js &amp;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/forever/nohup node app.js &/" data-id="cj6aobw50007zudblkhj9yp16" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-前端技术相关/javascript/js中去掉空格的方法" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/前端技术相关/">前端技术相关</a> / <a class="article-category-link" href="/categories/前端技术相关/javascript/">javascript</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/" data-id="cj6aobw4z007xudbl2ash4a5e" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -416,7 +474,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/Spring  Bean的scope作用域/" data-id="cj6ao83bc0080tcbli34mjj4n" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/Spring  Bean的scope作用域/" data-id="cj6aobw4u007qudblqzmrpkef" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -430,13 +488,13 @@
 
 
   
-    <article id="post-Spring/基础/AOP事务管理" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/基础/Bean注入：Autowired和Resource" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/13/Spring/基础/AOP事务管理/">AOP事务管理</a>
+      <a class="article-title" href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
     </h1>
   
 
@@ -445,7 +503,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/13/Spring/基础/AOP事务管理/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
+  <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
 </div>
 
     
@@ -460,69 +518,11 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <blockquote>
-<p>注意：service方法中必须能抛出异常，供aop事务捕获，才会进行事务控制，若service方法中捕获了异常，则需要在catch中重新抛出异常</p>
-</blockquote>
-<h3 id="使用基于注解的AOP事务管理"><a href="#使用基于注解的AOP事务管理" class="headerlink" title="使用基于注解的AOP事务管理"></a>使用基于注解的AOP事务管理</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&lt;tx:annotation-driven transaction-manager=&quot;transactionManager&quot;/&gt; </div><div class="line">&lt;aop:aspectj-autoproxy /&gt;</div></pre></td></tr></table></figure>
-<h4 id="tx-annotation-driven标签"><a href="#tx-annotation-driven标签" class="headerlink" title="tx:annotation-driven标签"></a>tx:annotation-driven标签</h4><p><code>&lt;tx:annotation-driven/&gt;</code>标签是注解驱动的事务管理支持的核心。</p>
-<p><tx:annotation-driven>标签的属性：</tx:annotation-driven></p>
-<ul>
-<li>transaction-manager：指定到现有的PlatformTransactionManager bean的引用，通知会使用该引用。default=”transactionManager” </li>
-<li>mode：指定Spring事务管理框架创建通知bean的方式。可用的值有proxy和aspectj。前者是默认值，表示通知对象是个JDK代理；后者表示Spring AOP会使用AspectJ创建代理。 </li>
-<li>order：指定创建的切面的顺序。只要目标对象有多个通知就可以使用该属性。 </li>
-<li>proxy-target-class：该属性如果为true就表示你想要代理目标类而不是bean所实现的所有接口。default=”false” </li>
-</ul>
-<h4 id="Transactional注解"><a href="#Transactional注解" class="headerlink" title="@Transactional注解"></a>@Transactional注解</h4><p>你可以指定传播、隔离级别、超时以及允许和不允许的异常。<br>@Transactional注解的属性:   </p>
-<ul>
-<li>propagation：指定事务定义中使用的传播</li>
-<li>isolation：设定事务的隔离级别</li>
-<li>timeout：指定事务的超时（秒）</li>
-<li>readOnly：指定事务是否是只读模式</li>
-<li>noRollbackFor：指定不捕获的异常所构成的数组</li>
-<li>rollbackFor：异常所构成的数组，如果目标方法抛出了这些异常，就会通知回滚事务</li>
-</ul>
-<h3 id="使用XML-AOP事务管理"><a href="#使用XML-AOP事务管理" class="headerlink" title="使用XML AOP事务管理"></a>使用XML AOP事务管理</h3><p><tx:advice>标签，该标签会创建一个事务处理通知<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">&lt;tx:advice id=&quot;txAdvice&quot; transaction-manager=&quot;transactionManager&quot;&gt; </div><div class="line">    &lt;tx:attributes&gt; </div><div class="line">        &lt;tx:method name=&quot;bulk*&quot; propagation=&quot;REQUIRED&quot; isolation=&quot;DEFAULT&quot; /&gt; </div><div class="line">        &lt;tx:method name=&quot;load*&quot; propagation=&quot;REQUIRED&quot; isolation=&quot;DEFAULT&quot; read-only=&quot;true&quot;/&gt; </div><div class="line">    &lt;/tx:attributes&gt; </div><div class="line">&lt;/tx:advice&gt; </div><div class="line">&lt;aop:config&gt; </div><div class="line">    &lt;aop:advisor pointcut=&quot;execution(* *..*Service*.*(..))&quot; advice-ref=&quot;txAdvice&quot; /&gt; </div><div class="line">&lt;/aop:config&gt; </div><div class="line"> </div><div class="line">或 </div><div class="line"> </div><div class="line">&lt;tx:advice id=&quot;defaultTransactionAdvice&quot; transaction-manager=&quot;transactionManager&quot;&gt; </div><div class="line">    &lt;tx:attributes&gt; </div><div class="line">        &lt;tx:method name=&quot;*&quot; isolation=&quot;DEFAULT&quot; propagation=&quot;REQUIRED&quot; no-rollback-for=&quot;java.lang.RuntimeException&quot; timeout=&quot;100&quot;/&gt;</div><div class="line">    &lt;tx:method name=&quot;get*&quot; read-only=&quot;true&quot;/&gt;</div><div class="line">    &lt;/tx:attributes&gt; </div><div class="line">&lt;/tx:advice&gt; </div><div class="line"> </div><div class="line">&lt;aop:config&gt; </div><div class="line">    &lt;aop:pointcut id=&quot;allServiceMethods&quot; </div><div class="line">    expression=&quot;execution(* com.apress.prospring2.ch16.services.*.*(..))&quot;/&gt; </div><div class="line">    &lt;aop:advisor advice-ref=&quot;defaultTransactionAdvice&quot; </div><div class="line">        pointcut-ref=&quot;allServiceMethods&quot;/&gt; </div><div class="line">&lt;/aop:config&gt;</div></pre></td></tr></table></figure></tx:advice></p>
-<h4 id="tx-advice标签简介"><a href="#tx-advice标签简介" class="headerlink" title="tx:advice标签简介"></a>tx:advice标签简介</h4><p>id是该advice bean的标识，而transaction-manager则必须引用一个PlatformTransactionManager bean。  </p>
-<p>还可以通过<tx:attributes>标签定制<tx:advice>标签所创建的通知的行为。</tx:advice></tx:attributes></p>
-<p><tx:method>标签的属性：    </tx:method></p>
-<ul>
-<li>name：方法名的匹配模式，通知根据该模式寻找匹配的方法。</li>
-<li>propagation：设定事务定义所用的传播级别。</li>
-<li>isolation：设置事务的隔离级别。</li>
-<li>timeout：指定事务的超时（秒）。</li>
-<li>read-only：该属性为true指示事务是只读的</li>
-<li>no-rollback-for：以逗号分隔的异常类的列表，目标方法可以跑出这些异常而不会导致通知执行回滚</li>
-<li>rollback-for：以逗号分隔的异常类的列表，当目标方法跑出这些异常时会导致通知执行回滚。默认情况下，该列表为空，因此不在no-rollback-for列表中的任何运行时异常都会导致回滚。</li>
-</ul>
-<h4 id="中isolation（隔离）和propagation（传播）参数的含义"><a href="#中isolation（隔离）和propagation（传播）参数的含义" class="headerlink" title="中isolation（隔离）和propagation（传播）参数的含义"></a><tx:method>中isolation（隔离）和propagation（传播）参数的含义</tx:method></h4><p>事务隔离级别：</p>
-<ol>
-<li><p><strong>ISOLATION_DEFAULT</strong>     默认级别（对大多数数据库来说就是ISOLATION_READ_COMMITTED）</p>
-</li>
-<li><p><strong>ISOLATION_READ_UNCOMMITTED</strong>    最低的隔离级别。事实上我们不推荐该隔离级别，因为在事务完成前，其他事务可以看到该事务所修改的数据。而在其他事务提交前，该事务也可以看到其他事务所做的修改。</p>
-</li>
-<li><p><strong>ISOLATION_READ_COMMITTED</strong>  大多数数据库的默认级别。在事务完成前，其他事务无法看到该事务所修改的数据。遗憾的是，在该事务提交后，你就可以查看其他事务插入活更新的数据。这意味着在事务的不同点上，如果其他事务修改数据，你会看到不同的数据。</p>
-</li>
-<li><p><strong>ISOLATION_REPEATABLE_READ</strong>     该隔离级别确保如果在事务中查询了某个数据集，你至少还能再次查询到相同的数据集，即使其他事务修改了所查询的数据。然而如果其他事务插入了新数据，你就可以查询到该新插入的数据。 </p>
-</li>
-<li><p><strong>ISOLATION_SERIALIZABLE</strong>    代价最大、可靠性最高的隔离级别，所有的事务都是按顺序一个接一个的执行。</p>
-</li>
-</ol>
-<p>传播行为指：</p>
-<ol>
-<li><p><strong>PROPAGATION_REQUIRED</strong>  当前如果有事务，Spring就会使用该事务；否则会开始一个新事务。</p>
-</li>
-<li><p><strong>PROPAGATION_SUPPORTS</strong>  当前如果有事务，Spring就会使用该事务；否则不会开启一个新事务。</p>
-</li>
-<li><p><strong>PROPAGATION_MANDATORY</strong>     当前如果有事务，Spring就会使用该事务；否则会抛出异常。</p>
-</li>
-<li><p><strong>PROPAGATION_REQUIRES_NEW</strong>  Spring总会开始一个新事务。如果当前有事务，则该事务挂起。</p>
-</li>
-<li><p><strong>PROPAGATION_NOT_SUPPORTED</strong>     Spring不会执行事务中的代码。代码总是在非事务环境下执行，如果当期有事务，则该事务挂起。</p>
-</li>
-<li><p><strong>PROPAGATION_NEVER</strong>     即使当前有事务，Spring也会在非事务环境下执行。如果当前有事务，则抛出异常。</p>
-</li>
-<li><p><strong>PROPAGATION_NESTED</strong>    如果当前有事务，则在嵌套事务中执行。如果没有，那么执行情况与PROPAGATION_REQUIRED一样。</p>
-</li>
+        <ol>
+<li>@Resource默认是按照名称来装配注入的，只有当找不到与名称匹配的bean才会按照类型来装配注入；</li>
+<li>@Autowired默认是按照类型装配注入的，如果想按照名称来转配注入，则需要结合@Qualifier一起使用；</li>
+<li>@Resource注解是由J2EE提供，而@Autowired是由Spring提供，故减少系统对spring的依赖建议使用@Resource的方式；</li>
+<li>@Resource和@Autowired都可以书写标注在字段或者该字段的setter方法之上</li>
 </ol>
 
       
@@ -534,383 +534,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/AOP事务管理/" data-id="cj6ao83b9007utcblifibrb0q" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-服务器相关/Memcached/Memcached线程模型" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/12/服务器相关/Memcached/Memcached线程模型/">Memcached线程模型</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/08/12/服务器相关/Memcached/Memcached线程模型/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/Memcached/">Memcached</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="模型分析"><a href="#模型分析" class="headerlink" title="模型分析"></a>模型分析</h3><p>memcached到底是如何处理我们的网络连接的？<br><strong>非阻塞的IO复用模型</strong></p>
-<p>memcached通过epoll（使用libevent，下面具体再讲）实现异步的服务器，但仍然使用多线程，主要有两种线程，分别是“主线程”和“worker线程”，一个主线程，多个worker线程。  </p>
-<p><strong>主线程负责监听网络连接，并且accept连接。当监听到连接时，accept后，连接成功，把相应的client fd丢给其中一个worker线程。<br>worker线程接收主线程丢过来的client fd，加入到自己的epoll监听队列，负责处理该连接的读写事件。</strong></p>
-<p>所以说，主线程和worker线程都各自有自己的监听队列，主线程监听的仅是listen fd，而worker线程监听的则是主线程accept成功后丢过来的client fd。</p>
-<p>memcached使用libevent实现事件监听。在这简单介绍一下libevent的使用，一般有以下几步：    </p>
-<ol>
-<li>event_base = event_init(); 初始化事件基地。</li>
-<li>event_set(event, fd, event_flags, event_handler, args); 创建事件event，fd为要监听的fd，event_flags为监听的事件类型，event_handler为事件发生后的处理函数，args为调用 处理函数时传递的参数。</li>
-<li>event_base_set(event_base, event); 为创建的事件event指定事件基地。</li>
-<li>event_add(event, timeval); 把事件加入到事件基地进行监听</li>
-<li>event_base_loop(event_base, flag); 进入事件循环，即epoll_wait<br>memcached主线程和worker线程各有自己的监听队列，故有主线程和每个worker线程都有一个独立的event_base，事件基地。</li>
-</ol>
-<p>了解libevent的简单使用后，我们回到memcache线程模型上，先看看下面的图片了解它线程模型的构建逻辑：<br><img src="http://note.youdao.com/yws/public/resource/8129468ec7b125aad250ebe1448c3cae/xmlnote/7662618307C94D5093771F6409CC5700/7893" alt="image">    </p>
-<ol>
-<li>主线程首先为自己分配一个event_base，用于监听连接，即listen fd。</li>
-<li>主线程创建n个worker线程，同时每个worker线程也分配了独立的event_base。</li>
-<li>每个worker线程通过管道方式与其它线程（主要是主线程）进行通信，调用pipe函数，产生两个fd，一个是管道写入fd，一个是管道读取fd。 worker线程把管道读取fd加到自己的event_base，监听管道读取fd的可读事件，即当主线程往某个线程的管道写入fd写数据时，触发事件。</li>
-<li>主线程监听到有一个连接到达时，accept连接，产生一个client fd，然后选择一个worker线程，把这个client fd包装成一个CQ_ITEM对象（这个对象实质是起主线程与worker线程之间通信媒介的作用，主线程把client fd丢给worker线程往往不止“client fd”这一个参数，还有别的参数，所以这个CQ_ITEM相当于一个“参数对象”，把参数都包装在里面），然后压到worker线程的CQ_ITEM队列 里面去（每个worker线程有一个CQ_ITEM队列），<br>同时主线程往选中的worker线程的管道写入fd中写入一个字符“c”（触发worker线程）。</li>
-<li>主线程往选中的worker线程的管道写入fd中写入一个字符“c”，则worker线程监听到自己的管道读取fd可读，触发事件处理，而此是的事件处理 是：从自己的CQ_ITEM队列中取出CQ_ITEM对象（相当于收信，看看主线程给了自己什么东西），从4）可知，CQ_ITEM对象中包含 client fd，worker线程把此client fd加入到自己的event_base，从此负责该连接的读写工作。</li>
-</ol>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/12/服务器相关/Memcached/Memcached线程模型/" data-id="cj6ao83ce00a3tcbl4d9nw48a" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-服务器相关/Memcached/memcached命令" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/12/服务器相关/Memcached/memcached命令/">memcached命令</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/08/12/服务器相关/Memcached/memcached命令/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/Memcached/">Memcached</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="启动Memcached"><a href="#启动Memcached" class="headerlink" title="启动Memcached"></a>启动Memcached</h4><p>一般情况下，简单地可以使用类似如下形式，启动Memcached服务：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/usr/local/bin/memcached -d -m 64 -I 20m -u root -l 192.168.4.86 -p 11211 -c 1024 -P /usr/local/memcached/memcached.pid</div></pre></td></tr></table></figure></p>
-<p>上述命令行中，基于上面各个选项，以及其他一些选项的含义，说明如下表所示：</p>
-<table>
-<thead>
-<tr>
-<th>选项</th>
-<th>含义说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>-d</td>
-<td>指定memcached进程作为一个守护进程启动</td>
-</tr>
-<tr>
-<td>-m <num></num></td>
-<td>指定分配给memcached使用的内存，单位是MB</td>
-</tr>
-<tr>
-<td>-u <username></username></td>
-<td>运行memcached的用户</td>
-</tr>
-<tr>
-<td>-l <ip_addr></ip_addr></td>
-<td>监听的服务器IP地址，如果有多个地址的话，使用逗号分隔，格式可以为“IP地址:端口号”，例如：-l 指定192.168.0.184:19830,192.168.0.195:13542；端口号也可以通过-p选项指定</td>
-</tr>
-<tr>
-<td>-p <num></num></td>
-<td>Memcached监听的端口，要保证该端口号未被占用</td>
-</tr>
-<tr>
-<td>-c <num></num></td>
-<td>设置最大运行的并发连接数，默认是1024</td>
-</tr>
-<tr>
-<td>-R <num></num></td>
-<td>为避免客户端饿死（starvation），对连续达到的客户端请求数设置一个限额，如果超过该设置，会选择另一个连接来处理请求，默认为20</td>
-</tr>
-<tr>
-<td>-k</td>
-<td>设置锁定所有分页的内存，对于大缓存应用场景，谨慎使用该选项</td>
-</tr>
-<tr>
-<td>-P</td>
-<td>保存memcached进程的pid文件</td>
-</tr>
-<tr>
-<td>-s <file></file></td>
-<td>指定Memcached用于监听的UNIX socket文件</td>
-</tr>
-<tr>
-<td>-a <perms></perms></td>
-<td>设置-s选项指定的UNIX socket文件的权限</td>
-</tr>
-<tr>
-<td>-U <num></num></td>
-<td>指定监听UDP的端口，默认11211，0表示关闭</td>
-</tr>
-<tr>
-<td>-M</td>
-<td>当内存使用超出配置值时，禁止自动清除缓存中的数据项，此时Memcached不可以，直到内存被释放</td>
-</tr>
-<tr>
-<td>-r</td>
-<td>设置产生core文件大小</td>
-</tr>
-<tr>
-<td>-f <factor></factor></td>
-<td>用于计算缓存数据项的内存块大小的乘数因子，默认是1.25</td>
-</tr>
-<tr>
-<td>-n</td>
-<td>为缓存数据项的key、value、flag设置最小分配字节数，默认是48</td>
-</tr>
-<tr>
-<td>-C</td>
-<td>禁用CAS</td>
-</tr>
-<tr>
-<td>-h</td>
-<td>显示Memcached版本和摘要信息</td>
-</tr>
-<tr>
-<td>-v</td>
-<td>输出警告和错误信息</td>
-</tr>
-<tr>
-<td>-vv</td>
-<td>打印信息比-v更详细：不仅输出警告和错误信息，也输出客户端请求和响应信息</td>
-</tr>
-<tr>
-<td>-i</td>
-<td>打印libevent和Memcached的licenses信息</td>
-</tr>
-<tr>
-<td>-t <threads></threads></td>
-<td>指定用来处理请求的线程数，默认为4</td>
-</tr>
-<tr>
-<td>-D <char></char></td>
-<td>用于统计报告中Key前缀和ID之间的分隔符，默认是冒号“:”</td>
-</tr>
-<tr>
-<td>-L</td>
-<td>尝试使用大内存分页（pages）</td>
-</tr>
-<tr>
-<td>-B <proto></proto></td>
-<td>指定使用的协议，默认行为是自动协商（autonegotiate），可能使用的选项有auto、ascii、binary。</td>
-</tr>
-<tr>
-<td>-I <size></size></td>
-<td>覆盖默认的STAB页大小，默认是1M</td>
-</tr>
-<tr>
-<td>-F</td>
-<td>禁用flush_all命令</td>
-</tr>
-<tr>
-<td>-o <options></options></td>
-<td>指定逗号分隔的选项，一般用于用于扩展或实验性质的选项</td>
-</tr>
-</tbody>
-</table>
-<h3 id="停止Memcached"><a href="#停止Memcached" class="headerlink" title="停止Memcached"></a>停止Memcached</h3><p>可以通过Linux的如下命令查询到Memcached的进程号：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ps -ef | grep memcached</div></pre></td></tr></table></figure></p>
-<p>然后杀掉Memcached服务进程：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">kill -9 &lt;PID&gt;</div></pre></td></tr></table></figure></p>
-<p>-9表示强制杀掉进程。</p>
-<h4 id="Telnet客户端"><a href="#Telnet客户端" class="headerlink" title="Telnet客户端"></a>Telnet客户端</h4><p>Telnet客户端可以通过命令行的方式来监控查看Memcached服务器存储数据的情况。例如，Memcached的服务地址为192.168.4.86:11211，可以telnet到该服务端口：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">telnet 192.168.4.86 11211</div></pre></td></tr></table></figure></p>
-<p>如果连接成功，可以使用如下一些命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">stats命令</div></pre></td></tr></table></figure></p>
-<p>该命令用于显示服务器信息、统计数据等，例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line">STAT pid 22362   //memcache服务器的进程ID</div><div class="line">STAT uptime 1469315  //服务器已经运行的秒数</div><div class="line">STAT time 1339671194   //服务器当前的unix时间戳</div><div class="line">STAT version 1.4.9   //memcache版本</div><div class="line">STAT libevent 1.4.9-stable  //libevent版本</div><div class="line">STAT pointer_size 64   //当前操作系统的指针大小（32位系统一般是32bit,64就是64位操作系统）</div><div class="line">STAT rusage_user 3695.485200     //进程的累计用户时间</div><div class="line">STAT rusage_system 14751.273465  //进程的累计系统时间</div><div class="line">STAT curr_connections 69     //服务器当前存储的items数量</div><div class="line">STAT total_connections 855430    //从服务器启动以后存储的items总数量</div><div class="line">STAT connection_structures 74    //服务器分配的连接构造数</div><div class="line">STAT reserved_fds 20</div><div class="line">STAT cmd_get 328806688   //get命令（获取）总请求次数</div><div class="line">STAT cmd_set 75441133    //set命令（保存）总请求次数</div><div class="line">STAT cmd_flush 34    //flush命令请求次数</div><div class="line">STAT cmd_touch 0     //touch命令请求次数</div><div class="line">STAT get_hits 253547177  //总命中次数</div><div class="line">STAT get_misses 75259511     //总未命中次数</div><div class="line">STAT delete_misses 4     //delete命令未命中次数</div><div class="line">STAT delete_hits 565730  //delete命令命中次数</div><div class="line">STAT incr_misses 0 //incr命令未命中次数</div><div class="line">STAT incr_hits 0 //incr命令命中次数</div><div class="line">STAT decr_misses 0  //decr命令未命中次数</div><div class="line">STAT decr_hits 0  //decr命令命中次数</div><div class="line">STAT cas_misses 0  //cas命令未命中次数</div><div class="line">STAT cas_hits 0  //cas命令命中次数</div><div class="line">STAT cas_badval 0    //使用擦拭次数</div><div class="line">STAT touch_hits 0    //touch命令未命中次数</div><div class="line">STAT touch_misses 0  //touch命令命中次数</div><div class="line">STAT auth_cmds 0     //认证命令处理的次数</div><div class="line">STAT auth_errors 0   //认证失败数目</div><div class="line">STAT bytes_read 545701515844     //总读取字节数（请求字节数）</div><div class="line">STAT bytes_written 1649639749866     //总发送字节数（结果字节数）</div><div class="line">STAT limit_maxbytes 2147483648   //分配给memcache的内存大小（字节）</div><div class="line">STAT accepting_conns 1   //服务器是否达到过最大连接（0/1）</div><div class="line">STAT listen_disabled_num 0   //失效的监听数</div><div class="line">STAT threads 4   //当前线程数</div><div class="line">STAT conn_yields 14  //连接操作主动放弃数目</div><div class="line">STAT hash_power_level 16   </div><div class="line">STAT hash_bytes 524288</div><div class="line">STAT hash_is_expanding 0</div><div class="line">STAT expired_unfetched 30705763</div><div class="line">STAT evicted_unfetched 0</div><div class="line">STAT bytes 61380700  //当前存储占用的字节数</div><div class="line">STAT curr_items 28786    //当前存储的数据总数</div><div class="line">STAT total_items 75441133    //启动以来存储的数据总数</div><div class="line">STAT evictions 0     //为获取空闲内存而删除的items数（分配给memcache的空间用满后需要删除旧的items来得到空间分配给新的items)</div><div class="line">STAT reclaimed 39957976  //已过期的数据条目来存储新数据的数目</div><div class="line">END</div></pre></td></tr></table></figure></p>
-<p>stats命令有几个二级子项，说明如下表所示：   </p>
-<table>
-<thead>
-<tr>
-<th>命令</th>
-<th>含义说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>stats slabs</td>
-<td>显示各个slab的信息，包括chunk的大小、数目、使用情况等</td>
-</tr>
-<tr>
-<td>stats items</td>
-<td>显示各个slab中item的数目和最老item的年龄（最后一次访问距离现在的秒数）</td>
-</tr>
-<tr>
-<td>stats detail [on\</td>
-<td>off\</td>
-<td>dump]</td>
-<td>设置或者显示详细操作记录；<br>参数为on，打开详细操作记录；<br>参数为off，关闭详细操作记录；<br>参数为dump，显示详细操作记录（每一个键值get、set、hit、del的次数）</td>
-</tr>
-<tr>
-<td>stats malloc</td>
-<td>打印内存分配信息</td>
-</tr>
-<tr>
-<td>stats sizes</td>
-<td>打印缓存使用信息</td>
-</tr>
-<tr>
-<td>stats reset</td>
-<td>重置统计信息</td>
-</tr>
-</tbody>
-</table>
-<h4 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h4><table>
-<thead>
-<tr>
-<th>命令</th>
-<th>用法格式</th>
-<th>含义说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>get</td>
-<td>get <key></key></td>
-<td>用于获取缓存的数据，键为key。</td>
-</tr>
-<tr>
-<td>gets</td>
-<td>gets <key></key></td>
-<td>用于获取缓存的数据，键为一组key。</td>
-</tr>
-<tr>
-<td>set</td>
-<td>set <key> <flags> <exptime> <bytes> [noreply] <value></value></bytes></exptime></flags></key></td>
-<td>向缓存中存储数据，不管key对应的值存在与否，都设置key对应的值</td>
-</tr>
-<tr>
-<td>touch</td>
-<td>touch <key> <exptime> [noreply]</exptime></key></td>
-<td>更新缓存中key对应的值的过期时间。</td>
-</tr>
-<tr>
-<td>delete</td>
-<td>delete <key> [<time>] [noreply]</time></key></td>
-<td>给定键key，删除缓存中key对应的数据。</td>
-</tr>
-<tr>
-<td>add</td>
-<td>add <key> <flags> <exptime> <bytes> [noreply] <value></value></bytes></exptime></flags></key></td>
-<td>向缓存中存储数据，只有key对应的值不存在时，才会设置key对应的值。</td>
-</tr>
-<tr>
-<td>replace</td>
-<td>replace <key> <flags> <exptime> <bytes> [noreply] <value></value></bytes></exptime></flags></key></td>
-<td>覆盖一个已经存在Key及其对应的Value，替换一定要保证替换后的值的长度原始长度相同，否则replace失败。</td>
-</tr>
-<tr>
-<td>append</td>
-<td>append <key> <flags> <exptime> <bytes> [noreply] <value></value></bytes></exptime></flags></key></td>
-<td>在一个已经存在的数据值（value）上追加，是在数据值的后面追加。</td>
-</tr>
-<tr>
-<td>prepend</td>
-<td>prepend <key> <flags> <exptime> <bytes> [noreply] <value></value></bytes></exptime></flags></key></td>
-<td>在一个已经存在的数据值（value）上追加，是在数据值的前面追加。</td>
-</tr>
-<tr>
-<td>incr</td>
-<td>incr <key> <value> [noreply]</value></key></td>
-<td>计数命令，可以在原来已经存在的数字上进行累加求和，计算并存储新的数值。</td>
-</tr>
-<tr>
-<td>decr</td>
-<td>decr <key> <value> [noreply]</value></key></td>
-<td>计数命令，可以在原来已经存在的数字上进行减法计算，计算并存储新的数值。</td>
-</tr>
-<tr>
-<td>flush_all</td>
-<td>flush_all [<time>] [noreply]</time></td>
-<td>使缓存中的数据项失效，可选参数是在多少秒后失效。</td>
-</tr>
-<tr>
-<td>version</td>
-<td>version</td>
-<td>返回Memcached服务器的版本信息。</td>
-</tr>
-<tr>
-<td>quit</td>
-<td>quit</td>
-<td>退出telnet终端。</td>
-</tr>
-</tbody>
-</table>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/12/服务器相关/Memcached/memcached命令/" data-id="cj6ao83ck00adtcblpphcv5b1" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/" data-id="cj6aobw4t007oudblzix6rvt0" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -1027,7 +651,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/12/服务器相关/Memcached/Memcached内存管理和回收机制/" data-id="cj6ao83ch00a8tcblczn44fmp" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/服务器相关/Memcached/Memcached内存管理和回收机制/" data-id="cj6aobw5z0096udbl515iz2ec" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -1041,13 +665,13 @@
 
 
   
-    <article id="post-Java/基础/静态代码块和静态方法" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-服务器相关/Memcached/Memcached线程模型" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/12/Java/基础/静态代码块和静态方法/">静态代码块和静态方法</a>
+      <a class="article-title" href="/2017/08/12/服务器相关/Memcached/Memcached线程模型/">Memcached线程模型</a>
     </h1>
   
 
@@ -1056,7 +680,81 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/12/Java/基础/静态代码块和静态方法/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
+  <a href="/2017/08/12/服务器相关/Memcached/Memcached线程模型/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/Memcached/">Memcached</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="模型分析"><a href="#模型分析" class="headerlink" title="模型分析"></a>模型分析</h3><p>memcached到底是如何处理我们的网络连接的？<br><strong>非阻塞的IO复用模型</strong></p>
+<p>memcached通过epoll（使用libevent，下面具体再讲）实现异步的服务器，但仍然使用多线程，主要有两种线程，分别是“主线程”和“worker线程”，一个主线程，多个worker线程。  </p>
+<p><strong>主线程负责监听网络连接，并且accept连接。当监听到连接时，accept后，连接成功，把相应的client fd丢给其中一个worker线程。<br>worker线程接收主线程丢过来的client fd，加入到自己的epoll监听队列，负责处理该连接的读写事件。</strong></p>
+<p>所以说，主线程和worker线程都各自有自己的监听队列，主线程监听的仅是listen fd，而worker线程监听的则是主线程accept成功后丢过来的client fd。</p>
+<p>memcached使用libevent实现事件监听。在这简单介绍一下libevent的使用，一般有以下几步：    </p>
+<ol>
+<li>event_base = event_init(); 初始化事件基地。</li>
+<li>event_set(event, fd, event_flags, event_handler, args); 创建事件event，fd为要监听的fd，event_flags为监听的事件类型，event_handler为事件发生后的处理函数，args为调用 处理函数时传递的参数。</li>
+<li>event_base_set(event_base, event); 为创建的事件event指定事件基地。</li>
+<li>event_add(event, timeval); 把事件加入到事件基地进行监听</li>
+<li>event_base_loop(event_base, flag); 进入事件循环，即epoll_wait<br>memcached主线程和worker线程各有自己的监听队列，故有主线程和每个worker线程都有一个独立的event_base，事件基地。</li>
+</ol>
+<p>了解libevent的简单使用后，我们回到memcache线程模型上，先看看下面的图片了解它线程模型的构建逻辑：<br><img src="http://note.youdao.com/yws/public/resource/8129468ec7b125aad250ebe1448c3cae/xmlnote/7662618307C94D5093771F6409CC5700/7893" alt="image">    </p>
+<ol>
+<li>主线程首先为自己分配一个event_base，用于监听连接，即listen fd。</li>
+<li>主线程创建n个worker线程，同时每个worker线程也分配了独立的event_base。</li>
+<li>每个worker线程通过管道方式与其它线程（主要是主线程）进行通信，调用pipe函数，产生两个fd，一个是管道写入fd，一个是管道读取fd。 worker线程把管道读取fd加到自己的event_base，监听管道读取fd的可读事件，即当主线程往某个线程的管道写入fd写数据时，触发事件。</li>
+<li>主线程监听到有一个连接到达时，accept连接，产生一个client fd，然后选择一个worker线程，把这个client fd包装成一个CQ_ITEM对象（这个对象实质是起主线程与worker线程之间通信媒介的作用，主线程把client fd丢给worker线程往往不止“client fd”这一个参数，还有别的参数，所以这个CQ_ITEM相当于一个“参数对象”，把参数都包装在里面），然后压到worker线程的CQ_ITEM队列 里面去（每个worker线程有一个CQ_ITEM队列），<br>同时主线程往选中的worker线程的管道写入fd中写入一个字符“c”（触发worker线程）。</li>
+<li>主线程往选中的worker线程的管道写入fd中写入一个字符“c”，则worker线程监听到自己的管道读取fd可读，触发事件处理，而此是的事件处理 是：从自己的CQ_ITEM队列中取出CQ_ITEM对象（相当于收信，看看主线程给了自己什么东西），从4）可知，CQ_ITEM对象中包含 client fd，worker线程把此client fd加入到自己的event_base，从此负责该连接的读写工作。</li>
+</ol>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/服务器相关/Memcached/Memcached线程模型/" data-id="cj6aobw62009budbli73zkzzs" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/基础/==与equals的区别" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/12/Java/基础/==与equals的区别/">==与equals的区别</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/12/Java/基础/==与equals的区别/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
 </div>
 
     
@@ -1071,22 +769,26 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>如果有些代码必须在项目启动的时候就执行,就需要使用静态代码块,这种代码是主动执行的;需要在项目启动的时候就初始化但是不执行,在不创建对象的情况下,可以供其他程序调用,而在调用的时候才执行，这需要使用静态方法,这种代码是被动执行的. 静态方法在类加载的时候 就已经加载 可以用类名直接调用。</p>
-<h4 id="静态代码块和静态方法的区别"><a href="#静态代码块和静态方法的区别" class="headerlink" title="静态代码块和静态方法的区别"></a>静态代码块和静态方法的区别</h4><ol>
-<li>静态代码块是自动执行的</li>
-<li>静态方法是被调用的时候才执行的</li>
-</ol>
-<h4 id="在使用静态方法的时候需要注意一下几个方面"><a href="#在使用静态方法的时候需要注意一下几个方面" class="headerlink" title="在使用静态方法的时候需要注意一下几个方面"></a>在使用静态方法的时候需要注意一下几个方面</h4><ol>
-<li>在静态方法里只能直接调用同类中其他的静态成员（包括变量和方法），而不能直接访问类中的非静态成员。这是因为，对于非静态的方法和变量，需要先创建类的实例对象后才可使用，而静态方法在使用前不用创建任何对象。（备注：静态变量是属于整个类的变量而不是属于某个对象的）</li>
-<li>静态方法不能以任何方式引用this和super关键字，因为静态方法在使用前不用创建任何实例对象，当静态方法调用时，this所引用的对象根本没有产生</li>
-</ol>
-<h4 id="静态变量：一直存于内存中，所以一般要少使用静态变量"><a href="#静态变量：一直存于内存中，所以一般要少使用静态变量" class="headerlink" title="静态变量：一直存于内存中，所以一般要少使用静态变量"></a>静态变量：一直存于内存中，所以一般要少使用静态变量</h4><p>建议使用场景：</p>
+        <h2 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h2><p><strong>==:对于基本类型来说，比较的是两个对象的值是否想等；对于引用类型来说，比较的是两个引用对象是否指向同一个对象（即两个对象的引用地址是否想等）<br>equals:该方法不能作用于基本类型的对象，比较的是两个引用对象的地址是否想等<br>注意：由于String，Integer，Byte等类重写了equals方法，所以相当于比较两个对象的值是否想等</strong></p>
+<hr>
+<p>在Java中游8种基本数据类型：</p>
+<p>　　浮点型：float(4 byte), double(8 byte)</p>
+<p>　　整型：byte(1 byte), short(2 byte), int(4 byte) , long(8 byte)</p>
+<p>　　字符型: char(2 byte)</p>
+<p>　　布尔型: boolean(JVM规范没有明确规定其所占的空间大小，仅规定其只能够取字面值”true”和”false”)</p>
+<p>　　对于这8种基本数据类型的变量，变量直接存储的是“值”，因此在用关系操作符==来进行比较时，比较的就是 “值” 本身。要注意浮点型和整型都是有符号类型的，而char是无符号类型的（char类型取值范围为0~2^16-1).
+　　</p>
 <ol>
-<li>变量所包含的对象体积较大，占用内存较多。</li>
-<li>变量所包含的对象生命周期较长。</li>
-<li>变量所包含的对象数据稳定。</li>
-<li>该类的对象实例有对该变量所包含的对象的共享需求。</li>
+<li><strong>String类型的比较</strong><br>String类型比较不同对象内容是否相同，应该用equals，因为==用于比较引用类型和比较基本数据类型时具有不同的功能。</li>
 </ol>
+<p>分析如下：</p>
+<p>例子一：对象不同，内容相同，”==”返回false，equals返回true<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">String s1 = <span class="keyword">new</span> String(<span class="string">"java"</span>);</div><div class="line">String s2 = <span class="keyword">new</span> String(<span class="string">"java"</span>);</div><div class="line"></div><div class="line">System.out.println(s1==s2);            <span class="comment">//false</span></div><div class="line">System.out.println(s1.equals(s2));    <span class="comment">//true</span></div></pre></td></tr></table></figure></p>
+<p>例子二：同一对象，”==”和equals结果相同<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">String s1 = new String(&quot;java&quot;);</div><div class="line">String s2 = s1;</div><div class="line"></div><div class="line">System.out.println(s1==s2);            //true</div><div class="line">System.out.println(s1.equals(s2));    //true</div></pre></td></tr></table></figure></p>
+<p>例子三：String作为一个“基本类型”来使用</p>
+<p>如果值不相同，对象就不相同，所以”==” 和equals结果一样<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">String s1 = &quot;java&quot;;</div><div class="line">String s2 = &quot;java&quot;;</div><div class="line"></div><div class="line">System.out.println(s1==s2);            //true</div><div class="line">System.out.println(s1.equals(s2));    //true</div></pre></td></tr></table></figure></p>
+<p>如果String缓冲池内不存在与其指定值相同的String对象，那么此时虚拟机将为此创建新的String对象，并存放在String缓冲池内。</p>
+<p>如果String缓冲池内存在与其指定值相同的String对象，那么此时虚拟机将不为此创建新的String对象，而直接返回已存在的String对象的引用。</p>
+<p>　　</p>
 
       
     </div>
@@ -1097,7 +799,88 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/静态代码块和静态方法/" data-id="cj6ao838n0031tcbl1y1gtmng" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/==与equals的区别/" data-id="cj6aobvzu0021udblwm64x066" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/基础/JVM的堆和栈" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/12/Java/基础/JVM的堆和栈/">JVM的堆和栈</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/12/Java/基础/JVM的堆和栈/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h3><p>栈是java程序运行的关键，在java中，每一个线程都会有一个与之对应的线程栈。它是由许多栈帧（stack frame）或者说帧（frame）组成的，一个栈帧包含一个java方法调用的状态。当线程调用一个java方法时，虚拟机压入一个新的栈帧到该线程的java栈中，当该方法返回时，这个栈帧被从java栈中弹出并抛弃。总结起来就是，<strong>栈负责java程序运行过程中的进程和程序处理逻辑的控制</strong>。  </p>
+<p>栈帧由三部分组成：局部变量区，操作数栈和帧数据区。</p>
+<ol>
+<li>局部变量区，顾名思义，存储对应方法的参数和局部变量。</li>
+<li>操作数栈，相当于寄存器，存储虚拟机的程序指令。</li>
+<li>帧数据区，除了局部变量区和操作数栈中的数据外，java栈帧还需要一些数据来支持常量池解析，正常方法返回以及异常派发机制，这些信息都保存在帧数据区中。    </li>
+</ol>
+<p>由于栈的结构和功能设计导致它不适合动态增长，因此在java的虚拟机规范中，<strong>栈只能存储基本类型的数据和对堆中对象的引用</strong>。<strong>java栈上的数据都是此线程私有的，任何线程都不能访问另外一个线程的栈数据</strong>。  </p>
+<h3 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h3><p>堆是java程序运行时创建的实例和数组的存储空间。每一个java虚拟机实例只会存在一个堆空间，因此，<strong>所有线程都将共享这个堆</strong>。    </p>
+<p> 由堆的作用可以很容易的知道，它是一个随时都会有大量新数据产生，大量老数据过期的地方，因此对数据的管理和垃圾回收机制是影响堆性能很重要的指标。java虚拟机并没有强制规定怎么去实现一个堆，它只要求虚拟机必须以某种方式来管理自己的堆空间。因此，堆的构成和处理机制不能一概而论，不同的jvm可能会有各自独特的实现。  </p>
+<p>堆一般由两部分构成：年轻代，年老代。</p>
+<ol>
+<li>年轻代：作用是作为程序中所有刚生成的对象的存储空间，设计这一空间的目的是尽可能快的回收掉那些生命周期不长的对象，提高堆空间的利用率。年轻代的内部还有更细划分，涉及到垃圾回收机制的介绍，在后续笔记中会说明。</li>
+<li>年老代：用于存放那些生命周期较长，经历了数次垃圾回收后仍然健在的对象。存放于年老代的数据基本上都经过年轻代的过滤，比较稳定。</li>
+</ol>
+<h3 id="堆和栈的联系和区别"><a href="#堆和栈的联系和区别" class="headerlink" title="堆和栈的联系和区别"></a>堆和栈的联系和区别</h3><p>堆和栈是程序运行的关键，很有必要把他们的关系说清楚。<br><img src="http://note.youdao.com/yws/public/resource/5ae3ccd96f4823c07e89aa21f066d959/xmlnote/A54E95E4BFD74BCBA2EB0A5FA12C5BD1/7827" alt="image"><br><strong>栈是运行时的单位，而堆是存储的单位</strong>。    </p>
+<p>栈解决程序的运行问题，即程序如何执行，或者说如何处理数据；堆解决的是数据存储的问题，即数据怎么放、放在哪儿。    </p>
+<p>在Java中一个线程就会相应有一个线程栈与之对应，这点很容易理解，因为不同的线程执行逻辑有所不同，因此需要一个独立的线程栈。而堆则是所有线程共享的。栈因为是运行单位，因此里面存储的信息都是跟当前线程（或程序）相关信息的。包括局部变量、程序运行状态、方法返回值等等；而堆只负责存储对象信息。    </p>
+<h4 id="为什么要把堆和栈区分出来呢？栈中不是也可以存储数据吗？"><a href="#为什么要把堆和栈区分出来呢？栈中不是也可以存储数据吗？" class="headerlink" title="为什么要把堆和栈区分出来呢？栈中不是也可以存储数据吗？"></a>为什么要把堆和栈区分出来呢？栈中不是也可以存储数据吗？</h4><ol>
+<li>从软件设计的角度看，<strong>栈代表了处理逻辑</strong>，而<strong>堆代表了数据</strong>。这样分开，使得处理逻辑更为清晰。分而治之的思想。这种隔离、模块化的思想在软件设计的方方面面都有体现。</li>
+<li>堆与栈的分离，使得堆中的内容可以被多个栈共享（也可以理解为多个线程访问同一个对象）。这种共享的收益是很多的。一方面这种共享提供了一种有效的数据交互方式(如：共享内存)，另一方面，堆中的共享常量和缓存可以被所有栈访问，节省了空间。</li>
+<li>栈因为运行时的需要，比如保存系统运行的上下文，需要进行地址段的划分。由于栈只能向上增长，因此就会限制住栈存储内容的能力。而堆不同，堆中的对象是可以根据需要动态增长的，因此栈和堆的拆分，使得动态增长成为可能，相应栈中只需记录堆中的一个地址即可。</li>
+<li><strong>面向对象就是堆和栈的完美结合</strong>。其实，面向对象方式的程序与以前结构化的程序在执行上没有任何区别。但是，面向对象的引入，使得对待问题的思考方式发生了改变，而更接近于自然方式的思考。当我们把对象拆开，你会发现，对象的属性其实就是数据，存放在堆中；而对象的行为（方法），就是运行逻辑，放在栈中。我们在编写对象的时候，其实即编写了数据结构，也编写的处理数据的逻辑。不得不承认，面向对象的设计，确实很美。</li>
+</ol>
+<h4 id="在Java中，Main函数就是栈的起始点，也是程序的起始点。"><a href="#在Java中，Main函数就是栈的起始点，也是程序的起始点。" class="headerlink" title="在Java中，Main函数就是栈的起始点，也是程序的起始点。"></a>在Java中，Main函数就是栈的起始点，也是程序的起始点。</h4><p> 程序要运行总是有一个起点的。同C语言一样，java中的Main就是那个起点。无论什么java程序，找到main就找到了程序执行的入口：     </p>
+<h5 id="堆中存什么？栈中存什么？"><a href="#堆中存什么？栈中存什么？" class="headerlink" title="堆中存什么？栈中存什么？"></a>堆中存什么？栈中存什么？</h5><p> <strong>堆中存的是对象</strong>。<strong>栈中存的是基本数据类型和堆中对象的引用</strong>。一个对象的大小是不可估计的，或者说是可以动态变化的，但是在栈中，一个对象只对应了一个4btye的引用（堆栈分离的好处）  </p>
+<p> 为什么不把基本类型放堆中呢？因为其占用的空间一般是1~8个字节——需要空间比较少，而且因为是基本类型，所以不会出现动态增长的情况——长度固定，因此栈中存储就够了，如果把他存在堆中是没有什么意义的（还会浪费空间，后面说明）。可以这么说，基本类型和对象的引用都是存放在栈中，而且都是几个字节的一个数，因此在程序运行时，他们的处理方式是统一的。但是基本类型、对象引用和对象本身就有所区别了，因为一个是栈中的数据一个是堆中的数据。最常见的一个问题就是，Java中参数传递时的问题。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/JVM的堆和栈/" data-id="cj6aobvzv0022udblmkwf23q6" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -1156,11 +939,11 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
+          <a href="/2017/08/13/Spring/基础/AOP事务管理/">AOP事务管理</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
+          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
         </li>
       
         <li>
@@ -1168,7 +951,7 @@
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
+          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
         </li>
       
         <li>

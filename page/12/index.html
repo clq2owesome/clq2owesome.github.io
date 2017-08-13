@@ -80,127 +80,6 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-Spring/SpringMVC/拦截器配置" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/拦截器配置/">拦截器配置</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/拦截器配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="配置拦截器"><a href="#配置拦截器" class="headerlink" title="配置拦截器"></a>配置拦截器</h2><h3 id="继承HandlerInterceptorAdapter抽象类"><a href="#继承HandlerInterceptorAdapter抽象类" class="headerlink" title="继承HandlerInterceptorAdapter抽象类"></a>继承HandlerInterceptorAdapter抽象类</h3><p>下面是一个统计接口执行时间的拦截器<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line">import javax.servlet.http.HttpServletRequest;</div><div class="line">import javax.servlet.http.HttpServletResponse;</div><div class="line"></div><div class="line">import org.slf4j.Logger;</div><div class="line">import org.slf4j.LoggerFactory;</div><div class="line">import org.springframework.web.servlet.ModelAndView;</div><div class="line">import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 统计接口执行时间拦截器</div><div class="line"> * @author   chenliqiang, 2017年4月12日 下午5:00:53 &lt;br/&gt;</div><div class="line"> * @version  </div><div class="line"> * @see 	 </div><div class="line"> */</div><div class="line">public class ExecuteTimeInterceptor extends HandlerInterceptorAdapter &#123;</div><div class="line"></div><div class="line">	private static final Logger logger = LoggerFactory.getLogger(ExecuteTimeInterceptor.class);</div><div class="line"></div><div class="line">	//before the actual handler will be executed</div><div class="line">	@Override</div><div class="line">	public boolean preHandle(HttpServletRequest request,</div><div class="line">		HttpServletResponse response, Object handler) throws Exception &#123;</div><div class="line"></div><div class="line">		long startTime = System.currentTimeMillis();</div><div class="line">		request.setAttribute(&quot;startTime&quot;, startTime);</div><div class="line">		</div><div class="line">		return true;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	//after the handler is executed</div><div class="line">	@Override</div><div class="line">	public void postHandle(</div><div class="line">		HttpServletRequest request, HttpServletResponse response,</div><div class="line">		Object handler, ModelAndView modelAndView)</div><div class="line">		throws Exception &#123;</div><div class="line"></div><div class="line">		long startTime = (Long)request.getAttribute(&quot;startTime&quot;);</div><div class="line">		long endTime = System.currentTimeMillis();</div><div class="line">		long executeTime = endTime - startTime;</div><div class="line">		</div><div class="line">		//modified the exisitng modelAndView</div><div class="line">		//modelAndView.addObject(&quot;executeTime&quot;, executeTime);</div><div class="line"></div><div class="line">		//log it</div><div class="line">		if(logger.isInfoEnabled())&#123;</div><div class="line">		   logger.info(&quot;[&quot; + handler + &quot;] executeTime : &quot; + executeTime + &quot;ms&quot;);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h2 id="spring-mvc-xml配置"><a href="#spring-mvc-xml配置" class="headerlink" title="spring-mvc.xml配置"></a>spring-mvc.xml配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;</div><div class="line">	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;</div><div class="line">	xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot;</div><div class="line">	xsi:schemaLocation=&quot;http://www.springframework.org/schema/mvc</div><div class="line">	http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd</div><div class="line">	http://www.springframework.org/schema/beans</div><div class="line">	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd</div><div class="line">	http://www.springframework.org/schema/context</div><div class="line">	http://www.springframework.org/schema/context/spring-context-3.2.xsd&quot;&gt;</div><div class="line">	</div><div class="line">	&lt;mvc:annotation-driven /&gt;</div><div class="line"></div><div class="line">	&lt;mvc:interceptors&gt;</div><div class="line">		&lt;ref bean=&quot;executeTimeInterceptor&quot; /&gt;   &lt;!-- 全局配置，拦截所有请求  --&gt;</div><div class="line">		</div><div class="line">		&lt;!--  定义拦截特定的请求  --&gt;</div><div class="line">		&lt;!-- 按需添加需要拦截的请求  --&gt;</div><div class="line">		&lt;!-- &lt;mvc:interceptor&gt; </div><div class="line">			&lt;mvc:mapping path=&quot;/announcement/*&quot; /&gt; </div><div class="line">			&lt;mvc:mapping path=&quot;/product/*&quot; /&gt; </div><div class="line">			&lt;ref bean=&quot;executeTimeInterceptor&quot; /&gt; </div><div class="line">		&lt;/mvc:interceptor&gt;  --&gt;</div><div class="line">	&lt;/mvc:interceptors&gt;</div><div class="line">	</div><div class="line">	&lt;!--  定义拦截器  --&gt;</div><div class="line">	&lt;bean id=&quot;executeTimeInterceptor&quot; class=&quot;com.highsunbuy.interceptor.ExecuteTimeInterceptor&quot; /&gt;</div><div class="line"></div><div class="line">&lt;/beans&gt;</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/拦截器配置/" data-id="cj6ao83b1007ftcblje1hiy89" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/统一处理异常" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/统一处理异常/">统一处理异常</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/统一处理异常/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="SpringMVC三种异常处理机制"><a href="#SpringMVC三种异常处理机制" class="headerlink" title="SpringMVC三种异常处理机制"></a>SpringMVC三种异常处理机制</h1><p>Spring MVC处理异常有3种方式： </p>
-<ol>
-<li>使用Spring MVC提供的简单异常处理器SimpleMappingExceptionResolver； </li>
-<li>实现Spring的异常处理接口HandlerExceptionResolver 自定义自己的异常处理器； </li>
-<li>使用@ExceptionHandler注解实现异常处理； </li>
-</ol>
-<h2 id="自定义异常处理类，实现HandlerExceptionResolver接口"><a href="#自定义异常处理类，实现HandlerExceptionResolver接口" class="headerlink" title="自定义异常处理类，实现HandlerExceptionResolver接口"></a>自定义异常处理类，实现<code>HandlerExceptionResolver</code>接口</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> javax.servlet.http.HttpServletRequest;</div><div class="line"><span class="keyword">import</span> javax.servlet.http.HttpServletResponse;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.springframework.http.HttpStatus;</div><div class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</div><div class="line"><span class="keyword">import</span> org.springframework.web.servlet.HandlerExceptionResolver;</div><div class="line"><span class="keyword">import</span> org.springframework.web.servlet.ModelAndView;</div><div class="line"><span class="keyword">import</span> org.springframework.web.servlet.view.json.MappingJackson2JsonView;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * 自定义异常处理器</div><div class="line"> * <span class="doctag">@author</span> chenliqiang.</div><div class="line"> * <span class="doctag">@Date</span> 2017年2月11日</div><div class="line"> * <span class="doctag">@Version</span> 1.0</div><div class="line"> */</div><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomExceptionResolver</span>  <span class="keyword">implements</span> <span class="title">HandlerExceptionResolver</span> </span>&#123;</div><div class="line"></div><div class="line"></div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> ModelAndView <span class="title">resolveException</span><span class="params">(HttpServletRequest request, HttpServletResponse response, Object handler,</span></span></div><div class="line">			Exception ex) &#123;</div><div class="line">		</div><div class="line">    	ex.printStackTrace();</div><div class="line">    	<span class="comment">//向前台返回错误信息</span></div><div class="line">        ModelAndView modelAndView = <span class="keyword">new</span> ModelAndView();</div><div class="line">        BaseException baseException = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">        <span class="comment">//如果抛出的是系统自定义的异常则直接转换</span></div><div class="line">        <span class="keyword">if</span>(ex <span class="keyword">instanceof</span> BussinessException) &#123;</div><div class="line">    		baseException = (BussinessException) ex;</div><div class="line">    		modelAndView.addObject(<span class="string">"code"</span>, -<span class="number">1</span>);</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span>(ex <span class="keyword">instanceof</span> ParamsException) &#123;</div><div class="line">    		baseException = (ParamsException) ex;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="comment">//如果抛出的不是系统自定义的异常则重新构造一个未知错误异常</span></div><div class="line">            <span class="comment">//这里我就也有CustomException省事了，实际中应该要再定义一个新的异常</span></div><div class="line">    		baseException = <span class="keyword">new</span> BaseException(<span class="string">"系统出错,请联系管理员"</span>);</div><div class="line">    		modelAndView.addObject(<span class="string">"code"</span>, -<span class="number">1</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        </div><div class="line">        modelAndView.addObject(<span class="string">"msg"</span>, baseException.getMessage());</div><div class="line">        <span class="comment">//modelAndView.setViewName("error/error");</span></div><div class="line">        modelAndView.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);</div><div class="line">        MappingJackson2JsonView view = <span class="keyword">new</span> MappingJackson2JsonView();        </div><div class="line">        modelAndView.setView(view);</div><div class="line">        </div><div class="line">        <span class="keyword">return</span> modelAndView;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="使用SimpleMappingExceptionResolver实现异常处理"><a href="#使用SimpleMappingExceptionResolver实现异常处理" class="headerlink" title="使用SimpleMappingExceptionResolver实现异常处理"></a>使用SimpleMappingExceptionResolver实现异常处理</h2><p>在Spring的配置文件applicationContext.xml中增加以下内容：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"</span>&gt;</span>  </div><div class="line">    <span class="comment">&lt;!-- 定义默认的异常处理页面，当该异常类型的注册时使用 --&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"defaultErrorView"</span> <span class="attr">value</span>=<span class="string">"error"</span>&gt;</span><span class="tag">&lt;/<span class="name">property</span>&gt;</span>  </div><div class="line">    <span class="comment">&lt;!-- 定义异常处理页面用来获取异常信息的变量名，默认名为exception --&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"exceptionAttribute"</span> <span class="attr">value</span>=<span class="string">"ex"</span>&gt;</span><span class="tag">&lt;/<span class="name">property</span>&gt;</span>  </div><div class="line">    <span class="comment">&lt;!-- 定义需要特殊处理的异常，用类名或完全路径名作为key，异常也页名作为值 --&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"exceptionMappings"</span>&gt;</span>  </div><div class="line">        <span class="tag">&lt;<span class="name">props</span>&gt;</span>  </div><div class="line">            <span class="tag">&lt;<span class="name">prop</span> <span class="attr">key</span>=<span class="string">"cn.basttg.core.exception.BusinessException"</span>&gt;</span>error-business<span class="tag">&lt;/<span class="name">prop</span>&gt;</span>  </div><div class="line">            <span class="tag">&lt;<span class="name">prop</span> <span class="attr">key</span>=<span class="string">"cn.basttg.core.exception.ParameterException"</span>&gt;</span>error-parameter<span class="tag">&lt;/<span class="name">prop</span>&gt;</span>  </div><div class="line">  </div><div class="line">            <span class="comment">&lt;!-- 这里还可以继续扩展对不同异常类型的处理 --&gt;</span>  </div><div class="line">        <span class="tag">&lt;/<span class="name">props</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span>  </div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure></p>
-<h2 id="使用-ExceptionHandler注解实现异常处理"><a href="#使用-ExceptionHandler注解实现异常处理" class="headerlink" title="使用@ExceptionHandler注解实现异常处理"></a>使用@ExceptionHandler注解实现异常处理</h2><p>HandlerExceptionResolver接口以及SimpleMappingExceptionResolver解析器类的实现使得你能声明式地将异常映射到特定的视图上，还可以在异常被转发（forward）到对应的视图前使用Java代码做些判断和逻辑。不过在一些场景，特别是依靠@ResponseBody返回响应而非依赖视图解析机制的场景下，直接设置响应的状态码并将客户端需要的错误信息直接写回响应体中，可能是更方便的方法。  </p>
-<p>你也可以使用@ExceptionHandler方法来做到这点。如果@ExceptionHandler方法是在控制器内部定义的，那么它会接收并处理由控制器（或其任何子类）中的@RequestMapping方法抛出的异常。如果你将@ExceptionHandler方法定义在@ControllerAdvice类中，那么它会处理相关控制器中抛出的异常。下面的代码就展示了一个定义在控制器内部的@ExceptionHandler方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">@Controller</div><div class="line">public class SimpleController &#123;</div><div class="line"></div><div class="line">    // @RequestMapping methods omitted ...</div><div class="line"></div><div class="line">    @ExceptionHandler(IOException.class)</div><div class="line">    public ResponseEntity&lt;String&gt; handleIOException(IOException ex) &#123;</div><div class="line">        // prepare responseEntity</div><div class="line">        return responseEntity;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>使用@ExceptionHandler进行处理有一个不好的地方是进行异常处理的方法必须与出错的方法在同一个Controller里面    </p>
-<p>增加BaseController类，并在类中使用@ExceptionHandler注解声明异常处理，代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">public class BaseController &#123;  </div><div class="line">    /** 基于@ExceptionHandler异常处理 */  </div><div class="line">    @ExceptionHandler  </div><div class="line">    public String exp(HttpServletRequest request, Exception ex) &#123;  </div><div class="line">          </div><div class="line">        request.setAttribute(&quot;ex&quot;, ex);  </div><div class="line">          </div><div class="line">        // 根据不同错误转向不同页面  </div><div class="line">        if(ex instanceof BusinessException) &#123;  </div><div class="line">            return &quot;error-business&quot;;  </div><div class="line">        &#125;else if(ex instanceof ParameterException) &#123;  </div><div class="line">            return &quot;error-parameter&quot;;  </div><div class="line">        &#125; else &#123;  </div><div class="line">            return &quot;error&quot;;  </div><div class="line">        &#125;  </div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/统一处理异常/" data-id="cj6ao83b2007htcbl1qmcahqm" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
     <article id="post-Spring/SpringMVC/定义@RequestMapping注解的处理方法" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
@@ -306,7 +185,128 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/定义@RequestMapping注解的处理方法/" data-id="cj6ao83b3007ktcbldbl6trvr" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/定义@RequestMapping注解的处理方法/" data-id="cj6aobw4i0079udbljtke87rw" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/SpringMVC/统一处理异常" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/统一处理异常/">统一处理异常</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/SpringMVC/统一处理异常/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="SpringMVC三种异常处理机制"><a href="#SpringMVC三种异常处理机制" class="headerlink" title="SpringMVC三种异常处理机制"></a>SpringMVC三种异常处理机制</h1><p>Spring MVC处理异常有3种方式： </p>
+<ol>
+<li>使用Spring MVC提供的简单异常处理器SimpleMappingExceptionResolver； </li>
+<li>实现Spring的异常处理接口HandlerExceptionResolver 自定义自己的异常处理器； </li>
+<li>使用@ExceptionHandler注解实现异常处理； </li>
+</ol>
+<h2 id="自定义异常处理类，实现HandlerExceptionResolver接口"><a href="#自定义异常处理类，实现HandlerExceptionResolver接口" class="headerlink" title="自定义异常处理类，实现HandlerExceptionResolver接口"></a>自定义异常处理类，实现<code>HandlerExceptionResolver</code>接口</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> javax.servlet.http.HttpServletRequest;</div><div class="line"><span class="keyword">import</span> javax.servlet.http.HttpServletResponse;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.springframework.http.HttpStatus;</div><div class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</div><div class="line"><span class="keyword">import</span> org.springframework.web.servlet.HandlerExceptionResolver;</div><div class="line"><span class="keyword">import</span> org.springframework.web.servlet.ModelAndView;</div><div class="line"><span class="keyword">import</span> org.springframework.web.servlet.view.json.MappingJackson2JsonView;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * 自定义异常处理器</div><div class="line"> * <span class="doctag">@author</span> chenliqiang.</div><div class="line"> * <span class="doctag">@Date</span> 2017年2月11日</div><div class="line"> * <span class="doctag">@Version</span> 1.0</div><div class="line"> */</div><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomExceptionResolver</span>  <span class="keyword">implements</span> <span class="title">HandlerExceptionResolver</span> </span>&#123;</div><div class="line"></div><div class="line"></div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> ModelAndView <span class="title">resolveException</span><span class="params">(HttpServletRequest request, HttpServletResponse response, Object handler,</span></span></div><div class="line">			Exception ex) &#123;</div><div class="line">		</div><div class="line">    	ex.printStackTrace();</div><div class="line">    	<span class="comment">//向前台返回错误信息</span></div><div class="line">        ModelAndView modelAndView = <span class="keyword">new</span> ModelAndView();</div><div class="line">        BaseException baseException = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">        <span class="comment">//如果抛出的是系统自定义的异常则直接转换</span></div><div class="line">        <span class="keyword">if</span>(ex <span class="keyword">instanceof</span> BussinessException) &#123;</div><div class="line">    		baseException = (BussinessException) ex;</div><div class="line">    		modelAndView.addObject(<span class="string">"code"</span>, -<span class="number">1</span>);</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span>(ex <span class="keyword">instanceof</span> ParamsException) &#123;</div><div class="line">    		baseException = (ParamsException) ex;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="comment">//如果抛出的不是系统自定义的异常则重新构造一个未知错误异常</span></div><div class="line">            <span class="comment">//这里我就也有CustomException省事了，实际中应该要再定义一个新的异常</span></div><div class="line">    		baseException = <span class="keyword">new</span> BaseException(<span class="string">"系统出错,请联系管理员"</span>);</div><div class="line">    		modelAndView.addObject(<span class="string">"code"</span>, -<span class="number">1</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        </div><div class="line">        modelAndView.addObject(<span class="string">"msg"</span>, baseException.getMessage());</div><div class="line">        <span class="comment">//modelAndView.setViewName("error/error");</span></div><div class="line">        modelAndView.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);</div><div class="line">        MappingJackson2JsonView view = <span class="keyword">new</span> MappingJackson2JsonView();        </div><div class="line">        modelAndView.setView(view);</div><div class="line">        </div><div class="line">        <span class="keyword">return</span> modelAndView;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="使用SimpleMappingExceptionResolver实现异常处理"><a href="#使用SimpleMappingExceptionResolver实现异常处理" class="headerlink" title="使用SimpleMappingExceptionResolver实现异常处理"></a>使用SimpleMappingExceptionResolver实现异常处理</h2><p>在Spring的配置文件applicationContext.xml中增加以下内容：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"</span>&gt;</span>  </div><div class="line">    <span class="comment">&lt;!-- 定义默认的异常处理页面，当该异常类型的注册时使用 --&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"defaultErrorView"</span> <span class="attr">value</span>=<span class="string">"error"</span>&gt;</span><span class="tag">&lt;/<span class="name">property</span>&gt;</span>  </div><div class="line">    <span class="comment">&lt;!-- 定义异常处理页面用来获取异常信息的变量名，默认名为exception --&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"exceptionAttribute"</span> <span class="attr">value</span>=<span class="string">"ex"</span>&gt;</span><span class="tag">&lt;/<span class="name">property</span>&gt;</span>  </div><div class="line">    <span class="comment">&lt;!-- 定义需要特殊处理的异常，用类名或完全路径名作为key，异常也页名作为值 --&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"exceptionMappings"</span>&gt;</span>  </div><div class="line">        <span class="tag">&lt;<span class="name">props</span>&gt;</span>  </div><div class="line">            <span class="tag">&lt;<span class="name">prop</span> <span class="attr">key</span>=<span class="string">"cn.basttg.core.exception.BusinessException"</span>&gt;</span>error-business<span class="tag">&lt;/<span class="name">prop</span>&gt;</span>  </div><div class="line">            <span class="tag">&lt;<span class="name">prop</span> <span class="attr">key</span>=<span class="string">"cn.basttg.core.exception.ParameterException"</span>&gt;</span>error-parameter<span class="tag">&lt;/<span class="name">prop</span>&gt;</span>  </div><div class="line">  </div><div class="line">            <span class="comment">&lt;!-- 这里还可以继续扩展对不同异常类型的处理 --&gt;</span>  </div><div class="line">        <span class="tag">&lt;/<span class="name">props</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span>  </div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<h2 id="使用-ExceptionHandler注解实现异常处理"><a href="#使用-ExceptionHandler注解实现异常处理" class="headerlink" title="使用@ExceptionHandler注解实现异常处理"></a>使用@ExceptionHandler注解实现异常处理</h2><p>HandlerExceptionResolver接口以及SimpleMappingExceptionResolver解析器类的实现使得你能声明式地将异常映射到特定的视图上，还可以在异常被转发（forward）到对应的视图前使用Java代码做些判断和逻辑。不过在一些场景，特别是依靠@ResponseBody返回响应而非依赖视图解析机制的场景下，直接设置响应的状态码并将客户端需要的错误信息直接写回响应体中，可能是更方便的方法。  </p>
+<p>你也可以使用@ExceptionHandler方法来做到这点。如果@ExceptionHandler方法是在控制器内部定义的，那么它会接收并处理由控制器（或其任何子类）中的@RequestMapping方法抛出的异常。如果你将@ExceptionHandler方法定义在@ControllerAdvice类中，那么它会处理相关控制器中抛出的异常。下面的代码就展示了一个定义在控制器内部的@ExceptionHandler方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">@Controller</div><div class="line">public class SimpleController &#123;</div><div class="line"></div><div class="line">    // @RequestMapping methods omitted ...</div><div class="line"></div><div class="line">    @ExceptionHandler(IOException.class)</div><div class="line">    public ResponseEntity&lt;String&gt; handleIOException(IOException ex) &#123;</div><div class="line">        // prepare responseEntity</div><div class="line">        return responseEntity;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>使用@ExceptionHandler进行处理有一个不好的地方是进行异常处理的方法必须与出错的方法在同一个Controller里面    </p>
+<p>增加BaseController类，并在类中使用@ExceptionHandler注解声明异常处理，代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">public class BaseController &#123;  </div><div class="line">    /** 基于@ExceptionHandler异常处理 */  </div><div class="line">    @ExceptionHandler  </div><div class="line">    public String exp(HttpServletRequest request, Exception ex) &#123;  </div><div class="line">          </div><div class="line">        request.setAttribute(&quot;ex&quot;, ex);  </div><div class="line">          </div><div class="line">        // 根据不同错误转向不同页面  </div><div class="line">        if(ex instanceof BusinessException) &#123;  </div><div class="line">            return &quot;error-business&quot;;  </div><div class="line">        &#125;else if(ex instanceof ParameterException) &#123;  </div><div class="line">            return &quot;error-parameter&quot;;  </div><div class="line">        &#125; else &#123;  </div><div class="line">            return &quot;error&quot;;  </div><div class="line">        &#125;  </div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/统一处理异常/" data-id="cj6aobw4k007budbl8le1kwly" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/SpringMVC/拦截器配置" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/拦截器配置/">拦截器配置</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/SpringMVC/拦截器配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="配置拦截器"><a href="#配置拦截器" class="headerlink" title="配置拦截器"></a>配置拦截器</h2><h3 id="继承HandlerInterceptorAdapter抽象类"><a href="#继承HandlerInterceptorAdapter抽象类" class="headerlink" title="继承HandlerInterceptorAdapter抽象类"></a>继承HandlerInterceptorAdapter抽象类</h3><p>下面是一个统计接口执行时间的拦截器<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line">import javax.servlet.http.HttpServletRequest;</div><div class="line">import javax.servlet.http.HttpServletResponse;</div><div class="line"></div><div class="line">import org.slf4j.Logger;</div><div class="line">import org.slf4j.LoggerFactory;</div><div class="line">import org.springframework.web.servlet.ModelAndView;</div><div class="line">import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 统计接口执行时间拦截器</div><div class="line"> * @author   chenliqiang, 2017年4月12日 下午5:00:53 &lt;br/&gt;</div><div class="line"> * @version  </div><div class="line"> * @see 	 </div><div class="line"> */</div><div class="line">public class ExecuteTimeInterceptor extends HandlerInterceptorAdapter &#123;</div><div class="line"></div><div class="line">	private static final Logger logger = LoggerFactory.getLogger(ExecuteTimeInterceptor.class);</div><div class="line"></div><div class="line">	//before the actual handler will be executed</div><div class="line">	@Override</div><div class="line">	public boolean preHandle(HttpServletRequest request,</div><div class="line">		HttpServletResponse response, Object handler) throws Exception &#123;</div><div class="line"></div><div class="line">		long startTime = System.currentTimeMillis();</div><div class="line">		request.setAttribute(&quot;startTime&quot;, startTime);</div><div class="line">		</div><div class="line">		return true;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	//after the handler is executed</div><div class="line">	@Override</div><div class="line">	public void postHandle(</div><div class="line">		HttpServletRequest request, HttpServletResponse response,</div><div class="line">		Object handler, ModelAndView modelAndView)</div><div class="line">		throws Exception &#123;</div><div class="line"></div><div class="line">		long startTime = (Long)request.getAttribute(&quot;startTime&quot;);</div><div class="line">		long endTime = System.currentTimeMillis();</div><div class="line">		long executeTime = endTime - startTime;</div><div class="line">		</div><div class="line">		//modified the exisitng modelAndView</div><div class="line">		//modelAndView.addObject(&quot;executeTime&quot;, executeTime);</div><div class="line"></div><div class="line">		//log it</div><div class="line">		if(logger.isInfoEnabled())&#123;</div><div class="line">		   logger.info(&quot;[&quot; + handler + &quot;] executeTime : &quot; + executeTime + &quot;ms&quot;);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="spring-mvc-xml配置"><a href="#spring-mvc-xml配置" class="headerlink" title="spring-mvc.xml配置"></a>spring-mvc.xml配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;</div><div class="line">	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;</div><div class="line">	xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot;</div><div class="line">	xsi:schemaLocation=&quot;http://www.springframework.org/schema/mvc</div><div class="line">	http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd</div><div class="line">	http://www.springframework.org/schema/beans</div><div class="line">	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd</div><div class="line">	http://www.springframework.org/schema/context</div><div class="line">	http://www.springframework.org/schema/context/spring-context-3.2.xsd&quot;&gt;</div><div class="line">	</div><div class="line">	&lt;mvc:annotation-driven /&gt;</div><div class="line"></div><div class="line">	&lt;mvc:interceptors&gt;</div><div class="line">		&lt;ref bean=&quot;executeTimeInterceptor&quot; /&gt;   &lt;!-- 全局配置，拦截所有请求  --&gt;</div><div class="line">		</div><div class="line">		&lt;!--  定义拦截特定的请求  --&gt;</div><div class="line">		&lt;!-- 按需添加需要拦截的请求  --&gt;</div><div class="line">		&lt;!-- &lt;mvc:interceptor&gt; </div><div class="line">			&lt;mvc:mapping path=&quot;/announcement/*&quot; /&gt; </div><div class="line">			&lt;mvc:mapping path=&quot;/product/*&quot; /&gt; </div><div class="line">			&lt;ref bean=&quot;executeTimeInterceptor&quot; /&gt; </div><div class="line">		&lt;/mvc:interceptor&gt;  --&gt;</div><div class="line">	&lt;/mvc:interceptors&gt;</div><div class="line">	</div><div class="line">	&lt;!--  定义拦截器  --&gt;</div><div class="line">	&lt;bean id=&quot;executeTimeInterceptor&quot; class=&quot;com.highsunbuy.interceptor.ExecuteTimeInterceptor&quot; /&gt;</div><div class="line"></div><div class="line">&lt;/beans&gt;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/拦截器配置/" data-id="cj6aobw4l007eudbl5mi1ywqi" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -404,7 +404,121 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/异步请求/" data-id="cj6ao83b5007mtcbl7bxk8xg5" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/异步请求/" data-id="cj6aobw4n007gudbl7jxvmd43" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/SpringMVC/自定义校验" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/自定义校验/">自定义校验</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/SpringMVC/自定义校验/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="在类中根据不同的请求定义不同的校验接口"><a href="#在类中根据不同的请求定义不同的校验接口" class="headerlink" title="在类中根据不同的请求定义不同的校验接口"></a>在类中根据不同的请求定义不同的校验接口</h2> <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpressOrder</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line"></div><div class="line">   <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</div><div class="line"></div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PdaPut</span> </span>&#123;&#125;</div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PCScanPut</span> </span>&#123;&#125;</div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PdaPriceQuery</span> </span>&#123;&#125;</div><div class="line"> </div><div class="line">   <span class="meta">@NotNull</span>(groups = &#123;PdaPut.class, PdaPriceQuery.class, PdaBarcode.class&#125;)</div><div class="line">   <span class="keyword">private</span> Integer id;</div><div class="line">   </div><div class="line">   <span class="meta">@NotNull</span>(groups = &#123;PdaPut.class, PdaPriceQuery.class&#125;)</div><div class="line">   <span class="keyword">private</span> Integer serviceTypeId;</div><div class="line">   </div><div class="line">   <span class="comment">//getter and setter</span></div></pre></td></tr></table></figure>
+<p>在mvc中使用不同的校验<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/updateBarcode&quot;, method = RequestMethod.PUT)</div><div class="line">public @ResponseBody ExpressOrder updateBarcode(</div><div class="line">        @Validated(&#123;ExpressOrder.PdaBarcode.class&#125;)</div><div class="line">        @RequestBody ExpressOrder expressOrder) throws Exception &#123;</div><div class="line">	</div><div class="line">    return expressOrderService.updateBarcode(expressOrder);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/自定义校验/" data-id="cj6aobw4p007judbljr97fdm9" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Linux/redis安装和配置" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Linux/redis安装和配置/">redis安装和配置</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Linux/redis安装和配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$sudo apt-get update</div><div class="line">$sudo apt-get install redis-server</div></pre></td></tr></table></figure>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">默认端口启动：</div><div class="line">service redis start</div><div class="line">注：不指定端口时，脚本默认指定启动6379端口的redis</div><div class="line"></div><div class="line">指定端口启动：</div><div class="line">service redis -p 6379 start</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service redis stop</div></pre></td></tr></table></figure>
+<h2 id="进入redis后台"><a href="#进入redis后台" class="headerlink" title="进入redis后台"></a>进入redis后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ redis-cli</div><div class="line"></div><div class="line">输入ping，返回PONG则成功</div></pre></td></tr></table></figure>
+<h2 id="退出redis后台"><a href="#退出redis后台" class="headerlink" title="退出redis后台"></a>退出redis后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">exit</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/redis安装和配置/" data-id="cj6aobvx30007udbl59jloker" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -462,63 +576,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/nginx安装/" data-id="cj6ao835u0007tcbl2rou3gkc" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/自定义校验" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/自定义校验/">自定义校验</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/自定义校验/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="在类中根据不同的请求定义不同的校验接口"><a href="#在类中根据不同的请求定义不同的校验接口" class="headerlink" title="在类中根据不同的请求定义不同的校验接口"></a>在类中根据不同的请求定义不同的校验接口</h2> <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpressOrder</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line"></div><div class="line">   <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</div><div class="line"></div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PdaPut</span> </span>&#123;&#125;</div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PCScanPut</span> </span>&#123;&#125;</div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PdaPriceQuery</span> </span>&#123;&#125;</div><div class="line"> </div><div class="line">   <span class="meta">@NotNull</span>(groups = &#123;PdaPut.class, PdaPriceQuery.class, PdaBarcode.class&#125;)</div><div class="line">   <span class="keyword">private</span> Integer id;</div><div class="line">   </div><div class="line">   <span class="meta">@NotNull</span>(groups = &#123;PdaPut.class, PdaPriceQuery.class&#125;)</div><div class="line">   <span class="keyword">private</span> Integer serviceTypeId;</div><div class="line">   </div><div class="line">   <span class="comment">//getter and setter</span></div></pre></td></tr></table></figure>
-<p>在mvc中使用不同的校验<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/updateBarcode&quot;, method = RequestMethod.PUT)</div><div class="line">public @ResponseBody ExpressOrder updateBarcode(</div><div class="line">        @Validated(&#123;ExpressOrder.PdaBarcode.class&#125;)</div><div class="line">        @RequestBody ExpressOrder expressOrder) throws Exception &#123;</div><div class="line">	</div><div class="line">    return expressOrderService.updateBarcode(expressOrder);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/自定义校验/" data-id="cj6ao83b7007rtcblugnv93u5" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/nginx安装/" data-id="cj6aobvx60009udblrjbznibz" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -576,7 +634,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/tomcat安装/" data-id="cj6ao835w0009tcblerrpt352" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/tomcat安装/" data-id="cj6aobvxb000budbl4srmghwv" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -632,7 +690,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/基础/spring官方文档/" data-id="cj6ao83ba007wtcblw6x46g0q" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/基础/spring官方文档/" data-id="cj6aobw4w007tudbl914tmtl0" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -691,64 +749,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/" data-id="cj6ao83bc007ztcbl12avzfjt" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Linux/vi命令" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Linux/vi命令/">vi命令</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Linux/vi命令/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="vi命令"><a href="#vi命令" class="headerlink" title="vi命令"></a>vi命令</h2><p>vi命令是UNIX操作系统和类UNIX操作系统中最通用的全屏幕纯文本编辑器。</p>
-<p>Linux中的vi编辑器叫vim，它是vi的增强版（vi Improved），与vi编辑器完全兼容，而且实现了很多增强功能。 vi编辑器支持编辑模式和命令模式，编辑模式下可以完成文本的编辑功能，命令模式下可以完成对文件的操作命令，要正确使用vi编辑器就必须熟练掌握着两种模式的切换。默认情况下，打开vi编辑器后自动进入命令模式。从编辑模式切换到命令模式使用“esc”键，从命令模式切换到编辑模式使用“A”、“a”、“O”、“o”、“I”、“i”键。      </p>
-<p>vi编辑器提供了丰富的内置命令，有些内置命令使用键盘组合键即可完成，有些内置命令则需要以冒号“：”开头输入。常用内置命令如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">Ctrl+u：向文件首翻半屏；  </div><div class="line">Ctrl+d：向文件尾翻半屏；  </div><div class="line">Ctrl+f：向文件尾翻一屏；</div><div class="line">Ctrl+b：向文件首翻一屏；</div><div class="line">Esc：从编辑模式切换到命令模式；</div><div class="line">ZZ：命令模式下保存当前文件所做的修改后退出vi；</div><div class="line">:行号：光标跳转到指定行的行首；</div><div class="line">:$：光标跳转到最后一行的行首；</div><div class="line">x或X：删除一个字符，x删除光标后的，而X删除光标前的；</div><div class="line">D：删除从当前光标到光标所在行尾的全部字符；</div><div class="line">dd：删除光标行正行内容；</div><div class="line">ndd：删除当前行及其后n-1行； nyy：将当前行及其下n行的内容保存到寄存器？中，其中？为一个字母，n为一个数字；</div><div class="line">p：粘贴文本操作，用于将缓存区的内容粘贴到当前光标所在位置的下方；</div><div class="line">P：粘贴文本操作，用于将缓存区的内容粘贴到当前光标所在位置的上方；</div><div class="line">/字符串：文本查找操作，用于从当前光标所在位置开始向文件尾部查找指定字符串的内容，查找的字符串会被加亮显示； </div><div class="line">？name：文本查找操作，用于从当前光标所在位置开始向文件头部查找指定字符串的内容，查找的字符串会被加亮显示； </div><div class="line">a，bs/F/T：替换文本操作，用于在第a行到第b行之间，将F字符串换成T字符串。其中，“s/”表示进行替换操作；</div><div class="line">a：在当前字符后添加文本；</div><div class="line">A：在行末添加文本；</div><div class="line">i：在当前字符前插入文本；</div><div class="line">I：在行首插入文本；</div><div class="line">o：在当前行后面插入一空行；</div><div class="line">O：在当前行前面插入一空行；</div><div class="line">:wq：在命令模式下，执行存盘退出操作； </div><div class="line">:w：在命令模式下，执行存盘操作；</div><div class="line">:w！：在命令模式下，执行强制存盘操作； </div><div class="line">:q：在命令模式下，执行退出vi操作；</div><div class="line">:q！：在命令模式下，执行强制退出vi操作； </div><div class="line">:e文件名：在命令模式下，打开并编辑指定名称的文件；</div><div class="line">:n：在命令模式下，如果同时打开多个文件，则继续编辑下一个文件；</div><div class="line">:f：在命令模式下，用于显示当前的文件名、光标所在行的行号以及显示比例； </div><div class="line">:set number：在命令模式下，用于在最左端显示行号； </div><div class="line">:set nonumber：在命令模式下，用于在最左端不显示行号；</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/vi命令/" data-id="cj6ao8361000btcblcuu4shki" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/" data-id="cj6aobw4x007uudblg7ncku4u" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -807,11 +808,11 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
+          <a href="/2017/08/13/Spring/基础/AOP事务管理/">AOP事务管理</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
+          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
         </li>
       
         <li>
@@ -819,7 +820,7 @@
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
+          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
         </li>
       
         <li>

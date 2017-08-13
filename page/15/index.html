@@ -80,6 +80,202 @@
         <div class="col-sm-8 blog-main">
           
   
+    <article id="post-Eclipse/codetemplates变量解析" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Eclipse/codetemplates变量解析/">codetemplates变量解析</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Eclipse/codetemplates变量解析/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Eclipse/">Eclipse</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ol>
+<li><p>在Java中的对应位置，输入/**三个字符，再按下回车键，就可以自动生成CodeTemplate中指定的模式了<br>CodeTemplate中的变量，都用美元符号后面的花括号围住，如${date}、${time}等，如果要在CodeTemplate中要写美元符号$，则用两个美元符号连写表示。<br>下面逐一解释一下这些变量的含义：</p>
+<ul>
+<li>${year}，代表当前年份，例如：2015</li>
+<li>${date}，代表当前日期，例如：2015年11月29日</li>
+<li>${time}，代表当前时间，例如：下午10:07:15</li>
+<li>${project_name}，代表项目名</li>
+<li>${package_name}，代表包名</li>
+<li>${file_name}，代表当前文件名</li>
+<li>${type_name}，代表当前类名</li>
+<li><p>${enclosing_type}，如果类A是在另一个类B内部声明的，则该变量记录了类B的名字，否则为空，代码举例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * <span class="doctag">@enclosing</span>_type</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * <span class="doctag">@enclosing</span>_type VarTest</div><div class="line">     */</div><div class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest2</span> </span>&#123;</div><div class="line">        <span class="comment">/**</span></div><div class="line">         * <span class="doctag">@enclosing</span>_type VarTest.VarTest2</div><div class="line">         */</div><div class="line">        <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest3</span> </span>&#123;</div><div class="line">            </div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>${tags}，输出函数的输入参数与返回值，例如有函数声明如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public int func(int a, String b, long c, boolean d) &#123;</div><div class="line">    return 0;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>CodeTemplate的Pattern如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * $&#123;tags&#125;</div><div class="line"> */</div></pre></td></tr></table></figure>
+<p>则生成的注释如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * </div><div class="line"> * @param a</div><div class="line"> * @param b</div><div class="line"> * @param c</div><div class="line"> * @param d</div><div class="line"> * @return</div><div class="line"> */</div></pre></td></tr></table></figure>
+<ul>
+<li>${todo}，有这个变量的位置，会生成一个TODO标签</li>
+<li>${user}，这个变量存储了当前Eclipse的用户名，这个用户名可以在eclipse.ini中设置<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">-Duser.name=你的名称</div></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Eclipse/codetemplates变量解析/" data-id="cj6aobvwm0000udblxbbk8o96" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-服务器相关/Tomcat/tomcat发布项目的三种方式" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/服务器相关/Tomcat/tomcat发布项目的三种方式/">tomcat发布项目的三种方式</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/服务器相关/Tomcat/tomcat发布项目的三种方式/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/Tomcat/">Tomcat</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="直接放到Webapps目录下"><a href="#直接放到Webapps目录下" class="headerlink" title="直接放到Webapps目录下"></a>直接放到Webapps目录下</h2><p>Tomcat的Webapps目录是Tomcat默认的应用目录，当服务器启动时，会加载所有这个目录下的应用。也可以将JSP程序打包成一个 war包放在目录下，服务器会自动解开这个war包，并在这个目录下生成一个同名的文件夹。一个war包就是有特性格式的jar包，它是将一个Web程序的所有内容进行压缩得到。具体如何打包，可以使用许多开发工具的IDE环境，如Eclipse、NetBeans、ant、JBuilder等。也可以用 cmd 命令：jar -cvf applicationname.war package.*；</p>
+<p>webapps这个默认的应用目录也是可以改变。打开Tomcat的conf目录下的server.xml文件，找到下面内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;Host name=&quot;localhost&quot; debug=&quot;0&quot; appBase=&quot;webapps&quot; unpackWARs=&quot;true&quot; autoDeloy=&quot;true&quot; xmlValidation=&quot;falase&quot; xmlNamespaceAware=&quot;false&quot;&gt;</div></pre></td></tr></table></figure></p>
+<h2 id="在server-xml中指定"><a href="#在server-xml中指定" class="headerlink" title="在server.xml中指定"></a>在server.xml中指定</h2><p>在Tomcat的配置文件中，一个Web应用就是一个特定的Context，可以通过在server.xml中新建Context里部署一个JSP应用程序。打开server.xml文件，在Host标签内建一个Context，内容如下。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;Context path=&quot;/myapp&quot; reloadable=&quot;true&quot; docBase=&quot;D:\myapp&quot; workDir=&quot;D:\myapp\work&quot;/&gt;</div></pre></td></tr></table></figure></p>
+<p>其中path是虚拟路径，docBase是JSP应用程序的物理路径，workDir是这个应用的工作目录，存放运行是生成的于这个应用相关的文件。</p>
+<h2 id="创建一个Context文件"><a href="#创建一个Context文件" class="headerlink" title="创建一个Context文件"></a>创建一个Context文件</h2><p>以上两种方法，Web应用被服务器加载后都会在Tomcat的conf\catalina\localhost目录下生成一个XML文件，其内容如下：</p>
+<p><context path="/admin" docbase="${catalina.home}/server/webapps/admin" debug="0" privileged="true"></context><br>可 以看出，文件中描述一个应用程序的Context信息，其内容和server.xml中的Context信息格式是一致的，文件名便是虚拟目录名。您可以 直接建立这样的一个xml文件，放在Tomcat的conf\catalina\localhost目录下。例子如下：<br>注意：删除一个Web应用同时也要删除webapps下相应的文件夹祸server.xml中相应的Context，还要将Tomcat的conf<br>\catalina\localhost目录下相应的xml文件删除。否则Tomcat仍会按配置去加载。。。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/Tomcat/tomcat发布项目的三种方式/" data-id="cj6aobw63009dudbld67vfcuz" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-服务器相关/Tomcat/配置数据源" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/服务器相关/Tomcat/配置数据源/">配置数据源</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/服务器相关/Tomcat/配置数据源/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/Tomcat/">Tomcat</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="content-xml"><a href="#content-xml" class="headerlink" title="content.xml"></a>content.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;Resource name=&quot;jdbc/highsunbuy&quot; auth=&quot;Container&quot; type=&quot;javax.sql.DataSource&quot;</div><div class="line">        driverClassName=&quot;com.mysql.jdbc.Driver&quot;</div><div class="line">        url=&quot;jdbc:mysql://192.168.7.90:3306/highsunbuy?characterEncoding=UTF-8&amp;amp;autoReconnect=true&amp;amp;failOverReadOnly=false&amp;amp;zeroDateTimeBehavior=convertToNull&quot;</div><div class="line">        username=&quot;highsunbuy&quot; password=&quot;highsunbuy&quot; maxActive=&quot;5&quot; maxIdle=&quot;2&quot;</div><div class="line">        maxWait=&quot;10000&quot; /&gt;</div></pre></td></tr></table></figure>
+<h2 id="spring配置文件中引用方式"><a href="#spring配置文件中引用方式" class="headerlink" title="spring配置文件中引用方式"></a>spring配置文件中引用方式</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;dataSource&quot; class=&quot;org.springframework.jndi.JndiObjectFactoryBean&quot;&gt;</div><div class="line">	&lt;property name=&quot;jndiName&quot;&gt;</div><div class="line">		&lt;value&gt;java:comp/env/jdbc/highsunbuy&lt;/value&gt;</div><div class="line">	&lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/Tomcat/配置数据源/" data-id="cj6aobw65009gudbljph4ejln" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-服务器相关/redis/set get getset append命令" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
@@ -158,7 +354,67 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/set get getset append命令/" data-id="cj6ao83c4009htcbl5pqh1bxe" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/set get getset append命令/" data-id="cj6aobw66009iudbluxe9da8y" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-服务器相关/red5/eclipse插件安装" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/服务器相关/red5/eclipse插件安装/">eclipse插件安装</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/服务器相关/red5/eclipse插件安装/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/red5/">red5</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="官网"><a href="#官网" class="headerlink" title="官网"></a>官网</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">http://red5.org/</div></pre></td></tr></table></figure>
+<h2 id="下载red5"><a href="#下载red5" class="headerlink" title="下载red5"></a>下载red5</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">https://github.com/Red5/red5-server/releases</div></pre></td></tr></table></figure>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入安装包所在目录：</div><div class="line">解压：tar zxf red5-server-1.0.9-RELEASE.tar.gz</div></pre></td></tr></table></figure>
+<h2 id="下载插件安装包"><a href="#下载插件安装包" class="headerlink" title="下载插件安装包"></a>下载插件安装包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">https://github.com/Red5/red5-eclipse-plugin</div><div class="line">按照页面提示安装即可</div></pre></td></tr></table></figure>
+<h2 id="错误，找到不到包"><a href="#错误，找到不到包" class="headerlink" title="错误，找到不到包"></a>错误，找到不到包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">目录选择red5服务器所在的目录，即上面的解压的文件目录，进入lib目录</div><div class="line"></div><div class="line">将red5-io-x.x.x-RELEASE.jar拷贝一份并把副本改名为red-io.jar</div><div class="line">将red5-server-common-x.x.x-RELEASE.jar拷贝一份并把副本改名为red5-server-common.jar</div></pre></td></tr></table></figure>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">进入red5目录:</div><div class="line">./red5.sh start 或者</div><div class="line">./red5-debug.sh start</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入red5目录:</div><div class="line">./red5-shutdown.sh</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/red5/eclipse插件安装/" data-id="cj6aobw68009ludbl9y7nxpym" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -308,7 +564,70 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/Redis 持久化/" data-id="cj6ao83c5009jtcbl44po16cg" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/Redis 持久化/" data-id="cj6aobw69009nudbl8p3kl243" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-服务器相关/redis/安装(Mac版)" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/服务器相关/redis/安装(Mac版)/">安装(Mac版)</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/服务器相关/redis/安装(Mac版)/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/redis/">redis</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Mac"><a href="#Mac" class="headerlink" title="Mac"></a>Mac</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">brew search redis</div><div class="line">brew install redis</div></pre></td></tr></table></figure>
+<p>安装后：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">To have launchd start redis at login:</div><div class="line">  ln -sfv /usr/local/opt/redis/*.plist ~/Library/LaunchAgents</div><div class="line">Then to load redis now:</div><div class="line">  launchctl load ~/Library/LaunchAgents/homebrew.mxcl.redis.plist</div><div class="line">Or, if you don&apos;t want/need launchctl, you can just run:</div><div class="line">  redis-server /usr/local/etc/redis.conf</div><div class="line">==&gt; Summary</div><div class="line">🍺  /usr/local/Cellar/redis/3.0.7: 9 files, 876.3K</div></pre></td></tr></table></figure></p>
+<p>Redis相关可执行文件的主要作用:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">（1）redis-server  -------Redis服务器</div><div class="line">（2）redis-cli         -------Redis命令行客户端</div><div class="line">（3）redis-benchmark ---------Redis性能测试工具</div><div class="line">（4）redis-check-aof ----------AOF文件修复工具</div><div class="line">（5）redis-check-dump --------RDB文件检查工具</div></pre></td></tr></table></figure></p>
+<p>开机自动启动：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.redis.plist</div></pre></td></tr></table></figure></p>
+<p>取消开机自动启动：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.redis.plist</div></pre></td></tr></table></figure></p>
+<p>启动：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">进入/usr/local/Cellar/redis/3.0.7/bin</div><div class="line">指定conf启动：</div><div class="line">./redis-server /usr/local/etc/redis.conf</div></pre></td></tr></table></figure></p>
+<p>访问服务：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">进入/usr/local/Cellar/redis/3.0.7/bin</div><div class="line">./redis-cli -h 127.0.0.1 -p 6379</div><div class="line"></div><div class="line">输入：</div><div class="line">ping 返回PONG即为连接服务器成功</div><div class="line"></div><div class="line">设置值:</div><div class="line">set aa aa</div><div class="line">获取值：</div><div class="line">get aa</div><div class="line">退出：</div><div class="line">exit</div></pre></td></tr></table></figure></p>
+<p>停止服务：<br>考虑到redis正在将内存中的数据拷贝到硬盘，所以强行终止进程可能导致数据丢失，所以争取的方式之一是通过客户端发送 shutdown命令，服务器在收到shutdown命令后，先断开所有客户端的连接，再根据配置持久化数据，再关闭Redis服务<br>redis可以妥善处理sigterm信号，多以Kill Redis的进程也可以关闭redis，效果金额发送 shutdown命令有同样的效果<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入/usr/local/Cellar/redis/3.0.7/bin</div><div class="line">./redis-cli -p 6379 shutdown</div></pre></td></tr></table></figure></p>
+<p>配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line">#修改为守护模式</div><div class="line">daemonize yes</div><div class="line">#设置进程锁文件</div><div class="line">pidfile /usr/local/redis/redis.pid</div><div class="line">#端口</div><div class="line">port 6379</div><div class="line">#客户端超时时间</div><div class="line">timeout 300</div><div class="line">#日志级别</div><div class="line">loglevel debug</div><div class="line">#日志文件位置</div><div class="line">logfile /usr/local/redis/log-redis.log</div><div class="line">#设置数据库的数量，默认数据库为0，可以使用SELECT &lt;dbid&gt;命令在连接上指定数据库id</div><div class="line">databases 8</div><div class="line">##指定在多长时间内，有多少次更新操作，就将数据同步到数据文件，可以多个条件配合</div><div class="line">#save &lt;seconds&gt; &lt;changes&gt;</div><div class="line">#Redis默认配置文件中提供了三个条件：</div><div class="line">save 900 1</div><div class="line">save 300 10</div><div class="line">save 60 10000</div><div class="line">#指定存储至本地数据库时是否压缩数据，默认为yes，Redis采用LZF压缩，如果为了节省CPU时间，</div><div class="line">#可以关闭该#选项，但会导致数据库文件变的巨大</div><div class="line">rdbcompression yes</div><div class="line">#指定本地数据库文件名</div><div class="line">dbfilename dump.rdb</div><div class="line">#指定本地数据库路径</div><div class="line">dir /usr/local/redis/db/</div><div class="line">#指定是否在每次更新操作后进行日志记录，Redis在默认情况下是异步的把数据写入磁盘，如果不开启，可能</div><div class="line">#会在断电时导致一段时间内的数据丢失。因为 redis本身同步数据文件是按上面save条件来同步的，所以有</div><div class="line">#的数据会在一段时间内只存在于内存中</div><div class="line">appendonly no</div><div class="line">#指定更新日志条件，共有3个可选值：</div><div class="line">#no：表示等操作系统进行数据缓存同步到磁盘（快）</div><div class="line">#always：表示每次更新操作后手动调用fsync()将数据写到磁盘（慢，安全）</div><div class="line">#everysec：表示每秒同步一次（折衷，默认值）</div><div class="line">appendfsync everysec</div><div class="line">&lt;/changes&gt;&lt;/seconds&gt;&lt;/dbid&gt;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/安装(Mac版)/" data-id="cj6aobw6a009qudbljric142m" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -417,7 +736,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/事物管理/" data-id="cj6ao83c6009mtcblxpiad3hk" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/事物管理/" data-id="cj6aobw6c009sudblytlzotvz" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -505,226 +824,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/常用原子方法/" data-id="cj6ao83c7009otcbl5yrcr0h8" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-服务器相关/redis/常用非原子方法" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/服务器相关/redis/常用非原子方法/">常用非原子方法</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/服务器相关/redis/常用非原子方法/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/redis/">redis</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="SETNX-key-value"><a href="#SETNX-key-value" class="headerlink" title="SETNX key value"></a>SETNX key value</h1><blockquote>
-<p>起始版本：1.0.0<br>  时间复杂度：O(1)</p>
-</blockquote>
-<p>将key设置值为value，如果key不存在，这种情况下等同SET命令。 当key存在时，什么也不做。SETNX是”SET if Not eXists”的简写</p>
-<h3 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Integer reply, 特定值:</div><div class="line">1 如果key被设置了</div><div class="line">0 如果key没有被设置</div></pre></td></tr></table></figure>
-<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">redis&gt; SETNX mykey &quot;Hello&quot;</div><div class="line">(integer) 1</div><div class="line">redis&gt; SETNX mykey &quot;World&quot;</div><div class="line">(integer) 0</div><div class="line">redis&gt; GET mykey</div><div class="line">&quot;Hello&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure>
-<h1 id="STRLEN-key"><a href="#STRLEN-key" class="headerlink" title="STRLEN key"></a>STRLEN key</h1><blockquote>
-<p>起始版本：2.2.0<br>  时间复杂度：O(1)</p>
-</blockquote>
-<p>返回key的string类型value的长度。如果key对应的非string类型，就返回错误。</p>
-<h3 id="返回值-1"><a href="#返回值-1" class="headerlink" title="返回值"></a>返回值</h3><p>integer-reply：key对应的字符串value的长度，或者0（key不存在）</p>
-<h3 id="例子-1"><a href="#例子-1" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET mykey &quot;Hello world&quot;</div><div class="line">OK</div><div class="line">redis&gt; STRLEN mykey</div><div class="line">(integer) 11</div><div class="line">redis&gt; STRLEN nonexisting</div><div class="line">(integer) 0</div><div class="line">redis&gt;</div></pre></td></tr></table></figure>
-<h1 id="SETRANGE-key-offset-value"><a href="#SETRANGE-key-offset-value" class="headerlink" title="SETRANGE key offset value"></a>SETRANGE key offset value</h1><blockquote>
-<p>起始版本：2.2.0<br>时间复杂度：O(1), not counting the time taken to copy the new string in place. Usually, this string is very small so the amortized complexity is O(1). Otherwise, complexity is O(M) with M being the length of the value argument.</p>
-</blockquote>
-<p>这个命令的作用是覆盖key对应的string的一部分，从指定的offset处开始，覆盖value的长度。如果offset比当前key对应string还要长，那这个string后面就补0以达到offset。不存在的keys被认为是空字符串，所以这个命令可以确保key有一个足够大的字符串，能在offset处设置value。<br>注意，offset最大可以是229-1(536870911),因为redis字符串限制在512M大小。如果你需要超过这个大小，你可以用多个keys。</p>
-<h3 id="返回值-2"><a href="#返回值-2" class="headerlink" title="返回值"></a>返回值</h3><p>integer-reply：该命令修改后的字符串长度</p>
-<h3 id="例子-2"><a href="#例子-2" class="headerlink" title="例子"></a>例子</h3><p>基本使用方法:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET key1 &quot;Hello World&quot;</div><div class="line">OK</div><div class="line">redis&gt; SETRANGE key1 6 &quot;Redis&quot;</div><div class="line">(integer) 11</div><div class="line">redis&gt; GET key1</div><div class="line">&quot;Hello Redis&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure></p>
-<p>补0的例子:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">redis&gt; SETRANGE key2 6 &quot;Redis&quot;</div><div class="line">(integer) 11</div><div class="line">redis&gt; GET key2</div><div class="line">&quot;\x00\x00\x00\x00\x00\x00Redis&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure></p>
-<h1 id="GETRANGE-key-start-end"><a href="#GETRANGE-key-start-end" class="headerlink" title="GETRANGE key start end"></a>GETRANGE key start end</h1><blockquote>
-<p>起始版本：2.4.0<br>时间复杂度：O(N) N是字符串长度，复杂度由最终返回长度决定，但由于通过一个字符串创建子字符串是很容易的，它可以被认为是O(1)。</p>
-</blockquote>
-<p>==警告==：这个命令是被改成GETRANGE的，在小于2.0的Redis版本中叫SUBSTR。 返回key对应的字符串value的子串，这个子串是由start和end位移决定的（两者都在string内）。可以用负的位移来表示从string尾部开始数的下标。所以-1就是最后一个字符，-2就是倒数第二个，以此类推。  </p>
-<p>这个函数处理超出范围的请求时，都把结果限制在string内。</p>
-<h3 id="返回值-3"><a href="#返回值-3" class="headerlink" title="返回值"></a>返回值</h3><p>bulk-reply</p>
-<h3 id="例子-3"><a href="#例子-3" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET mykey &quot;This is a string&quot;</div><div class="line">OK</div><div class="line">redis&gt; GETRANGE mykey 0 3</div><div class="line">&quot;This&quot;</div><div class="line">redis&gt; GETRANGE mykey -3 -1</div><div class="line">&quot;ing&quot;</div><div class="line">redis&gt; GETRANGE mykey 0 -1</div><div class="line">&quot;This is a string&quot;</div><div class="line">redis&gt; GETRANGE mykey 10 100</div><div class="line">&quot;string&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/常用非原子方法/" data-id="cj6ao83c8009rtcblvn9nxlki" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-服务器相关/redis/安装(Mac版)" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/服务器相关/redis/安装(Mac版)/">安装(Mac版)</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/服务器相关/redis/安装(Mac版)/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/redis/">redis</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="Mac"><a href="#Mac" class="headerlink" title="Mac"></a>Mac</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">brew search redis</div><div class="line">brew install redis</div></pre></td></tr></table></figure>
-<p>安装后：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">To have launchd start redis at login:</div><div class="line">  ln -sfv /usr/local/opt/redis/*.plist ~/Library/LaunchAgents</div><div class="line">Then to load redis now:</div><div class="line">  launchctl load ~/Library/LaunchAgents/homebrew.mxcl.redis.plist</div><div class="line">Or, if you don&apos;t want/need launchctl, you can just run:</div><div class="line">  redis-server /usr/local/etc/redis.conf</div><div class="line">==&gt; Summary</div><div class="line">🍺  /usr/local/Cellar/redis/3.0.7: 9 files, 876.3K</div></pre></td></tr></table></figure></p>
-<p>Redis相关可执行文件的主要作用:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">（1）redis-server  -------Redis服务器</div><div class="line">（2）redis-cli         -------Redis命令行客户端</div><div class="line">（3）redis-benchmark ---------Redis性能测试工具</div><div class="line">（4）redis-check-aof ----------AOF文件修复工具</div><div class="line">（5）redis-check-dump --------RDB文件检查工具</div></pre></td></tr></table></figure></p>
-<p>开机自动启动：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.redis.plist</div></pre></td></tr></table></figure></p>
-<p>取消开机自动启动：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.redis.plist</div></pre></td></tr></table></figure></p>
-<p>启动：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">进入/usr/local/Cellar/redis/3.0.7/bin</div><div class="line">指定conf启动：</div><div class="line">./redis-server /usr/local/etc/redis.conf</div></pre></td></tr></table></figure></p>
-<p>访问服务：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">进入/usr/local/Cellar/redis/3.0.7/bin</div><div class="line">./redis-cli -h 127.0.0.1 -p 6379</div><div class="line"></div><div class="line">输入：</div><div class="line">ping 返回PONG即为连接服务器成功</div><div class="line"></div><div class="line">设置值:</div><div class="line">set aa aa</div><div class="line">获取值：</div><div class="line">get aa</div><div class="line">退出：</div><div class="line">exit</div></pre></td></tr></table></figure></p>
-<p>停止服务：<br>考虑到redis正在将内存中的数据拷贝到硬盘，所以强行终止进程可能导致数据丢失，所以争取的方式之一是通过客户端发送 shutdown命令，服务器在收到shutdown命令后，先断开所有客户端的连接，再根据配置持久化数据，再关闭Redis服务<br>redis可以妥善处理sigterm信号，多以Kill Redis的进程也可以关闭redis，效果金额发送 shutdown命令有同样的效果<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入/usr/local/Cellar/redis/3.0.7/bin</div><div class="line">./redis-cli -p 6379 shutdown</div></pre></td></tr></table></figure></p>
-<p>配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line">#修改为守护模式</div><div class="line">daemonize yes</div><div class="line">#设置进程锁文件</div><div class="line">pidfile /usr/local/redis/redis.pid</div><div class="line">#端口</div><div class="line">port 6379</div><div class="line">#客户端超时时间</div><div class="line">timeout 300</div><div class="line">#日志级别</div><div class="line">loglevel debug</div><div class="line">#日志文件位置</div><div class="line">logfile /usr/local/redis/log-redis.log</div><div class="line">#设置数据库的数量，默认数据库为0，可以使用SELECT &lt;dbid&gt;命令在连接上指定数据库id</div><div class="line">databases 8</div><div class="line">##指定在多长时间内，有多少次更新操作，就将数据同步到数据文件，可以多个条件配合</div><div class="line">#save &lt;seconds&gt; &lt;changes&gt;</div><div class="line">#Redis默认配置文件中提供了三个条件：</div><div class="line">save 900 1</div><div class="line">save 300 10</div><div class="line">save 60 10000</div><div class="line">#指定存储至本地数据库时是否压缩数据，默认为yes，Redis采用LZF压缩，如果为了节省CPU时间，</div><div class="line">#可以关闭该#选项，但会导致数据库文件变的巨大</div><div class="line">rdbcompression yes</div><div class="line">#指定本地数据库文件名</div><div class="line">dbfilename dump.rdb</div><div class="line">#指定本地数据库路径</div><div class="line">dir /usr/local/redis/db/</div><div class="line">#指定是否在每次更新操作后进行日志记录，Redis在默认情况下是异步的把数据写入磁盘，如果不开启，可能</div><div class="line">#会在断电时导致一段时间内的数据丢失。因为 redis本身同步数据文件是按上面save条件来同步的，所以有</div><div class="line">#的数据会在一段时间内只存在于内存中</div><div class="line">appendonly no</div><div class="line">#指定更新日志条件，共有3个可选值：</div><div class="line">#no：表示等操作系统进行数据缓存同步到磁盘（快）</div><div class="line">#always：表示每次更新操作后手动调用fsync()将数据写到磁盘（慢，安全）</div><div class="line">#everysec：表示每秒同步一次（折衷，默认值）</div><div class="line">appendfsync everysec</div><div class="line">&lt;/changes&gt;&lt;/seconds&gt;&lt;/dbid&gt;</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/安装(Mac版)/" data-id="cj6ao83c9009ttcblzhq6pey8" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-服务器相关/redis/自增自减命令" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/服务器相关/redis/自增自减命令/">自增自减命令</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/服务器相关/redis/自增自减命令/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/redis/">redis</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="INCR-key"><a href="#INCR-key" class="headerlink" title="INCR key"></a>INCR key</h1><blockquote>
-<p>起始版本：1.0.0<br>时间复杂度：O(1)</p>
-</blockquote>
-<p>对存储在指定key的数值执行==原子==的加1操作。<br>如果指定的key不存在，那么在执行incr操作之前，会先将它的值设定为0。<br>如果指定的key中存储的值不是字符串类型（fix：）或者存储的字符串类型不能表示为一个整数，<br>那么执行这个命令时服务器会返回一个错误(eq:(error) ERR value is not an integer or out of range)。<br>这个操作仅限于64位的有符号整型数据。<br>==注意==: 由于redis并没有一个明确的类型来表示整型数据，所以这个操作是一个字符串操作。<br>执行这个操作的时候，key对应存储的字符串被解析为10进制的<code>64位有符号整型数据</code>。<br>事实上，Redis 内部采用整数形式（Integer representation）来存储对应的整数值，所以对该类字符串值实际上是用整数保存，也就不存在存储整数的字符串表示（String representation）所带来的额外消耗。</p>
-<h3 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h3><p>integer-reply:执行递增操作后key对应的值。</p>
-<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET mykey &quot;10&quot;</div><div class="line">OK</div><div class="line">redis&gt; INCR mykey</div><div class="line">(integer) 11</div><div class="line">redis&gt; GET mykey</div><div class="line">&quot;11&quot;</div></pre></td></tr></table></figure>
-<h1 id="INCRBY-key-increment"><a href="#INCRBY-key-increment" class="headerlink" title="INCRBY key increment"></a>INCRBY key increment</h1><blockquote>
-<p>起始版本：1.0.0<br>时间复杂度：O(1)</p>
-</blockquote>
-<p>将key对应的数字==原子==加increment。如果key不存在，操作之前，key就会被置为0。如果key的value类型错误或者是个不能表示成数字的字符串，就返回错误。这个操作最多支持64位有符号的正型数字。</p>
-<h3 id="返回值-1"><a href="#返回值-1" class="headerlink" title="返回值"></a>返回值</h3><p>integer-reply： 增加之后的value值。</p>
-<h3 id="例子-1"><a href="#例子-1" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET mykey &quot;10&quot;</div><div class="line">OK</div><div class="line">redis&gt; INCRBY mykey 5</div><div class="line">(integer) 15</div></pre></td></tr></table></figure>
-<h1 id="DECR-key"><a href="#DECR-key" class="headerlink" title="DECR key"></a>DECR key</h1><blockquote>
-<p>起始版本：1.0.0<br>时间复杂度：O(1)</p>
-</blockquote>
-<p>对key对应的数字做==原子==减1操作。如果key不存在，那么在操作之前，这个key对应的值会被置为0。如果key有一个错误类型的value或者是一个不能表示成数字的字符串，就返回错误。这个操作最大支持在64位有符号的整型数字。</p>
-<h3 id="返回值-2"><a href="#返回值-2" class="headerlink" title="返回值"></a>返回值</h3><p>数字：减小之后的value</p>
-<h3 id="例子-2"><a href="#例子-2" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET mykey &quot;10&quot;</div><div class="line">OK</div><div class="line">redis&gt; DECR mykey</div><div class="line">(integer) 9</div><div class="line">redis&gt; SET mykey &quot;234293482390480948029348230948&quot;</div><div class="line">OK</div><div class="line">redis&gt; DECR mykey</div><div class="line">ERR value is not an integer or out of range</div></pre></td></tr></table></figure>
-<h1 id="DECRBY-key-decrement"><a href="#DECRBY-key-decrement" class="headerlink" title="DECRBY key decrement"></a>DECRBY key decrement</h1><blockquote>
-<p>起始版本：1.0.0<br>时间复杂度：O(1)</p>
-</blockquote>
-<p>将key对应的数字==原子==减decrement。如果key不存在，操作之前，key就会被置为0。如果key的value类型错误或者是个不能表示成数字的字符串，就返回错误。这个操作最多支持64位有符号的正型数字。</p>
-<h3 id="返回值-3"><a href="#返回值-3" class="headerlink" title="返回值"></a>返回值</h3><p>返回一个数字：减少之后的value值。</p>
-<h3 id="例子-3"><a href="#例子-3" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">redis&gt; SET mykey &quot;10&quot;</div><div class="line">OK</div><div class="line">redis&gt; DECRBY mykey 5</div><div class="line">(integer) 5</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/自增自减命令/" data-id="cj6ao83ca009wtcblrsrjeia4" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/常用原子方法/" data-id="cj6aobw6d009vudblecfrlbh5" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -853,122 +953,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/系统命令/" data-id="cj6ao83cb009ytcblr17qq6fi" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-服务器相关/redis/文档（持续更新中）" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/服务器相关/redis/文档（持续更新中）/">文档（持续更新中）</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/服务器相关/redis/文档（持续更新中）/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/redis/">redis</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="中文官方文档"><a href="#中文官方文档" class="headerlink" title="中文官方文档"></a>中文官方文档</h2><p><a href="http://www.redis.cn/" target="_blank" rel="external">http://www.redis.cn/</a></p>
-<h2 id="命令大全"><a href="#命令大全" class="headerlink" title="命令大全"></a>命令大全</h2><p><a href="http://www.redis.cn/commands.html" target="_blank" rel="external">http://www.redis.cn/commands.html</a></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/文档（持续更新中）/" data-id="cj6ao83cc00a1tcbl0t5wtrgv" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Maven/使用命令行下载jar包" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/使用命令行下载jar包/">使用命令行下载jar包</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Maven/使用命令行下载jar包/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="使用eclipse或者sts下载jar包很慢时，可以使用命令行下载"><a href="#使用eclipse或者sts下载jar包很慢时，可以使用命令行下载" class="headerlink" title="使用eclipse或者sts下载jar包很慢时，可以使用命令行下载"></a>使用eclipse或者sts下载jar包很慢时，可以使用命令行下载</h3><ol>
-<li>进入到项目的根目录</li>
-<li>执行mvn clean</li>
-<li>执行mvn install</li>
-</ol>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/使用命令行下载jar包/" data-id="cj6ao836d000utcblafryxca0" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/系统命令/" data-id="cj6aobw6f009xudbl9ni2p3qt" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -1027,11 +1012,11 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
+          <a href="/2017/08/13/Spring/基础/AOP事务管理/">AOP事务管理</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
+          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
         </li>
       
         <li>
@@ -1039,7 +1024,7 @@
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
+          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
         </li>
       
         <li>
