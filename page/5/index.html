@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-数据库相关/mysql/数据库连接池介绍" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-数据库相关/mysql/mysql索引原理" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/数据库连接池介绍/">数据库连接池介绍</a>
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/mysql索引原理/">mysql索引原理</a>
     </h1>
   
 
@@ -95,7 +95,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/数据库连接池介绍/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/07/29/数据库相关/mysql/mysql索引原理/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
 </div>
 
     
@@ -110,16 +110,82 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="连接池的基本工作原理"><a href="#连接池的基本工作原理" class="headerlink" title="连接池的基本工作原理"></a>连接池的基本工作原理</h2><h3 id="基本概念及原理"><a href="#基本概念及原理" class="headerlink" title="基本概念及原理"></a>基本概念及原理</h3><p>由上面的分析可以看出，问题的根源就在于对数据库连接资源的低效管理。我们知道，对于共享资源，有一个很著名的设计模式：资源池 (Resource Pool)。该模式正是为了解决资源的频繁分配?释放所造成的问题。为解决上述问题，可以采用数据库连接池技术。数据库连接池的基本思想就是为数据库连接 建立一个“缓冲池”。预先在缓冲池中放入一定数量的连接，当需要建立数据库连接时，只需从“缓冲池”中取出一个，使用完毕之后再放回去。我们可以通过设定 连接池最大连接数来防止系统无尽的与数据库连接。更为重要的是我们可以通过连接池的管理机制监视数据库的连接的数量?使用情况，为系统开发?测试及性能调 整提供依据。    </p>
-<h3 id="服务器自带的连接池"><a href="#服务器自带的连接池" class="headerlink" title="服务器自带的连接池"></a>服务器自带的连接池</h3><p>JDBC的API中没有提供连接池的方法。一些大型的WEB应用服务器如BEA的WebLogic和IBM的WebSphere等提供了连接池的机制，但是必须有其第三方的专用类方法支持连接池的用法。    </p>
-<h2 id="连接池关键问题分析"><a href="#连接池关键问题分析" class="headerlink" title="连接池关键问题分析"></a>连接池关键问题分析</h2><h3 id="并发问题"><a href="#并发问题" class="headerlink" title="并发问题"></a>并发问题</h3><p>为了使连接管理服务具有最大的通用性，必须考虑多线程环境，即并发问题。这个问题相对比较好解决，因为Java语言自身提供了对并发管理的支 持，使用synchronized关键字即可确保线程是同步的。使用方法为直接在类方法前面加上synchronized关键字，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public synchronized Connection getConnection()</div></pre></td></tr></table></figure></p>
-<h3 id="多数据库服务器和多用户"><a href="#多数据库服务器和多用户" class="headerlink" title="多数据库服务器和多用户"></a>多数据库服务器和多用户</h3><p>对于大型的企业级应用，常常需要同时连接不同的数据库(如连接Oracle和Sybase)。如何连接不同的数据库呢?我们采用的策略是：设计 一个符合单例模式的连接池管理类，在连接池管理类的唯一实例被创建时读取一个资源文件，其中资源文件中存放着多个数据库的url地址()?用户名()?密 码()等信息。如 tx.url=172.21.15.123：5000/tx_it，tx.user=yang，tx.password=yang321。根据资源文件提 供的信息，创建多个连接池类的实例，每一个实例都是一个特定数据库的连接池。连接池管理类实例为每个连接池实例取一个名字，通过不同的名字来管理不同的连 接池。 </p>
-<p>对于同一个数据库有多个用户使用不同的名称和密码访问的情况，也可以通过资源文件处理，即在资源文件中设置多个具有相同url地址，但具有不同用户名和密码的数据库连接信息。  </p>
-<h3 id="事务处理"><a href="#事务处理" class="headerlink" title="事务处理"></a>事务处理</h3><p>我们知道，事务具有原子性，此时要求对数据库的操作符合“ALL-ALL-NOTHING”原则,即对于一组SQL语句要么全做，要么全不做。   </p>
-<p>在Java语言中，Connection类本身提供了对事务的支持，可以通过设置Connection的AutoCommit属性为 false,然后显式的调用commit或rollback方法来实现。但要高效的进行Connection复用，就必须提供相应的事务支持机制。可采用 每一个事务独占一个连接来实现，这种方法可以大大降低事务管理的复杂性。    </p>
-<h3 id="连接池的分配与释放"><a href="#连接池的分配与释放" class="headerlink" title="连接池的分配与释放"></a>连接池的分配与释放</h3><p>连接池的分配与释放，对系统的性能有很大的影响。合理的分配与释放，可以提高连接的复用度，从而降低建立新连接的开销，同时还可以加快用户的访问速度。  </p>
-<p>对于连接的管理可使用空闲池。即把已经创建但尚未分配出去的连接按创建时间存放到一个空闲池中。每当用户请求一个连接时，系统首先检查空闲池内 有没有空闲连接。如果有就把建立时间最长(通过容器的顺序存放实现)的那个连接分配给他(实际是先做连接是否有效的判断，如果可用就分配给用户，如不可用 就把这个连接从空闲池删掉，重新检测空闲池是否还有连接);如果没有则检查当前所开连接池是否达到连接池所允许的最大连接数(maxConn),如果没有 达到，就新建一个连接，如果已经达到，就等待一定的时间(timeout)。如果在等待的时间内有连接被释放出来就可以把这个连接分配给等待的用户，如果 等待时间超过预定时间timeout,则返回空值(null)。系统对已经分配出去正在使用的连接只做计数，当使用完后再返还给空闲池。对于空闲连接的状 态，可开辟专门的线程定时检测，这样会花费一定的系统开销，但可以保证较快的响应速度。也可采取不开辟专门线程，只是在分配前检测的方法。  </p>
-<h3 id="连接池的配置与维护"><a href="#连接池的配置与维护" class="headerlink" title="连接池的配置与维护"></a>连接池的配置与维护</h3><p>连接池中到底应该放置多少连接，才能使系统的性能最佳?系统可采取设置最小连接数(minConn)和最大连接数(maxConn)来控制连接 池中的连接。最小连接数是系统启动时连接池所创建的连接数。如果创建过多，则系统启动就慢，但创建后系统的响应速度会很快;如果创建过少，则系统启动的很 快，响应起来却慢。这样，可以在开发时，设置较小的最小连接数，开发起来会快，而在系统实际使用时设置较大的，因为这样对访问客户来说速度会快些。最大连 接数是连接池中允许连接的最大数目，具体设置多少，要看系统的访问量，可通过反复测试，找到最佳点。<br>​<br>如何确保连接池中的最小连接数呢?有动态和静态两种策略。动态即每隔一定时间就对连接池进行检测，如果发现连接数量小于最小连接数，则补充相应数量的新连接,以保证连接池的正常运转。静态是发现空闲连接不够时再去检查。</p>
+        <p>本篇介绍下Mysql的InnoDB索引相关知识，从各种树到索引原理到存储的细节。</p>
+<p>　　InnoDB是Mysql的默认存储引擎(Mysql5.5.5之前是MyISAM，文档)。本着高效学习的目的，本篇以介绍InnoDB为主，少量涉及MyISAM作为对比。</p>
+<p>　　这篇文章是我在学习过程中总结完成的，内容主要来自书本和博客(参考文献会给出)，过程中加入了一些自己的理解，描述不准确的地方烦请指出。</p>
+<h2 id="各种树形结构"><a href="#各种树形结构" class="headerlink" title="各种树形结构"></a>各种树形结构</h2><p>本来不打算从二叉搜索树开始，因为网上已经有太多相关文章，但是考虑到清晰的图示对理解问题有很大帮助，也为了保证文章完整性，最后还是加上了这部分。  </p>
+<p>先看看几种树形结构：</p>
+<ol>
+<li><p>搜索二叉树：每个节点有两个子节点，数据量的增大必然导致高度的快速增加，显然这个不适合作为大量数据存储的基础结构。</p>
+</li>
+<li><p>B树：一棵m阶B树是一棵平衡的m路搜索树。最重要的性质是每个非根节点所包含的关键字个数 j 满足：┌m/2┐ - 1 &lt;= j &lt;= m - 1；一个节点的子节点数量会比关键字个数多1，这样关键字就变成了子节点的分割标志。一般会在图示中把关键字画到子节点中间，非常形象，也容易和后面的B+树区分。由于数据同时存在于叶子节点和非叶子结点中，无法简单完成按顺序遍历B树中的关键字，必须用中序遍历的方法。    </p>
+</li>
+<li><p>B+树：一棵m阶B树是一棵平衡的m路搜索树。最重要的性质是每个非根节点所包含的关键字个数 j 满足：┌m/2┐ - 1 &lt;= j &lt;= m；子树的个数最多可以与关键字一样多。非叶节点存储的是子树里最小的关键字。同时数据节点只存在于叶子节点中，且叶子节点间增加了横向的指针，这样顺序遍历所有数据将变得非常容易。    </p>
+</li>
+<li><p>B*树：一棵m阶B树是一棵平衡的m路搜索树。最重要的两个性质是1每个非根节点所包含的关键字个数 j 满足：┌m2/3┐ - 1 &lt;= j &lt;= m；2非叶节点间添加了横向指针。  </p>
+</li>
+</ol>
+<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091300383225.PNG" alt="image"><br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091308112206.PNG" alt="image"><br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091317678858.PNG" alt="image"> </p>
+<p>B/B+/B*三种树有相似的操作，比如检索/插入/删除节点。这里只重点关注插入节点的情况，且只分析他们在当前节点已满情况下的插入操作，因为这个动作稍微复杂且能充分体现几种树的差异。与之对比的是检索节点比较容易实现，而删除节点只要完成与插入相反的过程即可（在实际应用中删除并不是插入的完全逆操作，往往只删除数据而保留下空间为后续使用）。</p>
+<p>先看B树的分裂，下图的红色值即为每次新插入的节点。每当一个节点满后，就需要发生分裂（分裂是一个递归过程，参考下面7的插入导致了两层分裂），由于B树的非叶子节点同样保存了键值，所以已满节点分裂后的值将分布在三个地方：1原节点，2原节点的父节点，3原节点的新建兄弟节点（参考5，7的插入过程）。分裂有可能导致树的高度增加（参考3，7的插入过程），也可能不影响树的高度（参考5，6的插入过程）。    </p>
+<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091402944893.PNG" alt="image"><br>B+树的分裂：当一个结点满时，分配一个新的结点，并将原结点中1/2的数据复制到新结点，最后在父结点中增加新结点的指针；B+树的分裂只影响原结点和父结点，而不会影响兄弟结点，所以它不需要指向兄弟节点的指针。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091412822063.PNG" alt="image"><br>B<em>树的分裂：当一个结点满时，如果它的下一个兄弟结点未满，那么将一部分数据移到兄弟结点中，再在原结点插入关键字，最后修改父结点中兄弟结点的关键字（因为兄弟结点的关键字范围改变了）。如果兄弟也满了，则在原结点与兄弟结点之间增加新结点，并各复制1/3的数据到新结点，最后在父结点增加新结点的指针。可以看到B</em>树的分裂非常巧妙，因为B<em>树要保证分裂后的节点还要2/3满，如果采用B+树的方法，只是简单的将已满的节点一分为二，会导致每个节点只有1/2满，这不满足B</em>树的要求了。所以B<em>树采取的策略是在本节点满后，继续插入兄弟节点（这也是为什么B</em>树需要在非叶子节点加一个兄弟间的链表），直到把兄弟节点也塞满，然后拉上兄弟节点一起凑份子，自己和兄弟节点各出资1/3成立新节点，这样的结果是3个节点刚好是2/3满，达到B*树的要求，皆大欢喜。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091423290770.PNG" alt="image"><br>B+树适合作为数据库的基础结构，完全是因为计算机的内存-机械硬盘两层存储结构。内存可以完成快速的随机访问（随机访问即给出任意一个地址，要求返回这个地址存储的数据）但是容量较小。而硬盘的随机访问要经过机械动作（1磁头移动 2盘片转动），访问效率比内存低几个数量级，但是硬盘容量较大。典型的数据库容量大大超过可用内存大小，这就决定了在B+树中检索一条数据很可能要借助几次磁盘IO操作来完成。如下图所示：通常向下读取一个节点的动作可能会是一次磁盘IO操作，不过非叶节点通常会在初始阶段载入内存以加快访问速度。同时为提高在节点间横向遍历速度，真实数据库中可能会将图中蓝色的CPU计算/内存读取优化成二叉搜索树（InnoDB中的page directory机制）。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091432578535.PNG" alt="image"><br>真实数据库中的B+树应该是非常扁平的，可以通过向表中顺序插入足够数据的方式来验证InnoDB中的B+树到底有多扁平。我们通过如下图的CREATE语句建立一个只有简单字段的测试表，然后不断添加数据来填充这个表。通过下图的统计数据（来源见参考文献1）可以分析出几个直观的结论，这几个结论宏观的展现了数据库里B+树的尺度。  </p>
+<ol>
+<li><p>每个叶子节点存储了468行数据，每个非叶子节点存储了大约1200个键值，这是一棵平衡的1200路搜索树！</p>
+</li>
+<li><p>对于一个22.1G容量的表，也只需要高度为3的B+树就能存储了，这个容量大概能满足很多应用的需要了。如果把高度增大到4，则B+树的存储容量立刻增大到25.9T之巨！</p>
+</li>
+<li><p>对于一个22.1G容量的表，B+树的高度是3，如果要把非叶节点全部加载到内存也只需要少于18.8M的内存（如何得出的这个结论？因为对于高度为2的树，1203个叶子节点也只需要18.8M空间，而22.1G从良表的高度是3，非叶节点1204个。同时我们假设叶子节点的尺寸是大于非叶节点的，因为叶子节点存储了行数据而非叶节点只有键和少量数据。），只使用如此少的内存就可以保证只需要一次磁盘IO操作就检索出所需的数据，效率是非常之高的。    </p>
+</li>
+</ol>
+<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091442379434.PNG" alt="image"> </p>
+<h2 id="Mysql的存储引擎和索引"><a href="#Mysql的存储引擎和索引" class="headerlink" title="Mysql的存储引擎和索引"></a>Mysql的存储引擎和索引</h2><p>可以说数据库必须有索引，没有索引则检索过程变成了顺序查找，O(n)的时间复杂度几乎是不能忍受的。我们非常容易想象出一个只有单关键字组成的表如何使用B+树进行索引，只要将关键字存储到树的节点即可。当数据库一条记录里包含多个字段时，一棵B+树就只能存储主键，如果检索的是非主键字段，则主键索引失去作用，又变成顺序查找了。这时应该在第二个要检索的列上建立第二套索引。 这个索引由独立的B+树来组织。有两种常见的方法可以解决多个B+树访问同一套表数据的问题，一种叫做<strong>聚簇索引</strong>（clustered index ），一种叫做<strong>非聚簇索引</strong>（secondary index）。这两个名字虽然都叫做索引，但这并不是一种单独的索引类型，而是一种数据存储方式。对于聚簇索引存储来说，行数据和主键B+树存储在一起，辅助键B+树只存储辅助键和主键，主键和非主键B+树几乎是两种类型的树。对于非聚簇索引存储来说，主键B+树在叶子节点存储指向真正数据行的指针，而非主键。  </p>
+<p><strong>InnoDB使用的是聚簇索引，将主键组织到一棵B+树中，而行数据就储存在叶子节点上，若使用”where id = 14”这样的条件查找主键，则按照B+树的检索算法即可查找到对应的叶节点，之后获得行数据。若对Name列进行条件搜索，则需要两个步骤：第一步在辅助索引B+树中检索Name，到达其叶子节点获取对应的主键。第二步使用主键在主索引B+树种再执行一次B+树检索操作，最终到达叶子节点即可获取整行数据。</strong>  </p>
+<p><strong>MyISM使用的是非聚簇索引，非聚簇索引的两棵B+树看上去没什么不同，节点的结构完全一致只是存储的内容不同而已，主键索引B+树的节点存储了主键，辅助键索引B+树存储了辅助键。表数据存储在独立的地方，这两棵B+树的叶子节点都使用一个地址指向真正的表数据，对于表数据来说，这两个键没有任何差别。由于索引树是独立的，通过辅助键检索无需访问主键的索引树。</strong></p>
+<p>为了更形象说明这两种索引的区别，我们假想一个表如下图存储了4行数据。其中Id作为主索引，Name作为辅助索引。图示清晰的显示了聚簇索引和非聚簇索引的差异。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091453469704.PNG" alt="image"><br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091503903957.PNG" alt="image"><br>我们重点关注聚簇索引，看上去聚簇索引的效率明显要低于非聚簇索引，因为每次使用辅助索引检索都要经过两次B+树查找，这不是多此一举吗？聚簇索引的优势在哪？</p>
+<ol>
+<li>由于行数据和叶子节点存储在一起，这样主键和行数据是一起被载入内存的，找到叶子节点就可以立刻将行数据返回了，如果按照主键Id来组织数据，获得数据更快。</li>
+<li>辅助索引使用主键作为”指针” 而不是使用地址值作为指针的好处是，减少了当出现行移动或者数据页分裂时辅助索引的维护工作，使用主键值当作指针会让辅助索引占用更多的空间，换来的好处是InnoDB在移动行时无须更新辅助索引中的这个”指针”。也就是说行的位置（实现中通过16K的Page来定位，后面会涉及）会随着数据库里数据的修改而发生变化（前面的B+树节点分裂以及Page的分裂），使用聚簇索引就可以保证不管这个主键B+树的节点如何变化，辅助索引树都不受影响。    </li>
+</ol>
+<h2 id="Page结构"><a href="#Page结构" class="headerlink" title="Page结构"></a>Page结构</h2><p>如果说前面的内容偏向于解释原理，那后面就开始涉及具体实现了。<br>理解InnoDB的实现不得不提Page结构，Page是整个InnoDB存储的最基本构件，也是InnoDB磁盘管理的最小单位，与数据库相关的所有内容都存储在这种Page结构里。Page分为几种类型，常见的页类型有<strong>数据页（B-tree Node）Undo页（Undo Log Page）系统页（System Page） 事务数据页（Transaction System Page）</strong>等。  </p>
+<p>单个Page的大小是16K（编译宏UNIV_PAGE_SIZE控制），每个Page使用一个32位的int值来唯一标识，这也正好对应InnoDB最大64TB的存储容量（16Kib * 2^32 = 64Tib）。一个Page的基本结构如下图所示：<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091512695110.PNG" alt="image"><br>每个Page都有通用的头和尾，但是中部的内容根据Page的类型不同而发生变化。Page的头部里有我们关心的一些数据，下图把Page的头部详细信息显示出来：<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091523976520.PNG" alt="image"><br>我们重点关注和数据组织结构相关的字段：Page的头部保存了两个指针，分别指向前一个Page和后一个Page，头部还有Page的类型信息和用来唯一标识Page的编号。根据这两个指针我们很容易想象出Page链接起来就是一个双向链表的结构。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091532199537.PNG" alt="image"><br>再看看Page的主体内容，我们主要关注行数据和索引的存储，他们都位于Page的User Records部分，User Records占据Page的大部分空间，User Records由一条一条的Record组成，每条记录代表索引树上的一个节点（非叶子节点和叶子节点）。在一个Page内部，单链表的头尾由固定内容的两条记录来表示，字符串形式的”Infimum”代表开头，”Supremum”代表结尾。这两个用来代表开头结尾的Record存储在System Records的段里，这个System Records和User Records是两个平行的段。 </p>
+<p>InnoDB存在4种不同的Record:</p>
+<ol>
+<li>主键索引树非叶节点</li>
+<li>主键索引树叶子节点</li>
+<li>辅助键索引树非叶节点</li>
+<li>辅助键索引树叶子节点。</li>
+</ol>
+<p>这4种节点的Record格式有一些差异，但是它们都存储着Next指针指向下一个Record。后续我们会详细介绍这4种节点，现在只需要把Record当成一个存储了数据同时含有Next指针的单链表节点即可。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091541081339.PNG" alt="image"><br>User Record在Page内以单链表的形式存在，最初数据是按照插入的先后顺序排列的，但是随着新数据的插入和旧数据的删除，数据物理顺序会变得混乱，但他们依然保持着逻辑上的先后顺序。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091551111655.PNG" alt="image"><br>把User Record的组织形式和若干Page组合起来，就看到了稍微完整的形式。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091600910753.PNG" alt="image">         </p>
+<p>现在看下如何定位一个Record：</p>
+<ol>
+<li>通过根节点开始遍历一个索引的B+树，通过各层非叶子节点最终到达一个Page，这个Page里存放的都是叶子节点。</li>
+<li>在Page内从”Infimum”节点开始遍历单链表（这种遍历往往会被优化），如果找到该键则成功返回。如果记录到达了”supremum”，说明当前Page里没有合适的键，这时要借助Page的Next Page指针，跳转到下一个Page继续从”Infimum”开始逐个查找。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091608678237.PNG" alt="image">    </li>
+</ol>
+<p>详细看下不同类型的Record里到底存储了什么数据，根据B+树节点的不同，User Record可以被分成四种格式，下图种按照颜色予以区分。  </p>
+<h3 id="主索引树非叶节点（绿色）"><a href="#主索引树非叶节点（绿色）" class="headerlink" title="主索引树非叶节点（绿色）"></a>主索引树非叶节点（绿色）</h3><ol>
+<li>子节点存储的主键里最小的值（Min Cluster Key on Child），这是B+树必须的，作用是在一个Page里定位到具体的记录的位置。</li>
+<li>最小的值所在的Page的编号（Child Page Number），作用是定位Record。</li>
+</ol>
+<h3 id="主索引树叶子节点（黄色）"><a href="#主索引树叶子节点（黄色）" class="headerlink" title="主索引树叶子节点（黄色）"></a>主索引树叶子节点（黄色）</h3><ol>
+<li>主键（Cluster Key Fields），B+树必须的，也是数据行的一部分</li>
+<li>除去主键以外的所有列（Non-Key Fields），这是数据行的除去主键的其他所有列的集合。</li>
+</ol>
+<p>这里的1和2两部分加起来就是一个完整的数据行。</p>
+<h3 id="辅助索引树非叶节点非（蓝色）"><a href="#辅助索引树非叶节点非（蓝色）" class="headerlink" title="辅助索引树非叶节点非（蓝色）"></a>辅助索引树非叶节点非（蓝色）</h3><ol>
+<li>子节点里存储的辅助键值里的最小的值（Min Secondary-Key on Child），这是B+树必须的，作用是在一个Page里定位到具体的记录的位置。</li>
+<li>主键值（Cluster Key Fields），非叶子节点为什么要存储主键呢？因为辅助索引是可以不唯一的，但是B+树要求键的值必须唯一，所以这里把辅助键的值和主键的值合并起来作为在B+树中的真正键值，保证了唯一性。但是这也导致在辅助索引B+树中非叶节点反而比叶子节点多了4个字节。（即下图中蓝色节点反而比红色多了4字节）</li>
+<li>最小的值所在的Page的编号（Child Page Number），作用是定位Record。</li>
+</ol>
+<h3 id="辅助索引树叶子节点（红色）"><a href="#辅助索引树叶子节点（红色）" class="headerlink" title="辅助索引树叶子节点（红色）"></a>辅助索引树叶子节点（红色）</h3><ol>
+<li>辅助索引键值（Secondary Key Fields），这是B+树必须的。</li>
+<li>主键值（Cluster Key Fields），用来在主索引树里再做一次B+树检索来找到整条记录。</li>
+</ol>
+<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091620754769.PNG" alt="image"><br>下面是本篇最重要的部分了，结合B+树的结构和前面介绍的4种Record的内容，我们终于可以画出一幅全景图。由于辅助索引的B+树与主键索引有相似的结构，这里只画出了主键索引树的结构图，只包含了”主键非叶节点”和”主键叶子节点”两种节点，也就是上图的的绿色和黄色的部分。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091631948071.PNG" alt="image"><br>把上图还原成下面这个更简洁的树形示意图，这就是B+树的一部分。注意Page和B+树节点之间并没有一一对应的关系，Page只是作为一个Record的保存容器，它存在的目的是便于对磁盘空间进行批量管理，上图中的编号为47的Page在树形结构上就被拆分成了两个独立节点。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091642165340.PNG" alt="image"><br>至此本篇就算结束了，本篇只是对InnoDB索引相关的数据结构和实现进行了一些梳理总结，并未涉及到Mysql的实战经验。这主要是基于几点原因：</p>
+<ol>
+<li>原理是基石，只有充分了解InnoDB索引的工作方式，我们才有能力高效的使用好它。</li>
+<li>原理性知识特别适合使用图示，我个人非常喜欢这种表达方式。</li>
+<li>关于InnoDB优化，在《高性能Mysql》里有更加全面的介绍，</li>
+</ol>
 
       
     </div>
@@ -130,7 +196,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/数据库连接池介绍/" data-id="cj6ao5k5l00abs2blpwq1hnks" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql索引原理/" data-id="cj6ao83bh008dtcblsjnlyjkl" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -144,13 +210,13 @@
 
 
   
-    <article id="post-数据库相关/mysql/分页时计算总页数的方法" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-数据库相关/mysql/not null 和 default" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/">分页时计算总页数的方法</a>
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/not null 和 default/">not null 和 default</a>
     </h1>
   
 
@@ -159,7 +225,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/07/29/数据库相关/mysql/not null 和 default/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
 </div>
 
     
@@ -174,11 +240,13 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>我们一般分页是这样来计算页码的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">int row=200; //记录总数     </div><div class="line">int page=5;//每页数量   </div><div class="line">int count = (row%5==0?row/page:row/page+1);</div></pre></td></tr></table></figure>
-<p>上面这种是用的最多的!</p>
-<p>那么下面我们来一种最简单的，不用任何判断！<br>看代码：    </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">int row=21;</div><div class="line">int pageCount=5;</div><div class="line">int sum=(row-1)/pageCount+1;//这样就计算好了页码数量，逢1进1</div><div class="line">System.out.println(sum);</div></pre></td></tr></table></figure>
+        <h3 id="没有设置default"><a href="#没有设置default" class="headerlink" title="没有设置default"></a>没有设置default</h3><ul>
+<li><p>当插入数据时，没有操作某一字段，并且该字段为null且没有defualt值时，mysql会自动出入null值；</p>
+</li>
+<li><p>当该字段为not null且没有defualt值时，会报错</p>
+</li>
+</ul>
+<h3 id="有设置default"><a href="#有设置default" class="headerlink" title="有设置default"></a>有设置default</h3><p>若有设置default值并且插入数据时没有操作该字段，不管该字段是否设置not null 还是null，mysql统一设置default的值</p>
 
       
     </div>
@@ -189,7 +257,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" data-id="cj6ao5k5m00aes2bl1ec5tium" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/not null 和 default/" data-id="cj6ao83bi008ftcblm7kqcfvc" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -246,7 +314,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Data Redis/配置/" data-id="cj6ao5k3b005ws2blfcrq8spo" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Data Redis/配置/" data-id="cj6ao83aa006btcblu9zmytt5" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -260,13 +328,13 @@
 
 
   
-    <article id="post-Linux/activemq安装和配置" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/队列/ArrayBlockingQueue 和LinkedBlockingQueue源码解析" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
+      <a class="article-title" href="/2017/07/19/Java/队列/ArrayBlockingQueue 和LinkedBlockingQueue源码解析/">ArrayBlockingQueue 和LinkedBlockingQueue源码解析</a>
     </h1>
   
 
@@ -275,13 +343,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Linux/activemq安装和配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Java/队列/ArrayBlockingQueue 和LinkedBlockingQueue源码解析/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/队列/">队列</a>
   </div>
 
 
@@ -290,21 +358,25 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><ol>
-<li>下载安装包</li>
-<li>将安装包放到/usr目录</li>
-<li><p>解压安装包</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo tar xvfz 包名</div></pre></td></tr></table></figure>
-</li>
-<li><p>进入bin目录</p>
-</li>
-<li>启动：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./activemq start</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<h2 id="查看安装目录"><a href="#查看安装目录" class="headerlink" title="查看安装目录"></a>查看安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">whereis activemq</div></pre></td></tr></table></figure>
-<h2 id="查看61616端口是否正常启动"><a href="#查看61616端口是否正常启动" class="headerlink" title="查看61616端口是否正常启动"></a>查看61616端口是否正常启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">netstat -an | grep 61616</div></pre></td></tr></table></figure>
-<h2 id="查看进程"><a href="#查看进程" class="headerlink" title="查看进程"></a>查看进程</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ps -ef | grep activemq</div></pre></td></tr></table></figure>
-<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入bin目录</div><div class="line">./activemq stop</div></pre></td></tr></table></figure>
+        <h3 id="ArrayBlockingQueue源码分析"><a href="#ArrayBlockingQueue源码分析" class="headerlink" title="ArrayBlockingQueue源码分析"></a>ArrayBlockingQueue源码分析</h3><p>ArrayBlockingQueue是一个由数组支持的有界阻塞队列。此队列按 FIFO（先进先出）原则对元素进行排序。队列的头部 是在队列中存在时间最长的元素，队列的尾部 是在队列中存在时间最短的元素。新元素插入到队列的尾部，队列检索操作则是从队列头部开始获得元素。    </p>
+<p>这是一个典型的“有界缓存区”，固定大小的数组在其中保持生产者插入的元素和使用者提取的元素。一旦创建了这样的缓存区，就不能再增加其容量。试图向已满队列中放入元素会导致放入操作受阻塞；试图从空队列中检索元素将导致类似阻塞。  </p>
+<p> ArrayBlockingQueue创建的时候需要指定容量capacity(可以存储的最大的元素个数，因为它不会自动扩容)。其中一个构造方法为：<br> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"> public ArrayBlockingQueue(int capacity, boolean fair) &#123;  </div><div class="line">    	if (capacity &lt;= 0)  throw new IllegalArgumentException();  </div><div class="line">    	this.items = (E[]) new Object[capacity];  </div><div class="line">    	lock = new ReentrantLock(fair);  </div><div class="line">    	notEmpty = lock.newCondition();  </div><div class="line">    	notFull =  lock.newCondition();  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>ArrayBlockingQueue类中定义的变量有：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">/** The queued items */</div><div class="line">final Object[] items;</div><div class="line"></div><div class="line">/** items index for next take, poll, peek or remove */</div><div class="line">int takeIndex;</div><div class="line"></div><div class="line">/** items index for next put, offer, or add */</div><div class="line">int putIndex;</div><div class="line"></div><div class="line">/** Number of elements in the queue */</div><div class="line">int count;</div><div class="line"></div><div class="line">/*</div><div class="line"> * Concurrency control uses the classic two-condition algorithm</div><div class="line"> * found in any textbook.</div><div class="line"> */</div><div class="line"></div><div class="line">/** Main lock guarding all access */</div><div class="line">final ReentrantLock lock;</div><div class="line"></div><div class="line">/** Condition for waiting takes */</div><div class="line">private final Condition notEmpty;</div><div class="line"></div><div class="line">/** Condition for waiting puts */</div><div class="line">private final Condition notFull;</div><div class="line"></div><div class="line">/**</div><div class="line"> * Shared state for currently active iterators, or null if there</div><div class="line"> * are known not to be any.  Allows queue operations to update</div><div class="line"> * iterator state.</div><div class="line"> */</div><div class="line">transient Itrs itrs = null;</div></pre></td></tr></table></figure></p>
+<p>使用数组items来存储元素，由于是循环队列，使用takeIndex和putIndex来标记put和take的位置。可以看到，该类中只定义了一个锁ReentrantLock，定义两个Condition对象：notEmputy和notFull，分别用来对take和put操作进行所控制。注：本文主要讲解put()和take()操作,其他方法类似。 </p>
+<p>put(E e)方法的源码如下。进行put操作之前，必须获得锁并进行加锁操作，以保证线程安全性。加锁后，若发现队列已满，则调用notFull.await()方法，如当前线程陷入等待。直到其他线程take走某个元素后，会调用notFull.signal()方法来激活该线程。激活之后，继续下面的插入操作。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">public void put(E e) throws InterruptedException &#123;</div><div class="line">        checkNotNull(e);</div><div class="line">        final ReentrantLock lock = this.lock;</div><div class="line">        lock.lockInterruptibly();</div><div class="line">        try &#123;</div><div class="line">            //当队列满时，调用notFull.await()方法，使该线程阻塞。         </div><div class="line">            //直到take掉某个元素后，调用notFull.signal()方法激活该线程。</div><div class="line">            while (count == items.length)</div><div class="line">                notFull.await();</div><div class="line">            enqueue(e);</div><div class="line">        &#125; finally &#123;</div><div class="line">            lock.unlock();</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure></p>
+<p>take()方法代码如下。take操作和put操作相反，故不作详细介绍。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">public E take() throws InterruptedException &#123;</div><div class="line">    final ReentrantLock lock = this.lock;</div><div class="line">    lock.lockInterruptibly();</div><div class="line">    try &#123;</div><div class="line">        //当队列空时，调用notEmpty.await()方法，使该线程阻塞。</div><div class="line">        while (count == 0)</div><div class="line">            notEmpty.await();</div><div class="line">        return dequeue();</div><div class="line">    &#125; finally &#123;</div><div class="line">        lock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"> /**</div><div class="line"> * Extracts element at current take position, advances, and signals.</div><div class="line"> * Call only when holding lock.</div><div class="line"> */</div><div class="line">private E dequeue() &#123;</div><div class="line">    // assert lock.getHoldCount() == 1;</div><div class="line">    // assert items[takeIndex] != null;</div><div class="line">    final Object[] items = this.items;</div><div class="line">    @SuppressWarnings(&quot;unchecked&quot;)</div><div class="line">    E x = (E) items[takeIndex];//从队列中取出元素</div><div class="line">    items[takeIndex] = null;</div><div class="line">    if (++takeIndex == items.length)</div><div class="line">        takeIndex = 0;</div><div class="line">    count--;</div><div class="line">    if (itrs != null)</div><div class="line">        itrs.elementDequeued();</div><div class="line">    notFull.signal();//激活线程</div><div class="line">    return x;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p><strong>小结：进行put和take操作，共用同一个锁对象。也即是说，put和take无法并行执行！</strong></p>
+<h3 id="LinkedBlockingQueue-源码分析"><a href="#LinkedBlockingQueue-源码分析" class="headerlink" title="LinkedBlockingQueue 源码分析"></a>LinkedBlockingQueue 源码分析</h3><p>基于链表的阻塞队列，同ArrayListBlockingQueue类似，其内部也维持着一个数据缓冲队列（该队列由一个链表构成），当生产者往队列中放入一个数据时，队列会从生产者手中获取数据，并缓存在队列内部，而生产者立即返回；只有当队列缓冲区达到最大值缓存容量时（LinkedBlockingQueue可以通过构造函数指定该值），才会阻塞生产者队列，直到消费者从队列中消费掉一份数据，生产者线程会被唤醒，反之对于消费者这端的处理也基于同样的原理。而LinkedBlockingQueue之所以能够高效的处理并发数据，还因为其对于生产者端和消费者端分别采用了独立的锁来控制数据同步，这也意味着在高并发的情况下生产者和消费者可以并行地操作队列中的数据，以此来提高整个队列的并发性能。  </p>
+<p>作为开发者，我们需要注意的是，如果构造一个LinkedBlockingQueue对象，而没有指定其容量大小，LinkedBlockingQueue会默认一个类似无限大小的容量（Integer.MAX_VALUE），这样的话，如果生产者的速度一旦大于消费者的速度，也许还没有等到队列满阻塞产生，系统内存就有可能已被消耗殆尽了。  </p>
+<p>LinkedBlockingQueue 类中定义的变量有：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">/** The capacity bound, or Integer.MAX_VALUE if none */</div><div class="line">private final int capacity;</div><div class="line"></div><div class="line">/** Current number of elements */</div><div class="line">private final AtomicInteger count = new AtomicInteger();</div><div class="line"></div><div class="line">/**</div><div class="line"> * Head of linked list.</div><div class="line"> * Invariant: head.item == null</div><div class="line"> */</div><div class="line">transient Node&lt;E&gt; head;</div><div class="line"></div><div class="line">/**</div><div class="line"> * Tail of linked list.</div><div class="line"> * Invariant: last.next == null</div><div class="line"> */</div><div class="line">private transient Node&lt;E&gt; last;</div><div class="line"></div><div class="line">/** Lock held by take, poll, etc */</div><div class="line">private final ReentrantLock takeLock = new ReentrantLock();</div><div class="line"></div><div class="line">/** Wait queue for waiting takes */</div><div class="line">private final Condition notEmpty = takeLock.newCondition();</div><div class="line"></div><div class="line">/** Lock held by put, offer, etc */</div><div class="line">private final ReentrantLock putLock = new ReentrantLock();</div><div class="line"></div><div class="line">/** Wait queue for waiting puts */</div><div class="line">private final Condition notFull = putLock.newCondition();</div></pre></td></tr></table></figure></p>
+<p>该类中定义了两个ReentrantLock锁：putLock和takeLock，分别用于put端和take端。也就是说，生成端和消费端各自独立拥有一把锁，避免了读（take）写（put）时互相竞争锁的情况。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">public void put(E e) throws InterruptedException &#123;</div><div class="line">    if (e == null) throw new NullPointerException();</div><div class="line">    // Note: convention in all put/take/etc is to preset local var</div><div class="line">    // holding count negative to indicate failure unless set.</div><div class="line">    int c = -1;</div><div class="line">    Node&lt;E&gt; node = new Node&lt;E&gt;(e);</div><div class="line">    final ReentrantLock putLock = this.putLock;</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    putLock.lockInterruptibly();</div><div class="line">    try &#123;</div><div class="line">        /*</div><div class="line">         * Note that count is used in wait guard even though it is</div><div class="line">         * not protected by lock. This works because count can</div><div class="line">         * only decrease at this point (all other puts are shut</div><div class="line">         * out by lock), and we (or some other waiting put) are</div><div class="line">         * signalled if it ever changes from capacity. Similarly</div><div class="line">         * for all other uses of count in other wait guards.</div><div class="line">         */</div><div class="line">        //当队列满时，调用notFull.await()方法释放锁，陷入等待状态。  </div><div class="line">	//有两种情况会激活该线程  </div><div class="line">	//第一、 某个put线程添加元素后，发现队列有空余，就调用notFull.signal()方法激活阻塞线程  </div><div class="line">	//第二、 take线程取元素时，发现队列已满。则其取出元素后，也会调用notFull.signal()方法激活阻塞线程</div><div class="line">        while (count.get() == capacity) &#123;</div><div class="line">            notFull.await();</div><div class="line">        &#125;</div><div class="line">        // 把元素 e 添加到队列中（队尾）</div><div class="line">        enqueue(node);</div><div class="line">        c = count.getAndIncrement();</div><div class="line">        //发现队列未满，调用notFull.signal()激活阻塞的put线程（可能存在）</div><div class="line">        if (c + 1 &lt; capacity)</div><div class="line">            notFull.signal();</div><div class="line">    &#125; finally &#123;</div><div class="line">        putLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == 0)</div><div class="line">        //队列空，说明已经有take线程陷入阻塞，故调用signalNotEmpty激活阻塞的take线程  </div><div class="line">        signalNotEmpty();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>enqueue(E e)方法如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Links node at end of queue.</div><div class="line"> *</div><div class="line"> * @param node the node</div><div class="line"> */</div><div class="line">private void enqueue(Node&lt;E&gt; node) &#123;</div><div class="line">    // assert putLock.isHeldByCurrentThread();</div><div class="line">    // assert last.next == null;</div><div class="line">    last = last.next = node;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>signalNotEmpty方法如下：激活“不为空”线程<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Signals a waiting take. Called only from put/offer (which do not</div><div class="line"> * otherwise ordinarily lock takeLock.)</div><div class="line"> */</div><div class="line">private void signalNotEmpty() &#123;</div><div class="line">    final ReentrantLock takeLock = this.takeLock;</div><div class="line">    takeLock.lock();</div><div class="line">    try &#123;</div><div class="line">        notEmpty.signal();</div><div class="line">    &#125; finally &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>take()方法代码如下。take操作和put操作相反，故不作详细介绍。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">public E take() throws InterruptedException &#123;</div><div class="line">    E x;</div><div class="line">    int c = -1;</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    final ReentrantLock takeLock = this.takeLock;</div><div class="line">    takeLock.lockInterruptibly();</div><div class="line">    try &#123;</div><div class="line">        //队列元素为0，阻塞“不为空”线程</div><div class="line">        while (count.get() == 0) &#123;</div><div class="line">            notEmpty.await();</div><div class="line">        &#125;</div><div class="line">        x = dequeue();//出列</div><div class="line">        c = count.getAndDecrement();</div><div class="line">        if (c &gt; 1)</div><div class="line">            notEmpty.signal();//队列元素&gt;0，激活“不为空”线程</div><div class="line">    &#125; finally &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == capacity)</div><div class="line">        signalNotFull();</div><div class="line">    return x;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>dequeue()方法如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Removes a node from head of queue.</div><div class="line"> *</div><div class="line"> * @return the node</div><div class="line"> */</div><div class="line">private E dequeue() &#123;</div><div class="line">    // assert takeLock.isHeldByCurrentThread();</div><div class="line">    // assert head.item == null;</div><div class="line">    Node&lt;E&gt; h = head;</div><div class="line">    Node&lt;E&gt; first = h.next;</div><div class="line">    h.next = h; // help GC</div><div class="line">    head = first;</div><div class="line">    E x = first.item;</div><div class="line">    first.item = null;</div><div class="line">    return x;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>signalNotFull方法如下：激活“未满”线程<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Signals a waiting put. Called only from take/poll.</div><div class="line"> */</div><div class="line">private void signalNotFull() &#123;</div><div class="line">    final ReentrantLock putLock = this.putLock;</div><div class="line">    putLock.lock();</div><div class="line">    try &#123;</div><div class="line">        notFull.signal();</div><div class="line">    &#125; finally &#123;</div><div class="line">        putLock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p><strong>小结：take和put操作各有一把锁，可并行读取。</strong></p>
+
       
     </div>
 
@@ -314,7 +386,88 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/activemq安装和配置/" data-id="cj6ao5jyx0003s2blt9ruerhj" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/ArrayBlockingQueue 和LinkedBlockingQueue源码解析/" data-id="cj6ao839s0055tcblxmzyaxe7" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Eclipse/codetemplates变量解析" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Eclipse/codetemplates变量解析/">codetemplates变量解析</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Eclipse/codetemplates变量解析/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Eclipse/">Eclipse</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ol>
+<li><p>在Java中的对应位置，输入/**三个字符，再按下回车键，就可以自动生成CodeTemplate中指定的模式了<br>CodeTemplate中的变量，都用美元符号后面的花括号围住，如${date}、${time}等，如果要在CodeTemplate中要写美元符号$，则用两个美元符号连写表示。<br>下面逐一解释一下这些变量的含义：</p>
+<ul>
+<li>${year}，代表当前年份，例如：2015</li>
+<li>${date}，代表当前日期，例如：2015年11月29日</li>
+<li>${time}，代表当前时间，例如：下午10:07:15</li>
+<li>${project_name}，代表项目名</li>
+<li>${package_name}，代表包名</li>
+<li>${file_name}，代表当前文件名</li>
+<li>${type_name}，代表当前类名</li>
+<li><p>${enclosing_type}，如果类A是在另一个类B内部声明的，则该变量记录了类B的名字，否则为空，代码举例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * <span class="doctag">@enclosing</span>_type</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * <span class="doctag">@enclosing</span>_type VarTest</div><div class="line">     */</div><div class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest2</span> </span>&#123;</div><div class="line">        <span class="comment">/**</span></div><div class="line">         * <span class="doctag">@enclosing</span>_type VarTest.VarTest2</div><div class="line">         */</div><div class="line">        <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest3</span> </span>&#123;</div><div class="line">            </div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>${tags}，输出函数的输入参数与返回值，例如有函数声明如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public int func(int a, String b, long c, boolean d) &#123;</div><div class="line">    return 0;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>CodeTemplate的Pattern如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * $&#123;tags&#125;</div><div class="line"> */</div></pre></td></tr></table></figure>
+<p>则生成的注释如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * </div><div class="line"> * @param a</div><div class="line"> * @param b</div><div class="line"> * @param c</div><div class="line"> * @param d</div><div class="line"> * @return</div><div class="line"> */</div></pre></td></tr></table></figure>
+<ul>
+<li>${todo}，有这个变量的位置，会生成一个TODO标签</li>
+<li>${user}，这个变量存储了当前Eclipse的用户名，这个用户名可以在eclipse.ini中设置<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">-Duser.name=你的名称</div></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Eclipse/codetemplates变量解析/" data-id="cj6ao835h0000tcblf08t48j9" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -372,7 +525,139 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/apt-get常用命令/" data-id="cj6ao5jyx0004s2blv16mf7il" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/apt-get常用命令/" data-id="cj6ao835p0003tcblu70qpbbm" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Linux/mysql安装" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Linux/mysql安装/">mysql安装</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Linux/mysql安装/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="使用apt-get"><a href="#使用apt-get" class="headerlink" title="使用apt-get"></a>使用apt-get</h2><h3 id="1-升级apt-get"><a href="#1-升级apt-get" class="headerlink" title="1.升级apt-get"></a>1.升级apt-get</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get update</div></pre></td></tr></table></figure>
+<h3 id="2-安装mysql-client-core-5-7"><a href="#2-安装mysql-client-core-5-7" class="headerlink" title="2.安装mysql-client-core-5.7"></a>2.安装mysql-client-core-5.7</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install MySQL-client-core-5.7</div></pre></td></tr></table></figure>
+<h3 id="3-安装-mysql-server-5-7"><a href="#3-安装-mysql-server-5-7" class="headerlink" title="3.安装 mysql-server-5.7"></a>3.安装 mysql-server-5.7</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install mysql-server-5.7</div></pre></td></tr></table></figure>
+<h3 id="4-检查mysql是否启动"><a href="#4-检查mysql是否启动" class="headerlink" title="4.检查mysql是否启动"></a>4.检查mysql是否启动</h3><ul>
+<li>查看mysql进程是否运行：ps -ef | grep mysql</li>
+<li>查看msyql 监听端口：netstat -tap | grep mysql</li>
+</ul>
+<h3 id="5-msyql服务停止"><a href="#5-msyql服务停止" class="headerlink" title="5.msyql服务停止"></a>5.msyql服务停止</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysql stop</div></pre></td></tr></table></figure>
+<h3 id="6-Mysql-服务启动"><a href="#6-Mysql-服务启动" class="headerlink" title="6.Mysql 服务启动"></a>6.Mysql 服务启动</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysql start</div></pre></td></tr></table></figure>
+<h3 id="7-Mysql-服务重启"><a href="#7-Mysql-服务重启" class="headerlink" title="7.Mysql 服务重启"></a>7.Mysql 服务重启</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysql restart</div></pre></td></tr></table></figure>
+<h3 id="8-登录mysql后台"><a href="#8-登录mysql后台" class="headerlink" title="8.登录mysql后台"></a>8.登录mysql后台</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">mysql -u [username] -p</div><div class="line">如：mysql -u root -p</div></pre></td></tr></table></figure>
+<h3 id="9-查看mysql安装目录"><a href="#9-查看mysql安装目录" class="headerlink" title="9.查看mysql安装目录"></a>9.查看mysql安装目录</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">whereis mysql</div></pre></td></tr></table></figure>
+<h3 id="10-查询运行文件所在路径-文件夹地址"><a href="#10-查询运行文件所在路径-文件夹地址" class="headerlink" title="10.查询运行文件所在路径(文件夹地址)"></a>10.查询运行文件所在路径(文件夹地址)</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">which mysql</div></pre></td></tr></table></figure>
+<h3 id="11-查看mysql字符集"><a href="#11-查看mysql字符集" class="headerlink" title="11.查看mysql字符集"></a>11.查看mysql字符集</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">show variables like &apos;character%&apos;;</div></pre></td></tr></table></figure>
+<h3 id="12-修改字符编码"><a href="#12-修改字符编码" class="headerlink" title="12.修改字符编码"></a>12.修改字符编码</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">1. 停止服务，找到mysql.cnf文件</div><div class="line">2. 使用vi /etc/mysql/mysql.cnf编辑文件</div><div class="line">3. 加入：  </div><div class="line">###############################</div><div class="line">[client]</div><div class="line">default-character-set=utf8</div><div class="line"></div><div class="line">[mysqld]</div><div class="line">character-set-server=utf8</div><div class="line"></div><div class="line">[mysql]</div><div class="line">default-character-set=utf8</div><div class="line">###############################</div><div class="line">4. :wq保存退出</div><div class="line">5. 重启服务</div></pre></td></tr></table></figure>
+<h3 id="13-修改数据库root的密码"><a href="#13-修改数据库root的密码" class="headerlink" title="13.修改数据库root的密码"></a>13.修改数据库root的密码</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/usr/local/mysql/bin/mysqladmin -u root password &apos;rootroot&apos;</div></pre></td></tr></table></figure>
+<h3 id="14-卸载"><a href="#14-卸载" class="headerlink" title="14.卸载"></a>14.卸载</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">ps -ef | grep mysql</div><div class="line">/etc/init.d/mysql status</div><div class="line">whereis mysql</div><div class="line">find / -name mysql【找到所有文件名为mysql的文件列表】</div><div class="line">rm -rf /usr/local/mysql/【使用rm命令来移除列表中的文件】</div><div class="line">rm -rf /etc/my.cnf【使用rm命令来移除列表中的文件】</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/mysql安装/" data-id="cj6ao835q0004tcbl570x80bl" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/数据类型/BigDecimal" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/数据类型/BigDecimal/">BigDecimal</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/数据类型/BigDecimal/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/数据类型/">数据类型</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h4 id="在使用BigDecimal类来进行计算的时候，主要分为以下步骤："><a href="#在使用BigDecimal类来进行计算的时候，主要分为以下步骤：" class="headerlink" title="在使用BigDecimal类来进行计算的时候，主要分为以下步骤："></a>在使用BigDecimal类来进行计算的时候，主要分为以下步骤：</h4><ol>
+<li>用float或者double或者String变量构建BigDecimal对象。使用float或者double构造对象时，最好先转成String，以免发生错误</li>
+<li>通过调用BigDecimal的加，减，乘，除等相应的方法进行算术运算。</li>
+<li><p>把BigDecimal对象转换成float，double，int等类型。</p>
+<p>一般来说，可以使用BigDecimal的构造方法或者静态方法的valueOf()方法把基本类型的变量构建成BigDecimal对象。</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">BigDecimal b1 = new BigDecimal(Double.toString(0.48));</div><div class="line">BigDecimal b2 = BigDecimal.valueOf(0.48);</div></pre></td></tr></table></figure>
+<h3 id="常用方法"><a href="#常用方法" class="headerlink" title="常用方法"></a>常用方法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public BigDecimal add(BigDecimal value);                        //加法</div><div class="line">public BigDecimal subtract(BigDecimal value);                   //减法 </div><div class="line">public BigDecimal multiply(BigDecimal value);                   //乘法</div><div class="line">public BigDecimal divide(BigDecimal value);                     //除法</div><div class="line"></div><div class="line">public int compareTo(BigDecimal val)        //比较大小</div><div class="line">结果是-1:小于  0:等于 1:大于</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/数据类型/BigDecimal/" data-id="cj6ao838p0033tcblhb2wmjjq" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -436,7 +721,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/日记/spring配置log4j/" data-id="cj6ao5k1t0031s2bl82j28ob1" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/日记/spring配置log4j/" data-id="cj6ao838q0036tcblyfny20fv" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -450,13 +735,13 @@
 
 
   
-    <article id="post-Java/JAXB/xml于javabean相互转换" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/线程/ExecutorService线程池" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/JAXB/xml于javabean相互转换/">xml于javabean相互转换</a>
+      <a class="article-title" href="/2017/07/19/Java/线程/ExecutorService线程池/">ExecutorService线程池</a>
     </h1>
   
 
@@ -465,13 +750,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Java/JAXB/xml于javabean相互转换/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Java/线程/ExecutorService线程池/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/JAXB/">JAXB</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/线程/">线程</a>
   </div>
 
 
@@ -480,191 +765,63 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line">import javax.xml.bind.JAXBContext;</div><div class="line">import javax.xml.bind.JAXBException;</div><div class="line">import javax.xml.bind.Marshaller;</div><div class="line">import javax.xml.bind.Unmarshaller;</div><div class="line"> </div><div class="line">/**</div><div class="line"> * XML的帮助类</div><div class="line"> * </div><div class="line"> */</div><div class="line">public class XmlHelper</div><div class="line">&#123;</div><div class="line">	/**</div><div class="line">	 * 将自定义数据对象转化为XML字符串</div><div class="line">	 * </div><div class="line">	 * @param clazz 自定义数据类型</div><div class="line">	 * @param object 自定义数据对象</div><div class="line">	 * @return XML字符串</div><div class="line">	 * @throws JAXBException 异常</div><div class="line">	 */</div><div class="line">	public static String objectToXML(Class clazz, Object object)</div><div class="line">		throws JAXBException</div><div class="line">	&#123;</div><div class="line">		String xml = null;</div><div class="line">		JAXBContext context = JAXBContext.newInstance(clazz);</div><div class="line">		Marshaller m = context.createMarshaller();</div><div class="line">		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);</div><div class="line">		Writer w = new StringWriter();</div><div class="line">		m.marshal(object, w);</div><div class="line">		xml = w.toString();</div><div class="line">		return xml;</div><div class="line">	&#125;</div><div class="line"> </div><div class="line">	/**</div><div class="line">	 * 将XML字符串转化为自定义数据对象</div><div class="line">	 * </div><div class="line">	 * @param clazz 自定义数据类型</div><div class="line">	 * @param xml XML字符串</div><div class="line">	 * @return 自定义数据对象</div><div class="line">	 * @throws JAXBException 异常</div><div class="line">	 */</div><div class="line">	public static Object xmlToObject(Class clazz, String xml)</div><div class="line">		throws JAXBException</div><div class="line">	&#123;</div><div class="line">		JAXBContext context = JAXBContext.newInstance(clazz);</div><div class="line">		Unmarshaller um = context.createUnmarshaller();</div><div class="line">		return um.unmarshal(new StringReader(xml));</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JAXB/xml于javabean相互转换/" data-id="cj6ao5k1v0034s2bl1atttkey" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/JAXB/注解详解" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/JAXB/注解详解/">注解详解</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/JAXB/注解详解/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/JAXB/">JAXB</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>JAXB（即Java Architecturefor XML Binding）是一个业界的标准，即是一项可以根据XML Schema产生Java类的技术。该过程中，JAXB也提供了将XML实例文档反向生成Java对象树的方法，并能将Java对象树的内容重新写到XML实例文档。  </p>
-<h2 id="注解介绍"><a href="#注解介绍" class="headerlink" title="注解介绍"></a>注解介绍</h2><h3 id="Jaxb中处理java和xml之间转换的常用注解有："><a href="#Jaxb中处理java和xml之间转换的常用注解有：" class="headerlink" title="Jaxb中处理java和xml之间转换的常用注解有："></a>Jaxb中处理java和xml之间转换的常用注解有：</h3><ul>
-<li>@XmlType</li>
-<li>@XmlElement</li>
-<li>@XmlRootElement</li>
-<li>@XmlAttribute</li>
-<li>@XmlAccessorType</li>
-<li>@XmlAccessorOrder</li>
-<li>@XmlTransient</li>
-<li>@XmlJavaTypeAdapter</li>
-<li>@XmlSchema</li>
-<li>@XmlElementWrapper</li>
-<li>@XmlElements</li>
+        <h2 id="new-Thread的弊端"><a href="#new-Thread的弊端" class="headerlink" title="new Thread的弊端"></a>new Thread的弊端</h2><p>执行一个异步任务你还只是如下new Thread吗？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">new Thread(new Runnable() &#123;</div><div class="line"></div><div class="line">@Override</div><div class="line">public void run() &#123;</div><div class="line">// TODO Auto-generated method stub</div><div class="line">&#125;</div><div class="line">&#125;).start();</div></pre></td></tr></table></figure></p>
+<p>那你就out太多了，new Thread的弊端如下：</p>
+<ol>
+<li>每次new Thread新建对象性能差。</li>
+<li>线程缺乏统一管理，可能无限制新建线程，相互之间竞争，及可能占用过多系统资源导致死机或oom。</li>
+<li>缺乏更多功能，如定时执行、定期执行、线程中断。</li>
+</ol>
+<p>相比new Thread，Java提供的四种线程池的好处在于：</p>
+<ol>
+<li>重用存在的线程，减少对象创建、消亡的开销，性能佳。</li>
+<li>可有效控制最大并发线程数，提高系统资源的使用率，同时避免过多资源竞争，避免堵塞。</li>
+<li>提供定时执行、定期执行、单线程、并发数控制等功能。</li>
+</ol>
+<h2 id="几种不同的ExecutorService线程池对象"><a href="#几种不同的ExecutorService线程池对象" class="headerlink" title="几种不同的ExecutorService线程池对象"></a>几种不同的ExecutorService线程池对象</h2><h3 id="newCachedThreadPool"><a href="#newCachedThreadPool" class="headerlink" title="newCachedThreadPool"></a>newCachedThreadPool</h3><ul>
+<li>不定长可缓存线程池，空闲线程缓存60秒，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程，最大值为Integer.MAX_VALUE,也可以说是无限容量</li>
+<li>缓存型池子，先查看池中有没有以前建立的线程，如果有，就重用,如果没有，就建一个新的线程加入池中</li>
+<li>缓存型池子通常用于执行一些生存期很短的异步型任务</li>
+<li>能重用的线程，必须是timeout IDLE内的池中线程，缺省timeout是60s,超过这个IDLE时长，线程实例将被终止及移出池。<br>注意，放入CachedThreadPool的线程不必担心其结束，超过TIMEOUT不活动，其会自动被终止。</li>
 </ul>
-<h2 id="常用annotation使用说明"><a href="#常用annotation使用说明" class="headerlink" title="常用annotation使用说明"></a>常用annotation使用说明</h2><h3 id="XmlType"><a href="#XmlType" class="headerlink" title="@XmlType"></a>@XmlType</h3><p>该注解用在class类上，常与@XmlRootElement，@XmlAccessorType一起使用。它有三个属性：name、propOrder、namespace，经常使用的只有前两个属性。如：</p>
-<ul>
-<li>propOrder        指定映射XML时的节点顺序</li>
-<li>factoryClass     指定UnMarshal时生成映射类实例所需的工厂类，默认为这个类本身</li>
-<li>factoryMethod  指定工厂类的工厂方法</li>
-<li>name               定义XML Schema中type的名称</li>
-<li>namespace      指定Schema中的命名空间</li>
+<h4 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h4><p>创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程。示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">ExecutorService cachedThreadPool = Executors.newCachedThreadPool();</div><div class="line">for (int i = 0; i &lt; 10; i++) &#123;</div><div class="line">	final int index = i;</div><div class="line">	try &#123;</div><div class="line">		Thread.sleep(index * 1000);</div><div class="line">	&#125; catch (InterruptedException e) &#123;</div><div class="line">		e.printStackTrace();</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	cachedThreadPool.execute(new Runnable() &#123;</div><div class="line"></div><div class="line">		@Override</div><div class="line">		public void run() &#123;</div><div class="line">			System.out.println(index);</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>线程池为无限大，当执行第二个任务时第一个任务已经完成，会复用执行第一个任务的线程，而不用每次新建线程。</p>
+<h3 id="newFixedThreadPool"><a href="#newFixedThreadPool" class="headerlink" title="newFixedThreadPool"></a>newFixedThreadPool</h3><ul>
+<li>一个定长线程池，空闲线程无缓存，可控制线程最大并发数，超出的线程会在队列中等待。</li>
+<li>newFixedThreadPool与cacheThreadPool差不多，也是能重用，但不能随时建新的线程</li>
+<li>其独特之处:任意时间点，最多只能有固定数目的活动线程存在，此时如果有新的线程要建立，只能放在另外的队列中等待，直到当前的线程中某个线程终止直接被移出池子</li>
+<li>和cacheThreadPool不同，FixedThreadPool没有IDLE机制（可能也有，但既然文档没提，肯定非常长，类似依赖上层的TCP或UDP IDLE机制之类的），所以FixedThreadPool多数针对一些很稳定很固定的正规并发线程，多用于服务器</li>
+<li>从方法的源代码看，cache池和fixed 池调用的是同一个底层池，只不过参数不同:<br>fixed池线程数固定，并且是0秒IDLE（无IDLE）<br>cache池线程数支持0-Integer.MAX_VALUE(显然完全没考虑主机的资源承受能力），60秒IDLE</li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@XmlType(name = &quot;basicStruct&quot;, propOrder = &#123;&quot;intValue&quot;,&quot;stringArray&quot;,&quot;stringValue&quot; )  </div><div class="line">Public class myType&#123;…&#125;</div></pre></td></tr></table></figure>
-<p>在使用@XmlType的propOrder属性时，必须列出JavaBean对象中的所有属性</p>
-<h3 id="XmlElement"><a href="#XmlElement" class="headerlink" title="@XmlElement"></a>@XmlElement</h3><p>参数：</p>
-<ul>
-<li>defaultValue  指定节点默认值</li>
-<li>name             指定节点名称</li>
-<li>namespace    指定节点命名空间</li>
-<li>required    是否必须（默认为false）</li>
-<li>nillable    该字段是否包含nillable=”true” 属性（默认为false）</li>
-<li>type     定义该字段或属性的关联类型</li>
+<h4 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a>示例</h4><p>创建一个定长线程池，可控制线程最大并发数，超出的线程会在队列中等待。示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">ExecutorService fixedThreadPool = Executors.newFixedThreadPool(3);</div><div class="line">for (int i = 0; i &lt; 10; i++) &#123;</div><div class="line">	final int index = i;</div><div class="line">	fixedThreadPool.execute(new Runnable() &#123;</div><div class="line">	</div><div class="line">		@Override</div><div class="line">		public void run() &#123;</div><div class="line">			try &#123;</div><div class="line">				System.out.println(index);</div><div class="line">				Thread.sleep(2000);</div><div class="line">			&#125; catch (InterruptedException e) &#123;</div><div class="line">				// TODO Auto-generated catch block</div><div class="line">				e.printStackTrace();</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>因为线程池大小为3，每个任务输出index后sleep 2秒，所以每两秒打印3个数字。<br>定长线程池的大小最好根据系统资源进行设置。如Runtime.getRuntime().availableProcessors()。</p>
+<h3 id="ScheduledThreadPool"><a href="#ScheduledThreadPool" class="headerlink" title="ScheduledThreadPool"></a>ScheduledThreadPool</h3><ul>
+<li>一个定长线程池，空闲线程无缓存，支持定时及周期性任务执行</li>
+<li>调度型线程池</li>
+<li>这个池子里的线程可以按schedule依次delay执行，或周期执行</li>
 </ul>
-<p>该注解用在java类的属性上，用于将属性映射为xml的子节点。可通过在后面配置name属性值来改变java属性在xml文件中的名称。如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@XmlElement(name=&quot;Address&quot;)　　  </div><div class="line">private String yourAddress;</div></pre></td></tr></table></figure></p>
-<p>此处配置后，在xml文件中的节点为&lt; Address&gt;&lt;/ Address&gt;，而不是&lt; yourAddress/&gt;。</p>
-<h3 id="XmlRootElement"><a href="#XmlRootElement" class="headerlink" title="@XmlRootElement"></a>@XmlRootElement</h3><p>类级别的注解，对应的是xml文件中的根节点。常与 @XmlType 和 @XmlAccessorType一起使用。<br>参数：</p>
-<ul>
-<li>name   定义这个根节点的名称</li>
-<li>namespace    定义这个根节点命名空间</li>
+<h4 id="示例-2"><a href="#示例-2" class="headerlink" title="示例"></a>示例</h4><p>创建一个定长线程池，支持定时及周期性任务执行。延迟执行示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(5);</div><div class="line">scheduledThreadPool.schedule(new Runnable() &#123;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void run() &#123;</div><div class="line">		System.out.println(&quot;delay 3 seconds&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;, 3, TimeUnit.SECONDS);</div></pre></td></tr></table></figure></p>
+<p>表示延迟3秒执行。</p>
+<p>定期执行示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">scheduledThreadPool.scheduleAtFixedRate(new Runnable() &#123;</div><div class="line">	</div><div class="line">	@Override</div><div class="line">	public void run() &#123;</div><div class="line">		System.out.println(&quot;delay 1 seconds, and excute every 3 seconds&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;, 1, 3, TimeUnit.SECONDS);</div></pre></td></tr></table></figure></p>
+<h3 id="SingleThreadExecutor"><a href="#SingleThreadExecutor" class="headerlink" title="SingleThreadExecutor"></a>SingleThreadExecutor</h3><ul>
+<li>一个单线程化的线程池，空闲线程无缓存，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。</li>
+<li>单例线程，任意时间池中只能有一个线程</li>
+<li>用的是和cache池和fixed池相同的底层池，但线程数目是1-1,0秒IDLE（无IDLE）</li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@XmlType  </div><div class="line">@XmlAccessorType(XmlAccessType.FIELD)  </div><div class="line">@XmlRootElement  </div><div class="line">public class Address &#123;&#125;</div></pre></td></tr></table></figure>
-<h3 id="XmlAttribute"><a href="#XmlAttribute" class="headerlink" title="@XmlAttribute"></a>@XmlAttribute</h3><p>用于把java对象的属性映射为xml的属性,并可通过name属性为生成的xml属性指定别名。<br>参数：  </p>
-<ul>
-<li>name   指定属性名称</li>
-<li>namespace    指定属性命名空间</li>
-<li>required  是否必须（默认为false）</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@XmlAttribute(name=&quot;Country&quot;)  </div><div class="line">private String state;</div></pre></td></tr></table></figure>
-<h3 id="XmlAccessorType"><a href="#XmlAccessorType" class="headerlink" title="@XmlAccessorType"></a>@XmlAccessorType</h3><p>@XmlAccessorType用于指定由java对象生成xml文件时对java对象属性的访问方式。常与@XmlRootElement、@XmlType一起使用。它的属性值是XmlAccessType的4个枚举值，分别为：</p>
-<ul>
-<li>XmlAccessType.FIELD：java对象中的所有成员变量；</li>
-<li>XmlAccessType.PROPERTY：java对象中所有通过getter/setter方式访问的成员变量；</li>
-<li>XmlAccessType.PUBLIC_MEMBER：java对象中所有的public访问权限的成员变量和通过getter/setter方式访问的成员变量；</li>
-<li>XmlAccessType.NONE：java对象的所有属性都不映射为xml的元素。</li>
-</ul>
-<p>注意：@XmlAccessorType的默认访问级别是XmlAccessType.PUBLIC_MEMBER。因此，<strong>如果java对象中的private成员变量设置了public权限的getter/setter方法，就不要在private变量上使用@XmlElement和@XmlAttribute注解，否则在由java对象生成xml时会报同一个属性在java类里存在两次的错误</strong>。同理，如果@XmlAccessorType的访问权限为XmlAccessType.NONE，如果在java的成员变量上使用了@XmlElement或@XmlAttribute注解，这些成员变量依然可以映射到xml文件。</p>
-<h3 id="XmlAccessorOrder"><a href="#XmlAccessorOrder" class="headerlink" title="@XmlAccessorOrder"></a>@XmlAccessorOrder</h3><p>用于对java对象生成的xml元素进行排序。它有两个属性值：</p>
-<ul>
-<li>AccessorOrder.ALPHABETICAL：对生成的xml元素按字母顺序排序；</li>
-<li>XmlAccessOrder.UNDEFINED：不排序。</li>
-</ul>
-<h3 id="XmlTransient"><a href="#XmlTransient" class="headerlink" title="@XmlTransient"></a>@XmlTransient</h3><p>用于标示在由java对象映射xml时，忽略此属性。即，在生成的xml文件中不出现此元素。</p>
-<h3 id="XmlJavaTypeAdapter"><a href="#XmlJavaTypeAdapter" class="headerlink" title="@XmlJavaTypeAdapter"></a>@XmlJavaTypeAdapter</h3><p>@XmlJavaTypeAdapter常用在转换比较复杂的对象时，如map类型或者格式化日期等。使用此注解时，需要自己写一个adapter类继承XmlAdapter抽象类，并实现里面的方法。  </p>
-<p>@XmlJavaTypeAdapter(value=xxx.class),value为自己定义的adapter类XmlAdapter如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public abstract class XmlAdapter&lt;ValueType,BoundType&gt; &#123;  </div><div class="line">    // Do-nothing constructor for the derived classes.  </div><div class="line">    protected XmlAdapter() &#123;&#125;  </div><div class="line">    // Convert a value type to a bound type.  </div><div class="line">    public abstract BoundType unmarshal(ValueType v);  </div><div class="line">    // Convert a bound type to a value type.  </div><div class="line">    public abstract ValueType marshal(BoundType v);  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h3 id="XmlSchema"><a href="#XmlSchema" class="headerlink" title="@XmlSchema"></a>@XmlSchema</h3><p>配置整个包的namespace，这个注解需放在package-info.java文件中。</p>
-<h3 id="XmlElementWrapper"><a href="#XmlElementWrapper" class="headerlink" title="@XmlElementWrapper"></a>@XmlElementWrapper</h3><p>为数组元素或集合元素定义一个父节点。</p>
-<h3 id="XmlElements"><a href="#XmlElements" class="headerlink" title="@XmlElements"></a>@XmlElements</h3><p>相当于java的泛型,XmlElement传的是什么对象，obj就是什么对象，obj对象可以是XmlElements中定义的对象中的任意一个<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">@XmlElements(</div><div class="line">    value=&#123;</div><div class="line">        @XmlElement(name=&quot;student&quot;, type=Student.class),</div><div class="line">        @XmlElement(name=&quot;teacher&quot;, type=Object.class)</div><div class="line">    &#125;</div><div class="line">)</div><div class="line">protected Object obj;</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JAXB/注解详解/" data-id="cj6ao5k1w0036s2blltoj72le" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/数据类型/BigDecimal" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/数据类型/BigDecimal/">BigDecimal</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/数据类型/BigDecimal/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/数据类型/">数据类型</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="在使用BigDecimal类来进行计算的时候，主要分为以下步骤："><a href="#在使用BigDecimal类来进行计算的时候，主要分为以下步骤：" class="headerlink" title="在使用BigDecimal类来进行计算的时候，主要分为以下步骤："></a>在使用BigDecimal类来进行计算的时候，主要分为以下步骤：</h4><ol>
-<li>用float或者double或者String变量构建BigDecimal对象。使用float或者double构造对象时，最好先转成String，以免发生错误</li>
-<li>通过调用BigDecimal的加，减，乘，除等相应的方法进行算术运算。</li>
-<li><p>把BigDecimal对象转换成float，double，int等类型。</p>
-<p>一般来说，可以使用BigDecimal的构造方法或者静态方法的valueOf()方法把基本类型的变量构建成BigDecimal对象。</p>
+<h4 id="示例-3"><a href="#示例-3" class="headerlink" title="示例"></a>示例</h4><p>创建一个单线程化的线程池，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();</div><div class="line">for (int i = 0; i &lt; 10; i++) &#123;</div><div class="line">	final int index = i;</div><div class="line">	singleThreadExecutor.execute(new Runnable() &#123;</div><div class="line"></div><div class="line">		@Override</div><div class="line">		public void run() &#123;</div><div class="line">			try &#123;</div><div class="line">				System.out.println(index);</div><div class="line">				Thread.sleep(2000);</div><div class="line">			&#125; catch (InterruptedException e) &#123;</div><div class="line">				// TODO Auto-generated catch block</div><div class="line">				e.printStackTrace();</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>结果依次输出，相当于顺序执行各个任务。</p>
+<h2 id="ExecutorService-建立多线程的步骤"><a href="#ExecutorService-建立多线程的步骤" class="headerlink" title="ExecutorService 建立多线程的步骤"></a>ExecutorService 建立多线程的步骤</h2><ol>
+<li><p>定义线程类</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">class Handler implements Runnable&#123;&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>建立ExecutorService线程池</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">ExecutorService executorService = Executors.newCachedThreadPool();</div><div class="line">或者</div><div class="line">int cpuNums = Runtime.getRuntime().availableProcessors();</div><div class="line">//获取当前系统的CPU 数目</div><div class="line">ExecutorService executorService=Executors.newFixedThreadPool(cpuNums * POOL_SIZE);</div><div class="line">//ExecutorService通常根据系统资源情况灵活定义线程池大小</div></pre></td></tr></table></figure>
+</li>
+<li><p>调用线程池操作</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">循环操作，成为daemon,把新实例放入Executor池中</div><div class="line">while(true)&#123;</div><div class="line">    executorService.execute(new Handler(socket));</div><div class="line">    // class Handler implements Runnable&#123;</div><div class="line">    或者</div><div class="line">    executorService.execute(createTask(i));</div><div class="line">    //private static Runnable createTask(final int taskID)</div><div class="line">&#125;</div><div class="line">execute(Runnable对象)方法</div><div class="line">其实就是对Runnable对象调用start()方法</div><div class="line">（当然还有一些其他后台动作，比如队列，优先级，IDLE timeout，active激活等）</div></pre></td></tr></table></figure>
 </li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">BigDecimal b1 = new BigDecimal(Double.toString(0.48));</div><div class="line">BigDecimal b2 = BigDecimal.valueOf(0.48);</div></pre></td></tr></table></figure>
-<h3 id="常用方法"><a href="#常用方法" class="headerlink" title="常用方法"></a>常用方法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public BigDecimal add(BigDecimal value);                        //加法</div><div class="line">public BigDecimal subtract(BigDecimal value);                   //减法 </div><div class="line">public BigDecimal multiply(BigDecimal value);                   //乘法</div><div class="line">public BigDecimal divide(BigDecimal value);                     //除法</div><div class="line"></div><div class="line">public int compareTo(BigDecimal val)        //比较大小</div><div class="line">结果是-1:小于  0:等于 1:大于</div></pre></td></tr></table></figure>
+
       
     </div>
 
@@ -674,62 +831,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/数据类型/BigDecimal/" data-id="cj6ao5k1x0039s2blp89s4bc7" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/集合/Collections排序" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/集合/Collections排序/">Collections排序</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/集合/Collections排序/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/集合/">集合</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="方法一"><a href="#方法一" class="headerlink" title="方法一"></a>方法一</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Collections.sort(list, <span class="keyword">new</span> Comparator&lt;实体&gt;() &#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(实体 arg0, 实体 arg1)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span>(比较条件) <span class="keyword">return</span> <span class="number">1</span>;</div><div class="line">        <span class="keyword">else</span> <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
-<h2 id="方法二：实现Comparable接口"><a href="#方法二：实现Comparable接口" class="headerlink" title="方法二：实现Comparable接口"></a>方法二：实现Comparable接口</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> <span class="keyword">implements</span> <span class="title">Comparable</span>&lt;<span class="title">User</span>&gt;</span>&#123;</div><div class="line">    <span class="keyword">private</span> String name;</div><div class="line">    <span class="keyword">private</span> Integer order;</div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> name;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.name = name;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">getOrder</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> order;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setOrder</span><span class="params">(Integer order)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.order = order;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(User arg0)</span> </span>&#123;</div><div class="line">        比较条件</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">使用： Collections.sort(list);</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/集合/Collections排序/" data-id="cj6ao5k1y003bs2blep5xlepz" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/线程/ExecutorService线程池/" data-id="cj6ao838s0038tcbliubg207g" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -788,11 +890,11 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
+          <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
+          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
         </li>
       
         <li>
@@ -800,11 +902,11 @@
         </li>
       
         <li>
-          <a href="/2017/08/13/Spring/基础/AOP事务管理/">AOP事务管理</a>
+          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
+          <a href="/2017/08/13/Spring/基础/Spring  Bean的scope作用域/">Spring  Bean的scope作用域</a>
         </li>
       
     </ul>
