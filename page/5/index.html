@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-数据库相关/mysql/mysql存储引擎" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-数据库相关/mysql/存储过程" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/mysql存储引擎/">mysql存储引擎</a>
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/存储过程/">存储过程</a>
     </h1>
   
 
@@ -95,7 +95,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/mysql存储引擎/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/07/29/数据库相关/mysql/存储过程/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
 </div>
 
     
@@ -110,128 +110,53 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>MySQL数 据库引擎取决于MySQL在安装的时候是如何被编译的。要添加一个新的引擎，就必须重新编译MYSQL。在缺省情况下，MYSQL支持三个引擎：ISAM、MYISAM和HEAP。另外两种类型INNODB和BERKLEY（BDB），也常常可以使用。如果技术高超，还可以使用MySQL++ API自己做一个引擎。<br>下面介绍几种数据库引擎： </p>
-<ul>
-<li><p>ISAM：ISAM是一个定义明确且历经时间考验的数据表格管理方法，它在设计之时就考虑到 数据库被查询的次数要远大于更新的次数。因此，I<strong>SAM执行读取操作的速度很快，而且不占用大量的内存和存储资源。ISAM的两个主要不足之处在于，它不 支持事务处理，也不能够容错</strong>：如果你的硬盘崩溃了，那么数据文件就无法恢复了。如果你正在把ISAM用在关键任务应用程序里，那就必须经常备份你所有的实 时数据，通过其复制特性，MYSQL能够支持这样的备份应用程序。</p>
-</li>
-<li><p>MyISAM：MyISAM是MySQL的ISAM扩展格式和<strong>默认的数据库引擎（Mysql5.5.5之前）</strong>。除了提供ISAM里所没有的索引和字段管理的大量功能，MyISAM还使用一种表格锁定的机制，来优化多个并发的读写操作，其代价是你需要经常运行OPTIMIZE TABLE命令，来恢复被更新机制所浪费的空间。MyISAM还有一些有用的扩展，例如用来修复数据库文件的MyISAMCHK工具和用来恢复浪费空间的 MyISAMPACK工具。<strong>MYISAM强调了快速读取操作</strong>，这可能就是为什么MySQL受到了WEB开发如此青睐的主要原因：在WEB开发中你所进行的大量数据操作都是读取操作。所以，<strong>大多数虚拟主机提供商和INTERNET平台提供商只允许使用MYISAM格式。MyISAM格式的一个重要缺陷就是不能在表损坏后恢复数据。</strong></p>
-</li>
-<li><p>HEAP：<strong>HEAP允许只驻留在内存里的临时表格</strong>。驻留在内存里让HEAP要比ISAM和MYISAM都快，但是它所管理的数据是不稳定的，而且如果在关机之前没有进行保存，那么所有的数据都会丢失。在数据行被删除的时候，HEAP也不会浪费大量的空间。HEAP表格在你需要使用SELECT表达式来选择和操控数据的时候非常有用。要记住，在用完表格之后就删除表格。</p>
-</li>
-<li><p>InnoDB：InnoDB数据库引擎都是造就MySQL灵活性的技术的直接产品，这项技术就是MYSQL++ API。在使用MYSQL的时候，你所面对的每一个挑战几乎都源于ISAM和MyISAM数据库引擎不支持事务处理（transaction process）也不支持外键。尽管要比ISAM和 MyISAM引擎慢很多，但是<strong>InnoDB包括了对事务处理和外键的支持</strong>，这两点都是前两个引擎所没有的。如前所述，如果你的设计需要这些特性中的一者 或者两者，那你就要被迫使用后两个引擎中的一个了。 </p>
-</li>
-</ul>
-<h3 id="MySQL-官方对InnoDB是这样解释的"><a href="#MySQL-官方对InnoDB是这样解释的" class="headerlink" title="MySQL 官方对InnoDB是这样解释的"></a>MySQL 官方对InnoDB是这样解释的</h3><ul>
-<li><p>InnoDB给MySQL提供了具有提交、回滚和崩溃恢复能力的事务安全（ACID兼容）存储引擎。InnoDB锁定在行级并且也在SELECT语句提供一个Oracle风格一致的非锁定读，这些特色增加了多用户部署和性能。没有在InnoDB中扩大锁定的需要，因为在InnoDB中行级锁定适合非常小的空间。InnoDB也支持FOREIGN KEY强制。在SQL查询中，你可以自由地将InnoDB类型的表与其它MySQL的表的类型混合起来，甚至在同一个查询中也可以混合。</p>
-</li>
-<li><p>InnoDB是为处理巨大数据量时的最大性能设计，它的CPU效率可能是任何其它基于磁盘的关系数据库引擎所不能匹敌的。</p>
-</li>
-<li><p>InnoDB存储引擎被完全与MySQL服务器整合，InnoDB存储引擎为在主内存中缓存数据和索引而维持它自己的缓冲池。InnoDB存储它的表＆索引在一个表空间中，表空间可以包含数个文件（或原始磁盘分区）。这与MyISAM表不同，比如在MyISAM表中每个表被存在分离的文件中。InnoDB 表可以是任何尺寸，即使在文件尺寸被限制为2GB的操作系统上。</p>
-</li>
-<li><p>InnoDB默认地被包含在MySQL二进制分发中。Windows Essentials installer使InnoDB成为Windows上MySQL的默认表。</p>
-</li>
-<li><p>InnoDB被用来在众多需要高性能的大型数据库站点上产生。著名的Internet新闻站点Slashdot.org运行在InnoDB上。 Mytrix, Inc.在InnoDB上存储超过1TB的数据，还有一些其它站点在InnoDB上处理平均每秒800次插入/更新的</p>
-</li>
-</ul>
-<p>一般来说，MyISAM适合：  </p>
-<ol>
-<li>做很多count 的计算；</li>
-<li>插入不频繁，查询非常频繁；</li>
-<li>没有事务。</li>
+        <h3 id="那么存储过程与一般的SQL语句有什么区别呢"><a href="#那么存储过程与一般的SQL语句有什么区别呢" class="headerlink" title="那么存储过程与一般的SQL语句有什么区别呢?"></a>那么存储过程与一般的SQL语句有什么区别呢?</h3><h4 id="存储过程的优点："><a href="#存储过程的优点：" class="headerlink" title="存储过程的优点："></a>存储过程的优点：</h4><ol>
+<li>存储过程只在创造时进行编译，以后每次执行存储过程都不需再重新编译，而一般SQL语句每执行一次就编译一次,所以使用存储过程可提高数据库执行速度。</li>
+<li>当对数据库进行复杂操作时(如对多个表进行Update,Insert,Query,Delete时)，可将此复杂操作用存储过程封装起来与数据库提供的事务处理结合一起使用。</li>
+<li>存储过程可以重复使用,可减少数据库开发人员的工作量</li>
+<li>安全性高,可设定只有某此用户才具有对指定存储过程的使用权</li>
 </ol>
-<p>InnoDB适合：    </p>
-<ol>
-<li>可靠性要求比较高，或者要求事务；</li>
-<li>表更新和查询都相当的频繁，并且表锁定的机会比较大的情况。</li>
+<h4 id="存储过程的种类："><a href="#存储过程的种类：" class="headerlink" title="存储过程的种类："></a>存储过程的种类：</h4><ol>
+<li>系统存储过程：以sp_开头,用来进行系统的各项设定.取得信息.相关管理工作,<br>如 sp_help就是取得指定对象的相关信息</li>
+<li>扩展存储过程 以XP_开头,用来调用操作系统提供的功能<br>以下为引用的内容：<br>exec master..xp_cmdshell ‘ping 10.8.16.1’</li>
+<li>用户自定义的存储过程,这是我们所指的存储过程</li>
 </ol>
-<p>一般情况下，MySQL会默认提供多种存储引擎，可以通过下面的查看:</p>
-<ol>
-<li>看你的MySQL现在已提供什么存储引擎: mysql&gt; show engines;</li>
-<li>看你的MySQL当前默认的存储引擎: mysql&gt; show variables like ‘%storage_engine%’;</li>
-<li>你要看某个表用了什么引擎(在显示结果里参数engine后面的就表示该表当前用的存储引擎): mysql&gt; show create table 表名;</li>
+<h4 id="常用格式"><a href="#常用格式" class="headerlink" title="常用格式"></a>常用格式</h4><p>以下为引用的内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">Create procedure procedue_name</div><div class="line">[@parameter data_type][output]</div><div class="line">[with]&#123;recompile|encryption&#125;</div><div class="line">as</div><div class="line">sql_statement</div></pre></td></tr></table></figure></p>
+<p>解释:<br>output：表示此参数是可传回的<br>with {recompile|encryption}<br>recompile:表示每次执行此存储过程时都重新编译一次<br>encryption:所创建的存储过程的内容会被加密   </p>
+<h3 id="存储过程的创建"><a href="#存储过程的创建" class="headerlink" title="存储过程的创建"></a>存储过程的创建</h3><p>实例1:查询表Book的内容的存储过程<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">create proc query_book</div><div class="line">as</div><div class="line">select * from book</div><div class="line">go</div><div class="line">exec query_book</div></pre></td></tr></table></figure></p>
+<p>实例2:加入一笔记录到表book,并查询此表中所有书籍的总金额<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">Create proc insert_book</div><div class="line">@param1 char(10),@param2 varchar(20),@param3 money,@param4 money output</div><div class="line">with encryption ---------加密</div><div class="line">as</div><div class="line">insert book(编号,书名，价格) Values(@param1,@param2,@param3)</div><div class="line">select @param4=sum(价格) from book</div><div class="line">go</div></pre></td></tr></table></figure></p>
+<h4 id="存储过程的3种传回值"><a href="#存储过程的3种传回值" class="headerlink" title="存储过程的3种传回值:"></a>存储过程的3种传回值:</h4><ol>
+<li>以Return传回整数</li>
+<li>以output格式传回参数</li>
+<li>Recordset</li>
 </ol>
-<p> 所有的性能测试在：Micrisoft window xp sp2 ， Intel(R) Pentinum(R) M processor 1.6oGHz 1G 内存的电脑上测试。<br> 测试方法：连续提交10个query， 表记录总数：38万 ， 时间单位 s</p>
-<table>
-<thead>
-<tr>
-<th>引擎类型</th>
-<th>MyISAM</th>
-<th>InnoDB</th>
-<th>性能相差</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>count</td>
-<td>0.0008357</td>
-<td>3.0163</td>
-<td>3609</td>
-</tr>
-<tr>
-<td>查询主键</td>
-<td>0.005708</td>
-<td>0.1574</td>
-<td>27.57</td>
-</tr>
-<tr>
-<td>查询非主键</td>
-<td>24.01</td>
-<td>80.37</td>
-<td>3.348</td>
-</tr>
-<tr>
-<td>更新主键</td>
-<td>0.008124</td>
-<td>0.8183</td>
-<td>100.7</td>
-</tr>
-<tr>
-<td>更新非主键</td>
-<td>0.004141</td>
-<td>0.02625</td>
-<td>6.338</td>
-</tr>
-<tr>
-<td>插入</td>
-<td>0.004188</td>
-<td>0.3694</td>
-<td>88.21</td>
-</tr>
-</tbody>
-</table>
-<ol>
-<li>加了索引以后，对于MyISAM查询可以加快：4 206.09733倍，对InnoDB查询加快510.72921倍，同时对MyISAM更新速度减慢为原来的1/2，InnoDB的更新速度减慢为原来的1/30。要看情况决定是否要加索引，比如不查询的log表，不要做任何的索引。</li>
-<li>如果你的数据量是百万级别的，并且没有任何的事务处理，那么用MyISAM是性能最好的选择。</li>
-<li>InnoDB表的大小更加的大，用MyISAM可省很多的硬盘空间。 </li>
+<h5 id="传回值的区别"><a href="#传回值的区别" class="headerlink" title="传回值的区别:"></a>传回值的区别:</h5><p>output和return都可在批次程式中用变量接收,而recordset则传回到执行批次的客户端中</p>
+<p>实例3：设有两个表为Product,Order,其表内容如下：<br>以下为引用的内容：<br>Product<br>| 产品编号 | 产品名称 | 客户订数 |<br>| —- | —- | —- |<br>| 001  | 钢笔   | 30   |<br>| 002  | 毛笔   | 50   |<br>| 003  | 铅笔   | 100  |</p>
+<p>order<br>| 产品编号 | 客户名  | 客户订金 |<br>| —- | —- | —- |<br>| 001  | 南山区  | $30  |<br>| 002  | 罗湖区  | $50  |<br>| 003  | 宝安区  | $4   |</p>
+<p>请实现按编号为连接条件,将两个表连接成一个临时表,该表只含编号.产品名.客户名.订金.总金额<br>总金额=订金*订数,临时表放在存储过程中<br>代码如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">Create proc temp_sale</div><div class="line">as</div><div class="line">select a.产品编号,a.产品名称,b.客户名,b.客户订金,a.客户订数* b.客户订金 as总金额</div><div class="line">into #temptable from Product a inner join order b on a.产品编号=b.产品编号</div><div class="line">if @@error=0</div><div class="line">print &apos;Good&apos;</div><div class="line">else</div><div class="line">print &apos;Fail&apos;</div><div class="line">go</div></pre></td></tr></table></figure></p>
+<h3 id="存储过程的调用"><a href="#存储过程的调用" class="headerlink" title="存储过程的调用"></a>存储过程的调用</h3><h4 id="调用带参数存储过程的几种方式"><a href="#调用带参数存储过程的几种方式" class="headerlink" title="调用带参数存储过程的几种方式"></a>调用带参数存储过程的几种方式</h4><ol>
+<li><p>这也是最简单的方法,两个输入参数，无返回值,用于Insert,Update,Delete操作较多。<br>以下为引用的内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">conn.Execute &quot;procname varvalue1,varvalue2&quot;</div></pre></td></tr></table></figure>
+</li>
+<li><p>如果要返回 Recordset 集:<br>以下为引用的内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">set rs = server.createobject(&quot;adodb.recordset&quot;)</div><div class="line">rs.Open &quot;Exec procname varvalue1, varvalue2&quot;,conn</div></pre></td></tr></table></figure>
+</li>
+<li><p>以上两种方法都不能有返回值，(Recordset除外)，如果要得到返回值，需要用Command的方法。</p>
+</li>
 </ol>
-<p>在我们测试的这个38w的表中，表占用空间的情况如下：</p>
-<table>
-<thead>
-<tr>
-<th>引擎类型</th>
-<th>MyISAM</th>
-<th>InnoDB</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>数据</td>
-<td>53,924 KB</td>
-<td>58,976 KB</td>
-</tr>
-<tr>
-<td>索引</td>
-<td>13,640 KB</td>
-<td>21,072 KB</td>
-</tr>
-<tr>
-<td>占用总空间</td>
-<td>67,564 KB</td>
-<td>80,048 KB</td>
-</tr>
-</tbody>
-</table>
-<p>另外一个176W万记录的表， 表占用空间的情况如下：<br>| 引擎类型  | MyISAM     | InnoDB     |<br>| —– | ———- | ———- |<br>| 数据    | 56,166 KB  | 90,736 KB  |<br>| 索引    | 67,103 KB  | 88,848 KB  |<br>| 占用总空间 | 123,269 KB | 179,584 KB |</p>
+<p>首先说明，返回值有两种。一种是在存储过程中直接return一个值，就象C和VB的函数返回值那样;另一种是可以返回多个值，存储这些值的变量名称需要在调用参数中先行指定。</p>
+<h3 id="触发器"><a href="#触发器" class="headerlink" title="触发器"></a>触发器</h3><h4 id="触发器的概念及作用"><a href="#触发器的概念及作用" class="headerlink" title="触发器的概念及作用"></a>触发器的概念及作用</h4><p>触发器是一种特殊类型的存储过程，它不同于我们前面介绍过的存储过程。触发器主要是通过事件进行触发而被执行的，而存储过程可以通过存储过程名字而被直接调用。当对某一表进行诸如Update、 Insert、 Delete 这些操作时，SQL Server 就会自动执行触发器所定义的SQL 语句，从而确保对数据的处理必须符合由这些SQL 语句所定义的规则。<br>触发器的主要作用就是其能够实现由主键和外键所不能保证的复杂的参照完整性和数据的一致性。除此之外，触发器还有其它许多不同的功能：</p>
+<ol>
+<li>强化约束(Enforce restriction)<br>触发器能够实现比CHECK 语句更为复杂的约束。</li>
+<li>跟踪变化Auditing changes<br>触发器可以侦测数据库内的操作，从而不允许数据库中未经许可的指定更新和变化。</li>
+<li>级联运行(Cascaded operation)。<br>触发器可以侦测数据库内的操作，并自动地级联影响整个数据库的各项内容。例如，某个表上的触发器中包含有对另外一个表的数据操作(如删除，更新，插入)而该操作又导致该表上触发器被触发。</li>
+<li>存储过程的调用(Stored procedure invocation)。    </li>
+</ol>
+<p>为了响应数据库更新，触发器可以调用一个或多个存储过程，甚至可以通过外部过程的调用而在DBMS( 数据库管理系统)本身之外进行操作。   </p>
+<p>由此可见，触发器可以解决高级形式的业务规则或复杂行为限制以及实现定制记录等一些方面的问题。例如，触发器能够找出某一表在数据修改前后状态发生的差异，并根据这种差异执行一定的处理。此外一个表的同一类型(Insert、 Update、 Delete)的多个触发器能够对同一种数据操作采取多种不同的处理。</p>
+<p>总体而言，触发器性能通常比较低。当运行触发器时，系统处理的大部分时间花费在参照其它表的这一处理上，因为这些表既不在内存中也不在数据库设备上，而删除表和插入表总是位于内存中。可见触发器所参照的其它表的位置决定了操作要花费的时间长短。    </p>
+<h4 id="触发器的种类"><a href="#触发器的种类" class="headerlink" title="触发器的种类"></a>触发器的种类</h4><p>SQL Server 2000 支持两种类型的触发器：AFTER 触发器和INSTEAD OF 触发器。其中AFTER 触发器即为SQL Server 2000 版本以前所介绍的触发器。该类型触发器要求只有执行某一操作(Insert Update Delete) 之后，触发器才被触发，且只能在表上定义。可以为针对表的同一操作定义多个触发器。对于AFTER 触发器，可以定义哪一个触发器被最先触发，哪一个被最后触发，通常使用系统过程sp_settriggerorder 来完成此任务。</p>
+<p>INSTEAD OF 触发器表示并不执行其所定义的操作(Insert、 Update、 Delete)，而仅是执行触发器本身。既可在表上定义INSTEAD OF 触发器，也可以在视图上定义INSTEAD OF 触发器，但对同一操作只能定义一个INSTEAD OF 触发器。</p>
 
       
     </div>
@@ -242,7 +167,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql存储引擎/" data-id="cj6aobw560087udblzn9hz40s" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/存储过程/" data-id="cj6arwhhn00abymblthndlt5r" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -256,13 +181,13 @@
 
 
   
-    <article id="post-数据库相关/mysql/mysql索引原理" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-数据库相关/mysql/启动和停止命令" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/mysql索引原理/">mysql索引原理</a>
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/启动和停止命令/">启动和停止命令</a>
     </h1>
   
 
@@ -271,7 +196,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/mysql索引原理/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/07/29/数据库相关/mysql/启动和停止命令/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
 </div>
 
     
@@ -286,81 +211,37 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>本篇介绍下Mysql的InnoDB索引相关知识，从各种树到索引原理到存储的细节。</p>
-<p>　　InnoDB是Mysql的默认存储引擎(Mysql5.5.5之前是MyISAM，文档)。本着高效学习的目的，本篇以介绍InnoDB为主，少量涉及MyISAM作为对比。</p>
-<p>　　这篇文章是我在学习过程中总结完成的，内容主要来自书本和博客(参考文献会给出)，过程中加入了一些自己的理解，描述不准确的地方烦请指出。</p>
-<h2 id="各种树形结构"><a href="#各种树形结构" class="headerlink" title="各种树形结构"></a>各种树形结构</h2><p>本来不打算从二叉搜索树开始，因为网上已经有太多相关文章，但是考虑到清晰的图示对理解问题有很大帮助，也为了保证文章完整性，最后还是加上了这部分。  </p>
-<p>先看看几种树形结构：</p>
-<ol>
-<li><p>搜索二叉树：每个节点有两个子节点，数据量的增大必然导致高度的快速增加，显然这个不适合作为大量数据存储的基础结构。</p>
+        <h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><ol>
+<li><p>使用linux命令service 启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysqld start</div></pre></td></tr></table></figure>
 </li>
-<li><p>B树：一棵m阶B树是一棵平衡的m路搜索树。最重要的性质是每个非根节点所包含的关键字个数 j 满足：┌m/2┐ - 1 &lt;= j &lt;= m - 1；一个节点的子节点数量会比关键字个数多1，这样关键字就变成了子节点的分割标志。一般会在图示中把关键字画到子节点中间，非常形象，也容易和后面的B+树区分。由于数据同时存在于叶子节点和非叶子结点中，无法简单完成按顺序遍历B树中的关键字，必须用中序遍历的方法。    </p>
+<li><p>使用 mysqld 脚本启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/etc/inint.d/mysqld start</div></pre></td></tr></table></figure>
 </li>
-<li><p>B+树：一棵m阶B树是一棵平衡的m路搜索树。最重要的性质是每个非根节点所包含的关键字个数 j 满足：┌m/2┐ - 1 &lt;= j &lt;= m；子树的个数最多可以与关键字一样多。非叶节点存储的是子树里最小的关键字。同时数据节点只存在于叶子节点中，且叶子节点间增加了横向的指针，这样顺序遍历所有数据将变得非常容易。    </p>
-</li>
-<li><p>B*树：一棵m阶B树是一棵平衡的m路搜索树。最重要的两个性质是1每个非根节点所包含的关键字个数 j 满足：┌m2/3┐ - 1 &lt;= j &lt;= m；2非叶节点间添加了横向指针。  </p>
+<li><p>使用 safe_mysqld 启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">safe_mysqld&amp;</div></pre></td></tr></table></figure>
 </li>
 </ol>
-<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091300383225.PNG" alt="image"><br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091308112206.PNG" alt="image"><br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091317678858.PNG" alt="image"> </p>
-<p>B/B+/B*三种树有相似的操作，比如检索/插入/删除节点。这里只重点关注插入节点的情况，且只分析他们在当前节点已满情况下的插入操作，因为这个动作稍微复杂且能充分体现几种树的差异。与之对比的是检索节点比较容易实现，而删除节点只要完成与插入相反的过程即可（在实际应用中删除并不是插入的完全逆操作，往往只删除数据而保留下空间为后续使用）。</p>
-<p>先看B树的分裂，下图的红色值即为每次新插入的节点。每当一个节点满后，就需要发生分裂（分裂是一个递归过程，参考下面7的插入导致了两层分裂），由于B树的非叶子节点同样保存了键值，所以已满节点分裂后的值将分布在三个地方：1原节点，2原节点的父节点，3原节点的新建兄弟节点（参考5，7的插入过程）。分裂有可能导致树的高度增加（参考3，7的插入过程），也可能不影响树的高度（参考5，6的插入过程）。    </p>
-<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091402944893.PNG" alt="image"><br>B+树的分裂：当一个结点满时，分配一个新的结点，并将原结点中1/2的数据复制到新结点，最后在父结点中增加新结点的指针；B+树的分裂只影响原结点和父结点，而不会影响兄弟结点，所以它不需要指向兄弟节点的指针。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091412822063.PNG" alt="image"><br>B<em>树的分裂：当一个结点满时，如果它的下一个兄弟结点未满，那么将一部分数据移到兄弟结点中，再在原结点插入关键字，最后修改父结点中兄弟结点的关键字（因为兄弟结点的关键字范围改变了）。如果兄弟也满了，则在原结点与兄弟结点之间增加新结点，并各复制1/3的数据到新结点，最后在父结点增加新结点的指针。可以看到B</em>树的分裂非常巧妙，因为B<em>树要保证分裂后的节点还要2/3满，如果采用B+树的方法，只是简单的将已满的节点一分为二，会导致每个节点只有1/2满，这不满足B</em>树的要求了。所以B<em>树采取的策略是在本节点满后，继续插入兄弟节点（这也是为什么B</em>树需要在非叶子节点加一个兄弟间的链表），直到把兄弟节点也塞满，然后拉上兄弟节点一起凑份子，自己和兄弟节点各出资1/3成立新节点，这样的结果是3个节点刚好是2/3满，达到B*树的要求，皆大欢喜。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091423290770.PNG" alt="image"><br>B+树适合作为数据库的基础结构，完全是因为计算机的内存-机械硬盘两层存储结构。内存可以完成快速的随机访问（随机访问即给出任意一个地址，要求返回这个地址存储的数据）但是容量较小。而硬盘的随机访问要经过机械动作（1磁头移动 2盘片转动），访问效率比内存低几个数量级，但是硬盘容量较大。典型的数据库容量大大超过可用内存大小，这就决定了在B+树中检索一条数据很可能要借助几次磁盘IO操作来完成。如下图所示：通常向下读取一个节点的动作可能会是一次磁盘IO操作，不过非叶节点通常会在初始阶段载入内存以加快访问速度。同时为提高在节点间横向遍历速度，真实数据库中可能会将图中蓝色的CPU计算/内存读取优化成二叉搜索树（InnoDB中的page directory机制）。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091432578535.PNG" alt="image"><br>真实数据库中的B+树应该是非常扁平的，可以通过向表中顺序插入足够数据的方式来验证InnoDB中的B+树到底有多扁平。我们通过如下图的CREATE语句建立一个只有简单字段的测试表，然后不断添加数据来填充这个表。通过下图的统计数据（来源见参考文献1）可以分析出几个直观的结论，这几个结论宏观的展现了数据库里B+树的尺度。  </p>
-<ol>
-<li><p>每个叶子节点存储了468行数据，每个非叶子节点存储了大约1200个键值，这是一棵平衡的1200路搜索树！</p>
+<h2 id="登录mysql后台"><a href="#登录mysql后台" class="headerlink" title="登录mysql后台"></a>登录mysql后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">格式： mysql -h主机地址 -u用户名 -p</div><div class="line"></div><div class="line">mysql -h110.110.110.110 -u root -p</div><div class="line"></div><div class="line">本地可以直接mysql –u root -p</div></pre></td></tr></table></figure>
+<h2 id="退出mysql后台"><a href="#退出mysql后台" class="headerlink" title="退出mysql后台"></a>退出mysql后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">quit</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><ol>
+<li><p>使用 service 启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysqld stop</div></pre></td></tr></table></figure>
 </li>
-<li><p>对于一个22.1G容量的表，也只需要高度为3的B+树就能存储了，这个容量大概能满足很多应用的需要了。如果把高度增大到4，则B+树的存储容量立刻增大到25.9T之巨！</p>
+<li><p>使用 mysqld 脚本启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/etc/inint.d/mysqld stop</div></pre></td></tr></table></figure>
 </li>
-<li><p>对于一个22.1G容量的表，B+树的高度是3，如果要把非叶节点全部加载到内存也只需要少于18.8M的内存（如何得出的这个结论？因为对于高度为2的树，1203个叶子节点也只需要18.8M空间，而22.1G从良表的高度是3，非叶节点1204个。同时我们假设叶子节点的尺寸是大于非叶节点的，因为叶子节点存储了行数据而非叶节点只有键和少量数据。），只使用如此少的内存就可以保证只需要一次磁盘IO操作就检索出所需的数据，效率是非常之高的。    </p>
+<li><p>客户端退出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysqladmin shutdown</div></pre></td></tr></table></figure>
 </li>
 </ol>
-<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091442379434.PNG" alt="image"> </p>
-<h2 id="Mysql的存储引擎和索引"><a href="#Mysql的存储引擎和索引" class="headerlink" title="Mysql的存储引擎和索引"></a>Mysql的存储引擎和索引</h2><p>可以说数据库必须有索引，没有索引则检索过程变成了顺序查找，O(n)的时间复杂度几乎是不能忍受的。我们非常容易想象出一个只有单关键字组成的表如何使用B+树进行索引，只要将关键字存储到树的节点即可。当数据库一条记录里包含多个字段时，一棵B+树就只能存储主键，如果检索的是非主键字段，则主键索引失去作用，又变成顺序查找了。这时应该在第二个要检索的列上建立第二套索引。 这个索引由独立的B+树来组织。有两种常见的方法可以解决多个B+树访问同一套表数据的问题，一种叫做<strong>聚簇索引</strong>（clustered index ），一种叫做<strong>非聚簇索引</strong>（secondary index）。这两个名字虽然都叫做索引，但这并不是一种单独的索引类型，而是一种数据存储方式。对于聚簇索引存储来说，行数据和主键B+树存储在一起，辅助键B+树只存储辅助键和主键，主键和非主键B+树几乎是两种类型的树。对于非聚簇索引存储来说，主键B+树在叶子节点存储指向真正数据行的指针，而非主键。  </p>
-<p><strong>InnoDB使用的是聚簇索引，将主键组织到一棵B+树中，而行数据就储存在叶子节点上，若使用”where id = 14”这样的条件查找主键，则按照B+树的检索算法即可查找到对应的叶节点，之后获得行数据。若对Name列进行条件搜索，则需要两个步骤：第一步在辅助索引B+树中检索Name，到达其叶子节点获取对应的主键。第二步使用主键在主索引B+树种再执行一次B+树检索操作，最终到达叶子节点即可获取整行数据。</strong>  </p>
-<p><strong>MyISM使用的是非聚簇索引，非聚簇索引的两棵B+树看上去没什么不同，节点的结构完全一致只是存储的内容不同而已，主键索引B+树的节点存储了主键，辅助键索引B+树存储了辅助键。表数据存储在独立的地方，这两棵B+树的叶子节点都使用一个地址指向真正的表数据，对于表数据来说，这两个键没有任何差别。由于索引树是独立的，通过辅助键检索无需访问主键的索引树。</strong></p>
-<p>为了更形象说明这两种索引的区别，我们假想一个表如下图存储了4行数据。其中Id作为主索引，Name作为辅助索引。图示清晰的显示了聚簇索引和非聚簇索引的差异。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091453469704.PNG" alt="image"><br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091503903957.PNG" alt="image"><br>我们重点关注聚簇索引，看上去聚簇索引的效率明显要低于非聚簇索引，因为每次使用辅助索引检索都要经过两次B+树查找，这不是多此一举吗？聚簇索引的优势在哪？</p>
-<ol>
-<li>由于行数据和叶子节点存储在一起，这样主键和行数据是一起被载入内存的，找到叶子节点就可以立刻将行数据返回了，如果按照主键Id来组织数据，获得数据更快。</li>
-<li>辅助索引使用主键作为”指针” 而不是使用地址值作为指针的好处是，减少了当出现行移动或者数据页分裂时辅助索引的维护工作，使用主键值当作指针会让辅助索引占用更多的空间，换来的好处是InnoDB在移动行时无须更新辅助索引中的这个”指针”。也就是说行的位置（实现中通过16K的Page来定位，后面会涉及）会随着数据库里数据的修改而发生变化（前面的B+树节点分裂以及Page的分裂），使用聚簇索引就可以保证不管这个主键B+树的节点如何变化，辅助索引树都不受影响。    </li>
-</ol>
-<h2 id="Page结构"><a href="#Page结构" class="headerlink" title="Page结构"></a>Page结构</h2><p>如果说前面的内容偏向于解释原理，那后面就开始涉及具体实现了。<br>理解InnoDB的实现不得不提Page结构，Page是整个InnoDB存储的最基本构件，也是InnoDB磁盘管理的最小单位，与数据库相关的所有内容都存储在这种Page结构里。Page分为几种类型，常见的页类型有<strong>数据页（B-tree Node）Undo页（Undo Log Page）系统页（System Page） 事务数据页（Transaction System Page）</strong>等。  </p>
-<p>单个Page的大小是16K（编译宏UNIV_PAGE_SIZE控制），每个Page使用一个32位的int值来唯一标识，这也正好对应InnoDB最大64TB的存储容量（16Kib * 2^32 = 64Tib）。一个Page的基本结构如下图所示：<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091512695110.PNG" alt="image"><br>每个Page都有通用的头和尾，但是中部的内容根据Page的类型不同而发生变化。Page的头部里有我们关心的一些数据，下图把Page的头部详细信息显示出来：<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091523976520.PNG" alt="image"><br>我们重点关注和数据组织结构相关的字段：Page的头部保存了两个指针，分别指向前一个Page和后一个Page，头部还有Page的类型信息和用来唯一标识Page的编号。根据这两个指针我们很容易想象出Page链接起来就是一个双向链表的结构。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091532199537.PNG" alt="image"><br>再看看Page的主体内容，我们主要关注行数据和索引的存储，他们都位于Page的User Records部分，User Records占据Page的大部分空间，User Records由一条一条的Record组成，每条记录代表索引树上的一个节点（非叶子节点和叶子节点）。在一个Page内部，单链表的头尾由固定内容的两条记录来表示，字符串形式的”Infimum”代表开头，”Supremum”代表结尾。这两个用来代表开头结尾的Record存储在System Records的段里，这个System Records和User Records是两个平行的段。 </p>
-<p>InnoDB存在4种不同的Record:</p>
-<ol>
-<li>主键索引树非叶节点</li>
-<li>主键索引树叶子节点</li>
-<li>辅助键索引树非叶节点</li>
-<li>辅助键索引树叶子节点。</li>
-</ol>
-<p>这4种节点的Record格式有一些差异，但是它们都存储着Next指针指向下一个Record。后续我们会详细介绍这4种节点，现在只需要把Record当成一个存储了数据同时含有Next指针的单链表节点即可。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091541081339.PNG" alt="image"><br>User Record在Page内以单链表的形式存在，最初数据是按照插入的先后顺序排列的，但是随着新数据的插入和旧数据的删除，数据物理顺序会变得混乱，但他们依然保持着逻辑上的先后顺序。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091551111655.PNG" alt="image"><br>把User Record的组织形式和若干Page组合起来，就看到了稍微完整的形式。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091600910753.PNG" alt="image">         </p>
-<p>现在看下如何定位一个Record：</p>
-<ol>
-<li>通过根节点开始遍历一个索引的B+树，通过各层非叶子节点最终到达一个Page，这个Page里存放的都是叶子节点。</li>
-<li>在Page内从”Infimum”节点开始遍历单链表（这种遍历往往会被优化），如果找到该键则成功返回。如果记录到达了”supremum”，说明当前Page里没有合适的键，这时要借助Page的Next Page指针，跳转到下一个Page继续从”Infimum”开始逐个查找。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091608678237.PNG" alt="image">    </li>
-</ol>
-<p>详细看下不同类型的Record里到底存储了什么数据，根据B+树节点的不同，User Record可以被分成四种格式，下图种按照颜色予以区分。  </p>
-<h3 id="主索引树非叶节点（绿色）"><a href="#主索引树非叶节点（绿色）" class="headerlink" title="主索引树非叶节点（绿色）"></a>主索引树非叶节点（绿色）</h3><ol>
-<li>子节点存储的主键里最小的值（Min Cluster Key on Child），这是B+树必须的，作用是在一个Page里定位到具体的记录的位置。</li>
-<li>最小的值所在的Page的编号（Child Page Number），作用是定位Record。</li>
-</ol>
-<h3 id="主索引树叶子节点（黄色）"><a href="#主索引树叶子节点（黄色）" class="headerlink" title="主索引树叶子节点（黄色）"></a>主索引树叶子节点（黄色）</h3><ol>
-<li>主键（Cluster Key Fields），B+树必须的，也是数据行的一部分</li>
-<li>除去主键以外的所有列（Non-Key Fields），这是数据行的除去主键的其他所有列的集合。</li>
-</ol>
-<p>这里的1和2两部分加起来就是一个完整的数据行。</p>
-<h3 id="辅助索引树非叶节点非（蓝色）"><a href="#辅助索引树非叶节点非（蓝色）" class="headerlink" title="辅助索引树非叶节点非（蓝色）"></a>辅助索引树非叶节点非（蓝色）</h3><ol>
-<li>子节点里存储的辅助键值里的最小的值（Min Secondary-Key on Child），这是B+树必须的，作用是在一个Page里定位到具体的记录的位置。</li>
-<li>主键值（Cluster Key Fields），非叶子节点为什么要存储主键呢？因为辅助索引是可以不唯一的，但是B+树要求键的值必须唯一，所以这里把辅助键的值和主键的值合并起来作为在B+树中的真正键值，保证了唯一性。但是这也导致在辅助索引B+树中非叶节点反而比叶子节点多了4个字节。（即下图中蓝色节点反而比红色多了4字节）</li>
-<li>最小的值所在的Page的编号（Child Page Number），作用是定位Record。</li>
-</ol>
-<h3 id="辅助索引树叶子节点（红色）"><a href="#辅助索引树叶子节点（红色）" class="headerlink" title="辅助索引树叶子节点（红色）"></a>辅助索引树叶子节点（红色）</h3><ol>
-<li>辅助索引键值（Secondary Key Fields），这是B+树必须的。</li>
-<li>主键值（Cluster Key Fields），用来在主索引树里再做一次B+树检索来找到整条记录。</li>
-</ol>
-<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091620754769.PNG" alt="image"><br>下面是本篇最重要的部分了，结合B+树的结构和前面介绍的4种Record的内容，我们终于可以画出一幅全景图。由于辅助索引的B+树与主键索引有相似的结构，这里只画出了主键索引树的结构图，只包含了”主键非叶节点”和”主键叶子节点”两种节点，也就是上图的的绿色和黄色的部分。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091631948071.PNG" alt="image"><br>把上图还原成下面这个更简洁的树形示意图，这就是B+树的一部分。注意Page和B+树节点之间并没有一一对应的关系，Page只是作为一个Record的保存容器，它存在的目的是便于对磁盘空间进行批量管理，上图中的编号为47的Page在树形结构上就被拆分成了两个独立节点。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091642165340.PNG" alt="image"><br>至此本篇就算结束了，本篇只是对InnoDB索引相关的数据结构和实现进行了一些梳理总结，并未涉及到Mysql的实战经验。这主要是基于几点原因：</p>
-<ol>
-<li>原理是基石，只有充分了解InnoDB索引的工作方式，我们才有能力高效的使用好它。</li>
-<li>原理性知识特别适合使用图示，我个人非常喜欢这种表达方式。</li>
-<li>关于InnoDB优化，在《高性能Mysql》里有更加全面的介绍，</li>
+<h2 id="重启"><a href="#重启" class="headerlink" title="重启"></a>重启</h2><ol>
+<li><p>使用 service 启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysqld restart</div></pre></td></tr></table></figure>
+</li>
+<li><p>使用 mysqld 脚本启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/etc/inint.d/mysqld restart</div></pre></td></tr></table></figure>
+</li>
 </ol>
 
       
@@ -372,7 +253,76 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql索引原理/" data-id="cj6aobw590089udbla7osx695" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/启动和停止命令/" data-id="cj6arwhhp00aeymbllparrt19" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/锁机制" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/锁机制/">锁机制</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/锁机制/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>MySQL有三种锁的级别：</p>
+<ul>
+<li>页级</li>
+<li>表级</li>
+<li>行级。</li>
+</ul>
+<p>MyISAM和MEMORY存储引擎采用的是表级锁（table-level locking）； </p>
+<p>BDB存储引擎采用的是页面锁（page-level locking），但也支持表级锁；</p>
+<p>InnoDB存储引擎既支持行级锁（row-level locking），也支持表级锁，但默认情况下是采用行级锁。</p>
+<p>MySQL这3种锁的特性可大致归纳如下：</p>
+<ul>
+<li>表级锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。</li>
+<li>行级锁：开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低,并发度也最高。</li>
+<li>页面锁：开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。</li>
+</ul>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/锁机制/" data-id="cj6arwhhr00alymbl5rit90cm" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -429,79 +379,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Data Redis/配置/" data-id="cj6aobw3k0065udblis1pjlbg" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/队列/ArrayBlockingQueue 和LinkedBlockingQueue源码解析" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/队列/ArrayBlockingQueue 和LinkedBlockingQueue源码解析/">ArrayBlockingQueue 和LinkedBlockingQueue源码解析</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/队列/ArrayBlockingQueue 和LinkedBlockingQueue源码解析/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/队列/">队列</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="ArrayBlockingQueue源码分析"><a href="#ArrayBlockingQueue源码分析" class="headerlink" title="ArrayBlockingQueue源码分析"></a>ArrayBlockingQueue源码分析</h3><p>ArrayBlockingQueue是一个由数组支持的有界阻塞队列。此队列按 FIFO（先进先出）原则对元素进行排序。队列的头部 是在队列中存在时间最长的元素，队列的尾部 是在队列中存在时间最短的元素。新元素插入到队列的尾部，队列检索操作则是从队列头部开始获得元素。    </p>
-<p>这是一个典型的“有界缓存区”，固定大小的数组在其中保持生产者插入的元素和使用者提取的元素。一旦创建了这样的缓存区，就不能再增加其容量。试图向已满队列中放入元素会导致放入操作受阻塞；试图从空队列中检索元素将导致类似阻塞。  </p>
-<p> ArrayBlockingQueue创建的时候需要指定容量capacity(可以存储的最大的元素个数，因为它不会自动扩容)。其中一个构造方法为：<br> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"> public ArrayBlockingQueue(int capacity, boolean fair) &#123;  </div><div class="line">    	if (capacity &lt;= 0)  throw new IllegalArgumentException();  </div><div class="line">    	this.items = (E[]) new Object[capacity];  </div><div class="line">    	lock = new ReentrantLock(fair);  </div><div class="line">    	notEmpty = lock.newCondition();  </div><div class="line">    	notFull =  lock.newCondition();  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>ArrayBlockingQueue类中定义的变量有：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">/** The queued items */</div><div class="line">final Object[] items;</div><div class="line"></div><div class="line">/** items index for next take, poll, peek or remove */</div><div class="line">int takeIndex;</div><div class="line"></div><div class="line">/** items index for next put, offer, or add */</div><div class="line">int putIndex;</div><div class="line"></div><div class="line">/** Number of elements in the queue */</div><div class="line">int count;</div><div class="line"></div><div class="line">/*</div><div class="line"> * Concurrency control uses the classic two-condition algorithm</div><div class="line"> * found in any textbook.</div><div class="line"> */</div><div class="line"></div><div class="line">/** Main lock guarding all access */</div><div class="line">final ReentrantLock lock;</div><div class="line"></div><div class="line">/** Condition for waiting takes */</div><div class="line">private final Condition notEmpty;</div><div class="line"></div><div class="line">/** Condition for waiting puts */</div><div class="line">private final Condition notFull;</div><div class="line"></div><div class="line">/**</div><div class="line"> * Shared state for currently active iterators, or null if there</div><div class="line"> * are known not to be any.  Allows queue operations to update</div><div class="line"> * iterator state.</div><div class="line"> */</div><div class="line">transient Itrs itrs = null;</div></pre></td></tr></table></figure></p>
-<p>使用数组items来存储元素，由于是循环队列，使用takeIndex和putIndex来标记put和take的位置。可以看到，该类中只定义了一个锁ReentrantLock，定义两个Condition对象：notEmputy和notFull，分别用来对take和put操作进行所控制。注：本文主要讲解put()和take()操作,其他方法类似。 </p>
-<p>put(E e)方法的源码如下。进行put操作之前，必须获得锁并进行加锁操作，以保证线程安全性。加锁后，若发现队列已满，则调用notFull.await()方法，如当前线程陷入等待。直到其他线程take走某个元素后，会调用notFull.signal()方法来激活该线程。激活之后，继续下面的插入操作。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">public void put(E e) throws InterruptedException &#123;</div><div class="line">        checkNotNull(e);</div><div class="line">        final ReentrantLock lock = this.lock;</div><div class="line">        lock.lockInterruptibly();</div><div class="line">        try &#123;</div><div class="line">            //当队列满时，调用notFull.await()方法，使该线程阻塞。         </div><div class="line">            //直到take掉某个元素后，调用notFull.signal()方法激活该线程。</div><div class="line">            while (count == items.length)</div><div class="line">                notFull.await();</div><div class="line">            enqueue(e);</div><div class="line">        &#125; finally &#123;</div><div class="line">            lock.unlock();</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure></p>
-<p>take()方法代码如下。take操作和put操作相反，故不作详细介绍。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">public E take() throws InterruptedException &#123;</div><div class="line">    final ReentrantLock lock = this.lock;</div><div class="line">    lock.lockInterruptibly();</div><div class="line">    try &#123;</div><div class="line">        //当队列空时，调用notEmpty.await()方法，使该线程阻塞。</div><div class="line">        while (count == 0)</div><div class="line">            notEmpty.await();</div><div class="line">        return dequeue();</div><div class="line">    &#125; finally &#123;</div><div class="line">        lock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"> /**</div><div class="line"> * Extracts element at current take position, advances, and signals.</div><div class="line"> * Call only when holding lock.</div><div class="line"> */</div><div class="line">private E dequeue() &#123;</div><div class="line">    // assert lock.getHoldCount() == 1;</div><div class="line">    // assert items[takeIndex] != null;</div><div class="line">    final Object[] items = this.items;</div><div class="line">    @SuppressWarnings(&quot;unchecked&quot;)</div><div class="line">    E x = (E) items[takeIndex];//从队列中取出元素</div><div class="line">    items[takeIndex] = null;</div><div class="line">    if (++takeIndex == items.length)</div><div class="line">        takeIndex = 0;</div><div class="line">    count--;</div><div class="line">    if (itrs != null)</div><div class="line">        itrs.elementDequeued();</div><div class="line">    notFull.signal();//激活线程</div><div class="line">    return x;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p><strong>小结：进行put和take操作，共用同一个锁对象。也即是说，put和take无法并行执行！</strong></p>
-<h3 id="LinkedBlockingQueue-源码分析"><a href="#LinkedBlockingQueue-源码分析" class="headerlink" title="LinkedBlockingQueue 源码分析"></a>LinkedBlockingQueue 源码分析</h3><p>基于链表的阻塞队列，同ArrayListBlockingQueue类似，其内部也维持着一个数据缓冲队列（该队列由一个链表构成），当生产者往队列中放入一个数据时，队列会从生产者手中获取数据，并缓存在队列内部，而生产者立即返回；只有当队列缓冲区达到最大值缓存容量时（LinkedBlockingQueue可以通过构造函数指定该值），才会阻塞生产者队列，直到消费者从队列中消费掉一份数据，生产者线程会被唤醒，反之对于消费者这端的处理也基于同样的原理。而LinkedBlockingQueue之所以能够高效的处理并发数据，还因为其对于生产者端和消费者端分别采用了独立的锁来控制数据同步，这也意味着在高并发的情况下生产者和消费者可以并行地操作队列中的数据，以此来提高整个队列的并发性能。  </p>
-<p>作为开发者，我们需要注意的是，如果构造一个LinkedBlockingQueue对象，而没有指定其容量大小，LinkedBlockingQueue会默认一个类似无限大小的容量（Integer.MAX_VALUE），这样的话，如果生产者的速度一旦大于消费者的速度，也许还没有等到队列满阻塞产生，系统内存就有可能已被消耗殆尽了。  </p>
-<p>LinkedBlockingQueue 类中定义的变量有：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">/** The capacity bound, or Integer.MAX_VALUE if none */</div><div class="line">private final int capacity;</div><div class="line"></div><div class="line">/** Current number of elements */</div><div class="line">private final AtomicInteger count = new AtomicInteger();</div><div class="line"></div><div class="line">/**</div><div class="line"> * Head of linked list.</div><div class="line"> * Invariant: head.item == null</div><div class="line"> */</div><div class="line">transient Node&lt;E&gt; head;</div><div class="line"></div><div class="line">/**</div><div class="line"> * Tail of linked list.</div><div class="line"> * Invariant: last.next == null</div><div class="line"> */</div><div class="line">private transient Node&lt;E&gt; last;</div><div class="line"></div><div class="line">/** Lock held by take, poll, etc */</div><div class="line">private final ReentrantLock takeLock = new ReentrantLock();</div><div class="line"></div><div class="line">/** Wait queue for waiting takes */</div><div class="line">private final Condition notEmpty = takeLock.newCondition();</div><div class="line"></div><div class="line">/** Lock held by put, offer, etc */</div><div class="line">private final ReentrantLock putLock = new ReentrantLock();</div><div class="line"></div><div class="line">/** Wait queue for waiting puts */</div><div class="line">private final Condition notFull = putLock.newCondition();</div></pre></td></tr></table></figure></p>
-<p>该类中定义了两个ReentrantLock锁：putLock和takeLock，分别用于put端和take端。也就是说，生成端和消费端各自独立拥有一把锁，避免了读（take）写（put）时互相竞争锁的情况。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">public void put(E e) throws InterruptedException &#123;</div><div class="line">    if (e == null) throw new NullPointerException();</div><div class="line">    // Note: convention in all put/take/etc is to preset local var</div><div class="line">    // holding count negative to indicate failure unless set.</div><div class="line">    int c = -1;</div><div class="line">    Node&lt;E&gt; node = new Node&lt;E&gt;(e);</div><div class="line">    final ReentrantLock putLock = this.putLock;</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    putLock.lockInterruptibly();</div><div class="line">    try &#123;</div><div class="line">        /*</div><div class="line">         * Note that count is used in wait guard even though it is</div><div class="line">         * not protected by lock. This works because count can</div><div class="line">         * only decrease at this point (all other puts are shut</div><div class="line">         * out by lock), and we (or some other waiting put) are</div><div class="line">         * signalled if it ever changes from capacity. Similarly</div><div class="line">         * for all other uses of count in other wait guards.</div><div class="line">         */</div><div class="line">        //当队列满时，调用notFull.await()方法释放锁，陷入等待状态。  </div><div class="line">	//有两种情况会激活该线程  </div><div class="line">	//第一、 某个put线程添加元素后，发现队列有空余，就调用notFull.signal()方法激活阻塞线程  </div><div class="line">	//第二、 take线程取元素时，发现队列已满。则其取出元素后，也会调用notFull.signal()方法激活阻塞线程</div><div class="line">        while (count.get() == capacity) &#123;</div><div class="line">            notFull.await();</div><div class="line">        &#125;</div><div class="line">        // 把元素 e 添加到队列中（队尾）</div><div class="line">        enqueue(node);</div><div class="line">        c = count.getAndIncrement();</div><div class="line">        //发现队列未满，调用notFull.signal()激活阻塞的put线程（可能存在）</div><div class="line">        if (c + 1 &lt; capacity)</div><div class="line">            notFull.signal();</div><div class="line">    &#125; finally &#123;</div><div class="line">        putLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == 0)</div><div class="line">        //队列空，说明已经有take线程陷入阻塞，故调用signalNotEmpty激活阻塞的take线程  </div><div class="line">        signalNotEmpty();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>enqueue(E e)方法如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Links node at end of queue.</div><div class="line"> *</div><div class="line"> * @param node the node</div><div class="line"> */</div><div class="line">private void enqueue(Node&lt;E&gt; node) &#123;</div><div class="line">    // assert putLock.isHeldByCurrentThread();</div><div class="line">    // assert last.next == null;</div><div class="line">    last = last.next = node;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>signalNotEmpty方法如下：激活“不为空”线程<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Signals a waiting take. Called only from put/offer (which do not</div><div class="line"> * otherwise ordinarily lock takeLock.)</div><div class="line"> */</div><div class="line">private void signalNotEmpty() &#123;</div><div class="line">    final ReentrantLock takeLock = this.takeLock;</div><div class="line">    takeLock.lock();</div><div class="line">    try &#123;</div><div class="line">        notEmpty.signal();</div><div class="line">    &#125; finally &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>take()方法代码如下。take操作和put操作相反，故不作详细介绍。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">public E take() throws InterruptedException &#123;</div><div class="line">    E x;</div><div class="line">    int c = -1;</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    final ReentrantLock takeLock = this.takeLock;</div><div class="line">    takeLock.lockInterruptibly();</div><div class="line">    try &#123;</div><div class="line">        //队列元素为0，阻塞“不为空”线程</div><div class="line">        while (count.get() == 0) &#123;</div><div class="line">            notEmpty.await();</div><div class="line">        &#125;</div><div class="line">        x = dequeue();//出列</div><div class="line">        c = count.getAndDecrement();</div><div class="line">        if (c &gt; 1)</div><div class="line">            notEmpty.signal();//队列元素&gt;0，激活“不为空”线程</div><div class="line">    &#125; finally &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == capacity)</div><div class="line">        signalNotFull();</div><div class="line">    return x;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>dequeue()方法如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Removes a node from head of queue.</div><div class="line"> *</div><div class="line"> * @return the node</div><div class="line"> */</div><div class="line">private E dequeue() &#123;</div><div class="line">    // assert takeLock.isHeldByCurrentThread();</div><div class="line">    // assert head.item == null;</div><div class="line">    Node&lt;E&gt; h = head;</div><div class="line">    Node&lt;E&gt; first = h.next;</div><div class="line">    h.next = h; // help GC</div><div class="line">    head = first;</div><div class="line">    E x = first.item;</div><div class="line">    first.item = null;</div><div class="line">    return x;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>signalNotFull方法如下：激活“未满”线程<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Signals a waiting put. Called only from take/poll.</div><div class="line"> */</div><div class="line">private void signalNotFull() &#123;</div><div class="line">    final ReentrantLock putLock = this.putLock;</div><div class="line">    putLock.lock();</div><div class="line">    try &#123;</div><div class="line">        notFull.signal();</div><div class="line">    &#125; finally &#123;</div><div class="line">        putLock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p><strong>小结：take和put操作各有一把锁，可并行读取。</strong></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/ArrayBlockingQueue 和LinkedBlockingQueue源码解析/" data-id="cj6aobw2p004zudblghi5pr1z" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Data Redis/配置/" data-id="cj6arwhfl006bymbljgogvh5b" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -561,7 +439,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/GitHub/安装gogs本地git服务器/" data-id="cj6aobvwy0003udblwdsutkg9" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/GitHub/安装gogs本地git服务器/" data-id="cj6arwha50000ymblpwa69xoy" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -575,13 +453,13 @@
 
 
   
-    <article id="post-Java/加密解密／编码解码/StandardPasswordEncoder" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Linux/activemq安装和配置" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/加密解密／编码解码/StandardPasswordEncoder/">StandardPasswordEncoder</a>
+      <a class="article-title" href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
     </h1>
   
 
@@ -590,13 +468,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Java/加密解密／编码解码/StandardPasswordEncoder/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Linux/activemq安装和配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a>
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
   </div>
 
 
@@ -605,12 +483,21 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="Spring-Security-3-1-中功能强大的加密工具-PasswordEncoder"><a href="#Spring-Security-3-1-中功能强大的加密工具-PasswordEncoder" class="headerlink" title="Spring Security 3.1 中功能强大的加密工具 PasswordEncoder"></a>Spring Security 3.1 中功能强大的加密工具 PasswordEncoder</h2><p>Spring-Security 3.1.0 版本之后，Spring-security-crypto模块中的password包提供了更给力的加密密码的支持，这个包中也有PasswordEncoder接口，接口定义如下。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Public <span class="class"><span class="keyword">interface</span> <span class="title">PasswordEncoder</span></span>&#123;  </div><div class="line">  <span class="function">String <span class="title">encode</span><span class="params">(String rawPassword)</span></span>;  </div><div class="line">  <span class="function">Boolean <span class="title">matches</span><span class="params">(String rawPassword,String encodedPassword)</span></span>;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>定义了两个方法，encode方法是对方法加密，而match方法是用来验证密码和加密后密码是否一致的，如果一致则返回true。和authentication.encoding包中的PasswordEncoder接口相比，简化了许多。  </p>
-<p>StandardPasswordEncoder类，是PasswordEncoder接口的(唯一)一个实现类，是本文所述加密方法的核心。它采用SHA-256算法，迭代1024次，使用一个密钥(site-wide secret)以及8位随机盐对原密码进行加密。    </p>
-<p>随机盐确保相同的密码使用多次时，产生的哈希都不同； 密钥应该与密码区别开来存放，加密时使用一个密钥即可；对hash算法迭代执行1024次增强了安全性，使暴力破解变得更困难些。    </p>
-<p>和上一个版本的PasswordEncoder比较，好处显而易见：盐值不用用户提供，每次随机生成；多重加密————迭代SHA算法+密钥+随机盐来对密码加密，大大增加密码破解难度。 </p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> com.lhc.utils;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.springframework.security.crypto.password.PasswordEncoder;</div><div class="line"><span class="keyword">import</span> org.springframework.security.crypto.password.StandardPasswordEncoder;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> *  密码处理工具</div><div class="line"> * <span class="doctag">@author</span> chenliqiang</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EncryptUtil</span> </span>&#123;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String SITE_WIDE_SECRET = <span class="string">"clq"</span>;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> PasswordEncoder encoder = <span class="keyword">new</span> StandardPasswordEncoder(SITE_WIDE_SECRET);</div><div class="line"></div><div class="line">	<span class="comment">/**</span></div><div class="line">	 * 加密</div><div class="line">	 * <span class="doctag">@param</span> rawPassword</div><div class="line">	 * <span class="doctag">@return</span></div><div class="line">	 */</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">encrypt</span><span class="params">(String rawPassword)</span> </span>&#123;</div><div class="line">		<span class="keyword">return</span> encoder.encode(rawPassword);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">/**</span></div><div class="line">	 *  校验密码是否匹配</div><div class="line">	 * <span class="doctag">@param</span> rawPassword 原始密码</div><div class="line">	 * <span class="doctag">@param</span> password 加密后的密码</div><div class="line">	 * <span class="doctag">@return</span></div><div class="line">	 */</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">match</span><span class="params">(String rawPassword, String password)</span> </span>&#123;</div><div class="line">		<span class="keyword">return</span> encoder.matches(rawPassword, password);</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">		String s = <span class="string">"每次结果都不一样伐?"</span>;</div><div class="line">		String s1 = EncryptUtil.encrypt(s);</div><div class="line">		String s2 = EncryptUtil.encrypt(s);</div><div class="line">        System.out.println(s1);  </div><div class="line">        System.out.println(s2);  </div><div class="line">        System.out.println(match(s, s2));  </div><div class="line">        <span class="comment">//但是把每次结果拿出来进行match，你会发现可以得到true。  </span></div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+        <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><ol>
+<li>下载安装包</li>
+<li>将安装包放到/usr目录</li>
+<li><p>解压安装包</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo tar xvfz 包名</div></pre></td></tr></table></figure>
+</li>
+<li><p>进入bin目录</p>
+</li>
+<li>启动：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./activemq start</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="查看安装目录"><a href="#查看安装目录" class="headerlink" title="查看安装目录"></a>查看安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">whereis activemq</div></pre></td></tr></table></figure>
+<h2 id="查看61616端口是否正常启动"><a href="#查看61616端口是否正常启动" class="headerlink" title="查看61616端口是否正常启动"></a>查看61616端口是否正常启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">netstat -an | grep 61616</div></pre></td></tr></table></figure>
+<h2 id="查看进程"><a href="#查看进程" class="headerlink" title="查看进程"></a>查看进程</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ps -ef | grep activemq</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入bin目录</div><div class="line">./activemq stop</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -620,7 +507,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/加密解密／编码解码/StandardPasswordEncoder/" data-id="cj6aobw0h002sudblkmax2pb7" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/activemq安装和配置/" data-id="cj6arwhae0003ymblrxiipcw7" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -678,7 +565,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/apt-get常用命令/" data-id="cj6aobvwz0004udbl1rp28ztz" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/apt-get常用命令/" data-id="cj6arwhaf0004ymblwne771dy" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -740,7 +627,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/数据类型/BigDecimal/" data-id="cj6aobw0o002xudblnpv2mjib" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/数据类型/BigDecimal/" data-id="cj6arwhdx0036ymblo57skbao" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -804,7 +691,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/日记/spring配置log4j/" data-id="cj6aobw0q002zudbliz745ocl" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/日记/spring配置log4j/" data-id="cj6arwhdx0038ymblzrzc590h" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -818,13 +705,13 @@
 
 
   
-    <article id="post-Java/线程/ExecutorService线程池" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/网络NIO/Buffer" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/线程/ExecutorService线程池/">ExecutorService线程池</a>
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/Buffer/">Buffer</a>
     </h1>
   
 
@@ -833,13 +720,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Java/线程/ExecutorService线程池/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Java/网络NIO/Buffer/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/线程/">线程</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
   </div>
 
 
@@ -848,61 +735,77 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="new-Thread的弊端"><a href="#new-Thread的弊端" class="headerlink" title="new Thread的弊端"></a>new Thread的弊端</h2><p>执行一个异步任务你还只是如下new Thread吗？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">new Thread(new Runnable() &#123;</div><div class="line"></div><div class="line">@Override</div><div class="line">public void run() &#123;</div><div class="line">// TODO Auto-generated method stub</div><div class="line">&#125;</div><div class="line">&#125;).start();</div></pre></td></tr></table></figure></p>
-<p>那你就out太多了，new Thread的弊端如下：</p>
+        <p>Java NIO中的Buffer用于和NIO通道进行交互。如你所知，数据是从通道读入缓冲区，从缓冲区写入到通道中的。  </p>
+<p>缓冲区本质上是一块可以写入数据，然后可以从中读取数据的内存。这块内存被包装成NIO Buffer对象，并提供了一组方法，用来方便的访问该块内存。  </p>
+<h2 id="Buffer的基本用法"><a href="#Buffer的基本用法" class="headerlink" title="Buffer的基本用法"></a>Buffer的基本用法</h2><p>使用Buffer读写数据一般遵循以下四个步骤：</p>
 <ol>
-<li>每次new Thread新建对象性能差。</li>
-<li>线程缺乏统一管理，可能无限制新建线程，相互之间竞争，及可能占用过多系统资源导致死机或oom。</li>
-<li>缺乏更多功能，如定时执行、定期执行、线程中断。</li>
+<li>写入数据到Buffer</li>
+<li>调用flip()方法</li>
+<li>从Buffer中读取数据</li>
+<li>调用clear()方法或者compact()方法</li>
 </ol>
-<p>相比new Thread，Java提供的四种线程池的好处在于：</p>
+<p>当向buffer写入数据时，buffer会记录下写了多少数据。一旦要读取数据，需要通过flip()方法将Buffer从写模式切换到读模式。在读模式下，可以读取之前写入到buffer的所有数据。</p>
+<p>一旦读完了所有的数据，就需要清空缓冲区，让它可以再次被写入。有两种方式能清空缓冲区：调用clear()或compact()方法。<strong>clear()方法会清空整个缓冲区。compact()方法只会清除已经读过的数据。任何未读的数据都被移到缓冲区的起始处，新写入的数据将放到缓冲区未读数据的后面</strong>。</p>
+<h3 id="Buffer的capacity-position和limit"><a href="#Buffer的capacity-position和limit" class="headerlink" title="Buffer的capacity,position和limit"></a>Buffer的capacity,position和limit</h3><p>缓冲区本质上是一块可以写入数据，然后可以从中读取数据的内存。这块内存被包装成NIO Buffer对象，并提供了一组方法，用来方便的访问该块内存。  </p>
+<p>为了理解Buffer的工作原理，需要熟悉它的三个属性：<br>capacity，position，limit   </p>
+<p>position和limit的含义取决于Buffer处在读模式还是写模式。不管Buffer处在什么模式，capacity的含义总是一样的。</p>
+<p>这里有一个关于capacity，position和limit在读写模式中的说明，详细的解释在插图后面。<br><img src="http://ifeve.com/wp-content/uploads/2013/06/buffers-modes.png" alt="image"></p>
+<h4 id="capacity"><a href="#capacity" class="headerlink" title="capacity"></a>capacity</h4><p><strong>作为一个内存块，Buffer有一个固定的大小值，也叫“capacity”</strong>.你只能往里写capacity个byte、long，char等类型。一旦Buffer满了，需要将其清空（通过读数据或者清除数据）才能继续写数据往里写数据。</p>
+<h4 id="position"><a href="#position" class="headerlink" title="position"></a>position</h4><p>当你写数据到Buffer中时，position表示当前的位置。初始的position值为0.当一个byte、long等数据写到Buffer后， position会向前移动到下一个可插入数据的Buffer单元。</p>
+<p>当读取数据时，也是从某个特定位置读。<strong>当将Buffer从写模式切换到读模式，position会被重置为0. 当从Buffer的position处读取数据时，position向前移动到下一个可读的位置</strong>。</p>
+<h4 id="limit"><a href="#limit" class="headerlink" title="limit"></a>limit</h4><p><strong>在读模式下，Buffer的limit表示你往Buffer里写了多少数据。 写模式下，limit等于Buffer的capacity</strong>。</p>
+<p>当切换Buffer到读模式时， limit表示你最多能读到多少数据。因此，<strong>当切换Buffer到读模式时，limit会被设置成写模式下的position值</strong>。换句话说，你能读到之前写入的所有数据（limit被设置成已写数据的数量，这个值在写模式下就是position）</p>
+<h2 id="Buffer的类型"><a href="#Buffer的类型" class="headerlink" title="Buffer的类型"></a>Buffer的类型</h2><p>Java NIO 有以下Buffer类型：</p>
+<ul>
+<li>ByteBuffer</li>
+<li>MappedByteBuffer</li>
+<li>CharBuffer</li>
+<li>DoubleBuffer</li>
+<li>FloatBuffer</li>
+<li>IntBuffer</li>
+<li>LongBuffer</li>
+<li>ShortBuffer</li>
+</ul>
+<p>如你所见，这些Buffer类型代表了不同的数据类型。换句话说，就是可以通过char，short，int，long，float 或 double类型来操作缓冲区中的字节。</p>
+<h2 id="Buffer的分配"><a href="#Buffer的分配" class="headerlink" title="Buffer的分配"></a>Buffer的分配</h2><p>要想获得一个Buffer对象首先要进行分配。 每一个Buffer类都有一个allocate方法。下面是一个分配48字节capacity的ByteBuffer的例子。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ByteBuffer buf = ByteBuffer.allocate(48);</div></pre></td></tr></table></figure></p>
+<p>这是分配一个可存储1024个字符的CharBuffer：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">CharBuffer buf = CharBuffer.allocate(1024);</div></pre></td></tr></table></figure></p>
+<h2 id="向Buffer中写数据"><a href="#向Buffer中写数据" class="headerlink" title="向Buffer中写数据"></a>向Buffer中写数据</h2><p>写数据到Buffer有两种方式：</p>
 <ol>
-<li>重用存在的线程，减少对象创建、消亡的开销，性能佳。</li>
-<li>可有效控制最大并发线程数，提高系统资源的使用率，同时避免过多资源竞争，避免堵塞。</li>
-<li>提供定时执行、定期执行、单线程、并发数控制等功能。</li>
+<li>从Channel写到Buffer。</li>
+<li>通过Buffer的put()方法写到Buffer里。</li>
 </ol>
-<h2 id="几种不同的ExecutorService线程池对象"><a href="#几种不同的ExecutorService线程池对象" class="headerlink" title="几种不同的ExecutorService线程池对象"></a>几种不同的ExecutorService线程池对象</h2><h3 id="newCachedThreadPool"><a href="#newCachedThreadPool" class="headerlink" title="newCachedThreadPool"></a>newCachedThreadPool</h3><ul>
-<li>不定长可缓存线程池，空闲线程缓存60秒，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程，最大值为Integer.MAX_VALUE,也可以说是无限容量</li>
-<li>缓存型池子，先查看池中有没有以前建立的线程，如果有，就重用,如果没有，就建一个新的线程加入池中</li>
-<li>缓存型池子通常用于执行一些生存期很短的异步型任务</li>
-<li>能重用的线程，必须是timeout IDLE内的池中线程，缺省timeout是60s,超过这个IDLE时长，线程实例将被终止及移出池。<br>注意，放入CachedThreadPool的线程不必担心其结束，超过TIMEOUT不活动，其会自动被终止。</li>
-</ul>
-<h4 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h4><p>创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程。示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">ExecutorService cachedThreadPool = Executors.newCachedThreadPool();</div><div class="line">for (int i = 0; i &lt; 10; i++) &#123;</div><div class="line">	final int index = i;</div><div class="line">	try &#123;</div><div class="line">		Thread.sleep(index * 1000);</div><div class="line">	&#125; catch (InterruptedException e) &#123;</div><div class="line">		e.printStackTrace();</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	cachedThreadPool.execute(new Runnable() &#123;</div><div class="line"></div><div class="line">		@Override</div><div class="line">		public void run() &#123;</div><div class="line">			System.out.println(index);</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>线程池为无限大，当执行第二个任务时第一个任务已经完成，会复用执行第一个任务的线程，而不用每次新建线程。</p>
-<h3 id="newFixedThreadPool"><a href="#newFixedThreadPool" class="headerlink" title="newFixedThreadPool"></a>newFixedThreadPool</h3><ul>
-<li>一个定长线程池，空闲线程无缓存，可控制线程最大并发数，超出的线程会在队列中等待。</li>
-<li>newFixedThreadPool与cacheThreadPool差不多，也是能重用，但不能随时建新的线程</li>
-<li>其独特之处:任意时间点，最多只能有固定数目的活动线程存在，此时如果有新的线程要建立，只能放在另外的队列中等待，直到当前的线程中某个线程终止直接被移出池子</li>
-<li>和cacheThreadPool不同，FixedThreadPool没有IDLE机制（可能也有，但既然文档没提，肯定非常长，类似依赖上层的TCP或UDP IDLE机制之类的），所以FixedThreadPool多数针对一些很稳定很固定的正规并发线程，多用于服务器</li>
-<li>从方法的源代码看，cache池和fixed 池调用的是同一个底层池，只不过参数不同:<br>fixed池线程数固定，并且是0秒IDLE（无IDLE）<br>cache池线程数支持0-Integer.MAX_VALUE(显然完全没考虑主机的资源承受能力），60秒IDLE</li>
-</ul>
-<h4 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a>示例</h4><p>创建一个定长线程池，可控制线程最大并发数，超出的线程会在队列中等待。示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">ExecutorService fixedThreadPool = Executors.newFixedThreadPool(3);</div><div class="line">for (int i = 0; i &lt; 10; i++) &#123;</div><div class="line">	final int index = i;</div><div class="line">	fixedThreadPool.execute(new Runnable() &#123;</div><div class="line">	</div><div class="line">		@Override</div><div class="line">		public void run() &#123;</div><div class="line">			try &#123;</div><div class="line">				System.out.println(index);</div><div class="line">				Thread.sleep(2000);</div><div class="line">			&#125; catch (InterruptedException e) &#123;</div><div class="line">				// TODO Auto-generated catch block</div><div class="line">				e.printStackTrace();</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>因为线程池大小为3，每个任务输出index后sleep 2秒，所以每两秒打印3个数字。<br>定长线程池的大小最好根据系统资源进行设置。如Runtime.getRuntime().availableProcessors()。</p>
-<h3 id="ScheduledThreadPool"><a href="#ScheduledThreadPool" class="headerlink" title="ScheduledThreadPool"></a>ScheduledThreadPool</h3><ul>
-<li>一个定长线程池，空闲线程无缓存，支持定时及周期性任务执行</li>
-<li>调度型线程池</li>
-<li>这个池子里的线程可以按schedule依次delay执行，或周期执行</li>
-</ul>
-<h4 id="示例-2"><a href="#示例-2" class="headerlink" title="示例"></a>示例</h4><p>创建一个定长线程池，支持定时及周期性任务执行。延迟执行示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(5);</div><div class="line">scheduledThreadPool.schedule(new Runnable() &#123;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void run() &#123;</div><div class="line">		System.out.println(&quot;delay 3 seconds&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;, 3, TimeUnit.SECONDS);</div></pre></td></tr></table></figure></p>
-<p>表示延迟3秒执行。</p>
-<p>定期执行示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">scheduledThreadPool.scheduleAtFixedRate(new Runnable() &#123;</div><div class="line">	</div><div class="line">	@Override</div><div class="line">	public void run() &#123;</div><div class="line">		System.out.println(&quot;delay 1 seconds, and excute every 3 seconds&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;, 1, 3, TimeUnit.SECONDS);</div></pre></td></tr></table></figure></p>
-<h3 id="SingleThreadExecutor"><a href="#SingleThreadExecutor" class="headerlink" title="SingleThreadExecutor"></a>SingleThreadExecutor</h3><ul>
-<li>一个单线程化的线程池，空闲线程无缓存，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。</li>
-<li>单例线程，任意时间池中只能有一个线程</li>
-<li>用的是和cache池和fixed池相同的底层池，但线程数目是1-1,0秒IDLE（无IDLE）</li>
-</ul>
-<h4 id="示例-3"><a href="#示例-3" class="headerlink" title="示例"></a>示例</h4><p>创建一个单线程化的线程池，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();</div><div class="line">for (int i = 0; i &lt; 10; i++) &#123;</div><div class="line">	final int index = i;</div><div class="line">	singleThreadExecutor.execute(new Runnable() &#123;</div><div class="line"></div><div class="line">		@Override</div><div class="line">		public void run() &#123;</div><div class="line">			try &#123;</div><div class="line">				System.out.println(index);</div><div class="line">				Thread.sleep(2000);</div><div class="line">			&#125; catch (InterruptedException e) &#123;</div><div class="line">				// TODO Auto-generated catch block</div><div class="line">				e.printStackTrace();</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>结果依次输出，相当于顺序执行各个任务。</p>
-<h2 id="ExecutorService-建立多线程的步骤"><a href="#ExecutorService-建立多线程的步骤" class="headerlink" title="ExecutorService 建立多线程的步骤"></a>ExecutorService 建立多线程的步骤</h2><ol>
-<li><p>定义线程类</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">class Handler implements Runnable&#123;&#125;</div></pre></td></tr></table></figure>
-</li>
-<li><p>建立ExecutorService线程池</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">ExecutorService executorService = Executors.newCachedThreadPool();</div><div class="line">或者</div><div class="line">int cpuNums = Runtime.getRuntime().availableProcessors();</div><div class="line">//获取当前系统的CPU 数目</div><div class="line">ExecutorService executorService=Executors.newFixedThreadPool(cpuNums * POOL_SIZE);</div><div class="line">//ExecutorService通常根据系统资源情况灵活定义线程池大小</div></pre></td></tr></table></figure>
-</li>
-<li><p>调用线程池操作</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">循环操作，成为daemon,把新实例放入Executor池中</div><div class="line">while(true)&#123;</div><div class="line">    executorService.execute(new Handler(socket));</div><div class="line">    // class Handler implements Runnable&#123;</div><div class="line">    或者</div><div class="line">    executorService.execute(createTask(i));</div><div class="line">    //private static Runnable createTask(final int taskID)</div><div class="line">&#125;</div><div class="line">execute(Runnable对象)方法</div><div class="line">其实就是对Runnable对象调用start()方法</div><div class="line">（当然还有一些其他后台动作，比如队列，优先级，IDLE timeout，active激活等）</div></pre></td></tr></table></figure>
-</li>
+<p>从Channel写到Buffer的例子(从channel读取数据到buf中)<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">int bytesRead = inChannel.read(buf); //read into buffer</div></pre></td></tr></table></figure></p>
+<p>通过put方法写Buffer的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">buf.put(127);</div></pre></td></tr></table></figure></p>
+<p>put方法有很多版本，允许你以不同的方式把数据写入到Buffer中。例如， 写到一个指定的位置，或者把一个字节数组写入到Buffer。</p>
+<h3 id="flip-方法"><a href="#flip-方法" class="headerlink" title="flip()方法"></a>flip()方法</h3><p><strong>flip方法将Buffer从写模式切换到读模式。调用flip()方法会将position设回0，并将limit设置成之前position的值</strong>。   </p>
+<p>换句话说，position现在用于标记读的位置，limit表示之前写进了多少个byte、char等 —— 现在能读取多少个byte、char等。</p>
+<h2 id="从Buffer中读取数据"><a href="#从Buffer中读取数据" class="headerlink" title="从Buffer中读取数据"></a>从Buffer中读取数据</h2><p>从Buffer中读取数据有两种方式：</p>
+<ol>
+<li>从Buffer读取数据到Channel。</li>
+<li>使用get()方法从Buffer中读取数据。</li>
+</ol>
+<p>从Buffer读取数据到Channel的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">//read from buffer into channel.</div><div class="line">int bytesWritten = inChannel.write(buf);</div></pre></td></tr></table></figure></p>
+<p>使用get()方法从Buffer中读取数据的例子<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">byte aByte = buf.get();</div></pre></td></tr></table></figure></p>
+<p>get方法有很多版本，允许你以不同的方式从Buffer中读取数据。例如，从指定position读取，或者从Buffer中读取数据到字节数组。</p>
+<h3 id="rewind-方法"><a href="#rewind-方法" class="headerlink" title="rewind()方法"></a>rewind()方法</h3><p><strong>Buffer.rewind()将position设回0，所以你可以重读Buffer中的所有数据</strong>。limit保持不变，仍然表示能从Buffer中读取多少个元素（byte、char等）。</p>
+<h3 id="clear-与compact-方法"><a href="#clear-与compact-方法" class="headerlink" title="clear()与compact()方法"></a>clear()与compact()方法</h3><p>一旦读完Buffer中的数据，需要让Buffer准备好再次被写入。可以通过clear()或compact()方法来完成。</p>
+<p><strong>如果调用的是clear()方法，position将被设回0，limit被设置成 capacity的值。换句话说，Buffer 被清空了。Buffer中的数据并未清除，只是这些标记告诉我们可以从哪里开始往Buffer里写数据。</strong></p>
+<p>如果Buffer中有一些未读的数据，调用clear()方法，数据将“被遗忘”，意味着不再有任何标记会告诉你哪些数据被读过，哪些还没有。</p>
+<p>如果Buffer中仍有未读的数据，且后续还需要这些数据，但是此时想要先先写些数据，那么使用compact()方法。</p>
+<p><strong>compact()方法将所有未读的数据拷贝到Buffer起始处。然后将position设到最后一个未读元素正后面。limit属性依然像clear()方法一样，设置成capacity。现在Buffer准备好写数据了，但是不会覆盖未读的数据。</strong></p>
+<h3 id="mark-与reset-方法"><a href="#mark-与reset-方法" class="headerlink" title="mark()与reset()方法"></a>mark()与reset()方法</h3><p><strong>通过调用Buffer.mark()方法，可以标记Buffer中的一个特定position。之后可以通过调用Buffer.reset()方法恢复到这个position。</strong><br>例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">buffer.mark();</div><div class="line">//call buffer.get() a couple of times, e.g. during parsing.</div><div class="line">buffer.reset();//set position back to mark.</div></pre></td></tr></table></figure></p>
+<h3 id="equals-与compareTo-方法"><a href="#equals-与compareTo-方法" class="headerlink" title="equals()与compareTo()方法"></a>equals()与compareTo()方法</h3><p>可以使用equals()和compareTo()方法比较两个Buffer。</p>
+<h3 id="equals"><a href="#equals" class="headerlink" title="equals()"></a>equals()</h3><p>当满足下列条件时，表示两个Buffer相等：</p>
+<ol>
+<li>有相同的类型（byte、char、int等）。</li>
+<li>Buffer中剩余的byte、char等的个数相等。</li>
+<li>Buffer中所有剩余的byte、char等都相同。</li>
+</ol>
+<p>如你所见，equals只是比较Buffer的一部分，不是每一个在它里面的元素都比较。实际上，它只比较Buffer中的剩余元素。</p>
+<h3 id="compareTo-方法"><a href="#compareTo-方法" class="headerlink" title="compareTo()方法"></a>compareTo()方法</h3><p>compareTo()方法比较两个Buffer的剩余元素(byte、char等)， 如果满足下列条件，则认为一个Buffer“小于”另一个Buffer：</p>
+<ol>
+<li>第一个不相等的元素小于另一个Buffer中对应的元素 。</li>
+<li>所有元素都相等，但第一个Buffer比另一个先耗尽(第一个Buffer的元素个数比另一个少)。</li>
 </ol>
 
       
@@ -914,7 +817,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/线程/ExecutorService线程池/" data-id="cj6aobw0u0032udbl757r4qoo" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/Buffer/" data-id="cj6arwhdy003bymblr14ea5a7" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -949,7 +852,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">35</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">21</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">2</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">35</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
   </div>
 
 
@@ -962,7 +865,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">31</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">32</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
   </div>
 
 
@@ -973,15 +876,7 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/13/Spring/基础/AOP事务管理/">AOP事务管理</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/13/前端技术相关/forever/nohup node app.js &/">nohup node app.js &amp;</a>
+          <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
         </li>
       
         <li>
@@ -989,7 +884,15 @@
         </li>
       
         <li>
-          <a href="/2017/08/13/Spring/基础/Spring  Bean的scope作用域/">Spring  Bean的scope作用域</a>
+          <a href="/2017/08/13/前端技术相关/forever/nohup node app.js &/">nohup node app.js &amp;</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/13/服务器相关/resin/resin启动，停止，重启/">resin启动，停止，重启</a>
         </li>
       
     </ul>

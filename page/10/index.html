@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-Spring/JPA/JPA高级查询" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/JPA/Specification实例" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/JPA/JPA高级查询/">JPA高级查询</a>
+      <a class="article-title" href="/2017/07/19/Spring/JPA/Specification实例/">Specification实例</a>
     </h1>
   
 
@@ -95,7 +95,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/JPA/JPA高级查询/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/JPA/Specification实例/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
@@ -110,161 +110,12 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="jpa几个重要的接口"><a href="#jpa几个重要的接口" class="headerlink" title="jpa几个重要的接口"></a>jpa几个重要的接口</h2><ul>
-<li><strong>Repository</strong>：最顶层的接口，是一个空的接口，目的是为了统一所有Repository的类型，且能让组件扫描的时候自动识别。</li>
-<li><strong>CrudRepository</strong> ：是Repository的子接口，提供CRUD的功能</li>
-<li><strong>PagingAndSortingRepository</strong>：是CrudRepository的子接口，添加分页和排序的功能</li>
-<li><strong>JpaRepository</strong>：是PagingAndSortingRepository的子接口，增加了一些实用的功能，比如：批量操作等。</li>
-<li><strong>JpaSpecificationExecutor</strong>：用来做负责查询的接口</li>
-<li><strong>Specification</strong>：是Spring Data JPA提供的一个查询规范，要做复杂的查询，只需围绕这个规范来设置查询条件即可</li>
-</ul>
-<h2 id="JpaRepository"><a href="#JpaRepository" class="headerlink" title="JpaRepository"></a>JpaRepository</h2><h3 id="基本功能"><a href="#基本功能" class="headerlink" title="基本功能"></a>基本功能</h3><p>JpaRepository的基本功能示范<br>具体的看代码演示<br>其中：Pageable接口的实现类是PageRequest，Page接口的实现类是PageImpl。<br>示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Page&lt;UserModel&gt; p =  ur.findAll(new PageRequest(0,2,new Sort(new Order(Direction. DESC,&quot;uuid&quot;))));</div><div class="line">System. out.println(&quot;list=&quot;+p.getContent());</div></pre></td></tr></table></figure></p>
-<h3 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h3><p>直接在接口中定义查询方法，如果是符合规范的，可以不用写实现，目前支持的关键字写法如下：</p>
-<table>
-<thead>
-<tr>
-<th>关键字</th>
-<th>事例</th>
-<th>对应的sql语句</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>And</td>
-<td>findByLastnameAndFirstname</td>
-<td>where x.lastname = ?1 and x.firstname = ?2</td>
-</tr>
-<tr>
-<td>Or</td>
-<td>findByLastnameOrFirstname</td>
-<td>where x.lastname = ?1 or x.firstname = ?2</td>
-</tr>
-<tr>
-<td>Between</td>
-<td>findByStartDateBetween</td>
-<td>where x.startDate between 1? and ?2</td>
-</tr>
-<tr>
-<td>LessThan</td>
-<td>findByAgeLessThan</td>
-<td>where x.age &lt; ?1</td>
-</tr>
-<tr>
-<td>GreaterThan</td>
-<td>findByAgeGreaterThan</td>
-<td>where x.age &gt; ?1</td>
-</tr>
-<tr>
-<td>After</td>
-<td>findByStartDateAfter</td>
-<td>where x.startDate &gt; ?1</td>
-</tr>
-<tr>
-<td>Before</td>
-<td>findByStartDateBefore</td>
-<td>where x.startDate &lt; ?1</td>
-</tr>
-<tr>
-<td>IsNull</td>
-<td>findByAgeIsNull</td>
-<td>where x.age is null</td>
-</tr>
-<tr>
-<td>Like</td>
-<td>findByFirstnameLike</td>
-<td>where x.firstname like ?1</td>
-</tr>
-<tr>
-<td>Containing</td>
-<td>findByFirstnameContaining</td>
-<td>where  x.firstname like + “%” + ?1 +”%”</td>
-</tr>
-<tr>
-<td>OrderBy</td>
-<td>findByAgeOrderByLastnameDesc</td>
-<td>where  x.age = ?1 order by x.lastname desc</td>
-</tr>
-<tr>
-<td>Not</td>
-<td>findByLastnameNot</td>
-<td>where  x.age &lt;&gt; ?1</td>
-</tr>
-<tr>
-<td>In</td>
-<td>findByAgeIn(Collection<age> ages)</age></td>
-<td>where  x.age in ?1</td>
-</tr>
-<tr>
-<td>NotIn</td>
-<td>findByAgeNotIn(Collection<age> ages)</age></td>
-<td>where  x.age not in ?1</td>
-</tr>
-</tbody>
-</table>
-<p>Spring Data JPA框架在进行方法名解析时，会先把方法名多余的前缀截取掉，比如 find、findBy、read、readBy、get、getBy，然后对剩下部分进行解析。<br>假如创建如下的查询：findByUserDepUuid()，框架在解析该方法时，首先剔除 findBy，然后对剩下的属性进行解析，假设查询实体为Doc</p>
-<ol>
-<li>先判断 userDepUuid （根据 POJO 规范，首字母变为小写）是否为查询实体的一个属性，如果是，则表示根据该属性进行查询；如果没有该属性，继续第二步；</li>
-<li>从右往左截取第一个大写字母开头的字符串此处为Uuid），然后检查剩下的字符串是否为查询实体的一个属性，如果是，则表示根据该属性进行查询；如果没有该属性，则重复第二步，继续从右往左截取；最后假设user为查询实体的一个属性；</li>
-<li>接着处理剩下部分（DepUuid），先判断 user 所对应的类型是否有depUuid属性，如果有，则表示该方法最终是根据 “ Doc.user.depUuid” 的取值进行查询；否则继续按照步骤 2 的规则从右往左截取，最终表示根据 “Doc.user.dep.uuid” 的值进行查询。</li>
-<li>可能会存在一种特殊情况，比如 Doc包含一个 user 的属性，也有一个 userDep 属性，此时会存在混淆。可以明确在属性之间加上 “_” 以显式表达意图，比如 “findByUser_DepUuid()” 或者 “findByUserDep_uuid()”<br>特殊的参数： 还可以直接在方法的参数上加入分页或排序的参数，比如：<br>Page<usermodel> findByName(String name, Pageable pageable);<br>List<usermodel> findByName(String name, Sort sort);</usermodel></usermodel></li>
-</ol>
-<p>也可以使用JPA的NamedQueries，方法如下：</p>
-<ol>
-<li><p>在实体类上使用@NamedQuery，示例如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@NamedQuery(name = &quot;UserModel.findByAge&quot;,query = &quot;select o from UserModel o where o.age &gt;= ?1&quot;)</div></pre></td></tr></table></figure>
-</li>
-<li><p>在自己实现的DAO的Repository接口里面定义一个同名的方法，示例如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public List&lt;UserModel&gt; findByAge(int age);</div></pre></td></tr></table></figure>
-</li>
-<li><p>然后就可以使用了，Spring会先找是否有同名的NamedQuery，如果有，那么就不会按照接口定义的方法来解析。</p>
-</li>
-</ol>
-<h3 id="使用-Query"><a href="#使用-Query" class="headerlink" title="使用@Query"></a>使用@Query</h3><p>可以在自定义的查询方法上使用@Query来指定该方法要执行的查询语句，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@Query(&quot;select o from UserModel o where o.uuid=?1&quot;)</div><div class="line">public List&lt;UserModel&gt; findByUuidOrAge(int uuid);</div></pre></td></tr></table></figure></p>
-<p>注意：</p>
-<ol>
-<li>方法的参数个数必须和@Query里面需要的参数个数一致</li>
-<li>如果是like，后面的参数需要前面或者后面加“%”   </li>
-</ol>
-<p>比如下面都对<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@Query(&quot;select o from UserModel o where o.name like ?1%&quot;)</div><div class="line">public List&lt;UserModel&gt; findByUuidOrAge(String name);</div></pre></td></tr></table></figure></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@Query(&quot;select o from UserModel o where o.name like %?1&quot;)</div><div class="line">public List&lt;UserModel&gt; findByUuidOrAge(String name);</div></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@Query(&quot;select o from UserModel o where o.name like %?1%&quot;)</div><div class="line">public List&lt;UserModel&gt; findByUuidOrAge(String name);</div></pre></td></tr></table></figure>
-<p>当然，这样在传递参数值的时候就可以不加‘%’了，当然加了也不会错 </p>
-<p>还可以使用@Query来指定本地查询，只要设置nativeQuery为true，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@Query(value=&quot;select * from tbl_user where name like %?1&quot; ,nativeQuery=true)</div><div class="line">public List&lt;UserModel&gt; findByUuidOrAge(String name);</div></pre></td></tr></table></figure></p>
-<p>注意：当前版本的本地查询不支持翻页和动态的排序</p>
-<p>使用命名化参数，使用@Param即可，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@Query(value=&quot;select o from UserModel o where o.name like %:nn&quot;)</div><div class="line">public List&lt;UserModel&gt; findByUuidOrAge(@Param(&quot;nn&quot;) String name);</div></pre></td></tr></table></figure></p>
-<p>同样支持更新类的Query语句，添加@Modifying即可，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@Modifying</div><div class="line">@Query(value=&quot;update UserModel o set o.name=:newName where o.name like %:nn&quot;)</div><div class="line">public int findByUuidOrAge(@Param(&quot;nn&quot;) String name,@Param(&quot;newName&quot;) String newName);</div></pre></td></tr></table></figure></p>
-<p>注意：</p>
-<ol>
-<li>方法的返回值应该是int，表示更新语句所影响的行数</li>
-<li>在调用的地方必须加事务，没有事务不能正常执行</li>
-</ol>
-<h3 id="JpaRepository的查询顺序"><a href="#JpaRepository的查询顺序" class="headerlink" title="JpaRepository的查询顺序"></a>JpaRepository的查询顺序</h3><p>Spring Data JPA 在为接口创建代理对象时，如果发现同时存在多种上述情况可用，它该优先采用哪种策略呢？</p>
-<p><jpa:repositories> 提供了 query-lookup-strategy 属性，用以指定查找的顺序。它有如下三个取值：</jpa:repositories></p>
-<ol>
-<li><strong>create-if-not-found</strong>：如果方法通过@Query指定了查询语句，则使用该语句实现查询；如果没有，则查找是否定义了符合条件的命名查询，如果找到，则使用该命名查询；如果两者都没有找到，则通过解析方法名字来创建查询。这是 query-lookup-strategy 属性的默认值</li>
-<li><strong>create</strong>：通过解析方法名字来创建查询。即使有符合的命名查询，或者方法通过 @Query指定的查询语句，都将会被忽略</li>
-<li><strong>use-declared-query</strong>：如果方法通过@Query指定了查询语句，则使用该语句实现查询；如果没有，则查找是否定义了符合条件的命名查询，如果找到，则使用该命名查询；如果两者都没有找到，则抛出异常</li>
-</ol>
-<h3 id="客户化扩展JpaRepository"><a href="#客户化扩展JpaRepository" class="headerlink" title="客户化扩展JpaRepository"></a>客户化扩展JpaRepository</h3><p>如果你不想暴露那么多的方法，可以自己订制自己的Repository，还可以在自己的Repository里面添加自己使用的公共方法<br>当然更灵活的是自己写一个实现类，来实现自己需要的方法    </p>
-<ol>
-<li>写一个与接口同名的类，加上后缀为Impl，这个在前面xml里面配置过，可以自动被扫描到。这个类不需要实现任何接口。</li>
-<li>在接口中加入自己需要的方法，比如：<br>public Page<object[]> getByCondition(UserQueryModel u);</object[]></li>
-<li>在实现类中，去实现这个方法就好了，会被自动找到</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">public class UserRepositoryImpl &#123;  </div><div class="line">	@PersistenceContext  </div><div class="line">	private EntityManager em;   </div><div class="line">	  </div><div class="line">	public Page&lt;Object[]&gt; getByCondition(UserQueryModel u)&#123;  </div><div class="line">		String hql = &quot;select o.uuid,o.name from UserModel o where 1=1 and o.uuid=:uuid&quot;;  </div><div class="line">		Query q = em.createQuery(hql);  </div><div class="line">		q.setParameter(&quot;uuid&quot;, u.getUuid());          </div><div class="line">		q.setFirstResult(0);  </div><div class="line">		q.setMaxResults(1);       </div><div class="line">		Page&lt;Object[]&gt; page = new PageImpl&lt;Object[]&gt;(q.getResultList(),new PageRequest(0,1),3);   </div><div class="line">		return page;  </div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="Specifications"><a href="#Specifications" class="headerlink" title="Specifications"></a>Specifications</h2><p>Spring Data JPA支持JPA2.0的Criteria查询，相应的接口是==JpaSpecificationExecutor==。<br>Criteria 查询：是一种类型安全和更面向对象的查询</p>
-<p>这个接口基本是围绕着Specification接口来定义的， Specification接口中只定义了如下一个方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Predicate toPredicate(Root&lt;T&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb);</div></pre></td></tr></table></figure></p>
-<p>要理解这个方法，以及正确的使用它，就需要对JPA2.0的Criteria查询有一个足够的熟悉和理解，因为这个方法的参数和返回值都是JPA标准里面定义的对象。</p>
-<h3 id="Criteria查询基本概念"><a href="#Criteria查询基本概念" class="headerlink" title="Criteria查询基本概念"></a>Criteria查询基本概念</h3><p>Criteria 查询是以元模型的概念为基础的，元模型是为具体持久化单元的受管实体定义的，这些实体可以是实体类，嵌入类或者映射的父类。<br>CriteriaQuery接口：代表一个specific的顶层查询对象，它包含着查询的各个部分，比如：select 、from、where、group by、order by等<br>注意：CriteriaQuery对象只对实体类型或嵌入式类型的Criteria查询起作用</p>
-<p>Root接口：代表Criteria查询的根对象，Criteria查询的查询根定义了实体类型，能为将来导航获得想要的结果，它与SQL查询中的FROM子句类似<br>1：Root实例是类型化的，且定义了查询的FROM子句中能够出现的类型。<br>2：查询根实例能通过传入一个实体类型给 AbstractQuery.from方法获得。<br>3：Criteria查询，可以有多个查询根。<br>4：AbstractQuery是CriteriaQuery 接口的父类，它提供得到查询根的方法。</p>
-<p>CriteriaBuilder接口：用来构建CritiaQuery的构建器对象<br>Predicate：一个简单或复杂的谓词类型，其实就相当于条件或者是条件组合。    </p>
-<p>基本对象的构建<br>1：通过EntityManager的getCriteriaBuilder或EntityManagerFactory的getCriteriaBuilder方法可以得到CriteriaBuilder对象<br>2：通过调用CriteriaBuilder的createQuery或createTupleQuery方法可以获得CriteriaQuery的实例<br>3：通过调用CriteriaQuery的from方法可以获得Root实例    </p>
-<p>过滤条件<br>1：过滤条件会被应用到SQL语句的FROM子句中。在criteria 查询中，查询条件通过Predicate或Expression实例应用到CriteriaQuery对象上。<br>2：这些条件使用 CriteriaQuery .where 方法应用到CriteriaQuery 对象上<br>3：CriteriaBuilder也作为Predicate实例的工厂，通过调用CriteriaBuilder 的条件方法（ equal，notEqual， gt， ge，lt， le，between，like等）创建Predicate对象。<br>4：复合的Predicate 语句可以使用CriteriaBuilder的and, or, and, not 方法构建。</p>
-<p>构建简单的Predicate示例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Predicate p1=cb.like(root.get(“name”).as(String.class), “%”+uqm.getName()+“%”);</div><div class="line">Predicate p2=cb.equal(root.get(&quot;uuid&quot;).as(Integer.class), uqm.getUuid());</div><div class="line">Predicate p3=cb.gt(root.get(&quot;age&quot;).as(Integer.class), uqm.getAge());</div></pre></td></tr></table></figure></p>
-<p>构建组合的Predicate示例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Predicate p = cb.and(p3,cb.or(p1,p2));</div></pre></td></tr></table></figure></p>
-<p>当然也可以形如前面动态拼接查询语句的方式，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">Specification&lt;UserModel&gt; spec = new Specification&lt;UserModel&gt;() &#123;  </div><div class="line">	public Predicate toPredicate(Root&lt;UserModel&gt; root,  CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb)&#123;  </div><div class="line">	List&lt;Predicate&gt; list = new ArrayList&lt;Predicate&gt;();  </div><div class="line">	          </div><div class="line">	if(um.getName()!=null &amp;&amp; um.getName().trim().length()&gt;0)&#123;  </div><div class="line">		list.add(cb.like(root.get(&quot;name&quot;).as(String.class), &quot;%&quot;+um.getName()+&quot;%&quot;));  </div><div class="line">	&#125;  </div><div class="line">	</div><div class="line">	if(um.getUuid()&gt;0)&#123;  </div><div class="line">		list.add(cb.equal(root.get(&quot;uuid&quot;).as(Integer.class), um.getUuid()));  </div><div class="line">	&#125;  </div><div class="line">		Predicate[] p = new Predicate[list.size()];  </div><div class="line">		return cb.and(list.toArray(p));  </div><div class="line">	&#125;  </div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
-<p>也可以使用CriteriaQuery来得到最后的Predicate，示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">Specification&lt;UserModel&gt; spec = new Specification&lt;UserModel&gt;() &#123;  </div><div class="line">	public Predicate toPredicate(Root&lt;UserModel&gt; root,  CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;  </div><div class="line">		Predicate p1 = cb.like(root.get(&quot;name&quot;).as(String.class), &quot;%&quot;+um.getName()+&quot;%&quot;);  </div><div class="line">		Predicate p2 = cb.equal(root.get(&quot;uuid&quot;).as(Integer.class), um.getUuid());  </div><div class="line">		Predicate p3 = cb.gt(root.get(&quot;age&quot;).as(Integer.class), um.getAge());  </div><div class="line">		//把Predicate应用到CriteriaQuery中去,因为还可以给CriteriaQuery添加其他的功能，比如排序、分组啥的  </div><div class="line">		query.where(cb.and(p3,cb.or(p1,p2)));  </div><div class="line">		//添加排序的功能  </div><div class="line">		query.orderBy(cb.desc(root.get(&quot;uuid&quot;).as(Integer.class)));  </div><div class="line">	     </div><div class="line">		return query.getRestriction();  </div><div class="line">	&#125;  </div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
-
+        <h2 id="事例一"><a href="#事例一" class="headerlink" title="事例一"></a>事例一</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">Specification&lt;UserModel&gt; spec = new Specification&lt;UserModel&gt;() &#123;  </div><div class="line">    public Predicate toPredicate(Root&lt;UserModel&gt; root,  </div><div class="line">            CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;  </div><div class="line">        List&lt;Predicate&gt; list = new ArrayList&lt;Predicate&gt;();  </div><div class="line">              </div><div class="line">        if(um.getName()!=null &amp;&amp; um.getName().trim().length()&gt;0)&#123;  </div><div class="line">            list.add(cb.like(root.get(&quot;name&quot;).as(String.class), &quot;%&quot;+um.getName()+&quot;%&quot;));  </div><div class="line">        &#125;  </div><div class="line">        if(um.getUuid()&gt;0)&#123;  </div><div class="line">            list.add(cb.equal(root.get(&quot;uuid&quot;).as(Integer.class), um.getUuid()));  </div><div class="line">        &#125;  </div><div class="line">        Predicate[] p = new Predicate[list.size()];  </div><div class="line">        return cb.and(list.toArray(p));  </div><div class="line">    &#125;  </div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<h2 id="事例二"><a href="#事例二" class="headerlink" title="事例二"></a>事例二</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">Specification&lt;UserModel&gt; spec = new Specification&lt;UserModel&gt;() &#123;  </div><div class="line">    public Predicate toPredicate(Root&lt;UserModel&gt; root,  </div><div class="line">            CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;  </div><div class="line">        Predicate p1 = cb.like(root.get(&quot;name&quot;).as(String.class), &quot;%&quot;+um.getName()+&quot;%&quot;);  </div><div class="line">        Predicate p2 = cb.equal(root.get(&quot;uuid&quot;).as(Integer.class), um.getUuid());  </div><div class="line">        Predicate p3 = cb.gt(root.get(&quot;age&quot;).as(Integer.class), um.getAge());  </div><div class="line">        //把Predicate应用到CriteriaQuery中去,因为还可以给CriteriaQuery添加其他的功能，比如排序、分组啥的  </div><div class="line">        query.where(cb.and(p3,cb.or(p1,p2)));  </div><div class="line">        //添加排序的功能  </div><div class="line">        query.orderBy(cb.desc(root.get(&quot;uuid&quot;).as(Integer.class)));  </div><div class="line">          </div><div class="line">        return query.getRestriction();  </div><div class="line">    &#125;  </div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<h2 id="事例三"><a href="#事例三" class="headerlink" title="事例三"></a>事例三</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">public Predicate toPredicate(Root&lt;ExpressOrderEntity&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;</div><div class="line">    </div><div class="line">    List&lt;Predicate&gt; conditions = new ArrayList&lt;Predicate&gt;();</div><div class="line">    </div><div class="line">    //改为由店铺获取，为了子帐号和主帐号可以互相看到对方的订单</div><div class="line">    Predicate p1 = cb.equal(root.get(ExpressOrderEntity_.shop), shopEntity);</div><div class="line">    conditions.add(p1);</div><div class="line"></div><div class="line">    if (searchType != ExpressOrderConstants.APP_SEARCH_ALL) &#123;</div><div class="line">        In&lt;Byte&gt; in = cb.in(root.get(ExpressOrderEntity_.status));</div><div class="line">        Byte[] status = getOrderStatus(searchType);</div><div class="line">        for (Byte b : status) &#123;</div><div class="line">            in.value(b);</div><div class="line">        &#125;</div><div class="line">        conditions.add(in);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    //根据id降序排序</div><div class="line">    Order idOrder = cb.desc(root.get(ExpressOrderEntity_.id));</div><div class="line"></div><div class="line">    return query.where(conditions.toArray(new Predicate[conditions.size()])).orderBy(idOrder).getRestriction();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="实例四"><a href="#实例四" class="headerlink" title="实例四"></a>实例四</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">public Predicate toPredicate(Root&lt;AppBannerEntity&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;</div><div class="line">	Predicate enabled = cb.equal(root.get(AppBannerEntity_.isEnabled), true);</div><div class="line">	Join&lt;AppBannerEntity, AppBannerTypeEntity&gt; typeJoin = root.join(AppBannerEntity_.appBannerType);</div><div class="line">	Predicate bannerPd = typeJoin.get(AppBannerTypeEntity_.type).in(types);</div><div class="line">	Predicate notExpired = cb.greaterThan(root.get(AppBannerEntity_.expireTime), new Date());</div><div class="line">	return cb.and(enabled, bannerPd, notExpired);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="实例五：多对多关联查询"><a href="#实例五：多对多关联查询" class="headerlink" title="实例五：多对多关联查询"></a>实例五：多对多关联查询</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">List&lt;BusinessCircleEntity&gt; entities = businessCircleJpaRepository.findAll(new Specification&lt;BusinessCircleEntity&gt;() &#123;</div><div class="line">			</div><div class="line">    @Override</div><div class="line">    public Predicate toPredicate(Root&lt;BusinessCircleEntity&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;</div><div class="line">    	List&lt;Predicate&gt; conditions = new ArrayList&lt;Predicate&gt;();</div><div class="line">    	Join&lt;BusinessCircleEntity, MarketEntity&gt; market=root.joinList(BusinessCircleEntity_.listOfMarket.getName());</div><div class="line">    	Join&lt;MarketEntity, ProductCategoryEntity&gt; productCategory = market.joinList(MarketEntity_.listOfProductCategory.getName());</div><div class="line">    	</div><div class="line">    	Predicate p1 = cb.equal(productCategory.get(ProductCategoryEntity_.id), categoryId); </div><div class="line">    	conditions.add(p1);</div><div class="line">    	</div><div class="line">    	Predicate p2 = cb.equal(root.get(BusinessCircleEntity_.city), cityEntity); </div><div class="line">    	conditions.add(p2);</div><div class="line">    	</div><div class="line">    	return query.where(conditions.toArray(new Predicate[conditions.size()])).getRestriction();</div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<h2 id="实例六：多对多关联查询"><a href="#实例六：多对多关联查询" class="headerlink" title="实例六：多对多关联查询"></a>实例六：多对多关联查询</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">List&lt;MarketEntity&gt; entities = marketJpaRepository.findList(new Specification&lt;MarketEntity&gt;() &#123;</div><div class="line">			</div><div class="line">	@Override</div><div class="line">	public Predicate toPredicate(Root&lt;MarketEntity&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;</div><div class="line">		List&lt;Predicate&gt; conditions = new ArrayList&lt;Predicate&gt;();</div><div class="line">		Join&lt;MarketEntity, ProductCategoryEntity&gt; productCategory = root.joinList(MarketEntity_.listOfProductCategory.getName());</div><div class="line">		Join&lt;MarketEntity, BusinessCircleEntity&gt; businessCircle = root.join(MarketEntity_.businessCircle);</div><div class="line">		</div><div class="line">		Predicate p1 = cb.equal(productCategory.get(ProductCategoryEntity_.id), categoryId); </div><div class="line">		conditions.add(p1);</div><div class="line">		</div><div class="line">		Predicate p2 = cb.equal(businessCircle.get(BusinessCircleEntity_.city), cityEntity); </div><div class="line">		conditions.add(p2);</div><div class="line">		</div><div class="line">		return query.where(conditions.toArray(new Predicate[conditions.size()])).getRestriction();</div><div class="line">	&#125;</div><div class="line">&#125;, start, limit);</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -274,7 +125,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/JPA高级查询/" data-id="cj6aobw3e005vudbl0ywmocjn" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/Specification实例/" data-id="cj6arwhfi0064ymblvhu7479d" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -341,7 +192,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/利用hibernate实现/" data-id="cj6aobw3g005xudbl9ff4xkv8" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/利用hibernate实现/" data-id="cj6arwhfj0066ymblzvh1a8ci" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -401,63 +252,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/对应关系映射配置/" data-id="cj6aobw3h0060udbl95a128ri" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/Security/获取所有登录用户" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/Security/获取所有登录用户/">获取所有登录用户</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/Security/获取所有登录用户/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Security/">Security</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="web-xml"><a href="#web-xml" class="headerlink" title="web.xml"></a>web.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;listener&gt;</div><div class="line">    &lt;listener-class&gt;</div><div class="line">      org.springframework.security.web.session.HttpSessionEventPublisher</div><div class="line">    &lt;/listener-class&gt;</div><div class="line">&lt;/listener&gt;</div></pre></td></tr></table></figure>
-<h2 id="security-xml"><a href="#security-xml" class="headerlink" title="security.xml"></a>security.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;http&gt;</div><div class="line">    &lt;session-management &gt;</div><div class="line">    	&lt;concurrency-control max-sessions=&quot;1&quot; session-registry-ref=&quot;sessionRegistry&quot;</div><div class="line">    	expired-url=&quot;/admin/none/session_expired.jsp&quot; /&gt; </div><div class="line">    &lt;/session-management&gt;</div><div class="line">&lt;/http&gt;</div><div class="line"></div><div class="line">&lt;beans:bean id=&quot;sessionRegistry&quot; class=&quot;org.springframework.security.core.session.SessionRegistryImpl&quot; /&gt;</div></pre></td></tr></table></figure>
-<h2 id="java中使用"><a href="#java中使用" class="headerlink" title="java中使用"></a>java中使用</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sessionRegistry.getAllPrincipals()</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Security/获取所有登录用户/" data-id="cj6aobw3i0062udbl96pvtcaf" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/对应关系映射配置/" data-id="cj6arwhfk0069ymbl3v60hu9v" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -527,7 +322,63 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/mysql安装/" data-id="cj6aobvx10005udbl43j4xemb" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/mysql安装/" data-id="cj6arwhah0005ymblqv4z9e1g" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/Security/获取所有登录用户" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/Security/获取所有登录用户/">获取所有登录用户</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/Security/获取所有登录用户/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Security/">Security</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="web-xml"><a href="#web-xml" class="headerlink" title="web.xml"></a>web.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;listener&gt;</div><div class="line">    &lt;listener-class&gt;</div><div class="line">      org.springframework.security.web.session.HttpSessionEventPublisher</div><div class="line">    &lt;/listener-class&gt;</div><div class="line">&lt;/listener&gt;</div></pre></td></tr></table></figure>
+<h2 id="security-xml"><a href="#security-xml" class="headerlink" title="security.xml"></a>security.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;http&gt;</div><div class="line">    &lt;session-management &gt;</div><div class="line">    	&lt;concurrency-control max-sessions=&quot;1&quot; session-registry-ref=&quot;sessionRegistry&quot;</div><div class="line">    	expired-url=&quot;/admin/none/session_expired.jsp&quot; /&gt; </div><div class="line">    &lt;/session-management&gt;</div><div class="line">&lt;/http&gt;</div><div class="line"></div><div class="line">&lt;beans:bean id=&quot;sessionRegistry&quot; class=&quot;org.springframework.security.core.session.SessionRegistryImpl&quot; /&gt;</div></pre></td></tr></table></figure>
+<h2 id="java中使用"><a href="#java中使用" class="headerlink" title="java中使用"></a>java中使用</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sessionRegistry.getAllPrincipals()</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Security/获取所有登录用户/" data-id="cj6arwhfm006eymbllakgv6uo" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -665,7 +516,62 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Task/Task Cron/" data-id="cj6aobw3l0067udblmmj6eprz" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Task/Task Cron/" data-id="cj6arwhfn006gymblya2mibtj" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/Spring Task/自带用法" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/Spring Task/自带用法/">自带用法</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/Spring Task/自带用法/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Task/">Task</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="applicationContext-task-xml"><a href="#applicationContext-task-xml" class="headerlink" title="applicationContext-task.xml"></a>applicationContext-task.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</div><div class="line">&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;</div><div class="line">	xmlns:task=&quot;http://www.springframework.org/schema/task&quot;</div><div class="line">	xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans  </div><div class="line">    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd  </div><div class="line">    http://www.springframework.org/schema/context   </div><div class="line">    http://www.springframework.org/schema/context/spring-context-4.1.xsd </div><div class="line">    http://www.springframework.org/schema/task </div><div class="line">    http://www.springframework.org/schema/task/spring-task-4.1.xsd</div><div class="line">    &quot;&gt;</div><div class="line">    </div><div class="line">    &lt;task:annotation-driven /&gt;</div><div class="line">    &lt;!-- 处理物流订单的定时任务 --&gt;</div><div class="line">    &lt;task:scheduler id=&quot;orderScheduler&quot; pool-size=&quot;10&quot; /&gt;</div><div class="line">    &lt;task:scheduled-tasks scheduler=&quot;orderScheduler&quot;&gt;</div><div class="line">       &lt;!-- 处理立即支付类型的在订单过期时间前还没有支付的订单 --&gt;</div><div class="line">       &lt;task:scheduled ref=&quot;logisticsOrderService&quot; method=&quot;remoteUpdateHsbStatus&quot; cron=&quot;0 0/5 * * * ?&quot; /&gt;</div><div class="line">       &lt;!-- 处理物流订单的支付订单的支付状态 --&gt;</div><div class="line">        &lt;task:scheduled ref=&quot;logisticsPaymentService&quot; method=&quot;processLogisticsPayment&quot; cron=&quot;0 0/5 * * * ?&quot; /&gt; </div><div class="line">       &lt;!-- 物流订单结算 --&gt;</div><div class="line">        &lt;task:scheduled ref=&quot;logisticsOrderTaskService&quot; method=&quot;doSettleLogisticsOrderTask&quot; cron=&quot;0 0 5 * * ?&quot;/&gt;</div><div class="line">    	&lt;!-- 处理与zpt同步失败的物流订单 --&gt;</div><div class="line">    	&lt;task:scheduled ref=&quot;logisticsOrderTaskService&quot; method=&quot;disposeSynFailOrderTask&quot; cron=&quot;0 0/5 * * * ?&quot;/&gt;</div><div class="line">    &lt;/task:scheduled-tasks&gt;</div><div class="line">    </div><div class="line">&lt;/beans&gt;</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Task/自带用法/" data-id="cj6arwhfo006jymbl0j39q558" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -723,7 +629,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Task/使用Quartz/" data-id="cj6aobw3n006audbl9nffbygo" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Task/使用Quartz/" data-id="cj6arwhfp006lymblot6jsay7" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -737,13 +643,13 @@
 
 
   
-    <article id="post-Spring/Spring Task/自带用法" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Linux/nginx安装" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/Spring Task/自带用法/">自带用法</a>
+      <a class="article-title" href="/2017/07/19/Linux/nginx安装/">安装nginx</a>
     </h1>
   
 
@@ -752,13 +658,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/Spring Task/自带用法/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Linux/nginx安装/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Task/">Task</a>
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
   </div>
 
 
@@ -767,8 +673,11 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="applicationContext-task-xml"><a href="#applicationContext-task-xml" class="headerlink" title="applicationContext-task.xml"></a>applicationContext-task.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</div><div class="line">&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;</div><div class="line">	xmlns:task=&quot;http://www.springframework.org/schema/task&quot;</div><div class="line">	xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans  </div><div class="line">    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd  </div><div class="line">    http://www.springframework.org/schema/context   </div><div class="line">    http://www.springframework.org/schema/context/spring-context-4.1.xsd </div><div class="line">    http://www.springframework.org/schema/task </div><div class="line">    http://www.springframework.org/schema/task/spring-task-4.1.xsd</div><div class="line">    &quot;&gt;</div><div class="line">    </div><div class="line">    &lt;task:annotation-driven /&gt;</div><div class="line">    &lt;!-- 处理物流订单的定时任务 --&gt;</div><div class="line">    &lt;task:scheduler id=&quot;orderScheduler&quot; pool-size=&quot;10&quot; /&gt;</div><div class="line">    &lt;task:scheduled-tasks scheduler=&quot;orderScheduler&quot;&gt;</div><div class="line">       &lt;!-- 处理立即支付类型的在订单过期时间前还没有支付的订单 --&gt;</div><div class="line">       &lt;task:scheduled ref=&quot;logisticsOrderService&quot; method=&quot;remoteUpdateHsbStatus&quot; cron=&quot;0 0/5 * * * ?&quot; /&gt;</div><div class="line">       &lt;!-- 处理物流订单的支付订单的支付状态 --&gt;</div><div class="line">        &lt;task:scheduled ref=&quot;logisticsPaymentService&quot; method=&quot;processLogisticsPayment&quot; cron=&quot;0 0/5 * * * ?&quot; /&gt; </div><div class="line">       &lt;!-- 物流订单结算 --&gt;</div><div class="line">        &lt;task:scheduled ref=&quot;logisticsOrderTaskService&quot; method=&quot;doSettleLogisticsOrderTask&quot; cron=&quot;0 0 5 * * ?&quot;/&gt;</div><div class="line">    	&lt;!-- 处理与zpt同步失败的物流订单 --&gt;</div><div class="line">    	&lt;task:scheduled ref=&quot;logisticsOrderTaskService&quot; method=&quot;disposeSynFailOrderTask&quot; cron=&quot;0 0/5 * * * ?&quot;/&gt;</div><div class="line">    &lt;/task:scheduled-tasks&gt;</div><div class="line">    </div><div class="line">&lt;/beans&gt;</div></pre></td></tr></table></figure>
-
+        <h2 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install nginx</div></pre></td></tr></table></figure>
+<h2 id="服务器安装目录"><a href="#服务器安装目录" class="headerlink" title="服务器安装目录"></a>服务器安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">whereis nginx</div><div class="line">/usr/sbin/nginx </div><div class="line">/etc/nginx </div><div class="line">/usr/share/nginx</div></pre></td></tr></table></figure>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.sudo /etc/init.d/nginx start  #通过init.d下的启动文件启动。</div><div class="line"></div><div class="line">2.sudo service nginx start   #通过ubuntu的服务管理器启动</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.sudo /etc/init.d/nginx stop</div><div class="line"></div><div class="line">2.sudo service nginx stop</div></pre></td></tr></table></figure>
+<h2 id="重启"><a href="#重启" class="headerlink" title="重启"></a>重启</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.sudo /etc/init.d/nginx restart</div><div class="line"></div><div class="line">2.sudo service nginx restart</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -778,7 +687,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Task/自带用法/" data-id="cj6aobw3p006cudblqoyp8w4s" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/nginx安装/" data-id="cj6arwhaj0007ymblb8sfoc93" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -792,13 +701,13 @@
 
 
   
-    <article id="post-Spring/SpringMVC/ControllerAdvice" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Linux/redis安装和配置" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/ControllerAdvice/">ControllerAdvice</a>
+      <a class="article-title" href="/2017/07/19/Linux/redis安装和配置/">redis安装和配置</a>
     </h1>
   
 
@@ -807,13 +716,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/ControllerAdvice/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Linux/redis安装和配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
   </div>
 
 
@@ -822,10 +731,11 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>@ControllerAdvice是一个组件注解，它使得其实现类能够被classpath扫描自动发现。若应用是通过MVC命令空间或MVC Java编程方式配置，那么该特性默认是自动开启的。 </p>
-<p>注解@ControllerAdvice的类可以拥有@ExceptionHandler、@InitBinder或@ModelAttribute注解的方法，并且这些方法会被应用至控制器类层次??的所有@RequestMapping方法上。   </p>
-<p>你也可以通过@ControllerAdvice的属性来指定其只对一个子集的控制器生效：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">// Target all Controllers annotated with @RestController</div><div class="line">@ControllerAdvice(annotations = RestController.class)</div><div class="line">public class AnnotationAdvice &#123;&#125;</div><div class="line"></div><div class="line">// Target all Controllers within specific packages</div><div class="line">@ControllerAdvice(&quot;org.example.controllers&quot;)</div><div class="line">public class BasePackageAdvice &#123;&#125;</div><div class="line"></div><div class="line">// Target all Controllers assignable to specific classes</div><div class="line">@ControllerAdvice(assignableTypes = &#123;ControllerInterface.class, AbstractController.class&#125;)</div><div class="line">public class AssignableTypesAdvice &#123;&#125;</div></pre></td></tr></table></figure></p>
-
+        <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$sudo apt-get update</div><div class="line">$sudo apt-get install redis-server</div></pre></td></tr></table></figure>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">默认端口启动：</div><div class="line">service redis start</div><div class="line">注：不指定端口时，脚本默认指定启动6379端口的redis</div><div class="line"></div><div class="line">指定端口启动：</div><div class="line">service redis -p 6379 start</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service redis stop</div></pre></td></tr></table></figure>
+<h2 id="进入redis后台"><a href="#进入redis后台" class="headerlink" title="进入redis后台"></a>进入redis后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ redis-cli</div><div class="line"></div><div class="line">输入ping，返回PONG则成功</div></pre></td></tr></table></figure>
+<h2 id="退出redis后台"><a href="#退出redis后台" class="headerlink" title="退出redis后台"></a>退出redis后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">exit</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -835,63 +745,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/ControllerAdvice/" data-id="cj6aobw3s006fudbl01gp134f" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/JsonView嵌套（继承）过滤" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/JsonView嵌套（继承）过滤/">JsonView嵌套（继承）过滤</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/JsonView嵌套（继承）过滤/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="通过接口继承的方式嵌套过滤"><a href="#通过接口继承的方式嵌套过滤" class="headerlink" title="通过接口继承的方式嵌套过滤"></a>通过接口继承的方式嵌套过滤</h2><h3 id="需要返回到前端的实体"><a href="#需要返回到前端的实体" class="headerlink" title="需要返回到前端的实体"></a>需要返回到前端的实体</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">public class OrderInfo &#123;</div><div class="line">	</div><div class="line">	public interface OrderInfoView extends ExpressOrderShopView , SellerAddressListView, </div><div class="line">	ExpressCouponCodeListView, ExpressOrderDistributionSiteView &#123;&#125;;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private Shop shop;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private List&lt;AddressBook&gt; addresses;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private List&lt;CouponCode&gt; coupons;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private List&lt;DistributionSite&gt; distributionSites;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="子对象"><a href="#子对象" class="headerlink" title="子对象"></a>子对象</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">public class Shop implements Serializable &#123;</div><div class="line">    public interface ExpressOrderShopView &#123;&#125;;</div><div class="line"></div><div class="line">    private Integer id;</div><div class="line">    </div><div class="line">    @NotNull</div><div class="line">    @Size( min = 1, max = 50 )</div><div class="line">    @JsonView(ExpressOrderShopView.class)</div><div class="line">    private String name;</div><div class="line"></div><div class="line">    @NotNull</div><div class="line">    @Size( min = 1, max = 255 )</div><div class="line">    @JsonView(ExpressOrderShopView.class)</div><div class="line">    private String address;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="controller"><a href="#controller" class="headerlink" title="controller"></a>controller</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/getOrderInfo&quot;, method = RequestMethod.GET)</div><div class="line">@ResponseStatus(HttpStatus.OK)</div><div class="line">@ResponseBody</div><div class="line">@JsonView(OrderInfo.OrderInfoView.class)</div><div class="line">public OrderInfo getOrderInfo(@RequestParam(&quot;mobile&quot;)   String mobile) throws Exception &#123;</div><div class="line">	if(null == mobile) &#123;</div><div class="line">		throw new ParamException(&quot;mobile不能为空&quot;);</div><div class="line">	&#125;</div><div class="line">	return expressOrderService.getOrderInfo(mobile);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/JsonView嵌套（继承）过滤/" data-id="cj6aobw40006hudblmt70rsyd" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/redis安装和配置/" data-id="cj6arwhal0009ymbltvtat6w4" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -926,7 +780,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">35</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">21</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">2</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">35</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
   </div>
 
 
@@ -939,7 +793,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">31</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">32</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
   </div>
 
 
@@ -950,15 +804,7 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/13/Spring/基础/AOP事务管理/">AOP事务管理</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/13/前端技术相关/forever/nohup node app.js &/">nohup node app.js &amp;</a>
+          <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
         </li>
       
         <li>
@@ -966,7 +812,15 @@
         </li>
       
         <li>
-          <a href="/2017/08/13/Spring/基础/Spring  Bean的scope作用域/">Spring  Bean的scope作用域</a>
+          <a href="/2017/08/13/前端技术相关/forever/nohup node app.js &/">nohup node app.js &amp;</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/13/服务器相关/resin/resin启动，停止，重启/">resin启动，停止，重启</a>
         </li>
       
     </ul>
