@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="描述啊">
+<meta property="og:type" content="website">
+<meta property="og:title" content="LeoChan&#39;s 个人博客">
+<meta property="og:url" content="https://clq2owesome.github.io/page/17/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="描述啊">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LeoChan&#39;s 个人博客">
+<meta name="twitter:description" content="描述啊">
+  
+    <link rel="alternate" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" integrity="sha384-XdYbMnZ/QjLh6iI4ogqCTaIjrFk87ip+ekIjefZch0Y+PvJ8CDYtEs1ipDmPorQ+" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="/css/styles.css">
+  
+
+</head>
+
+<body>
+  <nav class="navbar navbar-inverse">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-menu-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="main-menu-navbar">
+      <ul class="nav navbar-nav">
+        
+          <li><a class=""
+                 href="/index.html">Home</a></li>
+        
+          <li><a class=""
+                 href="/archives/">Archives</a></li>
+        
+      </ul>
+
+      <!--
+      <ul class="nav navbar-nav navbar-right">
+        
+          <li><a href="/atom.xml" title="RSS Feed"><i class="fa fa-rss"></i></a></li>
+        
+      </ul>
+      -->
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+  <div class="container">
+    <div class="blog-header">
+  <h1 class="blog-title">LeoChan&#39;s 个人博客</h1>
+  
+    <p class="lead blog-description">技术都是通用的，重要的是是否具有自主解决问题的能力！</p>
+  
+</div>
+
+    <div class="row">
+        <div class="col-sm-8 blog-main">
+          
+  
+    <article id="post-Java/网络NIO/channel" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/channel/">channel</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/网络NIO/channel/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Java NIO的通道类似流，但又有些不同：</p>
+<ul>
+<li>既可以从通道中读取数据，又可以写数据到通道。但流的读写通常是单向的。</li>
+<li>通道可以异步地读写。</li>
+<li>通道中的数据总是要先读到一个Buffer，或者总是要从一个Buffer中写入。</li>
+</ul>
+<p>正如上面所说，从通道读取数据到缓冲区，从缓冲区写入数据到通道。如下图所示：<br><img src="http://dl2.iteye.com/upload/attachment/0096/4760/147a85aa-2924-3652-aaf0-212b1002b561.png" alt="image"></p>
+<h3 id="Channel的实现"><a href="#Channel的实现" class="headerlink" title="Channel的实现"></a>Channel的实现</h3><p>这些是Java NIO中最重要的通道的实现：</p>
+<ul>
+<li>FileChannel：从文件中读写数据。</li>
+<li>DatagramChannel：能通过UDP读写网络中的数据。</li>
+<li>SocketChannel：能通过TCP读写网络中的数据。</li>
+<li>ServerSocketChannel：可以监听新进来的TCP连接，像Web服务器那样。对每一个新进来的连接都会创建一个SocketChannel。</li>
+</ul>
+<h3 id="基本的-Channel-示例"><a href="#基本的-Channel-示例" class="headerlink" title="基本的 Channel 示例"></a>基本的 Channel 示例</h3><p>下面是一个使用FileChannel读取数据到Buffer中的示例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">RandomAccessFile aFile = new RandomAccessFile(&quot;data/nio-data.txt&quot;, &quot;rw&quot;); </div><div class="line">FileChannel inChannel = aFile.getChannel(); </div><div class="line"> </div><div class="line">ByteBuffer buf = ByteBuffer.allocate(48); </div><div class="line"> </div><div class="line">int bytesRead = inChannel.read(buf); </div><div class="line">while (bytesRead != -1) &#123; </div><div class="line"> </div><div class="line">    System.out.println(&quot;Read &quot; + bytesRead); </div><div class="line">    buf.flip(); </div><div class="line">     </div><div class="line">    while(buf.hasRemaining()) &#123; </div><div class="line">        System.out.print((char) buf.get()); </div><div class="line">    &#125; </div><div class="line">     </div><div class="line">    buf.clear(); </div><div class="line">    bytesRead = inChannel.read(buf); </div><div class="line">&#125; </div><div class="line">aFile.close();</div></pre></td></tr></table></figure></p>
+<p>注意 buf.flip() 的调用，首先读取数据到Buffer，然后反转Buffer,接着再从Buffer中读取数据</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/channel/" data-id="cj6cy7ng00047ktblqyq59fk4" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/网络NIO/通道之间的数据传输" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/通道之间的数据传输/">通道之间的数据传输</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/网络NIO/通道之间的数据传输/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在Java NIO中，如果两个通道中有一个是FileChannel，那你可以直接将数据从一个channel（译者注：channel中文常译作通道）传输到另外一个channel。</p>
+<h3 id="transferFrom"><a href="#transferFrom" class="headerlink" title="transferFrom()"></a>transferFrom()</h3><p>FileChannel的transferFrom()方法可以将数据从源通道传输到FileChannel中（译者注：这个方法在JDK文档中的解释为将字节从给定的可读取字节通道传输到此通道的文件中）。下面是一个简单的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">RandomAccessFile fromFile = new RandomAccessFile(&quot;fromFile.txt&quot;, &quot;rw&quot;);</div><div class="line">FileChannel fromChannel = fromFile.getChannel();</div><div class="line">RandomAccessFile toFile = new RandomAccessFile(&quot;toFile.txt&quot;, &quot;rw&quot;);</div><div class="line">FileChannel toChannel = toFile.getChannel();</div><div class="line">long position = 0;</div><div class="line">long count = fromChannel.size();</div><div class="line">toChannel.transferFrom(position, count, fromChannel);</div></pre></td></tr></table></figure></p>
+<p>方法的输入参数position表示从position处开始向目标文件写入数据，count表示最多传输的字节数。如果源通道的剩余空间小于 count 个字节，则所传输的字节数要小于请求的字节数。</p>
+<p>此外要注意，在SoketChannel的实现中，SocketChannel只会传输此刻准备好的数据（可能不足count字节）。因此，SocketChannel可能不会将请求的所有数据(count个字节)全部传输到FileChannel中。</p>
+<h3 id="transferTo"><a href="#transferTo" class="headerlink" title="transferTo()"></a>transferTo()</h3><p>transferTo()方法将数据从FileChannel传输到其他的channel中。下面是一个简单的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">RandomAccessFile fromFile = new RandomAccessFile(&quot;fromFile.txt&quot;, &quot;rw&quot;);</div><div class="line">FileChannel fromChannel = fromFile.getChannel();</div><div class="line">RandomAccessFile toFile = new RandomAccessFile(&quot;toFile.txt&quot;, &quot;rw&quot;);</div><div class="line">FileChannel toChannel = toFile.getChannel();</div><div class="line">long position = 0;</div><div class="line">long count = fromChannel.size();</div><div class="line">fromChannel.transferTo(position, count, toChannel);</div></pre></td></tr></table></figure></p>
+<p>是不是发现这个例子和前面那个例子特别相似？除了调用方法的FileChannel对象不一样外，其他的都一样。</p>
+<p>上面所说的关于SocketChannel的问题在transferTo()方法中同样存在。SocketChannel会一直传输数据直到目标buffer被填满。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/通道之间的数据传输/" data-id="cj6cy7ng1004aktblb8h9aokz" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-服务器相关/red5/eclipse插件安装" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/服务器相关/red5/eclipse插件安装/">eclipse插件安装</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/服务器相关/red5/eclipse插件安装/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/red5/">red5</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="官网"><a href="#官网" class="headerlink" title="官网"></a>官网</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">http://red5.org/</div></pre></td></tr></table></figure>
+<h2 id="下载red5"><a href="#下载red5" class="headerlink" title="下载red5"></a>下载red5</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">https://github.com/Red5/red5-server/releases</div></pre></td></tr></table></figure>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入安装包所在目录：</div><div class="line">解压：tar zxf red5-server-1.0.9-RELEASE.tar.gz</div></pre></td></tr></table></figure>
+<h2 id="下载插件安装包"><a href="#下载插件安装包" class="headerlink" title="下载插件安装包"></a>下载插件安装包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">https://github.com/Red5/red5-eclipse-plugin</div><div class="line">按照页面提示安装即可</div></pre></td></tr></table></figure>
+<h2 id="错误，找到不到包"><a href="#错误，找到不到包" class="headerlink" title="错误，找到不到包"></a>错误，找到不到包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">目录选择red5服务器所在的目录，即上面的解压的文件目录，进入lib目录</div><div class="line"></div><div class="line">将red5-io-x.x.x-RELEASE.jar拷贝一份并把副本改名为red-io.jar</div><div class="line">将red5-server-common-x.x.x-RELEASE.jar拷贝一份并把副本改名为red5-server-common.jar</div></pre></td></tr></table></figure>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">进入red5目录:</div><div class="line">./red5.sh start 或者</div><div class="line">./red5-debug.sh start</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入red5目录:</div><div class="line">./red5-shutdown.sh</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/red5/eclipse插件安装/" data-id="cj6cy7nj600azktblct17gfyy" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-服务器相关/Tomcat/tomcat发布项目的三种方式" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/服务器相关/Tomcat/tomcat发布项目的三种方式/">tomcat发布项目的三种方式</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/服务器相关/Tomcat/tomcat发布项目的三种方式/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/Tomcat/">Tomcat</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="直接放到Webapps目录下"><a href="#直接放到Webapps目录下" class="headerlink" title="直接放到Webapps目录下"></a>直接放到Webapps目录下</h2><p>Tomcat的Webapps目录是Tomcat默认的应用目录，当服务器启动时，会加载所有这个目录下的应用。也可以将JSP程序打包成一个 war包放在目录下，服务器会自动解开这个war包，并在这个目录下生成一个同名的文件夹。一个war包就是有特性格式的jar包，它是将一个Web程序的所有内容进行压缩得到。具体如何打包，可以使用许多开发工具的IDE环境，如Eclipse、NetBeans、ant、JBuilder等。也可以用 cmd 命令：jar -cvf applicationname.war package.*；</p>
+<p>webapps这个默认的应用目录也是可以改变。打开Tomcat的conf目录下的server.xml文件，找到下面内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;Host name=&quot;localhost&quot; debug=&quot;0&quot; appBase=&quot;webapps&quot; unpackWARs=&quot;true&quot; autoDeloy=&quot;true&quot; xmlValidation=&quot;falase&quot; xmlNamespaceAware=&quot;false&quot;&gt;</div></pre></td></tr></table></figure></p>
+<h2 id="在server-xml中指定"><a href="#在server-xml中指定" class="headerlink" title="在server.xml中指定"></a>在server.xml中指定</h2><p>在Tomcat的配置文件中，一个Web应用就是一个特定的Context，可以通过在server.xml中新建Context里部署一个JSP应用程序。打开server.xml文件，在Host标签内建一个Context，内容如下。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;Context path=&quot;/myapp&quot; reloadable=&quot;true&quot; docBase=&quot;D:\myapp&quot; workDir=&quot;D:\myapp\work&quot;/&gt;</div></pre></td></tr></table></figure></p>
+<p>其中path是虚拟路径，docBase是JSP应用程序的物理路径，workDir是这个应用的工作目录，存放运行是生成的于这个应用相关的文件。</p>
+<h2 id="创建一个Context文件"><a href="#创建一个Context文件" class="headerlink" title="创建一个Context文件"></a>创建一个Context文件</h2><p>以上两种方法，Web应用被服务器加载后都会在Tomcat的conf\catalina\localhost目录下生成一个XML文件，其内容如下：</p>
+<p><context path="/admin" docbase="${catalina.home}/server/webapps/admin" debug="0" privileged="true"></context><br>可 以看出，文件中描述一个应用程序的Context信息，其内容和server.xml中的Context信息格式是一致的，文件名便是虚拟目录名。您可以 直接建立这样的一个xml文件，放在Tomcat的conf\catalina\localhost目录下。例子如下：<br>注意：删除一个Web应用同时也要删除webapps下相应的文件夹祸server.xml中相应的Context，还要将Tomcat的conf<br>\catalina\localhost目录下相应的xml文件删除。否则Tomcat仍会按配置去加载。。。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/Tomcat/tomcat发布项目的三种方式/" data-id="cj6cy7nj700b1ktbls1gwbqay" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-服务器相关/Tomcat/配置数据源" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/服务器相关/Tomcat/配置数据源/">配置数据源</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/服务器相关/Tomcat/配置数据源/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/Tomcat/">Tomcat</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="content-xml"><a href="#content-xml" class="headerlink" title="content.xml"></a>content.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;Resource name=&quot;jdbc/highsunbuy&quot; auth=&quot;Container&quot; type=&quot;javax.sql.DataSource&quot;</div><div class="line">        driverClassName=&quot;com.mysql.jdbc.Driver&quot;</div><div class="line">        url=&quot;jdbc:mysql://192.168.7.90:3306/highsunbuy?characterEncoding=UTF-8&amp;amp;autoReconnect=true&amp;amp;failOverReadOnly=false&amp;amp;zeroDateTimeBehavior=convertToNull&quot;</div><div class="line">        username=&quot;highsunbuy&quot; password=&quot;highsunbuy&quot; maxActive=&quot;5&quot; maxIdle=&quot;2&quot;</div><div class="line">        maxWait=&quot;10000&quot; /&gt;</div></pre></td></tr></table></figure>
+<h2 id="spring配置文件中引用方式"><a href="#spring配置文件中引用方式" class="headerlink" title="spring配置文件中引用方式"></a>spring配置文件中引用方式</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;dataSource&quot; class=&quot;org.springframework.jndi.JndiObjectFactoryBean&quot;&gt;</div><div class="line">	&lt;property name=&quot;jndiName&quot;&gt;</div><div class="line">		&lt;value&gt;java:comp/env/jdbc/highsunbuy&lt;/value&gt;</div><div class="line">	&lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/Tomcat/配置数据源/" data-id="cj6cy7nj700b2ktbldrg8gq60" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/线程/Java并发编程：Callable、Future和FutureTask" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/线程/Java并发编程：Callable、Future和FutureTask/">Java并发编程：Callable、Future和FutureTask</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/线程/Java并发编程：Callable、Future和FutureTask/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/线程/">线程</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>创建线程的2种方式，一种是直接继承Thread，另外一种就是实现Runnable接口。<br>这2种方式都有一个缺陷就是：在执行完任务之后无法获取执行结果。<br>如果需要获取执行结果，就必须通过共享变量或者使用线程通信的方式来达到效果，这样使用起来就比较麻烦。</p>
+<p>而自从Java 1.5开始，就提供了Callable和Future，通过它们可以在任务执行完毕之后得到任务执行结果。</p>
+<h2 id="Callable与Runnable"><a href="#Callable与Runnable" class="headerlink" title="Callable与Runnable"></a>Callable与Runnable</h2><p>先说一下java.lang.Runnable吧，它是一个接口，在它里面只声明了一个run()方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public interface Runnable &#123;</div><div class="line">    public abstract void run();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>由于run()方法返回值为void类型，所以在执行完任务之后无法返回任何结果。</p>
+<p>Callable位于java.util.concurrent包下，它也是一个接口，在它里面也只声明了一个方法，只不过这个方法叫做call()：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public interface Callable&lt;V&gt; &#123;</div><div class="line">    /**</div><div class="line">     * Computes a result, or throws an exception if unable to do so.</div><div class="line">     *</div><div class="line">     * @return computed result</div><div class="line">     * @throws Exception if unable to compute a result</div><div class="line">     */</div><div class="line">    V call() throws Exception;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>可以看到，这是一个泛型接口，call()函数返回的类型就是传递进来的V类型。  </p>
+<p>那么怎么使用Callable呢？一般情况下是配合ExecutorService来使用的，在ExecutorService接口中声明了若干个submit方法的重载版本：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;T&gt; Future&lt;T&gt; submit(Callable&lt;T&gt; task);</div><div class="line">&lt;T&gt; Future&lt;T&gt; submit(Runnable task, T result);</div><div class="line">Future&lt;?&gt; submit(Runnable task);</div></pre></td></tr></table></figure></p>
+<p>第一个submit方法里面的参数类型就是Callable。<br>一般情况下我们使用第一个submit方法和第三个submit方法，第二个submit方法很少使用。<br>​    </p>
+<h3 id="Callable和Runnable的区别如下："><a href="#Callable和Runnable的区别如下：" class="headerlink" title="Callable和Runnable的区别如下："></a>Callable和Runnable的区别如下：</h3><ul>
+<li><p>Callable定义的方法是call，而Runnable定义的方法是run。</p>
+</li>
+<li><p>Callable的call方法可以有返回值，而Runnable的run方法不能有返回值。</p>
+</li>
+<li><p>Callable的call方法可抛出异常，而Runnable的run方法不能抛出异常。</p>
+</li>
+</ul>
+<h2 id="Future"><a href="#Future" class="headerlink" title="Future"></a>Future</h2><p><strong>Future就是对于具体的Runnable或者Callable任务的执行结果进行取消、查询是否完成、获取结果。必要时可以通过get方法获取执行结果，该方法会阻塞直到任务返回结果。</strong>    </p>
+<p>Future类位于java.util.concurrent包下，它是一个接口：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public interface Future&lt;V&gt; &#123;</div><div class="line">    boolean cancel(boolean mayInterruptIfRunning);</div><div class="line">    boolean isCancelled();</div><div class="line">    boolean isDone();</div><div class="line">    V get() throws InterruptedException, ExecutionException;</div><div class="line">    V get(long timeout, TimeUnit unit)</div><div class="line">        throws InterruptedException, ExecutionException, TimeoutException;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在Future接口中声明了5个方法，下面依次解释每个方法的作用：</p>
+<ul>
+<li>cancel方法用来取消任务，如果取消任务成功则返回true，如果取消任务失败则返回false。参数mayInterruptIfRunning表示是否允许取消正在执行却没有执行完毕的任务，如果设置true，则表示可以取消正在执行过程中的任务。如果任务已经完成，则无论mayInterruptIfRunning为true还是false，此方法肯定返回false，即如果取消已经完成的任务会返回false；如果任务正在执行，若mayInterruptIfRunning设置为true，则返回true，若mayInterruptIfRunning设置为false，则返回false；如果任务还没有执行，则无论mayInterruptIfRunning为true还是false，肯定返回true。</li>
+<li>isCancelled方法表示任务是否被取消成功，如果在任务正常完成前被取消成功，则返回 true。</li>
+<li>isDone方法表示任务是否已经完成，若任务完成，则返回true；</li>
+<li>get()方法用来获取执行结果，这个方法会产生阻塞，会一直等到任务执行完毕才返回；</li>
+<li>get(long timeout, TimeUnit unit)用来获取执行结果，如果在指定时间内，还没获取到结果，就直接返回null。</li>
+</ul>
+<p>也就是说Future提供了三种功能：</p>
+<ol>
+<li><p>判断任务是否完成；</p>
+</li>
+<li><p>能够中断任务；</p>
+</li>
+<li><p>能够获取任务执行结果。</p>
+</li>
+</ol>
+<p>因为Future只是一个接口，所以是无法直接用来创建对象使用的，因此就有了下面的FutureTask。</p>
+<h2 id="FutureTask"><a href="#FutureTask" class="headerlink" title="FutureTask"></a>FutureTask</h2><p>我们先来看一下FutureTask的实现：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public class FutureTask&lt;V&gt; implements RunnableFuture&lt;V&gt;</div></pre></td></tr></table></figure></p>
+<p>FutureTask类实现了RunnableFuture接口，我们看一下RunnableFuture接口的实现：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public interface RunnableFuture&lt;V&gt; extends Runnable, Future&lt;V&gt; &#123;</div><div class="line">    void run();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>可以看出RunnableFuture继承了Runnable接口和Future接口，而FutureTask实现了RunnableFuture接口。所以它既可以作为Runnable被线程执行，又可以作为Future得到Callable的返回值。</p>
+<p>FutureTask提供了2个构造器：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">public FutureTask(Callable&lt;V&gt; callable) &#123;</div><div class="line">&#125;</div><div class="line">public FutureTask(Runnable runnable, V result) &#123;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>事实上，FutureTask是Future接口的一个唯一实现类。</p>
+<h2 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h2><p>1.使用Callable+Future获取执行结果<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">public class Test &#123;</div><div class="line">    public static void main(String[] args) &#123;</div><div class="line">        ExecutorService executor = Executors.newCachedThreadPool();</div><div class="line">        Task task = new Task();</div><div class="line">        Future&lt;Integer&gt; result = executor.submit(task);</div><div class="line">        executor.shutdown();</div><div class="line"></div><div class="line">        try &#123;</div><div class="line">            Thread.sleep(1000);</div><div class="line">        &#125; catch (InterruptedException e1) &#123;</div><div class="line">            e1.printStackTrace();</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        System.out.println(&quot;主线程在执行任务&quot;);</div><div class="line">        </div><div class="line">        try &#123;</div><div class="line">            System.out.println(&quot;task运行结果&quot;+result.get());</div><div class="line">        &#125; catch (InterruptedException e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">        &#125; catch (ExecutionException e) &#123;</div><div class="line">        e.printStackTrace();</div><div class="line">        &#125;</div><div class="line">    </div><div class="line">        System.out.println(&quot;所有任务执行完毕&quot;);</div><div class="line">    &#125; </div><div class="line">&#125;</div><div class="line"></div><div class="line">class Task implements Callable&lt;Integer&gt;&#123;</div><div class="line">    @Override</div><div class="line">    public Integer call() throws Exception &#123;</div><div class="line">        System.out.println(&quot;子线程在进行计算&quot;);</div><div class="line">        Thread.sleep(3000);</div><div class="line">        int sum = 0;</div><div class="line">        for(int i=0;i&lt;100;i++)</div><div class="line">        sum += i;</div><div class="line">        return sum;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>执行结果：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">子线程在进行计算</div><div class="line">主线程在执行任务</div><div class="line">task运行结果4950</div><div class="line">所有任务执行完毕</div></pre></td></tr></table></figure></p>
+<p>2.使用Callable+FutureTask获取执行结果<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line">public class Test &#123;</div><div class="line">    public static void main(String[] args) &#123;</div><div class="line">        //第一种方式</div><div class="line">        ExecutorService executor = Executors.newCachedThreadPool();</div><div class="line">        Task task = new Task();</div><div class="line">        FutureTask&lt;Integer&gt; futureTask = new FutureTask&lt;Integer&gt;(task);</div><div class="line">        executor.submit(futureTask);</div><div class="line">        executor.shutdown();</div><div class="line">        </div><div class="line">        //第二种方式，注意这种方式和第一种方式效果是类似的，只不过一个使用的是ExecutorService，一个使用的是Thread</div><div class="line">        /*Task task = new Task();</div><div class="line">        FutureTask&lt;Integer&gt; futureTask = new FutureTask&lt;Integer&gt;(task);</div><div class="line">        Thread thread = new Thread(futureTask);</div><div class="line">        thread.start();*/</div><div class="line">        </div><div class="line">        try &#123;</div><div class="line">            Thread.sleep(1000);</div><div class="line">        &#125; catch (InterruptedException e1) &#123;</div><div class="line">            e1.printStackTrace();</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        System.out.println(&quot;主线程在执行任务&quot;);</div><div class="line">        </div><div class="line">        try &#123;</div><div class="line">            System.out.println(&quot;task运行结果&quot;+futureTask.get());</div><div class="line">        &#125; catch (InterruptedException e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">        &#125; catch (ExecutionException e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        System.out.println(&quot;所有任务执行完毕&quot;);</div><div class="line">    &#125; </div><div class="line">&#125;</div><div class="line"></div><div class="line">class Task implements Callable&lt;Integer&gt;&#123;</div><div class="line">    @Override</div><div class="line">    public Integer call() throws Exception &#123;</div><div class="line">        System.out.println(&quot;子线程在进行计算&quot;);</div><div class="line">        Thread.sleep(3000);</div><div class="line">        int sum = 0;</div><div class="line">        for(int i=0;i&lt;100;i++)</div><div class="line">            sum += i;</div><div class="line">        return sum;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>如果为了可取消性而使用 Future 但又不提供可用的结果，则可以声明 Future&lt;?&gt; 形式类型、并返回 null 作为底层任务的结果。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/线程/Java并发编程：Callable、Future和FutureTask/" data-id="cj6cy7ng2004cktblc93ymliu" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-服务器相关/resin/热部署配置" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/服务器相关/resin/热部署配置/">热部署配置</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/服务器相关/resin/热部署配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/resin/">resin</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">&lt;host id=&quot;&quot; root-directory=&quot;.&quot;&gt;</div><div class="line">     &lt;host-alias&gt;test.com&lt;/host-alias&gt;</div><div class="line">     &lt;web-app id=&quot;/&quot; root-directory=&quot;D:\test_space\maven-demo\target\maven-demo&quot;&gt;</div><div class="line">         &lt;class-loader&gt;</div><div class="line">             &lt;compiling-loader path=&quot;D:\test_space\maven-demo\target\classes&quot; /&gt;</div><div class="line">             &lt;library-loader path=&quot;WEB-INF/lib&quot; /&gt;</div><div class="line">         &lt;/class-loader&gt;</div><div class="line">     &lt;/web-app&gt;</div><div class="line">&lt;/host&gt;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/resin/热部署配置/" data-id="cj6cy7nj900b5ktbloaxx4hgg" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-服务器相关/resin/配置数据源" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/服务器相关/resin/配置数据源/">配置数据源</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/服务器相关/resin/配置数据源/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/resin/">resin</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>==需要在resin的lib目录下加入mysql的连接包==</p>
+<h2 id="resin-xml"><a href="#resin-xml" class="headerlink" title="resin.xml"></a>resin.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">&lt;host id=&quot;&quot; root-directory=&quot;.&quot;&gt;</div><div class="line">	&lt;!-- 简单的数据池配置 The JDBC name is java:comp/env/jdbc/roaster --&gt;  </div><div class="line">     &lt;database&gt;  </div><div class="line">       &lt;jndi-name&gt;jdbc/roaster&lt;/jndi-name&gt;  </div><div class="line">       	 &lt;driver type=&quot;com.mysql.jdbc.Driver&quot;&gt;  </div><div class="line">         &lt;url&gt;jdbc:mysql://localhost:3306/roaster&lt;/url&gt;  </div><div class="line">         &lt;user&gt;root&lt;/user&gt;  </div><div class="line">         &lt;password&gt;clq&lt;/password&gt;  </div><div class="line">        &lt;/driver&gt;  </div><div class="line">        &lt;prepared-statement-cache-size&gt;8&lt;/prepared-statement-cache-size&gt;  </div><div class="line">        &lt;max-connections&gt;20&lt;/max-connections&gt;  </div><div class="line">        &lt;max-idle-time&gt;30s&lt;/max-idle-time&gt;  </div><div class="line">      &lt;/database&gt;  </div><div class="line"></div><div class="line">     &lt;web-app id=&quot;/&quot; root-directory=&quot;/Users/chenliqiang/Documents/workspace/roaster/target/roaster&quot;&gt;</div><div class="line">         &lt;class-loader&gt;</div><div class="line">             &lt;compiling-loader path=&quot;/Users/chenliqiang/Documents/workspace/roaster/target/classes&quot; /&gt;</div><div class="line">             &lt;library-loader path=&quot;/Users/chenliqiang/Documents/workspace/roaster/target/roaster/WEB-INF/lib&quot; /&gt;</div><div class="line">         &lt;/class-loader&gt;</div><div class="line">     &lt;/web-app&gt;</div><div class="line">     </div><div class="line">&lt;/host&gt;</div></pre></td></tr></table></figure>
+<p>这里数据源配置到了host，所以只要是这个host中的web-app都是可以使用这些数据源的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">&lt;host id=&quot;&quot; root-directory=&quot;.&quot;&gt;</div><div class="line">	&lt;!-- 简单的数据池配置 The JDBC name is java:comp/env/jdbc/roaster --&gt;  </div><div class="line"></div><div class="line">     &lt;web-app id=&quot;/&quot; root-directory=&quot;/Users/chenliqiang/Documents/workspace/roaster/target/roaster&quot;&gt;</div><div class="line">        &lt;database&gt;  </div><div class="line">           &lt;jndi-name&gt;jdbc/roaster&lt;/jndi-name&gt;  </div><div class="line">           &lt;driver type=&quot;com.mysql.jdbc.Driver&quot;&gt;  </div><div class="line">             &lt;url&gt;jdbc:mysql://localhost:3306/roaster&lt;/url&gt;  </div><div class="line">             &lt;user&gt;root&lt;/user&gt;  </div><div class="line">             &lt;password&gt;clq&lt;/password&gt;  </div><div class="line">            &lt;/driver&gt;  </div><div class="line">            &lt;prepared-statement-cache-size&gt;8&lt;/prepared-statement-cache-size&gt;  </div><div class="line">            &lt;max-connections&gt;20&lt;/max-connections&gt;  </div><div class="line">            &lt;max-idle-time&gt;30s&lt;/max-idle-time&gt;  </div><div class="line">          &lt;/database&gt;</div><div class="line">        </div><div class="line">         &lt;class-loader&gt;</div><div class="line">             &lt;compiling-loader path=&quot;/Users/chenliqiang/Documents/workspace/roaster/target/classes&quot; /&gt;</div><div class="line">             &lt;library-loader path=&quot;/Users/chenliqiang/Documents/workspace/roaster/target/roaster/WEB-INF/lib&quot; /&gt;</div><div class="line">         &lt;/class-loader&gt;</div><div class="line">     &lt;/web-app&gt;</div><div class="line">     </div><div class="line">&lt;/host&gt;</div></pre></td></tr></table></figure>
+<p>这里将多个数据源配置在了web-app 中，所以也只有这个web-app 能使用这些数据源</p>
+<h2 id="spring配置文件中引用方式"><a href="#spring配置文件中引用方式" class="headerlink" title="spring配置文件中引用方式"></a>spring配置文件中引用方式</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;dataSource&quot; class=&quot;org.springframework.jndi.JndiObjectFactoryBean&quot;&gt;</div><div class="line">	&lt;property name=&quot;jndiName&quot;&gt;</div><div class="line">		&lt;value&gt;java:comp/env/jdbc/roaster&lt;/value&gt;</div><div class="line">	&lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/resin/配置数据源/" data-id="cj6cy7nja00b7ktbl5iy72j5c" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-服务器相关/redis/set get getset append命令" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/服务器相关/redis/set get getset append命令/">set get getset append命令</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/服务器相关/redis/set get getset append命令/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/redis/">redis</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="SET-key-value-EX-seconds-PX-milliseconds-NX-XX"><a href="#SET-key-value-EX-seconds-PX-milliseconds-NX-XX" class="headerlink" title="SET key value [EX seconds] [PX milliseconds] [NX|XX]"></a>SET key value [EX seconds] [PX milliseconds] [NX|XX]</h1><p>将键key设定为指定的“字符串”值。<br>如果key    已经保存了一个值，那么这个操作会直接覆盖原来的值，并且忽略原始类型。<br>当set命令执行成功之后，之前设置的过期时间都将失效</p>
+<h3 id="选项"><a href="#选项" class="headerlink" title="选项"></a>选项</h3><ul>
+<li>EX seconds – 设置键key的过期时间，单位时秒</li>
+<li>PX milliseconds – 设置键key的过期时间，单位时毫秒</li>
+<li>NX – 只有键key不存在的时候才会设置key的值</li>
+<li>XX – 只有键key存在的时候才会设置key的值</li>
+</ul>
+<p><strong>注意</strong>: 由于SET命令加上选项已经可以完全取代SETNX, SETEX, PSETEX的功能，所以在将来的版本中，redis可能会不推荐使用并且最终抛弃这几个命令。</p>
+<h3 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h3><p>simple-string-reply:如果SET命令正常执行那么回返回OK，否则如果加了NX 或者 XX选项，但是没有设置条件。那么会返回nil。</p>
+<h1 id="GET-key"><a href="#GET-key" class="headerlink" title="GET key"></a>GET key</h1><blockquote>
+<p>起始版本：1.0.0<br>  时间复杂度：O(1)</p>
+</blockquote>
+<p>返回key的value。如果key不存在，返回特殊值nil。如果key的value不是string，就返回错误，因为GET只处理string类型的values。</p>
+<h3 id="返回值-1"><a href="#返回值-1" class="headerlink" title="返回值"></a>返回值</h3><p>simple-string-reply:key对应的value，或者nil（key不存在时）</p>
+<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">redis&gt; GET nonexisting</div><div class="line">(nil)</div><div class="line">redis&gt; SET mykey &quot;Hello&quot;</div><div class="line">OK</div><div class="line">redis&gt; GET mykey</div><div class="line">&quot;Hello&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure>
+<h1 id="GETSET-key-value"><a href="#GETSET-key-value" class="headerlink" title="GETSET key value"></a>GETSET key value</h1><blockquote>
+<p>起始版本：1.0.0<br>时间复杂度：O(1)</p>
+</blockquote>
+<p>自动将key对应到value并且返回原来key对应的value。如果key存在但是对应的value不是字符串，就返回错误。 </p>
+<p>设计模式:<br>GETSET可以和INCR一起使用实现支持重置的计数功能。举个例子：每当有事件发生的时候，一段程序都会调用INCR给key mycounter加1，但是有时我们需要获取计数器的值，并且自动将其重置为0。这可以通过GETSET mycounter “0”来实现：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">INCR mycounter</div><div class="line">GETSET mycounter &quot;0&quot;</div><div class="line">GET mycounter</div></pre></td></tr></table></figure></p>
+<h3 id="返回值-2"><a href="#返回值-2" class="headerlink" title="返回值"></a>返回值</h3><p>bulk-string-reply: 返回之前的旧值，如果之前Key不存在将返回nil。</p>
+<h3 id="例子-1"><a href="#例子-1" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">redis&gt; INCR mycounter</div><div class="line">(integer) 1</div><div class="line">redis&gt; GETSET mycounter &quot;0&quot;</div><div class="line">&quot;1&quot;</div><div class="line">redis&gt; GET mycounter</div><div class="line">&quot;0&quot;</div></pre></td></tr></table></figure>
+<h1 id="APPEND-key-value"><a href="#APPEND-key-value" class="headerlink" title="APPEND key value"></a>APPEND key value</h1><blockquote>
+<p>起始版本：2.0.0<br>时间复杂度：O(1)。均摊时间复杂度是O(1)， 因为redis用的动态字符串的库在每次分配空间的时候会增加一倍的可用空闲空间，所以在添加的value较小而且已经存在的 value是任意大小的情况下，均摊时间复杂度是O(1) 。</p>
+</blockquote>
+<p>如果 key 已经存在，并且值为字符串，那么这个命令会把 value 追加到原来值（value）的结尾。 如果 key 不存在，那么它将首先创建一个空字符串的key，再执行追加操作，这种情况 APPEND 将类似于 SET 操作。</p>
+<h3 id="返回值-3"><a href="#返回值-3" class="headerlink" title="返回值"></a>返回值</h3><p>Integer reply：返回append后字符串值（value）的长度。</p>
+<h3 id="例子-2"><a href="#例子-2" class="headerlink" title="例子"></a>例子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">redis&gt; EXISTS mykey</div><div class="line">(integer) 0</div><div class="line">redis&gt; APPEND mykey &quot;Hello&quot;</div><div class="line">(integer) 5</div><div class="line">redis&gt; APPEND mykey &quot; World&quot;</div><div class="line">(integer) 11</div><div class="line">redis&gt; GET mykey</div><div class="line">&quot;Hello World&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure>
+<h3 id="模式：节拍序列-Time-series"><a href="#模式：节拍序列-Time-series" class="headerlink" title="模式：节拍序列(Time series)"></a>模式：节拍序列(Time series)</h3><p>APPEND 命令可以用来连接一系列固定长度的样例,与使用列表相比这样更加紧凑. 通常会用来记录节拍序列. 每收到一个新的节拍样例就可以这样记录:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">APPEND timeseries &quot;fixed-size sample&quot;</div></pre></td></tr></table></figure></p>
+<p>在节拍序列里, 可以很容易地访问序列中的每个元素:</p>
+<ul>
+<li><code>STRLEN</code> 可以用来计算样例个数.</li>
+<li><code>GETRANGE</code> 允许随机访问序列中的各个元素. 如果序列中有明确的节拍信息, 在Redis 2.6中就可以使用GETRANGE配合Lua脚本来实现一个二分查找算法.</li>
+<li><code>SETRANGE</code> 可以用来覆写已有的节拍序列.</li>
+</ul>
+<p>该模式的局限在于只能做追加操作. Redis目前缺少剪裁字符串的命令, 所以无法方便地把序列剪裁成指定的尺寸. 但是, 节拍序列在空间占用上效率极好.</p>
+<p>小贴士: 在键值中组合Unix时间戳, 可以在构建一系列相关键值时缩短键值长度,更优雅地分配Redis实例.</p>
+<p>使用定长字符串进行温度采样的例子(在实际使用时,采用二进制格式会更好).<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">redis&gt; APPEND ts &quot;0043&quot;</div><div class="line">(integer) 4</div><div class="line">redis&gt; APPEND ts &quot;0035&quot;</div><div class="line">(integer) 8</div><div class="line">redis&gt; GETRANGE ts 0 3</div><div class="line">&quot;0043&quot;</div><div class="line">redis&gt; GETRANGE ts 4 7</div><div class="line">&quot;0035&quot;</div><div class="line">redis&gt;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/set get getset append命令/" data-id="cj6cy7njb00b8ktbl73nui927" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-服务器相关/redis/Redis 持久化" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/服务器相关/redis/Redis 持久化/">Redis 持久化</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/服务器相关/redis/Redis 持久化/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/redis/">redis</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Redis 提供了不同级别的持久化方式:</p>
+<ul>
+<li><code>RDB</code>持久化方式能够在指定的时间间隔能对你的数据进行快照存储.</li>
+<li><code>AOF</code>持久化方式记录每次对服务器写的操作,当服务器重启的时候会重新执行这些命令来恢复原始的数据,AOF命令以redis协议追加保存每次写的操作到文件末尾.Redis还能对AOF文件进行后台重写,使得AOF文件的体积不至于过大.</li>
+<li>如果你只希望你的数据在服务器运行的时候存在,你也可以不使用任何持久化方式.</li>
+<li>你也可以同时开启两种持久化方式, 在这种情况下, 当redis重启的时候会优先载入AOF文件来恢复原始的数据,因为在通常情况下AOF文件保存的数据集要比RDB文件保存的数据集要完整.</li>
+</ul>
+<p>最重要的事情是了解RDB和AOF持久化方式的不同,让我们以RDB持久化方式开始:</p>
+<h2 id="RDB的优点"><a href="#RDB的优点" class="headerlink" title="RDB的优点"></a>RDB的优点</h2><ul>
+<li>RDB是一个非常紧凑的文件,它保存了某个时间点得数据集,非常适用于数据集的备份,比如你可以在每个小时报保存一下过去24小时内的数据,同时每天保存过去30天的数据,这样即使出了问题你也可以根据需求恢复到不同版本的数据集.</li>
+<li>RDB是一个紧凑的单一文件,很方便传送到另一个远端数据中心或者亚马逊的S3（可能加密），非常适用于灾难恢复.</li>
+<li>RDB在保存RDB文件时父进程唯一需要做的就是fork出一个子进程,接下来的工作全部由子进程来做，父进程不需要再做其他IO操作，所以RDB持久化方式可以最大化redis的性能.</li>
+<li>与AOF相比,在恢复大的数据集的时候，RDB方式会更快一些.</li>
+</ul>
+<h2 id="RDB的缺点"><a href="#RDB的缺点" class="headerlink" title="RDB的缺点"></a>RDB的缺点</h2><ul>
+<li>如果你希望在redis意外停止工作（例如电源中断）的情况下丢失的数据最少的话，那么RDB不适合你.虽然你可以配置不同的save时间点(例如每隔5分钟并且对数据集有100个写的操作),是Redis要完整的保存整个数据集是一个比较繁重的工作,你通常会每隔5分钟或者更久做一次完整的保存,万一在Redis意外宕机,你可能会丢失几分钟的数据.</li>
+<li>RDB 需要经常fork子进程来保存数据集到硬盘上,当数据集比较大的时候,fork的过程是非常耗时的,可能会导致Redis在一些毫秒级内不能响应客户端的请求.如果数据集巨大并且CPU性能不是很好的情况下,这种情况会持续1秒,AOF也需要fork,但是你可以调节重写日志文件的频率来提高数据集的耐久度.</li>
+</ul>
+<h2 id="AOF-优点"><a href="#AOF-优点" class="headerlink" title="AOF 优点"></a>AOF 优点</h2><ul>
+<li>使用AOF 会让你的Redis更加耐久: 你可以使用不同的fsync策略：无fsync,每秒fsync,每次写的时候fsync.使用默认的每秒fsync策略,Redis的性能依然很好(fsync是由后台线程进行处理的,主线程会尽力处理客户端请求),一旦出现故障，你最多丢失1秒的数据.</li>
+<li>AOF文件是一个只进行追加的日志文件,所以不需要写入seek,即使由于某些原因(磁盘空间已满，写的过程中宕机等等)未执行完整的写入命令,你也也可使用redis-check-aof工具修复这些问题.</li>
+<li>Redis 可以在 AOF 文件体积变得过大时，自动地在后台对 AOF 进行重写： 重写后的新 AOF 文件包含了恢复当前数据集所需的最小命令集合。 整个重写操作是绝对安全的，因为 - - - Redis 在创建新 AOF 文件的过程中，会继续将命令追加到现有的 AOF 文件里面，即使重写过程中发生停机，现有的 AOF 文件也不会丢失。 而一旦新 AOF 文件创建完毕，Redis 就会从旧 AOF 文件切换到新 AOF 文件，并开始对新 AOF 文件进行追加操作。</li>
+<li>AOF 文件有序地保存了对数据库执行的所有写入操作， 这些写入操作以 Redis 协议的格式保存， 因此 AOF 文件的内容非常容易被人读懂， 对文件进行分析（parse）也很轻松。 导出（export） AOF 文件也非常简单： 举个例子， 如果你不小心执行了 FLUSHALL 命令， 但只要 AOF 文件未被重写， 那么只要停止服务器， 移除 AOF 文件末尾的 FLUSHALL 命令， 并重启 Redis ， 就可以将数据集恢复到 FLUSHALL 执行之前的状态。</li>
+</ul>
+<h2 id="AOF-缺点"><a href="#AOF-缺点" class="headerlink" title="AOF 缺点"></a>AOF 缺点</h2><ul>
+<li>对于相同的数据集来说，AOF 文件的体积通常要大于 RDB 文件的体积。</li>
+<li>根据所使用的 fsync 策略，AOF 的速度可能会慢于 RDB 。 在一般情况下， 每秒 fsync 的性能依然非常高， 而关闭 fsync 可以让 AOF 的速度和 RDB 一样快， 即使在高负荷之下也是如此。 不过在处理巨大的写入载入时，RDB 可以提供更有保证的最大延迟时间（latency）。</li>
+</ul>
+<h2 id="如何选择使用哪种持久化方式？"><a href="#如何选择使用哪种持久化方式？" class="headerlink" title="如何选择使用哪种持久化方式？"></a>如何选择使用哪种持久化方式？</h2><p>一般来说， 如果想达到足以媲美 PostgreSQL 的数据安全性，<br>你应该同时使用两种持久化功能。  </p>
+<p>如果你非常关心你的数据， 但仍然可以承受数分钟以内的数据丢失， 那么你可以只使用 RDB 持久化。 </p>
+<p>有很多用户都只使用 AOF 持久化， 但我们并不推荐这种方式： 因为定时生成 RDB 快照（snapshot）非常便于进行数据库备份， 并且 RDB 恢复数据集的速度也要比 AOF 恢复的速度要快， 除此之外， 使用 RDB 还可以避免之前提到的 AOF 程序的 bug 。</p>
+<h2 id="快照"><a href="#快照" class="headerlink" title="快照"></a>快照</h2><p>在默认情况下， Redis 将数据库快照保存在名字为 dump.rdb的二进制文件中。你可以对 Redis 进行设置， 让它在“ N 秒内数据集至少有 M 个改动”这一条件被满足时， 自动保存一次数据集。你也可以通过调用 SAVE或者 BGSAVE ， 手动让 Redis 进行数据集保存操作。</p>
+<p>比如说， 以下设置会让 Redis 在满足“ 60 秒内有至少有 1000 个键被改动”这一条件时， 自动保存一次数据集:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">save 60 1000</div></pre></td></tr></table></figure></p>
+<p>这种持久化方式被称为快照 snapshotting.</p>
+<h2 id="工作方式"><a href="#工作方式" class="headerlink" title="工作方式"></a>工作方式</h2><p>当 Redis 需要保存 dump.rdb 文件时， 服务器执行以下操作:</p>
+<ul>
+<li>Redis 调用forks. 同时拥有父进程和子进程。</li>
+<li>子进程将数据集写入到一个临时 RDB 文件中。</li>
+<li>当子进程完成对新 RDB 文件的写入时，Redis 用新 RDB 文件替换原来的 RDB 文件，并删除旧的 RDB 文件。</li>
+</ul>
+<p>这种工作方式使得 Redis 可以从写时复制（copy-on-write）机制中获益。</p>
+<h2 id="只追加操作的文件（Append-only-file，AOF）"><a href="#只追加操作的文件（Append-only-file，AOF）" class="headerlink" title="只追加操作的文件（Append-only file，AOF）"></a>只追加操作的文件（Append-only file，AOF）</h2><p>快照功能并不是非常耐久（dura ble）： 如果 Redis 因为某些原因而造成故障停机， 那么服务器将丢失最近写入、且仍未保存到快照中的那些数据。 从 1.1 版本开始， Redis 增加了一种完全耐久的持久化方式： AOF 持久化。<br>你可以在配置文件中打开AOF方式:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">appendonly yes</div></pre></td></tr></table></figure></p>
+<p>从现在开始， 每当 Redis 执行一个改变数据集的命令时（比如 SET）， 这个命令就会被追加到 AOF 文件的末尾。这样的话， 当 Redis 重新启时， 程序就可以通过重新执行 AOF 文件中的命令来达到重建数据集的目的。</p>
+<h2 id="日志重写"><a href="#日志重写" class="headerlink" title="日志重写"></a>日志重写</h2><p>因为 AOF 的运作方式是不断地将命令追加到文件的末尾， 所以随着写入命令的不断增加， AOF 文件的体积也会变得越来越大。举个例子， 如果你对一个计数器调用了 100 次 INCR ， 那么仅仅是为了保存这个计数器的当前值， AOF 文件就需要使用 100 条记录（entry）。然而在实际上， 只使用一条 SET 命令已经足以保存计数器的当前值了， 其余 99 条记录实际上都是多余的。<br>为了处理这种情况， Redis 支持一种有趣的特性： 可以在不打断服务客户端的情况下， 对 AOF 文件进行重建（rebuild）。执行 BGREWRITEAOF 命令， Redis 将生成一个新的 AOF 文件， 这个文件包含重建当前数据集所需的最少命令。Redis 2.2 需要自己手动执行 BGREWRITEAOF 命令； Redis 2.4 则可以自动触发 AOF 重写， 具体信息请查看 2.4 的示例配置文件。</p>
+<h2 id="AOF有多耐用"><a href="#AOF有多耐用" class="headerlink" title="AOF有多耐用?"></a>AOF有多耐用?</h2><p>你可以配置 Redis 多久才将数据 fsync 到磁盘一次。有三种方式：</p>
+<ul>
+<li>每次有新命令追加到 AOF 文件时就执行一次 fsync ：非常慢，也非常安全</li>
+<li>每秒 fsync 一次：足够快（和使用 RDB 持久化差不多），并且在故障时只会丢失 1 秒钟的数据。</li>
+<li>从不 fsync ：将数据交给操作系统来处理。更快，也更不安全的选择。</li>
+<li>推荐（并且也是默认）的措施为每秒 fsync 一次， 这种 fsync 策略可以兼顾速度和安全性。</li>
+</ul>
+<h2 id="如果AOF文件损坏了怎么办？"><a href="#如果AOF文件损坏了怎么办？" class="headerlink" title="如果AOF文件损坏了怎么办？"></a>如果AOF文件损坏了怎么办？</h2><p>服务器可能在程序正在对 AOF 文件进行写入时停机， 如果停机造成了 AOF 文件出错（corrupt）， 那么 Redis 在重启时会拒绝载入这个 AOF 文件， 从而确保数据的一致性不会被破坏。当发生这种情况时， 可以用以下方法来修复出错的 AOF 文件：  </p>
+<ul>
+<li>为现有的 AOF 文件创建一个备份。</li>
+<li>使用 Redis 附带的 redis-check-aof 程序，对原来的 AOF 文件进行修复:<br>$ redis-check-aof –fix</li>
+<li>（可选）使用 diff -u 对比修复后的 AOF 文件和原始 AOF 文件的备份，查看两个文件之间的不同之处。</li>
+<li>重启 Redis 服务器，等待服务器载入修复后的 AOF 文件，并进行数据恢复。</li>
+</ul>
+<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><p>AOF 重写和 RDB 创建快照一样，都巧妙地利用了写时复制机制:</p>
+<ul>
+<li>Redis 执行 fork() ，现在同时拥有父进程和子进程。</li>
+<li>子进程开始将新 AOF 文件的内容写入到临时文件。</li>
+<li>对于所有新执行的写入命令，父进程一边将它们累积到一个内存缓存中，一边将这些改动追加到现有 AOF 文件的末尾,这样样即使在重写的中途发生停机，现有的 AOF 文件也还是安全的。</li>
+<li>当子进程完成重写工作时，它给父进程发送一个信号，父进程在接收到信号之后，将内存缓存中的所有数据追加到新 AOF 文件的末尾。</li>
+<li>搞定！现在 Redis 原子地用新文件替换旧文件，之后所有命令都会直接追加到新 AOF 文件的末尾。</li>
+</ul>
+<h2 id="怎样从RDB方式切换为AOF方式"><a href="#怎样从RDB方式切换为AOF方式" class="headerlink" title="怎样从RDB方式切换为AOF方式"></a>怎样从RDB方式切换为AOF方式</h2><p>在 Redis 2.2 或以上版本，可以在不重启的情况下，从 RDB 切换到 AOF ：</p>
+<ul>
+<li>为最新的 dump.rdb 文件创建一个备份。</li>
+<li>将备份放到一个安全的地方。</li>
+<li>执行以下两条命令:</li>
+<li>redis-cli config set appendonly yes</li>
+<li>redis-cli config set save “”</li>
+<li>确保写命令会被正确地追加到 AOF 文件的末尾。</li>
+<li>执行的第一条命令开启了 AOF 功能： Redis 会阻塞直到初始 AOF 文件创建完成为止， 之后 Redis 会继续处理命令请求， 并开始将写入命令追加到 AOF 文件末尾。  </li>
+</ul>
+<p>执行的第二条命令用于关闭 RDB 功能。 这一步是可选的， 如果你愿意的话， 也可以同时使用 RDB 和 AOF 这两种持久化功能。 </p>
+<p>重要:别忘了在 redis.conf 中打开 AOF 功能！ 否则的话， 服务器重启之后， 之前通过 CONFIG SET 设置的配置就会被遗忘， 程序会按原来的配置来启动服务器。    </p>
+<h2 id="AOF和RDB之间的相互作用"><a href="#AOF和RDB之间的相互作用" class="headerlink" title="AOF和RDB之间的相互作用"></a>AOF和RDB之间的相互作用</h2><p>在版本号大于等于 2.4 的 Redis 中， BGSAVE 执行的过程中， 不可以执行 BGREWRITEAOF 。 反过来说， 在 BGREWRITEAOF 执行的过程中， 也不可以执行 BGSAVE。这可以防止两个 Redis 后台进程同时对磁盘进行大量的 I/O 操作。  </p>
+<p>如果 BGSAVE 正在执行， 并且用户显示地调用 BGREWRITEAOF 命令， 那么服务器将向用户回复一个 OK 状态， 并告知用户， BGREWRITEAOF 已经被预定执行： 一旦 BGSAVE 执行完毕， BGREWRITEAOF 就会正式开始。 当 Redis 启动时， 如果 RDB 持久化和 AOF 持久化都被打开了， 那么程序会优先使用 AOF 文件来恢复数据集， 因为 AOF 文件所保存的数据通常是最完整的。</p>
+<h2 id="备份redis数据"><a href="#备份redis数据" class="headerlink" title="备份redis数据"></a>备份redis数据</h2><p>在阅读这个小节前， 请牢记下面这句话: 确保你的数据由完整的备份. 磁盘故障， 节点失效， 诸如此类的问题都可能让你的数据消失不见， 不进行备份是非常危险的。  </p>
+<p>Redis 对于数据备份是非常友好的， 因为你可以在服务器运行的时候对 RDB 文件进行复制： RDB 文件一旦被创建， 就不会进行任何修改。 当服务器要创建一个新的 RDB 文件时， 它先将文件的内容保存在一个临时文件里面， 当临时文件写入完毕时， 程序才使用 rename(2) 原子地用临时文件替换原来的 RDB 文件。  </p>
+<p>这也就是说， 无论何时， 复制 RDB 文件都是绝对安全的。</p>
+<ul>
+<li>创建一个定期任务（cron job）， 每小时将一个 RDB 文件备份到一个文件夹， 并且每天将一个 RDB 文件备份到另一个文件夹。</li>
+<li>确保快照的备份都带有相应的日期和时间信息， 每次执行定期任务脚本时， 使用 find 命令来删除过期的快照： 比如说， 你可以保留最近 48 小时内的每小时快照， 还可以保留最近一两个月的每日快照。</li>
+<li>至少每天一次， 将 RDB 备份到你的数据中心之外， 或者至少是备份到你运行 Redis 服务器的物理机器之外。  </li>
+</ul>
+<h2 id="容灾备份"><a href="#容灾备份" class="headerlink" title="容灾备份"></a>容灾备份</h2><p>Redis 的容灾备份基本上就是对数据进行备份， 并将这些备份传送到多个不同的外部数据中心。容灾备份可以在 Redis 运行并产生快照的主数据中心发生严重的问题时， 仍然让数据处于安全状态。    </p>
+<p>因为很多 Redis 用户都是创业者， 他们没有大把大把的钱可以浪费， 所以下面介绍的都是一些实用又便宜的容灾备份方法：    </p>
+<ul>
+<li>Amazon S3 ，以及其他类似 S3 的服务，是一个构建灾难备份系统的好地方。 最简单的方法就是将你的每小时或者每日 RDB 备份加密并传送到 S3 。 对数据的加密可以通过 gpg -c 命令来完成（对称加密模式）。 记得把你的密码放到几个不同的、安全的地方去（比如你可以把密码复制给你组织里最重要的人物）。 同时使用多个储存服务来保存数据文件，可以提升数据的安全性。</li>
+<li>传送快照可以使用 SCP 来完成（SSH 的组件）。 以下是简单并且安全的传送方法： 买一个离你的数据中心非常远的 VPS ， 装上 SSH ， 创建一个无口令的 SSH 客户端 key ， 并将这个 key 添加到 VPS 的 authorized_keys 文件中， 这样就可以向这个 VPS 传送快照备份文件了。 为了达到最好的数据安全性，至少要从两个不同的提供商那里各购买一个 VPS 来进行数据容灾备份。</li>
+<li>需要注意的是， 这类容灾系统如果没有小心地进行处理的话， 是很容易失效的。最低限度下， 你应该在文件传送完毕之后， 检查所传送备份文件的体积和原始快照文件的体积是否相同。 如果你使用的是 VPS ， 那么还可以通过比对文件的 SHA1 校验和来确认文件是否传送完整。  </li>
+</ul>
+<p>另外， 你还需要一个独立的警报系统， 让它在负责传送备份文件的传送器（transfer）失灵时通知你。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/服务器相关/redis/Redis 持久化/" data-id="cj6cy7njc00baktblzaide48l" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+  <div id="page-nav">
+    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/16/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/15/">15</a></li><li><a class="page-number" href="/page/16/">16</a></li><li class="active"><span class="page-number">17</span></li><li><a class="page-number" href="/page/18/">18</a></li><li><a class="page-next" rel="next" href="/page/18/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
+  </div>
+
+
+
+        </div>
+        <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+          
+  <div class="sidebar-module sidebar-module-inset">
+  <h4>关于</h4>
+  <p>该博客内的文章是博主在日常工作或者学习中总结出来，部分内容来自网络.</p>
+
+</div>
+
+
+  
+  <div class="sidebar-module">
+    <h4>分类</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+  </div>
+
+
+
+  
+
+
+  
+
+  
+  <div class="sidebar-module">
+    <h4>归档</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">53</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+  </div>
+
+
+
+  
+  <div class="sidebar-module">
+    <h4>最近文章</h4>
+    <ul class="sidebar-module-list">
+      
+        <li>
+          <a href="/2017/08/15/Spring/Security/配置十三：session管理/">配置十三：session管理</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/15/Spring/Security/配置七：缓存UserDetails/">配置七：缓存UserDetails</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/15/Spring/Security/配置四：认证过程/">配置四：认证过程</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/15/Spring/Security/配置十：退出登录/">配置十：退出登录</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/15/Spring/Security/配置十六：基于表达式的权限控制/">配置十六：基于表达式的权限控制</a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+
+        </div>
+    </div>
+  </div>
+  <footer class="blog-footer">
+  <div class="container">
+    <div id="footer-info" class="inner">
+      &copy; 2017 LeoChan<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+  
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" integrity="sha384-8gBf6Y4YYq7Jx97PIqmTwLPin4hxIzQw5aDmUg/DDhul9fFpbbLcLh3nTIIDJKhx" crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+
+
+<script src="/js/script.js"></script>
+
+</body>
+</html>

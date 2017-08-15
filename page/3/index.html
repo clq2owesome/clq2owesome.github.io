@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-Java/加密解密／编码解码/AES加密算法简单介绍" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/Security/配置三：核心类介绍" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/10/Java/加密解密／编码解码/AES加密算法简单介绍/">AES加密算法简单介绍</a>
+      <a class="article-title" href="/2017/08/15/Spring/Security/配置三：核心类介绍/">配置三：核心类介绍</a>
     </h1>
   
 
@@ -95,13 +95,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/10/Java/加密解密／编码解码/AES加密算法简单介绍/" class="article-date"><time datetime="2017-08-10T02:09:45.000Z" itemprop="datePublished">2017-08-10</time></a>
+  <a href="/2017/08/15/Spring/Security/配置三：核心类介绍/" class="article-date"><time datetime="2017-08-15T02:09:45.000Z" itemprop="datePublished">2017-08-15</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Security/">Security</a>
   </div>
 
 
@@ -110,14 +110,22 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>高级加密标准(AES,Advanced Encryption Standard)为最常见的对称加密算。对称加密算法也就是加密和解密用相同的密钥，具体的加密流程如下图：<br><img src="http://img.blog.csdn.net/20170219082909688?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMjgyMDUxNTM=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="image"><br>下面简单介绍下各个部分的作用与意义： </p>
-<ul>
-<li><strong>明文P</strong>:没有经过加密的数据</li>
-<li><strong>密钥K</strong>:用来加密明文的密码，在对称加密算法中，加密与解密的密钥是相同的。密钥为接收方与发送方协商产生，但不可以直接在网络上传输，否则会导致密钥泄漏，通常是通过非对称加密算法加密密钥，然后再通过网络传输给对方，或者直接面对面商量密钥。密钥是绝对不可以泄漏的，否则会被攻击者还原密文，窃取机密数据</li>
-<li><strong>AES加密函数</strong>:设AES加密函数为E，则 C = E(K, P),其中P为明文，K为密钥，C为密文。也就是说，把明文P和密钥K作为加密函数的参数输入，则加密函数E会输出密文C</li>
-<li><strong>密文C</strong>:经加密函数处理后的数据</li>
-<li><strong>AES解密函数</strong>:设AES解密函数为D，则 P = D(K, C),其中C为密文，K为密钥，P为明文。也就是说，把密文C和密钥K作为解密函数的参数输入，则解密函数会输出明文P。</li>
-</ul>
+        <h2 id="Authentication"><a href="#Authentication" class="headerlink" title="Authentication"></a>Authentication</h2><p> Authentication是一个接口，用来表示用户认证信息的，在用户登录认证之前相关信息会封装为一个Authentication具体实现类的对象，在登录认证成功之后又会生成一个信息更全面，包含用户权限等信息的Authentication对象，然后把它保存在SecurityContextHolder所持有的SecurityContext中，供后续的程序进行调用，如访问权限的鉴定等。</p>
+<h2 id="SecurityContextHolder"><a href="#SecurityContextHolder" class="headerlink" title="SecurityContextHolder"></a>SecurityContextHolder</h2><p>&emsp;&emsp;SecurityContextHolder是用来保存SecurityContext的。SecurityContext中含有当前正在访问系统的用户的详细信息。默认情况下，SecurityContextHolder将使用ThreadLocal来保存SecurityContext，这也就意味着在处于同一线程中的方法中我们可以从ThreadLocal中获取到当前的SecurityContext。因为线程池的原因，如果我们每次在请求完成后都将ThreadLocal进行清除的话，那么我们把SecurityContext存放在ThreadLocal中还是比较安全的。这些工作Spring Security已经自动为我们做了，即在每一次request结束后都将清除当前线程的ThreadLocal。<br>&emsp;&emsp;SecurityContextHolder中定义了一系列的静态方法，而这些静态方法内部逻辑基本上都是通过SecurityContextHolder持有的SecurityContextHolderStrategy来实现的，如getContext()、setContext()、clearContext()等。而默认使用的strategy就是基于ThreadLocal的ThreadLocalSecurityContextHolderStrategy。另外，Spring Security还提供了两种类型的strategy实现，GlobalSecurityContextHolderStrategy和InheritableThreadLocalSecurityContextHolderStrategy，前者表示全局使用同一个SecurityContext，如C/S结构的客户端；后者使用InheritableThreadLocal来存放SecurityContext，即子线程可以使用父线程中存放的变量。<br>&emsp;&emsp;一般而言，我们使用默认的strategy就可以了，但是如果要改变默认的strategy，Spring Security为我们提供了两种方法，这两种方式都是通过改变strategyName来实现的。SecurityContextHolder中为三种不同类型的strategy分别命名为MODE_THREADLOCAL、MODE_INHERITABLETHREADLOCAL和MODE_GLOBAL。第一种方式是通过SecurityContextHolder的静态方法setStrategyName()来指定需要使用的strategy；第二种方式是通过系统属性进行指定，其中属性名默认为“spring.security.strategy”，属性值为对应strategy的名称。<br>&emsp;&emsp;Spring Security使用一个Authentication对象来描述当前用户的相关信息。SecurityContextHolder中持有的是当前用户的SecurityContext，而SecurityContext持有的是代表当前用户相关信息的Authentication的引用。这个Authentication对象不需要我们自己去创建，在与系统交互的过程中，Spring Security会自动为我们创建相应的Authentication对象，然后赋值给当前的SecurityContext。但是往往我们需要在程序中获取当前用户的相关信息，比如最常见的是获取当前登录用户的用户名。在程序的任何地方，通过如下方式我们可以获取到当前用户的用户名。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getCurrentUsername</span><span class="params">()</span> </span>&#123;</div><div class="line">  Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();</div><div class="line">  <span class="keyword">if</span> (principal <span class="keyword">instanceof</span> UserDetails) &#123;</div><div class="line">     <span class="keyword">return</span> ((UserDetails) principal).getUsername();</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">if</span> (principal <span class="keyword">instanceof</span> Principal) &#123;</div><div class="line">     <span class="keyword">return</span> ((Principal) principal).getName();</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> String.valueOf(principal);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;通过Authentication.getPrincipal()可以获取到代表当前用户的信息，这个对象通常是UserDetails的实例。获取当前用户的用户名是一种比较常见的需求，关于上述代码其实Spring Security在Authentication中的实现类中已经为我们做了相关实现，所以获取当前用户的用户名最简单的方式应当如下。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"> <span class="function"><span class="keyword">public</span> String <span class="title">getCurrentUsername</span><span class="params">()</span> </span>&#123;</div><div class="line">      <span class="keyword">return</span> SecurityContextHolder.getContext().getAuthentication().getName();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;此外，调用SecurityContextHolder.getContext()获取SecurityContext时，如果对应的SecurityContext不存在，则Spring Security将为我们建立一个空的SecurityContext并进行返回。</p>
+<h2 id="AuthenticationManager和AuthenticationProvider"><a href="#AuthenticationManager和AuthenticationProvider" class="headerlink" title="AuthenticationManager和AuthenticationProvider"></a>AuthenticationManager和AuthenticationProvider</h2><p>&emsp;&emsp;AuthenticationManager是一个用来处理认证（Authentication）请求的接口。在其中只定义了一个方法authenticate()，该方法只接收一个代表认证请求的Authentication对象作为参数，如果认证成功，则会返回一个封装了当前用户权限等信息的Authentication对象进行返回。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function">Authentication <span class="title">authenticate</span><span class="params">(Authentication authentication)</span> <span class="keyword">throws</span> AuthenticationException</span>;</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;在Spring Security中，AuthenticationManager的默认实现是ProviderManager，而且它不直接自己处理认证请求，而是委托给其所配置的AuthenticationProvider列表，然后会依次使用每一个AuthenticationProvider进行认证，如果有一个AuthenticationProvider认证后的结果不为null，则表示该AuthenticationProvider已经认证成功，之后的AuthenticationProvider将不再继续认证。然后直接以该AuthenticationProvider的认证结果作为ProviderManager的认证结果。如果所有的AuthenticationProvider的认证结果都为null，则表示认证失败，将抛出一个ProviderNotFoundException。校验认证请求最常用的方法是根据请求的用户名加载对应的UserDetails，然后比对UserDetails的密码与认证请求的密码是否一致，一致则表示认证通过。Spring Security内部的DaoAuthenticationProvider就是使用的这种方式。其内部使用UserDetailsService来负责加载UserDetails，UserDetailsService将在下节讲解。在认证成功以后会使用加载的UserDetails来封装要返回的Authentication对象，加载的UserDetails对象是包含用户权限等信息的。认证成功返回的Authentication对象将会保存在当前的SecurityContext中。<br>&emsp;&emsp;当我们在使用NameSpace时， authentication-manager元素的使用会使Spring Security 在内部创建一个ProviderManager，然后可以通过authentication-provider元素往其中添加AuthenticationProvider。当定义authentication-provider元素时，如果没有通过ref属性指定关联哪个AuthenticationProvider，Spring Security默认就会使用DaoAuthenticationProvider。使用了NameSpace后我们就不要再声明ProviderManager了。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:authentication-manager</span> <span class="attr">alias</span>=<span class="string">"authenticationManager"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:authentication-provider</span></span></div><div class="line">     <span class="attr">user-service-ref</span>=<span class="string">"userDetailsService"</span>/&gt;</div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;如果我们没有使用NameSpace，那么我们就应该在ApplicationContext中声明一个ProviderManager。</p>
+<h2 id="认证成功后清除凭证"><a href="#认证成功后清除凭证" class="headerlink" title="认证成功后清除凭证"></a>认证成功后清除凭证</h2><p>&emsp;&emsp;默认情况下，在认证成功后ProviderManager将清除返回的Authentication中的凭证信息，如密码。所以如果你在无状态的应用中将返回的Authentication信息缓存起来了，那么以后你再利用缓存的信息去认证将会失败，因为它已经不存在密码这样的凭证信息了。所以在使用缓存的时候你应该考虑到这个问题。一种解决办法是设置ProviderManager的eraseCredentialsAfterAuthentication 属性为false，或者想办法在缓存时将凭证信息一起缓存。</p>
+<h2 id="UserDetailsService"><a href="#UserDetailsService" class="headerlink" title="UserDetailsService"></a>UserDetailsService</h2><p>&emsp;&emsp;通过Authentication.getPrincipal()的返回类型是Object，但很多情况下其返回的其实是一个UserDetails的实例。UserDetails是Spring Security中一个核心的接口。其中定义了一些可以获取用户名、密码、权限等与认证相关的信息的方法。Spring Security内部使用的UserDetails实现类大都是内置的User类，我们如果要使用UserDetails时也可以直接使用该类。在Spring Security内部很多地方需要使用用户信息的时候基本上都是使用的UserDetails，比如在登录认证的时候。登录认证的时候Spring Security会通过UserDetailsService的loadUserByUsername()方法获取对应的UserDetails进行认证，认证通过后会将该UserDetails赋给认证通过的Authentication的principal，然后再把该Authentication存入到SecurityContext中。之后如果需要使用用户信息的时候就是通过SecurityContextHolder获取存放在SecurityContext中的Authentication的principal。<br>&emsp;&emsp;通常我们需要在应用中获取当前用户的其它信息，如Email、电话等。这时存放在Authentication的principal中只包含有认证相关信息的UserDetails对象可能就不能满足我们的要求了。这时我们可以实现自己的UserDetails，在该实现类中我们可以定义一些获取用户其它信息的方法，这样将来我们就可以直接从当前SecurityContext的Authentication的principal中获取这些信息了。上文已经提到了UserDetails是通过UserDetailsService的loadUserByUsername()方法进行加载的。UserDetailsService也是一个接口，我们也需要实现自己的UserDetailsService来加载我们自定义的UserDetails信息。然后把它指定给AuthenticationProvider即可。如下是一个配置UserDetailsService的示例。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!-- 用于认证的AuthenticationManager --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">security:authentication-manager</span> <span class="attr">alias</span>=<span class="string">"authenticationManager"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:authentication-provider</span></span></div><div class="line">     <span class="attr">user-service-ref</span>=<span class="string">"userDetailsService"</span> /&gt;</div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"userDetailsService"</span></span></div><div class="line">  <span class="attr">class</span>=<span class="string">"org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl"</span>&gt;</div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;上述代码中我们使用的JdbcDaoImpl是Spring Security为我们提供的UserDetailsService的实现，另外Spring Security还为我们提供了UserDetailsService另外一个实现，InMemoryDaoImpl。<br>&emsp;&emsp;其作用是从数据库中加载UserDetails信息。其中已经定义好了加载相关信息的默认脚本，这些脚本也可以通过JdbcDaoImpl的相关属性进行指定。关于JdbcDaoImpl使用方式会在讲解AuthenticationProvider的时候做一个相对详细一点的介绍。</p>
+<h2 id="JdbcDaoImpl"><a href="#JdbcDaoImpl" class="headerlink" title="JdbcDaoImpl"></a>JdbcDaoImpl</h2><p>&emsp;&emsp;JdbcDaoImpl允许我们从数据库来加载UserDetails，其底层使用的是Spring的JdbcTemplate进行操作，所以我们需要给其指定一个数据源。此外，我们需要通过usersByUsernameQuery属性指定通过username查询用户信息的SQL语句；通过authoritiesByUsernameQuery属性指定通过username查询用户所拥有的权限的SQL语句；如果我们通过设置JdbcDaoImpl的enableGroups为true启用了用户组权限的支持，则我们还需要通过groupAuthoritiesByUsernameQuery属性指定根据username查询用户组权限的SQL语句。当这些信息都没有指定时，将使用默认的SQL语句，默认的SQL语句如下所示。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">select username, password, enabled from users where username=? --根据username查询用户信息</div><div class="line">select username, authority from authorities where username=? --根据username查询用户权限信息</div><div class="line">select g.id, g.group_name, ga.authority from groups g, groups_members gm, groups_authorities ga where gm.username=? and g.id=ga.group_id and g.id=gm.group_id --根据username查询用户组权限</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;使用默认的SQL语句进行查询时意味着我们对应的数据库中应该有对应的表和表结构，Spring Security为我们提供的默认表的创建脚本如下。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="function">create table <span class="title">users</span><span class="params">(</span></span></div><div class="line">      username varchar_ignorecase(<span class="number">50</span>) not <span class="keyword">null</span> primary key,</div><div class="line">      password <span class="title">varchar_ignorecase</span><span class="params">(<span class="number">50</span>)</span> not <span class="keyword">null</span>,</div><div class="line">      enabled <span class="keyword">boolean</span> not <span class="keyword">null</span>);</div><div class="line"> </div><div class="line"><span class="function">create table <span class="title">authorities</span> <span class="params">(</span></span></div><div class="line">      username varchar_ignorecase(<span class="number">50</span>) not <span class="keyword">null</span>,</div><div class="line">      authority <span class="title">varchar_ignorecase</span><span class="params">(<span class="number">50</span>)</span> not <span class="keyword">null</span>,</div><div class="line">      constraint fk_authorities_users foreign <span class="title">key</span><span class="params">(username)</span> references <span class="title">users</span><span class="params">(username)</span>);</div><div class="line">      <span class="function">create unique index ix_auth_username on <span class="title">authorities</span> <span class="params">(username,authority)</span></span>;</div><div class="line">     </div><div class="line"><span class="function">create table <span class="title">groups</span> <span class="params">(</span></span></div><div class="line">      id bigint generated by <span class="keyword">default</span> as identity(start with <span class="number">0</span>) primary key,</div><div class="line">      group_name <span class="title">varchar_ignorecase</span><span class="params">(<span class="number">50</span>)</span> notnull);</div><div class="line"> </div><div class="line"><span class="function">create table <span class="title">group_authorities</span> <span class="params">(</span></span></div><div class="line">      group_id bigint notnull,</div><div class="line">      authority varchar(<span class="number">50</span>) notnull,</div><div class="line">      constraint fk_group_authorities_group foreign <span class="title">key</span><span class="params">(group_id)</span> references <span class="title">groups</span><span class="params">(id)</span>);</div><div class="line"> </div><div class="line"><span class="function">create table <span class="title">group_members</span> <span class="params">(</span></span></div><div class="line">      id bigint generated by <span class="keyword">default</span> as identity(start with <span class="number">0</span>) primary key,</div><div class="line">      username <span class="title">varchar</span><span class="params">(<span class="number">50</span>)</span> notnull,</div><div class="line">      group_id bigint notnull,</div><div class="line">      constraint fk_group_members_group foreign <span class="title">key</span><span class="params">(group_id)</span> references <span class="title">groups</span><span class="params">(id)</span>);</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;此外，使用jdbc-user-service元素时在底层Spring Security默认使用的就是JdbcDaoImpl。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"> <span class="tag">&lt;<span class="name">security:authentication-manager</span> <span class="attr">alias</span>=<span class="string">"authenticationManager"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:authentication-provider</span>&gt;</span></div><div class="line">     <span class="comment">&lt;!-- 基于Jdbc的UserDetailsService实现，JdbcDaoImpl --&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">security:jdbc-user-service</span> <span class="attr">data-source-ref</span>=<span class="string">"dataSource"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">security:authentication-provider</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<h2 id="InMemoryDaoImpl"><a href="#InMemoryDaoImpl" class="headerlink" title="InMemoryDaoImpl"></a>InMemoryDaoImpl</h2><p>&emsp;&emsp;  InMemoryDaoImpl主要是测试用的，其只是简单的将用户信息保存在内存中。使用NameSpace时，使用user-service元素Spring Security底层使用的UserDetailsService就是InMemoryDaoImpl。此时，我们可以简单的使用user元素来定义一个UserDetails。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:user-service</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:user</span> <span class="attr">name</span>=<span class="string">"user"</span> <span class="attr">password</span>=<span class="string">"user"</span> <span class="attr">authorities</span>=<span class="string">"ROLE_USER"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:user-service</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;<br>如上配置表示我们定义了一个用户user，其对应的密码为user，拥有ROLE_USER的权限。此外，user-service还支持通过properties文件来指定用户信息，如：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"> <span class="tag">&lt;<span class="name">security:user-service</span> <span class="attr">properties</span>=<span class="string">"/WEB-INF/config/users.properties"</span>/&gt;</span></div><div class="line">   其中属性文件应遵循如下格式：</div><div class="line">username=password,grantedAuthority[,grantedAuthority][,enabled|disabled]</div><div class="line">   所以，对应上面的配置文件，我们的users.properties文件的内容应该如下所示：</div><div class="line">#username=password,grantedAuthority[,grantedAuthority][,enabled|disabled]</div><div class="line">user=user,ROLE_USER</div></pre></td></tr></table></figure></p>
+<h2 id="GrantedAuthority"><a href="#GrantedAuthority" class="headerlink" title="GrantedAuthority"></a>GrantedAuthority</h2><p>&emsp;&emsp; Authentication的getAuthorities()可以返回当前Authentication对象拥有的权限，即当前用户拥有的权限。其返回值是一个GrantedAuthority类型的数组，每一个GrantedAuthority对象代表赋予给当前用户的一种权限。GrantedAuthority是一个接口，其通常是通过UserDetailsService进行加载，然后赋予给UserDetails的。<br>&emsp;&emsp;GrantedAuthority中只定义了一个getAuthority()方法，该方法返回一个字符串，表示对应权限的字符串表示，如果对应权限不能用字符串表示，则应当返回null。<br>&emsp;&emsp;<br>Spring Security针对GrantedAuthority有一个简单实现SimpleGrantedAuthority。该类只是简单的接收一个表示权限的字符串。Spring Security内部的所有AuthenticationProvider都是使用SimpleGrantedAuthority来封装Authentication对象。</p>
 
       
     </div>
@@ -128,7 +136,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/10/Java/加密解密／编码解码/AES加密算法简单介绍/" data-id="cj6arwhd50028ymblzjwlbndz" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置三：核心类介绍/" data-id="cj6cy7ngq005uktbltt0o9vpk" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -142,13 +150,13 @@
 
 
   
-    <article id="post-Java/加密解密／编码解码/AES完整实现（Java）" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-前端技术相关/forever/使用forever后台运行node.js" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/10/Java/加密解密／编码解码/AES完整实现（Java）/">AES完整实现（Java）</a>
+      <a class="article-title" href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
     </h1>
   
 
@@ -157,13 +165,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/10/Java/加密解密／编码解码/AES完整实现（Java）/" class="article-date"><time datetime="2017-08-10T02:09:45.000Z" itemprop="datePublished">2017-08-10</time></a>
+  <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a>
+    <a class="article-category-link" href="/categories/前端技术相关/">前端技术相关</a> / <a class="article-category-link" href="/categories/前端技术相关/forever/">forever</a>
   </div>
 
 
@@ -172,12 +180,14 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="AES加密解密用到的工具类"><a href="#AES加密解密用到的工具类" class="headerlink" title="AES加密解密用到的工具类"></a>AES加密解密用到的工具类</h2><h3 id="SHA1"><a href="#SHA1" class="headerlink" title="SHA1"></a>SHA1</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 对公众平台发送给公众账号的消息加解密示例代码.</div><div class="line"> * </div><div class="line"> * @copyright Copyright (c) 1998-2014 Tencent Inc.</div><div class="line"> */</div><div class="line"></div><div class="line">// ------------------------------------------------------------------------</div><div class="line"></div><div class="line">package com.xx.aes;</div><div class="line"></div><div class="line">import java.security.MessageDigest;</div><div class="line">import java.util.Arrays;</div><div class="line"></div><div class="line">/**</div><div class="line"> * SHA1 class</div><div class="line"> *</div><div class="line"> * 计算公众平台的消息签名接口.</div><div class="line"> */</div><div class="line">class SHA1 &#123;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 用SHA1算法生成安全签名</div><div class="line">	 * @param token 票据</div><div class="line">	 * @param timestamp 时间戳</div><div class="line">	 * @param nonce 随机字符串</div><div class="line">	 * @param encrypt 密文</div><div class="line">	 * @return 安全签名</div><div class="line">	 * @throws AesException </div><div class="line">	 */</div><div class="line">	public static String getSHA1(String token, String timestamp, String nonce, String encrypt) throws AesException &#123;</div><div class="line">		try &#123;</div><div class="line">			String[] array = new String[] &#123; token, timestamp, nonce, encrypt &#125;;</div><div class="line">			StringBuffer sb = new StringBuffer();</div><div class="line">			// 字符串排序</div><div class="line">			Arrays.sort(array);</div><div class="line">			for (int i = 0; i &lt; 4; i++) &#123;</div><div class="line">				sb.append(array[i]);</div><div class="line">			&#125;</div><div class="line">			String str = sb.toString();</div><div class="line">			// SHA1签名生成</div><div class="line">			MessageDigest md = MessageDigest.getInstance(&quot;SHA-1&quot;);</div><div class="line">			md.update(str.getBytes());</div><div class="line">			byte[] digest = md.digest();</div><div class="line"></div><div class="line">			StringBuffer hexstr = new StringBuffer();</div><div class="line">			String shaHex = &quot;&quot;;</div><div class="line">			for (int i = 0; i &lt; digest.length; i++) &#123;</div><div class="line">				shaHex = Integer.toHexString(digest[i] &amp; 0xFF);</div><div class="line">				if (shaHex.length() &lt; 2) &#123;</div><div class="line">					hexstr.append(0);</div><div class="line">				&#125;</div><div class="line">				hexstr.append(shaHex);</div><div class="line">			&#125;</div><div class="line">			return hexstr.toString();</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			throw new AesException(AesException.ComputeSignatureError);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="PKCS7Encoder"><a href="#PKCS7Encoder" class="headerlink" title="PKCS7Encoder"></a>PKCS7Encoder</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 对公众平台发送给公众账号的消息加解密示例代码.</div><div class="line"> * </div><div class="line"> * @copyright Copyright (c) 1998-2014 Tencent Inc.</div><div class="line"> */</div><div class="line"></div><div class="line">// ------------------------------------------------------------------------</div><div class="line"></div><div class="line">package com.xx0.aes;</div><div class="line"></div><div class="line">import java.nio.charset.Charset;</div><div class="line">import java.util.Arrays;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 提供基于PKCS7算法的加解密接口.</div><div class="line"> */</div><div class="line">class PKCS7Encoder &#123;</div><div class="line">	static Charset CHARSET = Charset.forName(&quot;utf-8&quot;);</div><div class="line">	static int BLOCK_SIZE = 32;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 获得对明文进行补位填充的字节.</div><div class="line">	 * </div><div class="line">	 * @param count 需要进行填充补位操作的明文字节个数</div><div class="line">	 * @return 补齐用的字节数组</div><div class="line">	 */</div><div class="line">	static byte[] encode(int count) &#123;</div><div class="line">		// 计算需要填充的位数</div><div class="line">		int amountToPad = BLOCK_SIZE - (count % BLOCK_SIZE);</div><div class="line">		if (amountToPad == 0) &#123;</div><div class="line">			amountToPad = BLOCK_SIZE;</div><div class="line">		&#125;</div><div class="line">		// 获得补位所用的字符</div><div class="line">		char padChr = chr(amountToPad);</div><div class="line">		String tmp = new String();</div><div class="line">		for (int index = 0; index &lt; amountToPad; index++) &#123;</div><div class="line">			tmp += padChr;</div><div class="line">		&#125;</div><div class="line">		return tmp.getBytes(CHARSET);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 删除解密后明文的补位字符</div><div class="line">	 * </div><div class="line">	 * @param decrypted 解密后的明文</div><div class="line">	 * @return 删除补位字符后的明文</div><div class="line">	 */</div><div class="line">	static byte[] decode(byte[] decrypted) &#123;</div><div class="line">		int pad = (int) decrypted[decrypted.length - 1];</div><div class="line">		if (pad &lt; 1 || pad &gt; 32) &#123;</div><div class="line">			pad = 0;</div><div class="line">		&#125;</div><div class="line">		return Arrays.copyOfRange(decrypted, 0, decrypted.length - pad);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 将数字转化成ASCII码对应的字符，用于对明文进行补码</div><div class="line">	 * </div><div class="line">	 * @param a 需要转化的数字</div><div class="line">	 * @return 转化得到的字符</div><div class="line">	 */</div><div class="line">	static char chr(int a) &#123;</div><div class="line">		byte target = (byte) (a &amp; 0xFF);</div><div class="line">		return (char) target;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="EncryptedMessage"><a href="#EncryptedMessage" class="headerlink" title="EncryptedMessage"></a>EncryptedMessage</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line">package com.xxx.aes;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 携带加密运算后得到的签名、时间戳、随机串和密文的对象</div><div class="line"> */</div><div class="line">public class EncryptedMessage &#123;</div><div class="line"></div><div class="line">	private String signature;</div><div class="line">	private String timestamp;</div><div class="line">	private String nonce;</div><div class="line">	private String data;</div><div class="line">	public EncryptedMessage(String signature, String timestamp, String nonce,</div><div class="line">			String data) &#123;</div><div class="line">		super();</div><div class="line">		this.signature = signature;</div><div class="line">		this.timestamp = timestamp;</div><div class="line">		this.nonce = nonce;</div><div class="line">		this.data = data;</div><div class="line">	&#125;</div><div class="line">	public String getSignature() &#123;</div><div class="line">		return signature;</div><div class="line">	&#125;</div><div class="line">	public void setSignature(String signature) &#123;</div><div class="line">		this.signature = signature;</div><div class="line">	&#125;</div><div class="line">	public String getTimestamp() &#123;</div><div class="line">		return timestamp;</div><div class="line">	&#125;</div><div class="line">	public void setTimestamp(String timeStamp) &#123;</div><div class="line">		this.timestamp = timeStamp;</div><div class="line">	&#125;</div><div class="line">	public String getNonce() &#123;</div><div class="line">		return nonce;</div><div class="line">	&#125;</div><div class="line">	public void setNonce(String nonce) &#123;</div><div class="line">		this.nonce = nonce;</div><div class="line">	&#125;</div><div class="line">	public String getData() &#123;</div><div class="line">		return data;</div><div class="line">	&#125;</div><div class="line">	public void setData(String data) &#123;</div><div class="line">		this.data = data;</div><div class="line">	&#125;</div><div class="line">	@Override</div><div class="line">	public String toString() &#123;</div><div class="line">		return &quot;EncryptedMessage [signature=&quot; + signature + &quot;, timestamp=&quot;</div><div class="line">				+ timestamp + &quot;, nonce=&quot; + nonce + &quot;, data=&quot; + data + &quot;]&quot;;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="ByteGroup"><a href="#ByteGroup" class="headerlink" title="ByteGroup"></a>ByteGroup</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">package com.xx.aes;</div><div class="line"></div><div class="line">import java.util.ArrayList;</div><div class="line"></div><div class="line">class ByteGroup &#123;</div><div class="line">	ArrayList&lt;Byte&gt; byteContainer = new ArrayList&lt;Byte&gt;();</div><div class="line"></div><div class="line">	public byte[] toBytes() &#123;</div><div class="line">		byte[] bytes = new byte[byteContainer.size()];</div><div class="line">		for (int i = 0; i &lt; byteContainer.size(); i++) &#123;</div><div class="line">			bytes[i] = byteContainer.get(i);</div><div class="line">		&#125;</div><div class="line">		return bytes;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public ByteGroup addBytes(byte[] bytes) &#123;</div><div class="line">		for (byte b : bytes) &#123;</div><div class="line">			byteContainer.add(b);</div><div class="line">		&#125;</div><div class="line">		return this;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public int size() &#123;</div><div class="line">		return byteContainer.size();</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="AES加密解密"><a href="#AES加密解密" class="headerlink" title="AES加密解密"></a>AES加密解密</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div><div class="line">171</div><div class="line">172</div><div class="line">173</div><div class="line">174</div><div class="line">175</div><div class="line">176</div><div class="line">177</div><div class="line">178</div><div class="line">179</div><div class="line">180</div><div class="line">181</div><div class="line">182</div><div class="line">183</div><div class="line">184</div><div class="line">185</div><div class="line">186</div><div class="line">187</div><div class="line">188</div><div class="line">189</div><div class="line">190</div><div class="line">191</div><div class="line">192</div><div class="line">193</div><div class="line">194</div><div class="line">195</div><div class="line">196</div><div class="line">197</div><div class="line">198</div><div class="line">199</div><div class="line">200</div><div class="line">201</div><div class="line">202</div><div class="line">203</div><div class="line">204</div><div class="line">205</div><div class="line">206</div><div class="line">207</div><div class="line">208</div><div class="line">209</div><div class="line">210</div><div class="line">211</div><div class="line">212</div><div class="line">213</div><div class="line">214</div><div class="line">215</div><div class="line">216</div><div class="line">217</div><div class="line">218</div><div class="line">219</div><div class="line">220</div><div class="line">221</div><div class="line">222</div><div class="line">223</div><div class="line">224</div><div class="line">225</div><div class="line">226</div><div class="line">227</div><div class="line">228</div><div class="line">229</div><div class="line">230</div><div class="line">231</div><div class="line">232</div><div class="line">233</div><div class="line">234</div><div class="line">235</div><div class="line">236</div><div class="line">237</div><div class="line">238</div><div class="line">239</div><div class="line">240</div><div class="line">241</div><div class="line">242</div><div class="line">243</div><div class="line">244</div><div class="line">245</div><div class="line">246</div><div class="line">247</div><div class="line">248</div><div class="line">249</div><div class="line">250</div><div class="line">251</div><div class="line">252</div><div class="line">253</div><div class="line">254</div><div class="line">255</div><div class="line">256</div><div class="line">257</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 针对org.apache.commons.codec.binary.Base64，</div><div class="line"> * 需要导入架包commons-codec-1.9（或commons-codec-1.8等其他版本）</div><div class="line"> * 官方下载地址：http://commons.apache.org/proper/commons-codec/download_codec.cgi</div><div class="line"> */</div><div class="line">package com.xx.aes;</div><div class="line"></div><div class="line">import java.net.URISyntaxException;</div><div class="line">import java.nio.charset.Charset;</div><div class="line">import java.util.Arrays;</div><div class="line">import java.util.Random;</div><div class="line"></div><div class="line">import javax.crypto.Cipher;</div><div class="line">import javax.crypto.spec.IvParameterSpec;</div><div class="line">import javax.crypto.spec.SecretKeySpec;</div><div class="line"></div><div class="line">import org.apache.commons.codec.binary.Base64;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 用于加密和解密网络中互相传送消息，并且验证消息的安全性，消息加密后用Base64进行编码</div><div class="line"> * 说明：异常java.security.InvalidKeyException:illegal Key Size的解决方案</div><div class="line"> * &lt;ol&gt;</div><div class="line"> * 	&lt;li&gt;在官方网站下载JCE无限制权限策略文件（JDK7的下载地址：</div><div class="line"> *      http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html&lt;/li&gt;</div><div class="line"> * 	&lt;li&gt;下载后解压，可以看到local_policy.jar和US_export_policy.jar以及readme.txt&lt;/li&gt;</div><div class="line"> * 	&lt;li&gt;如果安装了JRE，将两个jar文件放到%JRE_HOME%\lib\security目录下覆盖原来的文件&lt;/li&gt;</div><div class="line"> * 	&lt;li&gt;如果安装了JDK，将两个jar文件放到%JDK_HOME%\jre\lib\security目录下覆盖原来文件&lt;/li&gt;</div><div class="line"> * &lt;/ol&gt;</div><div class="line"> */</div><div class="line">public class HBBizMsgCrypt &#123;</div><div class="line">	static Charset CHARSET = Charset.forName(&quot;utf-8&quot;);</div><div class="line">	Base64 base64 = new Base64();</div><div class="line">	byte[] aesKey;</div><div class="line">	String token;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 构造函数</div><div class="line">	 * @param token 开发者设置的token</div><div class="line">	 * @param encodingAesKey 开发者设置的EncodingAESKey</div><div class="line">	 * </div><div class="line">	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息</div><div class="line">	 */</div><div class="line">	public HBBizMsgCrypt(String token, String encodingAesKey) throws AesException &#123;</div><div class="line">		if (encodingAesKey.length() != 43) &#123;</div><div class="line">			throw new AesException(AesException.IllegalAesKey);</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		this.token = token;</div><div class="line">		this.aesKey = Base64.decodeBase64(encodingAesKey + &quot;=&quot;);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	// 生成4个字节的网络字节序</div><div class="line">	byte[] getNetworkBytesOrder(int sourceNumber) &#123;</div><div class="line">		byte[] orderBytes = new byte[4];</div><div class="line">		orderBytes[3] = (byte) (sourceNumber &amp; 0xFF);</div><div class="line">		orderBytes[2] = (byte) (sourceNumber &gt;&gt; 8 &amp; 0xFF);</div><div class="line">		orderBytes[1] = (byte) (sourceNumber &gt;&gt; 16 &amp; 0xFF);</div><div class="line">		orderBytes[0] = (byte) (sourceNumber &gt;&gt; 24 &amp; 0xFF);</div><div class="line">		return orderBytes;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	// 还原4个字节的网络字节序</div><div class="line">	int recoverNetworkBytesOrder(byte[] orderBytes) &#123;</div><div class="line">		int sourceNumber = 0;</div><div class="line">		for (int i = 0; i &lt; 4; i++) &#123;</div><div class="line">			sourceNumber &lt;&lt;= 8;</div><div class="line">			sourceNumber |= orderBytes[i] &amp; 0xff;</div><div class="line">		&#125;</div><div class="line">		return sourceNumber;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	// 随机生成16位字符串</div><div class="line">	public	String getRandomStr() &#123;</div><div class="line">		String base = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&quot;;</div><div class="line">		Random random = new Random();</div><div class="line">		StringBuffer sb = new StringBuffer();</div><div class="line">		for (int i = 0; i &lt; 16; i++) &#123;</div><div class="line">			int number = random.nextInt(base.length());</div><div class="line">			sb.append(base.charAt(number));</div><div class="line">		&#125;</div><div class="line">		return sb.toString();</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 对明文进行加密.</div><div class="line">	 * </div><div class="line">	 * @param randomStr 随机字符串</div><div class="line">	 * @param text 需要加密的明文</div><div class="line">	 * @return 加密后base64编码的字符串</div><div class="line">	 * @throws AesException aes加密失败</div><div class="line">	 */</div><div class="line">	 public String encrypt(String randomStr, String text) throws AesException &#123;</div><div class="line">		ByteGroup byteCollector = new ByteGroup();</div><div class="line">		byte[] randomStrBytes = randomStr.getBytes(CHARSET);</div><div class="line">		byte[] textBytes = text.getBytes(CHARSET);</div><div class="line">		byte[] networkBytesOrder = getNetworkBytesOrder(textBytes.length);</div><div class="line"></div><div class="line">		// randomStr + networkBytesOrder + text</div><div class="line">		byteCollector.addBytes(randomStrBytes);</div><div class="line">		byteCollector.addBytes(networkBytesOrder);</div><div class="line">		byteCollector.addBytes(textBytes);</div><div class="line"></div><div class="line">		// ... + pad: 使用自定义的填充方式对明文进行补位填充</div><div class="line">		byte[] padBytes = PKCS7Encoder.encode(byteCollector.size());</div><div class="line">		byteCollector.addBytes(padBytes);</div><div class="line"></div><div class="line">		// 获得最终的字节流, 未加密</div><div class="line">		byte[] unencrypted = byteCollector.toBytes();</div><div class="line"></div><div class="line">		try &#123;</div><div class="line">			// 设置加密模式为AES的CBC模式</div><div class="line">			Cipher cipher = Cipher.getInstance(&quot;AES/CBC/NoPadding&quot;);</div><div class="line">			SecretKeySpec keySpec = new SecretKeySpec(aesKey, &quot;AES&quot;);</div><div class="line">			IvParameterSpec iv = new IvParameterSpec(aesKey, 0, 16);</div><div class="line">			cipher.init(Cipher.ENCRYPT_MODE, keySpec, iv);</div><div class="line"></div><div class="line">			// 加密</div><div class="line">			byte[] encrypted = cipher.doFinal(unencrypted);</div><div class="line"></div><div class="line">			// 使用BASE64对加密后的字符串进行编码</div><div class="line">			String base64Encrypted = base64.encodeToString(encrypted);</div><div class="line"></div><div class="line">			return base64Encrypted;</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			throw new AesException(AesException.EncryptAESError);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 对密文进行解密.</div><div class="line">	 * </div><div class="line">	 * @param text 需要解密的密文</div><div class="line">	 * @return 解密得到的明文</div><div class="line">	 * @throws AesException aes解密失败</div><div class="line">	 */</div><div class="line">	public String decrypt(String text) throws AesException &#123;</div><div class="line">		byte[] original;</div><div class="line">		try &#123;</div><div class="line">			// 设置解密模式为AES的CBC模式</div><div class="line">			Cipher cipher = Cipher.getInstance(&quot;AES/CBC/NoPadding&quot;);</div><div class="line">			SecretKeySpec key_spec = new SecretKeySpec(aesKey, &quot;AES&quot;);</div><div class="line">			IvParameterSpec iv = new IvParameterSpec(Arrays.copyOfRange(aesKey, 0, 16));</div><div class="line">			cipher.init(Cipher.DECRYPT_MODE, key_spec, iv);</div><div class="line"></div><div class="line">			// 使用BASE64对密文进行解码</div><div class="line">			byte[] encrypted = Base64.decodeBase64(text);</div><div class="line"></div><div class="line">			// 解密</div><div class="line">			original = cipher.doFinal(encrypted);</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			throw new AesException(AesException.DecryptAESError);</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		String decrypt;</div><div class="line">		try &#123;</div><div class="line">			// 去除补位字符</div><div class="line">			byte[] bytes = PKCS7Encoder.decode(original);</div><div class="line"></div><div class="line">			// 分离16位随机字符串,网络字节序</div><div class="line">			byte[] networkOrder = Arrays.copyOfRange(bytes, 16, 20);</div><div class="line"></div><div class="line">			int textLength = recoverNetworkBytesOrder(networkOrder);</div><div class="line"></div><div class="line">			decrypt = new String(Arrays.copyOfRange(bytes, 20, 20 + textLength), CHARSET);</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			throw new AesException(AesException.IllegalBuffer);</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		return decrypt;</div><div class="line"></div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 将发送的消息加密打包.</div><div class="line">	 * &lt;ol&gt;</div><div class="line">	 * 	&lt;li&gt;对要发送的消息进行AES-CBC加密&lt;/li&gt;</div><div class="line">	 * 	&lt;li&gt;生成安全签名&lt;/li&gt;</div><div class="line">	 * &lt;/ol&gt;</div><div class="line">	 * </div><div class="line">	 * @param msg 需要加密的消息</div><div class="line">	 * @param timestamp 时间戳，可以自己生成</div><div class="line">	 * @param nonce 随机串，可以自己生成</div><div class="line">	 * </div><div class="line">	 * @return 加密后的信息载体，包括signature, timestamp, nonce, encrypt的字符串</div><div class="line">	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息</div><div class="line">	 * @throws URISyntaxException URI语法错误</div><div class="line">	 */</div><div class="line">	public EncryptedMessage encryptMsg(String msg, String timestamp, String nonce) throws AesException, URISyntaxException &#123;</div><div class="line">		// 加密</div><div class="line">		String encrypt = encrypt(getRandomStr(), msg);</div><div class="line">		</div><div class="line">		if (timestamp == null || &quot;&quot;.equals(timestamp)) &#123;</div><div class="line">			timestamp = String.valueOf(System.currentTimeMillis());</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">		String signature = SHA1.getSHA1(token, timestamp, nonce, encrypt);</div><div class="line"></div><div class="line">		return new EncryptedMessage(signature, timestamp, nonce, encrypt);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 检验消息的真实性，并且获取解密后的明文.</div><div class="line">	 * &lt;ol&gt;</div><div class="line">	 * 	&lt;li&gt;利用收到的密文生成安全签名，进行签名验证&lt;/li&gt;</div><div class="line">	 * 	&lt;li&gt;对消息进行解密&lt;/li&gt;</div><div class="line">	 * &lt;/ol&gt;</div><div class="line">	 * </div><div class="line">	 * @param msgSignature 签名串，对应URL参数的signature</div><div class="line">	 * @param timestamp 时间戳，对应URL参数的timestamp</div><div class="line">	 * @param nonce 随机串，对应URL参数的nonce</div><div class="line">	 * @param data 密文，对应URL参数的data</div><div class="line">	 * </div><div class="line">	 * @return 解密后的原文</div><div class="line">	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息</div><div class="line">	 */</div><div class="line">	public String decryptMsg(String msgSignature, String timestamp, String nonce, String data)</div><div class="line">			throws AesException &#123;</div><div class="line"></div><div class="line">		// 验证安全签名</div><div class="line">		String signature = SHA1.getSHA1(token, timestamp, nonce, data);</div><div class="line"></div><div class="line">		// 和URL中的签名比较是否相等</div><div class="line">		// System.out.println(&quot;URL中的签名：&quot; + msg_sign);</div><div class="line">		// System.out.println(&quot;校验签名：&quot; + signature);</div><div class="line">		if (!signature.equals(msgSignature)) &#123;</div><div class="line">			throw new AesException(AesException.ValidateSignatureError);</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		// 解密</div><div class="line">		String result = decrypt(data);</div><div class="line">		return result;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	public static void main(String[] args) throws AesException, URISyntaxException &#123;</div><div class="line">		HBBizMsgCrypt hBBizMsgCrypt=new HBBizMsgCrypt(&quot;123456&quot;,&quot;0123456789012345678901234567890123456789123&quot;);</div><div class="line">		</div><div class="line">		String name=&quot;李四&quot;;</div><div class="line">		String idCard=&quot;123456789123456789&quot;;</div><div class="line">		String mobile=&quot;13428825923&quot;;</div><div class="line">		String bankAccount=&quot;123456789&quot;;</div><div class="line">		String s1=hBBizMsgCrypt.encrypt(hBBizMsgCrypt.getRandomStr(), name);</div><div class="line">		String s2=hBBizMsgCrypt.encrypt(hBBizMsgCrypt.getRandomStr(), idCard);</div><div class="line">		String s3=hBBizMsgCrypt.encrypt(hBBizMsgCrypt.getRandomStr(), mobile);</div><div class="line">		String s4=hBBizMsgCrypt.encrypt(hBBizMsgCrypt.getRandomStr(), bankAccount);</div><div class="line">        </div><div class="line"></div><div class="line">		System.out.println(hBBizMsgCrypt.decrypt(s1));</div><div class="line">		System.out.println(hBBizMsgCrypt.decrypt(s2));</div><div class="line">		System.out.println(hBBizMsgCrypt.decrypt(s3));</div><div class="line">		System.out.println(hBBizMsgCrypt.decrypt(s4));</div><div class="line">	</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="加密解密异常类"><a href="#加密解密异常类" class="headerlink" title="加密解密异常类"></a>加密解密异常类</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line">package com.xx.aes;</div><div class="line"></div><div class="line">@SuppressWarnings(&quot;serial&quot;)</div><div class="line">public class AesException extends Exception &#123;</div><div class="line"></div><div class="line">	public final static int OK = 0;</div><div class="line">	public final static int ValidateSignatureError = -40001;</div><div class="line">	public final static int ParseXmlError = -40002;</div><div class="line">	public final static int ComputeSignatureError = -40003;</div><div class="line">	public final static int IllegalAesKey = -40004;</div><div class="line">	public final static int ValidateAppidError = -40005;</div><div class="line">	public final static int EncryptAESError = -40006;</div><div class="line">	public final static int DecryptAESError = -40007;</div><div class="line">	public final static int IllegalBuffer = -40008;</div><div class="line">	//public final static int EncodeBase64Error = -40009;</div><div class="line">	//public final static int DecodeBase64Error = -40010;</div><div class="line">	//public final static int GenReturnXmlError = -40011;</div><div class="line"></div><div class="line">	private int code;</div><div class="line"></div><div class="line">	private static String getMessage(int code) &#123;</div><div class="line">		switch (code) &#123;</div><div class="line">		case ValidateSignatureError:</div><div class="line">			return &quot;签名验证错误&quot;;</div><div class="line">		case ParseXmlError:</div><div class="line">			return &quot;xml解析失败&quot;;</div><div class="line">		case ComputeSignatureError:</div><div class="line">			return &quot;sha加密生成签名失败&quot;;</div><div class="line">		case IllegalAesKey:</div><div class="line">			return &quot;SymmetricKey非法&quot;;</div><div class="line">		case ValidateAppidError:</div><div class="line">			return &quot;appid校验失败&quot;;</div><div class="line">		case EncryptAESError:</div><div class="line">			return &quot;aes加密失败&quot;;</div><div class="line">		case DecryptAESError:</div><div class="line">			return &quot;aes解密失败&quot;;</div><div class="line">		case IllegalBuffer:</div><div class="line">			return &quot;解密后得到的buffer非法&quot;;</div><div class="line">//		case EncodeBase64Error:</div><div class="line">//			return &quot;base64加密错误&quot;;</div><div class="line">//		case DecodeBase64Error:</div><div class="line">//			return &quot;base64解密错误&quot;;</div><div class="line">//		case GenReturnXmlError:</div><div class="line">//			return &quot;xml生成失败&quot;;</div><div class="line">		default:</div><div class="line">			return null; // cannot be</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public int getCode() &#123;</div><div class="line">		return code;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	AesException(int code) &#123;</div><div class="line">		super(getMessage(code));</div><div class="line">		this.code = code;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+        <p>forever能做更多的事情，比如分别记录输出和错误日志，宕机重启，热部署。比如可以在js中作为api使用</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">npm install forever -g</div></pre></td></tr></table></figure>
+<h2 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service forever start</div></pre></td></tr></table></figure>
+<h2 id="使用forever启动js文件"><a href="#使用forever启动js文件" class="headerlink" title="使用forever启动js文件"></a>使用forever启动js文件</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever start app.js</div></pre></td></tr></table></figure>
+<h2 id="停止js文件"><a href="#停止js文件" class="headerlink" title="停止js文件"></a>停止js文件</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever stop app.js</div></pre></td></tr></table></figure>
+<h2 id="启动js文件并输出日志文件"><a href="#启动js文件并输出日志文件" class="headerlink" title="启动js文件并输出日志文件"></a>启动js文件并输出日志文件</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever start -l forever.log -o out.log -e err.log app.js</div></pre></td></tr></table></figure>
+<h2 id="重启js文件"><a href="#重启js文件" class="headerlink" title="重启js文件"></a>重启js文件</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever restart app.js</div></pre></td></tr></table></figure>
+<h2 id="查看正在运行的进程"><a href="#查看正在运行的进程" class="headerlink" title="查看正在运行的进程"></a>查看正在运行的进程</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever list</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -187,7 +197,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/10/Java/加密解密／编码解码/AES完整实现（Java）/" data-id="cj6arwhdb002gymblhqy3dtlx" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/" data-id="cj6cy7nhm007yktblypl97xpq" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -201,13 +211,13 @@
 
 
   
-    <article id="post-Java/加密解密／编码解码/RAS简单介绍" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-服务器相关/resin/resin启动，停止，重启" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/10/Java/加密解密／编码解码/RAS简单介绍/">RAS简单介绍</a>
+      <a class="article-title" href="/2017/08/13/服务器相关/resin/resin启动，停止，重启/">resin启动，停止，重启</a>
     </h1>
   
 
@@ -216,13 +226,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/10/Java/加密解密／编码解码/RAS简单介绍/" class="article-date"><time datetime="2017-08-10T02:09:45.000Z" itemprop="datePublished">2017-08-10</time></a>
+  <a href="/2017/08/13/服务器相关/resin/resin启动，停止，重启/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a>
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/resin/">resin</a>
   </div>
 
 
@@ -231,82 +241,18 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="基本含义"><a href="#基本含义" class="headerlink" title="基本含义"></a>基本含义</h2><p>在公开密钥密码体制中，加密密钥（即公开密钥）PK是公开信息，而解密密钥（即秘密密钥）SK是需要保密的。加密算法E和解密算法D也都是公开的。虽然解密密钥SK是由公开密钥PK决定的，但却不能根据PK计算出SK。    </p>
-<p>正是基于这种理论，1978年出现了著名的RSA算法，它通常是先生成一对RSA 密钥，其中之一是保密密钥，由用户保存；另一个为公开密钥，可对外公开，甚至可在网络服务器中注册。为提高保密强度，RSA密钥至少为500位长，一般推荐使用1024位。这就使加密的计算量很大。<strong>为减少计算量，在传送信息时，常采用传统加密方法与公开密钥加密方法相结合的方式，即信息采用改进的DES或IDEA对话密钥加密，然后使用RSA密钥加密对话密钥和信息摘要。对方收到信息后，用不同的密钥解密并可核对信息摘要。即一般采用AES对传输的信息进行加密，采用RAS对AES的密匙进行加密。</strong></p>
-<p><strong>RSA算法是第一个能同时用于加密和数字签名的算法</strong>，也易于理解和操作。RSA是被研究得最广泛的公钥算法，从提出到现今的三十多年里，经历了各种攻击的考验，逐渐为人们接受，普遍认为是目前最优秀的公钥方案之一。</p>
-<p>SET(Secure Electronic Transaction)协议中要求CA采用2048bits长的密钥，其他实体使用1024比特的密钥。RSA密钥长度随着保密级别提高，增加很快。下表列出了对同一安全级别所对应的密钥长度。  </p>
-<table>
-<thead>
-<tr>
-<th>保密级别</th>
-<th>对称密钥长度（bit）</th>
-<th>RSA密钥长度（bit）</th>
-<th>ECC密钥长度（bit）</th>
-<th>保密年限</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>80</td>
-<td>80</td>
-<td>1024</td>
-<td>160</td>
-<td>2010</td>
-</tr>
-<tr>
-<td>112</td>
-<td>112</td>
-<td>2048</td>
-<td>224</td>
-<td>2030</td>
-</tr>
-<tr>
-<td>128</td>
-<td>128</td>
-<td>3072</td>
-<td>256</td>
-<td>2040</td>
-</tr>
-<tr>
-<td>192</td>
-<td>192</td>
-<td>7680</td>
-<td>384</td>
-<td>2080</td>
-</tr>
-<tr>
-<td>256</td>
-<td>256</td>
-<td>15360</td>
-<td>512</td>
-<td>2120</td>
-</tr>
-</tbody>
-</table>
-<p><strong>RSA算法是一种非对称密码算法，所谓非对称，就是指该算法需要一对密钥，使用其中一个加密，则需要用另一个才能解密。</strong></p>
-<h2 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h2><p>RSA的安全性依赖于大数分解，但是否等同于大数分解一直未能得到理论上的证明，因为没有证明破解RSA就一定需要作大数分解。假设存在一种无须分解大数的算法，那它肯定可以修改成为大数分解算法。 RSA 的一些变种算法已被证明等价于大数分解。不管怎样，分解n是最显然的攻击方法。人们已能分解多个十进制位的大素数。因此，模数n必须选大一些，因具体适用情况而定。</p>
-<h2 id="实现细节"><a href="#实现细节" class="headerlink" title="实现细节"></a>实现细节</h2><h3 id="密钥生成"><a href="#密钥生成" class="headerlink" title="密钥生成"></a>密钥生成</h3><p>首先要使用概率算法来验证随机产生的大的整数是否质数，这样的算法比较快而且可以消除掉大多数非质数。假如有一个数通过了这个测试的话，那么要使用一个精确的测试来保证它的确是一个质数。    </p>
-<p>除此之外这样找到的p和q还要满足一定的要求，首先它们不能太靠近，此外p-1或q-1的因子不能太小，否则的话N也可以被很快地分解。    </p>
-<p>此外寻找质数的算法不能给攻击者任何信息，这些质数是怎样找到的，尤其产生随机数的软件必须非常好。要求是随机和不可预测。这两个要求并不相同。一个随机过程可能可以产生一个不相关的数的系列，但假如有人能够预测出（或部分地预测出）这个系列的话，那么它就已经不可靠了。比如有一些非常好的随机数算法，但它们都已经被发表，因此它们不能被使用，因为假如一个攻击者可以猜出p和q一半的位的话，那么他们就已经可以轻而易举地推算出另一半。    </p>
-<p>此外密钥d必须足够大，1990年有人证明假如p大于q而小于2q（这是一个很经常的情况）而，那么从N和e可以很有效地推算出d。此外e = 2永远不应该被使用。</p>
-<h3 id="运行速度"><a href="#运行速度" class="headerlink" title="运行速度"></a>运行速度</h3><p>由于进行的都是大数计算，使得RSA最快的情况也比DES慢上好几倍，无论是软件还是硬件实现。速度一直是RSA的缺陷。一般来说只用于少量数据加密。RSA的速度比对应同样安全级别的对称密码算法要慢1000倍左右。   </p>
-<p>比起DES和其它对称算法来说，RSA要慢得多。实际上Bob一般使用一种对称算法来加密他的信息，然后用RSA来加密他的比较短的对称密码，然后将用RSA加密的对称密码和用对称算法加密的消息送给Alice。 </p>
-<p>这样一来对随机数的要求就更高了，尤其对产生对称密码的要求非常高，因为否则的话可以越过RSA来直接攻击对称密码。</p>
-<h3 id="密钥分配"><a href="#密钥分配" class="headerlink" title="密钥分配"></a>密钥分配</h3><p>和其它加密过程一样，对RSA来说分配公钥的过程是非常重要的。分配公钥的过程必须能够抵挡一个从中取代的攻击。假设Eve交给Bob一个公钥，并使Bob相信这是Alice的公钥，并且她可以截下Alice和Bob之间的信息传递，那么她可以将她自己的公钥传给Bob，Bob以为这是Alice的公钥。Eve可以将所有Bob传递给Alice的消息截下来，将这个消息用她自己的密钥解密，读这个消息，然后将这个消息再用Alice的公钥加密后传给Alice。理论上Alice和Bob都不会发现Eve在偷听他们的消息。今天人们一般用数字认证来防止这样的攻击。</p>
-<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><ol>
-<li>产生密钥很麻烦，受到素数产生技术的限制，因而难以做到一次一密。</li>
-<li>安全性，RSA的安全性依赖于大数的因子分解，但并没有从理论上证明破译RSA的难度与大数分解难度等价，而且密码学界多数人士倾向于因子分解不是NP问题。现今，人们已能分解140多个十进制位的大素数，这就要求使用更长的密钥，速度更慢；另外，人们正在积极寻找攻击RSA的方法，如选择密文攻击，一般攻击者是将某一信息作一下伪装（Blind），让拥有私钥的实体签署。然后，经过计算就可得到它所想要的信息。实际上，攻击利用的都是同一个弱点，即存在这样一个事实：乘幂保留了输入的乘法结构：    </li>
-</ol>
-<p>（XM)d = Xd *Md mod n   </p>
-<p>前面已经提到，这个固有的问题来自于公钥密码系统的最有用的特征–每个人都能使用公钥。但从算法上无法解决这一问题，主要措施有两条：一条是采用好的公钥协议，保证工作过程中实体不对其他实体任意产生的信息解密，不对自己一无所知的信息签名；另一条是决不对陌生人送来的随机文档签名，签名时首先使用One-Way Hash Function对文档作HASH处理，或同时使用不同的签名算法。除了利用公共模数，人们还尝试一些利用解密指数或φ（n）等等攻击.</p>
-<ol>
-<li>速度太慢，由于RSA 的分组长度太大，为保证安全性，n 至少也要 600 bits以上，使运算代价很高，尤其是速度较慢，较对称密码算法慢几个数量级；且随着大数分解技术的发展，这个长度还在增加，不利于数据格式的标准化。SET(Secure Electronic Transaction）协议中要求CA采用2048比特长的密钥，其他实体使用1024比特的密钥。为了速度问题，人们广泛使用单，公钥密码结合使用的方法，优缺点互补：单钥密码加密速度快，人们用它来加密较长的文件，然后用RSA来给文件密钥加密，极好的解决了单钥密码的密钥分发问题。</li>
-</ol>
-<h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div><div class="line">171</div><div class="line">172</div><div class="line">173</div><div class="line">174</div><div class="line">175</div><div class="line">176</div><div class="line">177</div><div class="line">178</div><div class="line">179</div><div class="line">180</div><div class="line">181</div><div class="line">182</div><div class="line">183</div><div class="line">184</div><div class="line">185</div><div class="line">186</div><div class="line">187</div><div class="line">188</div><div class="line">189</div><div class="line">190</div><div class="line">191</div><div class="line">192</div><div class="line">193</div><div class="line">194</div><div class="line">195</div><div class="line">196</div><div class="line">197</div><div class="line">198</div><div class="line">199</div><div class="line">200</div><div class="line">201</div><div class="line">202</div><div class="line">203</div><div class="line">204</div><div class="line">205</div><div class="line">206</div><div class="line">207</div><div class="line">208</div><div class="line">209</div><div class="line">210</div><div class="line">211</div><div class="line">212</div><div class="line">213</div><div class="line">214</div><div class="line">215</div></pre></td><td class="code"><pre><div class="line">import org.apache.commons.codec.binary.Base64;</div><div class="line">import javax.crypto.Cipher;</div><div class="line">import java.security.*;</div><div class="line">import java.security.spec.PKCS8EncodedKeySpec;</div><div class="line">import java.security.spec.X509EncodedKeySpec;</div><div class="line">import java.util.HashMap;</div><div class="line">import java.util.Map;</div><div class="line"> </div><div class="line">/**</div><div class="line"> * Created by humf.需要依赖 commons-codec 包 </div><div class="line"> */</div><div class="line">public class RSACoder &#123;</div><div class="line">    public static final String KEY_ALGORITHM = &quot;RSA&quot;;</div><div class="line">    public static final String SIGNATURE_ALGORITHM = &quot;MD5withRSA&quot;;</div><div class="line"> </div><div class="line">    private static final String PUBLIC_KEY = &quot;RSAPublicKey&quot;;</div><div class="line">    private static final String PRIVATE_KEY = &quot;RSAPrivateKey&quot;;</div><div class="line"> </div><div class="line">    public static byte[] decryptBASE64(String key) &#123;</div><div class="line">        return Base64.decodeBase64(key);</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    public static String encryptBASE64(byte[] bytes) &#123;</div><div class="line">        return Base64.encodeBase64String(bytes);</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    /**</div><div class="line">     * 用私钥对信息生成数字签名</div><div class="line">     *</div><div class="line">     * @param data       加密数据</div><div class="line">     * @param privateKey 私钥</div><div class="line">     * @return</div><div class="line">     * @throws Exception</div><div class="line">     */</div><div class="line">    public static String sign(byte[] data, String privateKey) throws Exception &#123;</div><div class="line">        // 解密由base64编码的私钥</div><div class="line">        byte[] keyBytes = decryptBASE64(privateKey);</div><div class="line">        // 构造PKCS8EncodedKeySpec对象</div><div class="line">        PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);</div><div class="line">        // KEY_ALGORITHM 指定的加密算法</div><div class="line">        KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);</div><div class="line">        // 取私钥匙对象</div><div class="line">        PrivateKey priKey = keyFactory.generatePrivate(pkcs8KeySpec);</div><div class="line">        // 用私钥对信息生成数字签名</div><div class="line">        Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);</div><div class="line">        signature.initSign(priKey);</div><div class="line">        signature.update(data);</div><div class="line">        return encryptBASE64(signature.sign());</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    /**</div><div class="line">     * 校验数字签名</div><div class="line">     *</div><div class="line">     * @param data      加密数据</div><div class="line">     * @param publicKey 公钥</div><div class="line">     * @param sign      数字签名</div><div class="line">     * @return 校验成功返回true 失败返回false</div><div class="line">     * @throws Exception</div><div class="line">     */</div><div class="line">    public static boolean verify(byte[] data, String publicKey, String sign)</div><div class="line">            throws Exception &#123;</div><div class="line">        // 解密由base64编码的公钥</div><div class="line">        byte[] keyBytes = decryptBASE64(publicKey);</div><div class="line">        // 构造X509EncodedKeySpec对象</div><div class="line">        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);</div><div class="line">        // KEY_ALGORITHM 指定的加密算法</div><div class="line">        KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);</div><div class="line">        // 取公钥匙对象</div><div class="line">        PublicKey pubKey = keyFactory.generatePublic(keySpec);</div><div class="line">        Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);</div><div class="line">        signature.initVerify(pubKey);</div><div class="line">        signature.update(data);</div><div class="line">        // 验证签名是否正常</div><div class="line">        return signature.verify(decryptBASE64(sign));</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    public static byte[] decryptByPrivateKey(byte[] data, String key) throws Exception&#123;</div><div class="line">        // 对密钥解密</div><div class="line">        byte[] keyBytes = decryptBASE64(key);</div><div class="line">        // 取得私钥</div><div class="line">        PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);</div><div class="line">        KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);</div><div class="line">        Key privateKey = keyFactory.generatePrivate(pkcs8KeySpec);</div><div class="line">        // 对数据解密</div><div class="line">        Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());</div><div class="line">        cipher.init(Cipher.DECRYPT_MODE, privateKey);</div><div class="line">        return cipher.doFinal(data);</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    /**</div><div class="line">     * 解密&lt;br&gt;</div><div class="line">     * 用私钥解密</div><div class="line">     *</div><div class="line">     * @param data</div><div class="line">     * @param key</div><div class="line">     * @return</div><div class="line">     * @throws Exception</div><div class="line">     */</div><div class="line">    public static byte[] decryptByPrivateKey(String data, String key)</div><div class="line">            throws Exception &#123;</div><div class="line">        return decryptByPrivateKey(decryptBASE64(data),key);</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    /**</div><div class="line">     * 解密&lt;br&gt;</div><div class="line">     * 用公钥解密</div><div class="line">     *</div><div class="line">     * @param data</div><div class="line">     * @param key</div><div class="line">     * @return</div><div class="line">     * @throws Exception</div><div class="line">     */</div><div class="line">    public static byte[] decryptByPublicKey(byte[] data, String key)</div><div class="line">            throws Exception &#123;</div><div class="line">        // 对密钥解密</div><div class="line">        byte[] keyBytes = decryptBASE64(key);</div><div class="line">        // 取得公钥</div><div class="line">        X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);</div><div class="line">        KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);</div><div class="line">        Key publicKey = keyFactory.generatePublic(x509KeySpec);</div><div class="line">        // 对数据解密</div><div class="line">        Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());</div><div class="line">        cipher.init(Cipher.DECRYPT_MODE, publicKey);</div><div class="line">        return cipher.doFinal(data);</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    /**</div><div class="line">     * 加密&lt;br&gt;</div><div class="line">     * 用公钥加密</div><div class="line">     *</div><div class="line">     * @param data</div><div class="line">     * @param key</div><div class="line">     * @return</div><div class="line">     * @throws Exception</div><div class="line">     */</div><div class="line">    public static byte[] encryptByPublicKey(String data, String key)</div><div class="line">            throws Exception &#123;</div><div class="line">        // 对公钥解密</div><div class="line">        byte[] keyBytes = decryptBASE64(key);</div><div class="line">        // 取得公钥</div><div class="line">        X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);</div><div class="line">        KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);</div><div class="line">        Key publicKey = keyFactory.generatePublic(x509KeySpec);</div><div class="line">        // 对数据加密</div><div class="line">        Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());</div><div class="line">        cipher.init(Cipher.ENCRYPT_MODE, publicKey);</div><div class="line">        return cipher.doFinal(data.getBytes());</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    /**</div><div class="line">     * 加密&lt;br&gt;</div><div class="line">     * 用私钥加密</div><div class="line">     *</div><div class="line">     * @param data</div><div class="line">     * @param key</div><div class="line">     * @return</div><div class="line">     * @throws Exception</div><div class="line">     */</div><div class="line">    public static byte[] encryptByPrivateKey(byte[] data, String key)</div><div class="line">            throws Exception &#123;</div><div class="line">        // 对密钥解密</div><div class="line">        byte[] keyBytes = decryptBASE64(key);</div><div class="line">        // 取得私钥</div><div class="line">        PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);</div><div class="line">        KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);</div><div class="line">        Key privateKey = keyFactory.generatePrivate(pkcs8KeySpec);</div><div class="line">        // 对数据加密</div><div class="line">        Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());</div><div class="line">        cipher.init(Cipher.ENCRYPT_MODE, privateKey);</div><div class="line">        return cipher.doFinal(data);</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    /**</div><div class="line">     * 取得私钥</div><div class="line">     *</div><div class="line">     * @param keyMap</div><div class="line">     * @return</div><div class="line">     * @throws Exception</div><div class="line">     */</div><div class="line">    public static String getPrivateKey(Map&lt;String, Key&gt; keyMap)</div><div class="line">            throws Exception &#123;</div><div class="line">        Key key = (Key) keyMap.get(PRIVATE_KEY);</div><div class="line">        return encryptBASE64(key.getEncoded());</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    /**</div><div class="line">     * 取得公钥</div><div class="line">     *</div><div class="line">     * @param keyMap</div><div class="line">     * @return</div><div class="line">     * @throws Exception</div><div class="line">     */</div><div class="line">    public static String getPublicKey(Map&lt;String, Key&gt; keyMap)</div><div class="line">            throws Exception &#123;</div><div class="line">        Key key = keyMap.get(PUBLIC_KEY);</div><div class="line">        return encryptBASE64(key.getEncoded());</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    /**</div><div class="line">     * 初始化密钥</div><div class="line">     *</div><div class="line">     * @return</div><div class="line">     * @throws Exception</div><div class="line">     */</div><div class="line">    public static Map&lt;String, Key&gt; initKey() throws Exception &#123;</div><div class="line">        KeyPairGenerator keyPairGen = KeyPairGenerator</div><div class="line">                .getInstance(KEY_ALGORITHM);</div><div class="line">        keyPairGen.initialize(1024);</div><div class="line">        KeyPair keyPair = keyPairGen.generateKeyPair();</div><div class="line">        Map&lt;String, Key&gt; keyMap = new HashMap(2);</div><div class="line">        keyMap.put(PUBLIC_KEY, keyPair.getPublic());// 公钥</div><div class="line">        keyMap.put(PRIVATE_KEY, keyPair.getPrivate());// 私钥</div><div class="line">        return keyMap;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="算47-x-30-y-1-的解"><a href="#算47-x-30-y-1-的解" class="headerlink" title="算47  x + 30  y ==1 的解"></a>算47 <em> x + 30 </em> y ==1 的解</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">public class Exercise</div><div class="line">&#123;</div><div class="line">    public static void main(String[] args)</div><div class="line">    &#123;</div><div class="line">        int[] p = new int[2];</div><div class="line">        int a = 47;</div><div class="line">        int b = 30;</div><div class="line">        RSA(a,b,p);</div><div class="line">        System.out.print(&quot;p[0] is: &quot; + p[0] + &quot;;p[1] is：&quot; + p[1]);//p1为私钥</div><div class="line">    &#125;</div><div class="line">    public static  int[] RSA(int a,int b,int[] p)//这里假设a &gt; b</div><div class="line">    &#123;</div><div class="line">        if(a%b == 1)</div><div class="line">        &#123;</div><div class="line">            p[0] = 1;</div><div class="line">            p[1] = -(a - 1) / b;</div><div class="line">            return p;</div><div class="line">        &#125;</div><div class="line">            else</div><div class="line">        &#123;</div><div class="line">                RSA(b,a % b,p);</div><div class="line">                int t = p[0];</div><div class="line">                p[0] = p[1];</div><div class="line">                p[1] = t - (a / b) * p[1]; </div><div class="line">                return p;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<ul>
-<li>摘自<a href="https://baike.baidu.com/item/RSA%E7%AE%97%E6%B3%95/263310?fr=aladdin&amp;fromid=9645994&amp;fromtitle=RSA%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95" target="_blank" rel="external">百度百科</a></li>
-</ul>
+        <h3 id="配置别名"><a href="#配置别名" class="headerlink" title="配置别名"></a>配置别名</h3><p>找到.bash_profile文件，加入<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">alias resinctl=./Users/xxx/Documents/resin/bin/resinctl</div><div class="line">alias resin=./Users/xxx/Documents/resin/bin/resin.sh</div></pre></td></tr></table></figure></p>
+<p>配置别名的好处：不需要进入特定的目录</p>
+<h3 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h3><p>进到rensin的bin目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">以控制台的方式启动：</div><div class="line">./resinctl console [options]</div><div class="line">./resin console [options]</div><div class="line"></div><div class="line">普通启动:</div><div class="line">./resin.sh start</div><div class="line">./resinctl start</div><div class="line"></div><div class="line">指定配置文件启动：</div><div class="line">./resin.sh -conf ./conf/resin.xml start</div><div class="line"></div><div class="line">启动所有服务：</div><div class="line">./resinctl start-all</div></pre></td></tr></table></figure></p>
+<p>别名方式，不需要进入bin目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">以控制台的方式启动：</div><div class="line">resinctl console [options]</div><div class="line">resin console [options]</div><div class="line"></div><div class="line">普通启动:</div><div class="line">resin.sh start</div><div class="line">resinctl start</div><div class="line"></div><div class="line">指定配置文件启动：</div><div class="line">resin.sh -conf ./conf/resin.xml start</div><div class="line"></div><div class="line">启动所有服务：</div><div class="line">resinctl start-all</div></pre></td></tr></table></figure></p>
+<h3 id="重启"><a href="#重启" class="headerlink" title="重启"></a>重启</h3><p>进到bin目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">普通重启：</div><div class="line">./resinctl restart</div><div class="line">./resin restart</div></pre></td></tr></table></figure></p>
+<p>别名方式，不需要进入bin目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">resinctl restart</div><div class="line">resin restart</div></pre></td></tr></table></figure></p>
+<h3 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h3><p>进到bin目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">普通停止：</div><div class="line">./resinctl stop</div><div class="line">./resin stop</div><div class="line">./resinctl shutdown</div><div class="line">./resin shutdown</div></pre></td></tr></table></figure></p>
+<p>别名方式，不需要进入bin目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">resinctl stop</div><div class="line">resin stop</div><div class="line">resinctl shutdown</div><div class="line">resin shutdown</div></pre></td></tr></table></figure></p>
+<h3 id="查看状态"><a href="#查看状态" class="headerlink" title="查看状态"></a>查看状态</h3><p>进到bin目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">./resinctl status</div><div class="line">./resin status</div></pre></td></tr></table></figure></p>
+<p>别名方式，不需要进入bin目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">resinctl status</div><div class="line">resin status</div></pre></td></tr></table></figure></p>
+<h3 id="查看命令"><a href="#查看命令" class="headerlink" title="查看命令"></a>查看命令</h3><p>进到bin目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./resin －help</div></pre></td></tr></table></figure></p>
+<p>别名方式，不需要进入bin目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">resin －help</div></pre></td></tr></table></figure></p>
 
       
     </div>
@@ -317,7 +263,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/10/Java/加密解密／编码解码/RAS简单介绍/" data-id="cj6arwhda002eymbl6brp4rx0" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/服务器相关/resin/resin启动，停止，重启/" data-id="cj6cy7nj800b4ktbluu3hwa37" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -331,13 +277,13 @@
 
 
   
-    <article id="post-服务器相关/Hessian/spring支持的几种远程调用方式" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-前端技术相关/javascript/js中去掉空格的方法" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/服务器相关/Hessian/spring支持的几种远程调用方式/">spring支持的几种远程调用方式</a>
+      <a class="article-title" href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
     </h1>
   
 
@@ -346,13 +292,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/02/服务器相关/Hessian/spring支持的几种远程调用方式/" class="article-date"><time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time></a>
+  <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/Hessian/">Hessian</a>
+    <a class="article-category-link" href="/categories/前端技术相关/">前端技术相关</a> / <a class="article-category-link" href="/categories/前端技术相关/javascript/">javascript</a>
   </div>
 
 
@@ -361,142 +307,127 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <ol>
-<li><blockquote>
-<p>spring 官方文档：<a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#remoting" target="_blank" rel="external">http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#remoting</a></p>
-<h2 id="传输对象，接口，接口实现类"><a href="#传输对象，接口，接口实现类" class="headerlink" title="传输对象，接口，接口实现类"></a>传输对象，接口，接口实现类</h2><h4 id="传输对象DTO"><a href="#传输对象DTO" class="headerlink" title="传输对象DTO"></a>传输对象DTO</h4><p>必须实现Serializable接口</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">public class Account implements Serializable&#123;</div><div class="line"></div><div class="line">    private String name;</div><div class="line"></div><div class="line">    public String getName()&#123;</div><div class="line">        return name;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public void setName(String name) &#123;</div><div class="line">        this.name = name;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+        
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/" data-id="cj6cy7nih009rktbl3se1lc5p" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/基础/Spring  Bean的scope作用域" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/13/Spring/基础/Spring  Bean的scope作用域/">Spring  Bean的scope作用域</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/13/Spring/基础/Spring  Bean的scope作用域/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/基础/">基础</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>在SSH中一般来说Dao Service为singleton，Action为prototype</p>
 </blockquote>
-<h4 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public interface AccountService &#123;</div><div class="line"></div><div class="line">    public void insertAccount(Account account);</div><div class="line"></div><div class="line">    public List&lt;Account&gt; getAccounts(String name);</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h4 id="实现类"><a href="#实现类" class="headerlink" title="实现类"></a>实现类</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">// the implementation doing nothing at the moment</div><div class="line">public class AccountServiceImpl implements AccountService &#123;</div><div class="line"></div><div class="line">    public void insertAccount(Account acc) &#123;</div><div class="line">        // do something...</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public List&lt;Account&gt; getAccounts(String name) &#123;</div><div class="line">        // do something...</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="Remote-Method-Invocation-RMI"><a href="#Remote-Method-Invocation-RMI" class="headerlink" title="Remote Method Invocation (RMI)"></a>Remote Method Invocation (RMI)</h2><h4 id="服务端（远程调用提供端）"><a href="#服务端（远程调用提供端）" class="headerlink" title="服务端（远程调用提供端）"></a>服务端（远程调用提供端）</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;example.AccountServiceImpl&quot;&gt;</div><div class="line">    &lt;!-- any additional properties, maybe a DAO? --&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean class=&quot;org.springframework.remoting.rmi.RmiServiceExporter&quot;&gt;</div><div class="line">    &lt;!-- does not necessarily have to be the same name as the bean to be exported --&gt;</div><div class="line">    &lt;property name=&quot;serviceName&quot; value=&quot;AccountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;service&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">    &lt;!-- defaults to 1099 --&gt;</div><div class="line">    &lt;property name=&quot;registryPort&quot; value=&quot;1199&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<p>这样，远程服务就会绑定到<code>rmi://HOST:1199/AccountService</code></p>
-<h4 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean class=&quot;example.SimpleObject&quot;&gt;</div><div class="line">    &lt;property name=&quot;accountService&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;org.springframework.remoting.rmi.RmiProxyFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;serviceUrl&quot; value=&quot;rmi://HOST:1199/AccountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<p>使用远程接口：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public class SimpleObject &#123;</div><div class="line"></div><div class="line">    private AccountService accountService;</div><div class="line"></div><div class="line">    public void setAccountService(AccountService accountService) &#123;</div><div class="line">        this.accountService = accountService;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // additional methods using the accountService</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="Hessian-or-Burlap"><a href="#Hessian-or-Burlap" class="headerlink" title="Hessian or Burlap"></a>Hessian or Burlap</h2><p>Hessian使用的是二进制方式的远程调用协议，官网：<a href="http://www.caucho.com" target="_blank" rel="external">http://www.caucho.com</a>   </p>
-<h4 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h4><p>web.xml配置</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">&lt;servlet&gt;</div><div class="line">    &lt;servlet-name&gt;remoting&lt;/servlet-name&gt;</div><div class="line">    &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;</div><div class="line">    &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;</div><div class="line">&lt;/servlet&gt;</div><div class="line"></div><div class="line">&lt;servlet-mapping&gt;</div><div class="line">    &lt;servlet-name&gt;remoting&lt;/servlet-name&gt;</div><div class="line">    &lt;url-pattern&gt;/remoting/*&lt;/url-pattern&gt;</div><div class="line">&lt;/servlet-mapping&gt;</div></pre></td></tr></table></figure>
-<p>需要在<code>WEB-INF</code>目录下添加<code>remoting-servlet.xml</code>配置文件,事实上，如果你的配置为<code>&lt;servlet-name&gt;hessian&lt;/servlet-name&gt;</code>,那么你的配置文件名就应该为<code>hessian-servlet.xml</code>   </p>
-<p>remoting-servlet.xml配置：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;example.AccountServiceImpl&quot;&gt;</div><div class="line">    &lt;!-- any additional properties, maybe a DAO? --&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean name=&quot;/AccountService&quot; class=&quot;org.springframework.remoting.caucho.HessianServiceExporter&quot;&gt;</div><div class="line">    &lt;property name=&quot;service&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<p>这样，远程服务就绑定到地址：<a href="http://HOST:8080/remoting/AccountService" target="_blank" rel="external">http://HOST:8080/remoting/AccountService</a></p>
-<h4 id="客户端-1"><a href="#客户端-1" class="headerlink" title="客户端"></a>客户端</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean class=&quot;example.SimpleObject&quot;&gt;</div><div class="line">    &lt;property name=&quot;accountService&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;org.springframework.remoting.caucho.HessianProxyFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;serviceUrl&quot; value=&quot;http://remotehost:8080/remoting/AccountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<p>Burlap 与 Hessian配置类似，只需要替换<code>org.springframework.remoting.caucho.HessianServiceExporter</code>和<code>org.springframework.remoting.caucho.HessianProxyFactoryBean</code>即可</p>
-</li>
-</ol>
-<h2 id="HTTP-invokers-推荐"><a href="#HTTP-invokers-推荐" class="headerlink" title="HTTP invokers(推荐)"></a>HTTP invokers(推荐)</h2><h4 id="服务端-1"><a href="#服务端-1" class="headerlink" title="服务端"></a>服务端</h4><p>   HTTP invokers与Hessian配置类似，将<code>org.springframework.remoting.caucho.HessianServiceExporter</code>替换为<code>org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter</code>即可<br>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;bean name=&quot;accountExporter&quot; class=&quot;org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter&quot;&gt;</div><div class="line">    &lt;property name=&quot;service&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
-<p>   HTTP invokers默认使用JDK’s HTTP functionality作为HTTP客户端，你可以更改为使用<code>Apache HttpComponents client</code><br>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;property name=&quot;httpInvokerRequestExecutor&quot;&gt;</div><div class="line">    &lt;bean class=&quot;org.springframework.remoting.httpinvoker.HttpComponentsHttpInvokerRequestExecutor&quot;/&gt;</div><div class="line">&lt;/property&gt;</div></pre></td></tr></table></figure></p>
-<h4 id="客户端-2"><a href="#客户端-2" class="headerlink" title="客户端"></a>客户端</h4><p>   将<code>org.springframework.remoting.caucho.HessianProxyFactoryBean</code>替换为<code>org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean</code><br>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;httpInvokerProxy&quot; class=&quot;org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;serviceUrl&quot; value=&quot;http://remotehost:8080/remoting/AccountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/服务器相关/Hessian/spring支持的几种远程调用方式/" data-id="cj6arwhgf0086ymblbwwv8utr" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-网络/HTTP请求方法" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/网络/HTTP请求方法/">HTTP请求方法</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/08/02/网络/HTTP请求方法/" class="article-date"><time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/网络/">网络</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>根据HTTP标准，HTTP请求可以使用多种请求方法。    </p>
-<p>HTTP1.0定义了三种请求方法： GET, POST 和 HEAD方法。  </p>
-<p>HTTP1.1新增了五种请求方法：OPTIONS, PUT, DELETE, TRACE 和 CONNECT 方法。</p>
+<h3 id="spring-Framework支持五种作用域（其中有三种只能用在基于web的Spring-ApplicationContext"><a href="#spring-Framework支持五种作用域（其中有三种只能用在基于web的Spring-ApplicationContext" class="headerlink" title="spring Framework支持五种作用域（其中有三种只能用在基于web的Spring ApplicationContext"></a>spring Framework支持五种作用域（其中有三种只能用在基于web的Spring ApplicationContext</h3><p>内置支持的作用域分列如下：</p>
 <table>
 <thead>
 <tr>
-<th>序号</th>
-<th>方法</th>
+<th>类型</th>
 <th>描述</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>1</td>
-<td>GET</td>
-<td>请求指定的页面信息，并返回实体主体。</td>
+<td>singleton(默认)</td>
+<td>在每个Spring IoC容器中一个bean定义对应一个对象实例。</td>
 </tr>
 <tr>
-<td>2</td>
-<td>HEAD</td>
-<td>类似于get请求，只不过返回的响应中没有具体的内容，用于获取报头</td>
+<td>prototype</td>
+<td>一个bean定义对应多个对象实例。</td>
 </tr>
 <tr>
-<td>3</td>
-<td>POST</td>
-<td>向指定资源提交数据进行处理请求（例如提交表单或者上传文件）。数据被包含在请求体中。POST请求可能会导致新的资源的建立和/或已有资源的修改。</td>
+<td>request</td>
+<td>在一次HTTP请求中，一个bean定义对应一个实例；即每次HTTP请求将会有各自的bean实例， 它们依据某个bean定义创建而成。该作用域仅在基于web的Spring ApplicationContext 情形下有效。</td>
 </tr>
 <tr>
-<td>4</td>
-<td>PUT</td>
-<td>从客户端向服务器传送的数据取代指定的文档的内容。</td>
+<td>session</td>
+<td>在一个HTTP Session中，一个bean定义对应一个实例。该作用域仅在基于web的SpringApplicationContext 情形下有效。</td>
 </tr>
 <tr>
-<td>5</td>
-<td>DELETE</td>
-<td>请求服务器删除指定的页面。</td>
-</tr>
-<tr>
-<td>6</td>
-<td>CONNECT</td>
-<td>HTTP/1.1协议中预留给能够将连接改为管道方式的代理服务器。</td>
-</tr>
-<tr>
-<td>7</td>
-<td>OPTIONS</td>
-<td>允许客户端查看服务器的性能。</td>
-</tr>
-<tr>
-<td>8</td>
-<td>TRACE</td>
-<td>回显服务器收到的请求，主要用于测试或诊断。</td>
+<td>global session</td>
+<td>在一个全局的HTTP Session 中，一个bean定义对应一个实例。典型情况下，仅在使用portlet context的时候有效。该作用域仅在基于web的Spring ApplicationContext 情形下有效。</td>
 </tr>
 </tbody>
 </table>
+<ol>
+<li>Singleton作用域<br>当一个bean的作用域为singleton, 那么Spring IoC容器中只会存在一个共享的bean实例，并且所有对bean的请求，只要id与该bean定义相匹配，则只会返回bean的同一实例。换言之，当把一个bean定义设置为singlton作用域时，Spring IoC容器只会创建该bean定义的唯一实例。这个单一实例会被存储到单例缓存（singleton cache）中，并且所有针对该bean的后续请求和引用都将返回被缓存的对象实例。<br><img src="http://note.youdao.com/yws/public/resource/e8ccc8ff6b52067fb6cb7822f7b5ab50/AFC196873FBC470D9E57DEDE8973D262" alt="image"><br>请注意Spring的singleton bean概念与GoF模式一书中定义的Singleton模式是完全不同的。经典的GoF Singleton模式中所谓的对象范围是指在每一个ClassLoader中指定class创建的实例有且仅有一个。把Spring的singleton作用域描述成一个Container (容器)对应一个bean实例最为贴切。也就是说假如在单个Spring容器内定义了某个指定class的bean，那么Spring容器将会创建一个并且仅有一个由该bean定义指定的类实例。Singleton作用域是Spring中的缺省作用域。要在XML中将bean定义成singleton，可以这样配置： <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot;/&gt; </div><div class="line"> </div><div class="line">&lt;!-- the following is equivalent, though redundant (singleton scope is the default); using spring-beans-2.0.dtd or upper--&gt; </div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot; scope=&quot;singleton&quot;/&gt; </div><div class="line"> </div><div class="line">&lt;!-- the following is equivalent  and preserved for backward compatibility in spring-beans.dtd--&gt; </div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot; singleton=&quot;true&quot;/&gt;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h5 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h5><p>beans.xml配置文件中配置如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot; &gt;&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
+<p>测试代码如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">public class SpringTest &#123; </div><div class="line"> </div><div class="line">    @Test </div><div class="line">    public void instanceSpring()&#123; </div><div class="line">        ApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;beans.xml&quot;); </div><div class="line">        PersonService personService1 = (PersonService)ctx.getBean(&quot;personService&quot;); </div><div class="line">        PersonService personService2 = (PersonService)ctx.getBean(&quot;personService&quot;); </div><div class="line">        System.out.println(personService1==personService2); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>运行测试程序，结果输出为: true.说明是只创建了一个PersonServiceBean.</p>
+<ol>
+<li>Prototype作用域<br>Prototype作用域的bean会导致在每次对该bean请求（将其注入到另一个bean中，或者以程序的方式调用容器的getBean() 方法）时都会创建一个新的bean实例 。根据经验，<strong>对有状态的bean应该使用prototype作用域，而对无状态的bean则应该使用singleton作用域</strong>。 </li>
+</ol>
+<p>下图演示了Spring的prototype作用域。请注意，通常情况下，DAO不会被配置成prototype，因为DAO通常不会持有任何会话状态，因此应该使用singleton作用域。<br><img src="http://note.youdao.com/yws/public/resource/e8ccc8ff6b52067fb6cb7822f7b5ab50/421AD7A31E2E48B4BE1CAE58E7A681D4" alt="image"><br>在XML中将bean定义成prototype，可以这样配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;!-- using spring-beans-2.0.dtd or upper --&gt; </div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot; scope=&quot;prototype&quot;/&gt; </div><div class="line">&lt;!-- the following is equivalent and preserved for backward compatibility in spring-beans.dtd --&gt; </div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot; singleton=&quot;false&quot;/&gt;</div></pre></td></tr></table></figure></p>
+<p>将beans.xml配置文件中的配置信息改为如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;cn.itcast.service.impl.PersonServiceBean&quot; scope=&quot;prototype&quot;&gt;&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
+<p>再运行上面的测试程序，输出结果为:false，说明创建了两个PersonServiceBean.</p>
+<p><strong>其他作用域，即request、session以及global session 仅在基于web的应用中使用（不必关心你所采用的是什么web应用框架）。这些作用域仅仅在使用基于web的Spring ApplicationContext实现（如XmlWebApplicationContext）时有用。 如果在普通的Spring IoC容器中，比如像XmlBeanFactory或ClassPathXmlApplicationContext， 尝试使用这些作用域，你将会得到一个IllegalStateException异常（未知的bean作用域）。</strong></p>
+<h3 id="Bean的生命周期"><a href="#Bean的生命周期" class="headerlink" title="Bean的生命周期"></a>Bean的生命周期</h3><h4 id="什么时候初始化bean实例"><a href="#什么时候初始化bean实例" class="headerlink" title="什么时候初始化bean实例"></a>什么时候初始化bean实例</h4><p><strong>当scope＝singleton，即默认情况，会在容器初始化时实例化。但我们可以指定Bean节点的lazy-init=”true”来延迟初始化bean,这时候，只有第一次获取bean才会初始化bean，即第一次请求该bean时才初始化</strong>。如下配置所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=”xxx” class=”examples.test.OrderServiceBean” lazy-init=”true” /&gt;</div></pre></td></tr></table></figure></p>
+<p>如果想对所有bean都应用延迟初始化，可以在根节点beans设置default-lazy-init=”true”,如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;beans default-lazy-init=”true” …&gt;</div></pre></td></tr></table></figure></p>
+<p><strong>当scope=prototype时，也会延迟初始化bean,即第一次请求该bean时才初始化(如调用getBean()方法时).</strong></p>
+<h5 id="测试如下："><a href="#测试如下：" class="headerlink" title="测试如下："></a>测试如下：</h5><p>PersonServiceBean代码如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">public class PersonServiceBean implements PersonService &#123; </div><div class="line">    public void init()&#123; </div><div class="line">        System.out.println(&quot;Get the database connection and initialize other beans!&quot;); </div><div class="line">    &#125; </div><div class="line">    </div><div class="line">    public PersonServiceBean()&#123; </div><div class="line">        System.out.println(&quot;PersonServiceBean is initialized!&quot;); </div><div class="line">    &#125; </div><div class="line">    </div><div class="line">    public void destroy()&#123; </div><div class="line">        System.out.println(&quot;close the database connection!&quot;); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>beans.xml配置文件如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot; /&gt; &lt;!-- 1 --&gt; </div><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot;  scope=&quot;singleton&quot; /&gt; &lt;!-- 2 --&gt;</div></pre></td></tr></table></figure></p>
+<p>测试程序如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public class SpringTest &#123; </div><div class="line">    @Test </div><div class="line">    public void instanceSpring()&#123; </div><div class="line">        ApplicationContext ctx =  new  ClassPathXmlApplicationContext(&quot;beans.xml&quot;); </div><div class="line">        System.out.println(&quot;------------------&quot;); </div><div class="line">        PersonService personService = (PersonServiceBean)ctx.getBean(&quot;personService&quot;); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>分1，2两种情况运行程序，控制台打印信息如下所示：<br>PersonServiceBean is initialized!<br>-—————–      </p>
+<p>将配置文件修改成如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot; lazy-init=&quot;true&quot; /&gt; &lt;!-- 1 --&gt; </div><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot; scope=&quot;prototype&quot; /&gt; &lt;!-- 2 --&gt;</div></pre></td></tr></table></figure></p>
+<p>分1，2两种情况运行程序，控制台打印信息如下所示:<br>-—————–<br>PersonServiceBean is initialized!<br>​<br>以上测试说明：<br>Bean默认是在容器初始化时初始化的，即<br>ApplicationContext ctx = new ClassPathXmlApplicationContext(“beans.xml”);语句执行时就实例化bean了。如果把scope设成scope=”prototype” 或设置lazy-init=”true”，则会延迟bean的实例化，bean会在PersonService personService = (PersonServiceBean)ctx.getBean(“personService”);语句执行时才实例化。<br>当配置文件为如下所示时，测试结果同上。</p>
+<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><p>构造器、init方法、获取bean后的操作、destroy方法（ctx.close时执行）<br><strong>注意:如果bean的scope设为prototype时，当ctx.close时，destroy方法不会被调用.</strong>   </p>
+<p>原因：对于prototype作用域的bean，有一点非常重要，那就是Spring不能对一个prototype bean的整个生命周期负责：容器在初始化、配置、装饰或者是装配完一个prototype实例后，将它交给客户端，随后就对该prototype实例不闻不问了。不管何种作用域，容器都会调用所有对象的初始化生命周期回调方法。但对prototype而言，任何配置好的析构生命周期回调方法都将不会被调用。清除prototype作用域的对象并释放任何prototype bean所持有的昂贵资源，都是客户端代码的职责。（让Spring容器释放被prototype作用域bean占用资源的一种可行方式是，通过使用bean的后置处理器，该处理器持有要被清除的bean的引用。）    </p>
+<p><strong>谈及prototype作用域的bean时，在某些方面你可以将Spring容器的角色看作是Java new 操作的替代者。任何迟于该时间点的生命周期事宜都得交由客户端来处理</strong>。</p>
+<p>配置文件信息如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;cn.itcast.service.impl.PersonServiceBean&quot; init-method=&quot;init&quot; destroy-method=&quot;destroy&quot;/&gt;</div></pre></td></tr></table></figure></p>
+<p>测试程序如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public class SpringTest &#123; </div><div class="line">    @Test </div><div class="line">    public void instanceSpring()&#123; </div><div class="line">        AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;beans.xml&quot;); </div><div class="line">        System.out.println(&quot;------------------&quot;); </div><div class="line">        PersonService personService = (PersonServiceBean)ctx.getBean(&quot;personService&quot;); </div><div class="line">        ctx.close(); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>运行测试程序，控制台打印信息如下所示：<br>PersonServiceBean is initialized!<br>Get the database connection and initialize other beans!<br>-—————–<br>close the database connection!  </p>
+<p>修改配置文件信息如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;cn.itcast.service.impl.PersonServiceBean&quot; scope=&quot;prototype&quot; init-method=&quot;init&quot; destroy-method=&quot;destroy&quot;/&gt;</div></pre></td></tr></table></figure></p>
+<p>再次运行测试程序，控制台打印信息如下所示：<br>-—————–<br>PersonServiceBean is initialized!<br>Get the database connection and initialize other beans! </p>
+<p>修改配置文件信息如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;cn.itcast.service.impl.PersonServiceBean&quot; lazy-init=&quot;true&quot; init-method=&quot;init&quot; destroy-method=&quot;destroy&quot;/&gt;</div></pre></td></tr></table></figure></p>
+<p>此时再次运行测试程序，控制台打印信息如下所示：<br>-—————–<br>PersonServiceBean is initialized!<br>Get the database connection and initialize other beans!<br>close the database connection!  </p>
 
       
     </div>
@@ -507,7 +438,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/HTTP请求方法/" data-id="cj6arwhbg0017ymblkfh59v9i" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/Spring  Bean的scope作用域/" data-id="cj6cy7nhr008dktblr5jr5uwl" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -521,13 +452,13 @@
 
 
   
-    <article id="post-网络/状态码" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/基础/AOP事务管理" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/网络/状态码/">状态码</a>
+      <a class="article-title" href="/2017/08/13/Spring/基础/AOP事务管理/">AOP事务管理</a>
     </h1>
   
 
@@ -536,13 +467,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/02/网络/状态码/" class="article-date"><time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time></a>
+  <a href="/2017/08/13/Spring/基础/AOP事务管理/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/网络/">网络</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/基础/">基础</a>
   </div>
 
 
@@ -551,16 +482,82 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>当浏览者访问一个网页时，浏览者的浏览器会向网页所在服务器发出请求。当浏览器接收并显示网页前，此网页所在的服务器会返回一个包含HTTP状态码的信息头（server header）用以响应浏览器的请求。<br>HTTP状态码的英文为HTTP Status Code。</p>
-<p>下面是常见的HTTP状态码：</p>
+        <blockquote>
+<p>注意：service方法中必须能抛出异常，供aop事务捕获，才会进行事务控制，若service方法中捕获了异常，则需要在catch中重新抛出异常</p>
+</blockquote>
+<h3 id="使用基于注解的AOP事务管理"><a href="#使用基于注解的AOP事务管理" class="headerlink" title="使用基于注解的AOP事务管理"></a>使用基于注解的AOP事务管理</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&lt;tx:annotation-driven transaction-manager=&quot;transactionManager&quot;/&gt; </div><div class="line">&lt;aop:aspectj-autoproxy /&gt;</div></pre></td></tr></table></figure>
+<h4 id="tx-annotation-driven标签"><a href="#tx-annotation-driven标签" class="headerlink" title="tx:annotation-driven标签"></a>tx:annotation-driven标签</h4><p><code>&lt;tx:annotation-driven/&gt;</code>标签是注解驱动的事务管理支持的核心。</p>
+<p><tx:annotation-driven>标签的属性：</tx:annotation-driven></p>
 <ul>
-<li>200 - 请求成功</li>
-<li>301 - 资源（网页等）被永久转移到其它URL</li>
-<li>404 - 请求的资源（网页等）不存在</li>
-<li>500 - 内部服务器错误</li>
+<li>transaction-manager：指定到现有的PlatformTransactionManager bean的引用，通知会使用该引用。default=”transactionManager” </li>
+<li>mode：指定Spring事务管理框架创建通知bean的方式。可用的值有proxy和aspectj。前者是默认值，表示通知对象是个JDK代理；后者表示Spring AOP会使用AspectJ创建代理。 </li>
+<li>order：指定创建的切面的顺序。只要目标对象有多个通知就可以使用该属性。 </li>
+<li>proxy-target-class：该属性如果为true就表示你想要代理目标类而不是bean所实现的所有接口。default=”false” </li>
 </ul>
-<h2 id="HTTP状态码分类"><a href="#HTTP状态码分类" class="headerlink" title="HTTP状态码分类"></a>HTTP状态码分类</h2><p>HTTP状态码由三个十进制数字组成，第一个十进制数字定义了状态码的类型，后两个数字没有分类的作用。HTTP状态码共分为5种类型：<br>| 分类   | 分类描述                    |<br>| —- | ———————– |<br>| 1<strong>  | 信息，服务器收到请求，需要请求者继续执行操作  |<br>| 2</strong>  | 成功，操作被成功接收并处理           |<br>| 3<strong>  | 重定向，需要进一步的操作以完成请求       |<br>| 4</strong>  | 客户端错误，请求包含语法错误或无法完成请求   |<br>| 5**  | 服务器错误，服务器在处理请求的过程中发生了错误 |</p>
-<p>HTTP状态码列表:<br>| 状态码  |             状态码英文名称             |                   中文描述                   |<br>| :–: | :—————————–: | :————————————–: |<br>| 100  |            Continue             |               继续。客户端应继续其请求               |<br>| 101  |       Switching Protocols       | 切换协议。服务器根据客户端的请求切换协议。只能切换到更高级的协议，例如，切换到HTTP的新版本协议 |<br>|      |                                 |                                          |<br>| 200  |               OK                |           请求成功。一般用于GET与POST请求            |<br>| 201  |             Created             |             已创建。成功请求并创建了新的资源             |<br>| 202  |            Accepted             |            已接受。已经接受请求，但未处理完成             |<br>| 203  |  Non-Authoritative Information  |   非授权信息。请求成功。但返回的meta信息不在原始的服务器，而是一个副本   |<br>| 204  |           No Content            | 无内容。服务器成功处理，但未返回内容。在未更新网页的情况下，可确保浏览器继续显示当前文档 |<br>| 205  |          Reset Content          | 重置内容。服务器处理成功，用户终端（例如：浏览器）应重置文档视图。可通过此返回码清除浏览器的表单域 |<br>| 206  |         Partial Content         |           部分内容。服务器成功处理了部分GET请求           |<br>|      |                                 |                                          |<br>| 300  |        Multiple Choices         | 多种选择。请求的资源可包括多个位置，相应可返回一个资源特征与地址的列表用于用户终端（例如：浏览器）选择 |<br>| 301  |        Moved Permanently        | 永久移动。请求的资源已被永久的移动到新URI，返回信息会包括新的URI，浏览器会自动定向到新URI。今后任何新的请求都应使用新的URI代替 |<br>| 302  |              Found              |   临时移动。与301类似。但资源只是临时被移动。客户端应继续使用原有URI   |<br>| 303  |            See Other            |       查看其它地址。与301类似。使用GET和POST请求查看       |<br>| 304  |          Not Modified           | 未修改。所请求的资源未修改，服务器返回此状态码时，不会返回任何资源。客户端通常会缓存访问过的资源，通过提供一个头信息指出客户端希望只返回在指定日期之后修改的资源 |<br>| 305  |            Use Proxy            |           使用代理。所请求的资源必须通过代理访问            |<br>| 306  |             Unused              |              已经被废弃的HTTP状态码               |<br>| 307  |       Temporary Redirect        |         临时重定向。与302类似。使用GET请求重定向          |<br>|      |                                 |                                          |<br>| 400  |           Bad Request           |            客户端请求的语法错误，服务器无法理解            |<br>| 401  |          Unauthorized           |               请求要求用户的身份认证                |<br>| 402  |        Payment Required         |                 保留，将来使用                  |<br>| 403  |            Forbidden            |         服务器理解请求客户端的请求，但是拒绝执行此请求          |<br>| 404  |            Not Found            | 服务器无法根据客户端的请求找到资源（网页）。通过此代码，网站设计人员可设置”您所请求的资源无法找到”的个性页面 |<br>| 405  |       Method Not Allowed        |               客户端请求中的方法被禁止               |<br>| 406  |         Not Acceptable          |          服务器无法根据客户端请求的内容特性完成请求           |<br>| 407  |  Proxy Authentication Required  |    请求要求代理的身份认证，与401类似，但请求者应当使用代理进行授权     |<br>| 408  |        Request Time-out         |           服务器等待客户端发送的请求时间过长，超时           |<br>| 409  |            Conflict             |   服务器完成客户端的PUT请求是可能返回此代码，服务器处理请求时发生了冲突   |<br>| 410  |              Gone               | 客户端请求的资源已经不存在。410不同于404，如果资源以前有现在被永久删除了可使用410代码，网站设计人员可通过301代码指定资源的新位置 |<br>| 411  |         Length Required         |    服务器无法处理客户端发送的不带Content-Length的请求信息    |<br>| 412  |       Precondition Failed       |              客户端请求信息的先决条件错误              |<br>| 413  |    Request Entity Too Large     | 由于请求的实体过大，服务器无法处理，因此拒绝请求。为防止客户端的连续请求，服务器可能会关闭连接。如果只是服务器暂时无法处理，则会包含一个Retry-After的响应信息 |<br>| 414  |      Request-URI Too Large      |        请求的URI过长（URI通常为网址），服务器无法处理        |<br>| 415  |     Unsupported Media Type      |             服务器无法处理请求附带的媒体格式             |<br>| 416  | Requested range not satisfiable |                客户端请求的范围无效                |<br>| 417  |       Expectation Failed        |           服务器无法满足Expect的请求头信息            |<br>|      |                                 |                                          |<br>| 500  |      Internal Server Error      |              服务器内部错误，无法完成请求              |<br>| 501  |         Not Implemented         |            服务器不支持请求的功能，无法完成请求            |<br>| 502  |           Bad Gateway           |      充当网关或代理的服务器，从远端服务器接收到了一个无效的请求       |<br>| 503  |       Service Unavailable       | 由于超载或系统维护，服务器暂时的无法处理客户端的请求。延时的长度可包含在服务器的Retry-After头信息中 |<br>| 504  |        Gateway Time-out         |        充当网关或代理的服务器，未及时从远端服务器获取请求         |<br>| 505  |   HTTP Version not supported    |        服务器不支持请求的HTTP协议的版本，无法完成处理         |</p>
+<h4 id="Transactional注解"><a href="#Transactional注解" class="headerlink" title="@Transactional注解"></a>@Transactional注解</h4><p>你可以指定传播、隔离级别、超时以及允许和不允许的异常。<br>@Transactional注解的属性:   </p>
+<ul>
+<li>propagation：指定事务定义中使用的传播</li>
+<li>isolation：设定事务的隔离级别</li>
+<li>timeout：指定事务的超时（秒）</li>
+<li>readOnly：指定事务是否是只读模式</li>
+<li>noRollbackFor：该属性用于设置不需要进行回滚的异常类名称数组，当方法中抛出指定异常名称数组中的异常时，不进行事务回滚</li>
+<li>rollbackFor：异常所构成的数组，如果目标方法抛出了这些异常，就会通知回滚事务</li>
+</ul>
+<p>注意的几点: </p>
+<ol>
+<li>@Transactional 只能被应用到public方法上, 对于其它非public的方法,如果标记了@Transactional也不会报错,但方法没有事务功能.</li>
+</ol>
+<p>2 用 spring 事务管理器,由spring来负责数据库的打开,提交,回滚.默认遇到运行时异常(RuntimeException)会回滚，即遇到不受检查（unchecked）的异常时回滚；而遇到需要捕获的异常不会回滚,即遇到受检查的异常（就是非运行时抛出的异常，编译器会检查到的异常叫受检查例外或说受检查异常）时，需我们指定方式来让事务回滚 要想所有异常都回滚,要加上<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@Transactional( rollbackFor=&#123;Exception.class,其它异常&#125;)</div></pre></td></tr></table></figure></p>
+<p>如果让unchecked例外不回滚：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@Transactional(notRollbackFor=RunTimeException.class)</div></pre></td></tr></table></figure></p>
+<ol>
+<li><p>@Transactional 注解可以被应用于接口定义和接口方法、类定义和类的 public 方法上。然而，请注意仅仅 @Transactional 注解的出现不足于开启事务行为，它仅仅 是一种元数据，能够被可以识别 @Transactional 注解和上述的配置适当的具有事务行为的beans所使用。上面的例子中，其实正是 <code>&lt;tx:annotation-driven/&gt;</code>元素的出现开启了事务行为。</p>
+</li>
+<li><p>Spring团队的建议是你在具体的类（或类的方法）上使用 @Transactional 注解，而不要使用在类所要实现的任何接口上。你当然可以在接口上使用 @Transactional 注解，但是这将只能当你设置了基于接口的代理时它才生效。因为注解是不能继承的，这就意味着如果你正在使用基于类的代理时，那么事务的设置将不能被基于类的代理所识别，而且对象也将不会被事务代理所包装（将被确认为严重的）。因 此，请接受Spring团队的建议并且在具体的类上使用 @Transactional 注解。 </p>
+</li>
+</ol>
+<h3 id="使用XML-AOP事务管理"><a href="#使用XML-AOP事务管理" class="headerlink" title="使用XML AOP事务管理"></a>使用XML AOP事务管理</h3><p><tx:advice>标签，该标签会创建一个事务处理通知<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">&lt;tx:advice id=&quot;txAdvice&quot; transaction-manager=&quot;transactionManager&quot;&gt; </div><div class="line">    &lt;tx:attributes&gt; </div><div class="line">        &lt;tx:method name=&quot;bulk*&quot; propagation=&quot;REQUIRED&quot; isolation=&quot;DEFAULT&quot; /&gt; </div><div class="line">        &lt;tx:method name=&quot;load*&quot; propagation=&quot;REQUIRED&quot; isolation=&quot;DEFAULT&quot; read-only=&quot;true&quot;/&gt; </div><div class="line">    &lt;/tx:attributes&gt; </div><div class="line">&lt;/tx:advice&gt; </div><div class="line">&lt;aop:config&gt; </div><div class="line">    &lt;aop:advisor pointcut=&quot;execution(* *..*Service*.*(..))&quot; advice-ref=&quot;txAdvice&quot; /&gt; </div><div class="line">&lt;/aop:config&gt; </div><div class="line"> </div><div class="line">或 </div><div class="line"> </div><div class="line">&lt;tx:advice id=&quot;defaultTransactionAdvice&quot; transaction-manager=&quot;transactionManager&quot;&gt; </div><div class="line">    &lt;tx:attributes&gt; </div><div class="line">        &lt;tx:method name=&quot;*&quot; isolation=&quot;DEFAULT&quot; propagation=&quot;REQUIRED&quot; no-rollback-for=&quot;java.lang.RuntimeException&quot; timeout=&quot;100&quot;/&gt;</div><div class="line">    &lt;tx:method name=&quot;get*&quot; read-only=&quot;true&quot;/&gt;</div><div class="line">    &lt;/tx:attributes&gt; </div><div class="line">&lt;/tx:advice&gt; </div><div class="line"> </div><div class="line">&lt;aop:config&gt; </div><div class="line">    &lt;aop:pointcut id=&quot;allServiceMethods&quot; </div><div class="line">    expression=&quot;execution(* com.apress.prospring2.ch16.services.*.*(..))&quot;/&gt; </div><div class="line">    &lt;aop:advisor advice-ref=&quot;defaultTransactionAdvice&quot; </div><div class="line">        pointcut-ref=&quot;allServiceMethods&quot;/&gt; </div><div class="line">&lt;/aop:config&gt;</div></pre></td></tr></table></figure></tx:advice></p>
+<h4 id="tx-advice标签简介"><a href="#tx-advice标签简介" class="headerlink" title="tx:advice标签简介"></a>tx:advice标签简介</h4><p>id是该advice bean的标识，而transaction-manager则必须引用一个PlatformTransactionManager bean。  </p>
+<p>还可以通过<tx:attributes>标签定制<tx:advice>标签所创建的通知的行为。</tx:advice></tx:attributes></p>
+<p><tx:method>标签的属性：    </tx:method></p>
+<ul>
+<li>name：方法名的匹配模式，通知根据该模式寻找匹配的方法。</li>
+<li>propagation：设定事务定义所用的传播级别。</li>
+<li>isolation：设置事务的隔离级别。</li>
+<li>timeout：指定事务的超时（秒）。</li>
+<li>read-only：该属性为true指示事务是只读的</li>
+<li>no-rollback-for：以逗号分隔的异常类的列表，目标方法可以跑出这些异常而不会导致通知执行回滚</li>
+<li>rollback-for：以逗号分隔的异常类的列表，当目标方法跑出这些异常时会导致通知执行回滚。默认情况下，该列表为空，因此不在no-rollback-for列表中的任何运行时异常都会导致回滚。</li>
+</ul>
+<h4 id="中isolation（隔离）和propagation（传播）参数的含义"><a href="#中isolation（隔离）和propagation（传播）参数的含义" class="headerlink" title="中isolation（隔离）和propagation（传播）参数的含义"></a><tx:method>中isolation（隔离）和propagation（传播）参数的含义</tx:method></h4><p>事务隔离级别：</p>
+<ol>
+<li><p><strong>@Transactional(isolation=Isolation.DEFAULT)</strong>     使用数据库默认的隔离级别（对大多数数据库来说就是@Transactional(isolation = Isolation.REPEATABLE_READ)）</p>
+</li>
+<li><p><strong>@Transactional(isolation = Isolation.READ_UNCOMMITTED)：读未提交</strong>    最低的隔离级别,会出现脏读, 不可重复读，幻读的情况。事实上我们不推荐该隔离级别，因为在事务完成前，其他事务可以看到该事务所修改的数据。而在其他事务提交前，该事务也可以看到其他事务所做的修改。</p>
+</li>
+<li><p><strong>@Transactional(isolation = Isolation.READ_COMMITTED)：读已提交</strong><br>会出现不可重复读，幻读的情况。在事务完成前，其他事务无法看到该事务所修改的数据。遗憾的是，在该事务提交后，你就可以查看其他事务插入或更新的数据。这意味着在事务的不同点上，如果其他事务修改数据，你会看到不同的数据。</p>
+</li>
+<li><p><strong>@Transactional(isolation = Isolation.REPEATABLE_READ)：可重复读</strong>      大多数数据库的默认级别，如Mysql。会出现幻读的情况。该隔离级别确保如果在事务中查询了某个数据集，你至少还能再次查询到相同的数据集，即使其他事务修改了所查询的数据。然而如果其他事务插入了新数据，你就可以查询到该新插入的数据。 </p>
+</li>
+<li><p><strong>@Transactional(isolation = Isolation.SERIALIZABLE)：串行化</strong>    代价最大、可靠性最高的隔离级别，所有的事务都是按顺序一个接一个的执行。</p>
+</li>
+</ol>
+<p>传播行为指：</p>
+<ol>
+<li><p><strong>PROPAGATION_REQUIRED</strong>  当前如果有事务，Spring就会使用该事务；否则会开始一个新事务。</p>
+</li>
+<li><p><strong>PROPAGATION_SUPPORTS</strong>  当前如果有事务，Spring就会使用该事务；否则不会开启一个新事务。</p>
+</li>
+<li><p><strong>PROPAGATION_MANDATORY</strong>     当前如果有事务，Spring就会使用该事务；否则会抛出异常。</p>
+</li>
+<li><p><strong>PROPAGATION_REQUIRES_NEW</strong>  Spring总会开始一个新事务。如果当前有事务，则该事务挂起。</p>
+</li>
+<li><p><strong>PROPAGATION_NOT_SUPPORTED</strong>     Spring不会执行事务中的代码。代码总是在非事务环境下执行，如果当期有事务，则该事务挂起。</p>
+</li>
+<li><p><strong>PROPAGATION_NEVER</strong>     即使当前有事务，Spring也会在非事务环境下执行。如果当前有事务，则抛出异常。</p>
+</li>
+<li><p><strong>PROPAGATION_NESTED</strong>    如果当前有事务，则在嵌套事务中执行。如果没有，那么执行情况与PROPAGATION_REQUIRED一样。</p>
+</li>
+</ol>
 
       
     </div>
@@ -571,7 +568,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/状态码/" data-id="cj6arwhbh001bymbl64ecane1" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/AOP事务管理/" data-id="cj6cy7nhq008bktbl4mw59237" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -585,13 +582,13 @@
 
 
   
-    <article id="post-服务器相关/Hessian/整合spring" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/基础/Bean注入：Autowired和Resource" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/服务器相关/Hessian/整合spring/">整合spring</a>
+      <a class="article-title" href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
     </h1>
   
 
@@ -600,13 +597,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/02/服务器相关/Hessian/整合spring/" class="article-date"><time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time></a>
+  <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/Hessian/">Hessian</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/基础/">基础</a>
   </div>
 
 
@@ -616,266 +613,175 @@
     <div class="article-entry" itemprop="articleBody">
       
         <ol>
-<li><blockquote>
-<p>hessian是一个采用二进制格式传输的服务框架，相对传统soap web service，更轻量，更快速。官网地址：<a href="http://hessian.caucho.com/" target="_blank" rel="external">http://hessian.caucho.com/</a></p>
-<h2 id="加入依赖包"><a href="#加入依赖包" class="headerlink" title="加入依赖包"></a>加入依赖包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;com.caucho&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;hessian&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;4.0.37&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
-</blockquote>
-<h2 id="web-xml加入拦截"><a href="#web-xml加入拦截" class="headerlink" title="web.xml加入拦截"></a>web.xml加入拦截</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">&lt;servlet&gt;</div><div class="line">    &lt;servlet-name&gt;hessian&lt;/servlet-name&gt;</div><div class="line">    &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;</div><div class="line">    &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;</div><div class="line">&lt;/servlet&gt;</div><div class="line">&lt;servlet-mapping&gt;</div><div class="line">    &lt;servlet-name&gt;hessian&lt;/servlet-name&gt;</div><div class="line">    &lt;url-pattern&gt;*.http&lt;/url-pattern&gt;</div><div class="line">&lt;/servlet-mapping&gt;</div></pre></td></tr></table></figure>
-<p>这样，以<code>.http</code>结尾的url都会转为远程服务</p>
-</li>
+<li>@Resource默认是按照名称来装配注入的，只有当找不到与名称匹配的bean才会按照类型来装配注入；</li>
+<li>@Autowired默认是按照类型装配注入的，如果想按照名称来转配注入，则需要结合@Qualifier一起使用；</li>
+<li>@Resource注解是由J2EE提供，而@Autowired是由Spring提供，故减少系统对spring的依赖建议使用@Resource的方式；</li>
+<li>@Resource和@Autowired都可以书写标注在字段或者该字段的setter方法之上</li>
 </ol>
-<h2 id="hessian-servlet-xml"><a href="#hessian-servlet-xml" class="headerlink" title="hessian-servlet.xml"></a>hessian-servlet.xml</h2><p>   发布远程调用接口<br>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;bean name=&quot;/services/whRemoteService.http&quot; class=&quot;org.springframework.remoting.caucho.HessianServiceExporter&quot;&gt;</div><div class="line">    &lt;property name=&quot;service&quot; ref=&quot;whRemoteService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;com.xx.remote.service.WhRemoteService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/" data-id="cj6cy7nhp0088ktblv8bmemal" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-前端技术相关/forever/nohup node app.js &amp;" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/13/前端技术相关/forever/nohup node app.js &/">nohup node app.js &amp;</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/13/前端技术相关/forever/nohup node app.js &/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/前端技术相关/">前端技术相关</a> / <a class="article-category-link" href="/categories/前端技术相关/forever/">forever</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">nohup node app.js &amp;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/forever/nohup node app.js &/" data-id="cj6cy7nhj007tktblyuoshepx" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/基础/java 垃圾回收机制" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/12/Java/基础/java 垃圾回收机制/">java 垃圾回收机制</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/12/Java/基础/java 垃圾回收机制/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="JVM体系结构简介"><a href="#JVM体系结构简介" class="headerlink" title="JVM体系结构简介"></a>JVM体系结构简介</h2><h4 id="JVM-Specification中的JVM整体架构"><a href="#JVM-Specification中的JVM整体架构" class="headerlink" title="JVM Specification中的JVM整体架构"></a>JVM Specification中的JVM整体架构</h4><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/7F3773507E124A918989B46388D81BAE/7802" alt="image"><br>主要包括两个子系统和两个组件，<strong>Class Loader(类装载)子系统</strong>，<strong>Execution Engine(执行引擎)子系统</strong>，<strong>Runtime Data Area(运行时数据区)组件</strong>，<strong>Native Interface(本地接口)组件</strong>。 </p>
 <ul>
-<li>调用地址:<a href="http://host/services/whRemoteService.http" target="_blank" rel="external">http://host/services/whRemoteService.http</a></li>
-<li>service:远程调用接口名称</li>
-<li>serviceInterface:远程调用接口地址</li>
+<li>Class loader 子系统的作用 ：根 据给定的全限定名类名(如 java.lang.Object)来装载class文件的内容到 Runtime data area 中的method area(方法区域)。Java 程序员可以extends java.lang.ClassLoader 类来写自己的Class loader。</li>
+<li>Execution engine 子系统的作用 ：执 行 classes中的指令。任何 JVM specification实现(JDK)的核心是Execution engine， 换句话说：Sun 的JDK 和IBM的JDK好坏主要取决于他们各自实现的Execution  engine的好坏。每个运行中的线程都有一个 Execution engine的实例。 </li>
+<li>Native interface 组件 ：与native libraries 交互，是其它编程语言交互的接口。 </li>
+<li>Runtime data area 组件：这个组件就是 JVM中的内存。</li>
 </ul>
-<h2 id="调用方配置：applicationContext-remoting-xml"><a href="#调用方配置：applicationContext-remoting-xml" class="headerlink" title="调用方配置：applicationContext-remoting.xml"></a>调用方配置：applicationContext-remoting.xml</h2>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;whRemoteService&quot; class=&quot;org.springframework.remoting.caucho.HessianProxyFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;serviceUrl&quot; value=&quot;http://host/services/whRemoteService.http&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;com.xx.remote.service.WhRemoteService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>   传输的对象必须是序列化的，也就是要implements Serializable接口</p>
-<h4 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h4>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">public interface OssPaymentRemoteService &#123;</div><div class="line"></div><div class="line">	public List&lt;TransactionRecordDTO&gt; majorAccountSearch(Map&lt;String, Object&gt; params, Integer pageNo, Integer pageSize);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h4 id="传输对象dto"><a href="#传输对象dto" class="headerlink" title="传输对象dto"></a>传输对象dto</h4>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public class TransactionRecordDTO  implements Serializable &#123;</div><div class="line">	private static final long serialVersionUID = 1L;</div><div class="line"></div><div class="line">    private Byte type;</div><div class="line">    </div><div class="line">    //getter and setter</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h4 id="接口实现类"><a href="#接口实现类" class="headerlink" title="接口实现类"></a>接口实现类</h4>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public class OssPaymentRemoteServiceImpl  implements OssPaymentRemoteService &#123;</div><div class="line">	private Logger logger = LoggerFactory.getLogger(OssPaymentRemoteServiceImpl.class);</div><div class="line"></div><div class="line"></div><div class="line">	@Override</div><div class="line">	public List&lt;TransactionRecordDTO&gt; majorAccountSearch(Map&lt;String, Object&gt; params, Integer pageNo, Integer pageSize) &#123;</div><div class="line">	    //实现逻辑</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/服务器相关/Hessian/整合spring/" data-id="cj6arwhgh008bymblqrdfh29m" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-网络/HTTP 消息结构" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/网络/HTTP 消息结构/">HTTP 消息结构</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/08/02/网络/HTTP 消息结构/" class="article-date"><time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/网络/">网络</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>HTTP是基于客户端/服务端（C/S）的架构模型，通过一个可靠的链接来交换信息，是一个无状态的请求/响应协议。   </p>
-<p>一个HTTP”客户端”是一个应用程序（Web浏览器或其他任何客户端），通过连接到服务器达到向服务器发送一个或多个HTTP的请求的目的。  </p>
-<p>一个HTTP”服务器”同样也是一个应用程序（通常是一个Web服务，如Apache Web服务器或IIS服务器等），通过接收客户端的请求并向客户端发送HTTP响应数据。  </p>
-<p>HTTP使用统一资源标识符（Uniform Resource Identifiers, URI）来传输数据和建立连接。<br>一旦建立连接后，数据消息就通过类似Internet邮件所使用的格式[RFC5322]和多用途Internet邮件扩展（MIME）[RFC2045]来传送。  </p>
-<h3 id="客户端请求消息"><a href="#客户端请求消息" class="headerlink" title="客户端请求消息"></a>客户端请求消息</h3><p>客户端发送一个HTTP请求到服务器的请求消息包括以下格式：请求行（request line）、请求头部（header）、空行和请求数据四个部分组成，下图给出了请求报文的一般格式。</p>
-<h3 id="服务器响应消息"><a href="#服务器响应消息" class="headerlink" title="服务器响应消息"></a>服务器响应消息</h3><p>HTTP响应也由四个部分组成，分别是：状态行、消息报头、空行和响应正文。<br><img src="http://www.runoob.com/wp-content/uploads/2013/11/httpmessage.jpg" alt="image">   </p>
-<h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><p>下面实例是一点典型的使用GET来传递数据的实例：<br>客户端请求：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">GET /hello.txt HTTP/1.1</div><div class="line">User-Agent: curl/7.16.3 libcurl/7.16.3 OpenSSL/0.9.7l zlib/1.2.3</div><div class="line">Host: www.example.com</div><div class="line">Accept-Language: en, mi</div></pre></td></tr></table></figure></p>
-<p>服务端响应:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">HTTP/1.1 200 OK</div><div class="line">Date: Mon, 27 Jul 2009 12:28:53 GMT</div><div class="line">Server: Apache</div><div class="line">Last-Modified: Wed, 22 Jul 2009 19:15:56 GMT</div><div class="line">ETag: &quot;34aa387-d-1568eb00&quot;</div><div class="line">Accept-Ranges: bytes</div><div class="line">Content-Length: 51</div><div class="line">Vary: Accept-Encoding</div><div class="line">Content-Type: text/plain</div></pre></td></tr></table></figure></p>
-<p>输出结果：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Hello World! My payload includes a trailing CRLF.</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/HTTP 消息结构/" data-id="cj6arwhbe0016ymbl5oauvkv1" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-网络/HTTP 简介" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/网络/HTTP 简介/">HTTP 简介</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/08/02/网络/HTTP 简介/" class="article-date"><time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/网络/">网络</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="HTTP-简介"><a href="#HTTP-简介" class="headerlink" title="HTTP 简介"></a>HTTP 简介</h3><p>HTTP协议是Hyper Text Transfer Protocol（超文本传输协议）的缩写,是用于从万维网（WWW:World Wide Web ）服务器传输超文本到本地浏览器的传送协议。。<br>HTTP是一个基于TCP/IP通信协议来传递数据（HTML 文件, 图片文件, 查询结果等）。</p>
-<h3 id="HTTP-工作原理"><a href="#HTTP-工作原理" class="headerlink" title="HTTP 工作原理"></a>HTTP 工作原理</h3><p>HTTP协议工作于客户端-服务端架构为上。   浏览器作为HTTP客户端通过URL向HTTP服务端即WEB服务器发送所有请求。<br>Web服务器有：Apache服务器，IIS服务器（Internet Information Services）等。<br>Web服务器根据接收到的请求后，向客户端发送响应信息。<br>HTTP默认端口号为80，但是你也可以改为8080或者其他端口。  </p>
-<h3 id="HTTP三点注意事项："><a href="#HTTP三点注意事项：" class="headerlink" title="HTTP三点注意事项："></a>HTTP三点注意事项：</h3><ul>
-<li>HTTP是无连接：无连接的含义是限制每次连接只处理一个请求。服务器处理完客户的请求，并收到客户的应答后，即断开连接。采用这种方式可以节省传输时间。</li>
-<li>HTTP是媒体独立的：这意味着，只要客户端和服务器知道如何处理的数据内容，任何类型的数据都可以通过HTTP发送。客户端以及服务器指定使用适合的MIME-type内容类型。</li>
-<li>HTTP是无状态：HTTP协议是无状态协议。无状态是指协议对于事务处理没有记忆能力。缺少状态意味着如果后续处理需要前面的信息，则它必须重传，这样可能导致每次连接传送的数据量增大。另一方面，在服务器不需要先前信息时它的应答就较快。</li>
-</ul>
-<p>以下图表展示了HTTP协议通信流程：<br><img src="http://www.runoob.com/wp-content/uploads/2013/11/cgiarch.gif" alt="image"></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/HTTP 简介/" data-id="cj6arwhb60011ymblec6n9qmt" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-网络/7层网络协议" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/网络/7层网络协议/">7层网络协议</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/08/02/网络/7层网络协议/" class="article-date"><time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/网络/">网络</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <table>
-<thead>
-<tr>
-<th>OSI中的层</th>
-<th>功能</th>
-<th>TCP/IP协议族</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>应用层</td>
-<td>文件传输，电子邮件，文件服务，虚拟终端</td>
-<td>TFTP，HTTP，SNMP，FTP，SMTP，DNS，Telnet</td>
-</tr>
-<tr>
-<td>表示层</td>
-<td>数据格式化，代码转换，数据加密</td>
-<td>没有协议</td>
-</tr>
-<tr>
-<td>会话层</td>
-<td>解除或建立与别的接点的联系</td>
-<td>没有协议</td>
-</tr>
-<tr>
-<td>传输层</td>
-<td>提供端对端的接口</td>
-<td>TCP，UDP</td>
-</tr>
-<tr>
-<td>网络层</td>
-<td>为数据包选择路由</td>
-<td>IP，ICMP，RIP，OSPF，BGP，IGMP</td>
-</tr>
-<tr>
-<td>数据链路层</td>
-<td>传输有地址的帧以及错误检测功能</td>
-<td>SLIP，CSLIP，PPP，ARP，RARP，MTU</td>
-</tr>
-<tr>
-<td>物理层</td>
-<td>以二进制数据形式在物理媒体上传输数据</td>
-<td>ISO2110，IEEE802。IEEE802.2</td>
-</tr>
-</tbody>
-</table>
+<p>Runtime data area 的整体架构图：<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/6AA4AD5DE0324A3C8BEE06B56345725F/7804" alt="image"><br><strong>Runtime data area 主要包括五个部分：Heap (堆), Method Area(方法区域), Java Stack(java 的栈), Program Counter(程序计数器), Native method stack(本地方法栈)。Heap 和Method Area 是被所有线程的共享使用的；而Java stack, Program counter 和 Native method stack 是以线程为粒度的，每个线程独自拥有。</strong>   </p>
 <ul>
-<li><p><strong>物理层</strong> 为数据链路层提供物理连接，在其上串行传送比特流，即所传送数据的单位是比特。此外，该层中还具有确定连接设备的电气特性和物理特性等功能。</p>
+<li><p><strong>Heap（堆内存）</strong><br>Java程序在运行时创建的所有类实例或数组都放在同一个堆中。而一个Java虚拟实例中只存在一个堆空间，因此所有线程都将共享这个堆。每一个 java程序独占一个JVM实例，因而每个 java程序都有它自己的堆空间，它们不会彼此干扰。但是同一java程序的多个线程都共享着同一个堆空间，就得考虑多线程访问对象（堆数据）的同步问 题。（这里可能出现的异常 java.lang.OutOfMemoryError: Java heap space）  </p>
 </li>
-<li><p><strong>数据链路层</strong> 负责在网络节点间的线路上通过检测、流量控制和重发等手段，无差错地传送以帧为单位的数据。为做到这一点，在每一帧中必须同时带有同步、地址、差错控制及流量控制等控制信息。</p>
+<li><p><strong>Method area（方法区）</strong><br>在Java 虚拟机中，被装载的 class的信息存储在 Method area的内存中。当虚拟机装载某个类型时，它使用类装载器定位相应的 class文件，然后读入这个class文件内容并把它传输到虚拟机中。紧接着虚拟机提取其中的类型信息，并将这些信息存储到方法区。该类型中的类（静 态）变量同样也存储在方法区中。与Heap 一样，method area 是多线程共享的，因此要考虑多线程访问的同步问题。比如，假设同时两个线程都企图访问一个名为 Lava的类，而这个类还没有内装载入虚拟机，那么，这时应该只有一个线程去装载它，而另一个线程则只能等待。 （这里可能出现的异常 java.lang.OutOfMemoryError: PermGen full）  </p>
 </li>
-<li><p><strong>网络层</strong> 为了将数据分组从源（源端系统）送到目的地（目标端系统），网络层的任务就是选择合适的路由和交换节点，使源的传输层传下来的分组信息能够正确无误地按照地址找到目的地，并交付给相应的传输层，即完成网络的寻址功能。</p>
+<li><p><strong>Java stack（java 栈）</strong><br>Java stack 以帧为单位保存线程的运行状态。虚拟机只会直接对 Java stack执行两种操作：以帧为单位的压栈或出栈。每当线程调用一个方法的时候，就对当前状态作为一个帧保存到 java stack 中(压栈)；当一个方法调用返回时，从java stack 弹出一个帧(出栈)。栈的大小是有一定的限制，这个可能出现StackOverFlow 问题，例如递归的层数太深。  </p>
 </li>
-<li><p><strong>传输层</strong> 传输层是高低层之间衔接的接口层。数据传输的单位是报文，当报文较长时将它分割成若干分组,然后交给网络层进行传输。传输层是计算机网络协议分层中的最关键一层，该层以上各层将不再管理信息传输问题。</p>
+<li><p><strong>Program counter（程序计数器）</strong><br>每个运行中的Java程序，每一个线程都有它自己的PC寄存器，也是该线程启动时创建的。PC寄存器的内容总是指向下一条将被执行指令的地址，这里的地址可以是一个本地指针，也可以是在方法区中相对应于该方法起始指令的偏移量。  </p>
 </li>
-<li><p><strong>会话层</strong> 该层对传输的报文提供同步管理服务。在两个不同系统的互相通信的应用进程之间建立、组织和协调交互。例如，确定是双工还是半双工工作。</p>
-</li>
-<li><p><strong>表示层</strong> 该层的主要任务是把所传送的数据的抽象语法变换为传送语法，即把不同计算机内部的不同表示形式转换成网络通信中的标准表示形式。此外，对传送的数据加密（或解密）、正文压缩（或还原）也是表示层的任务。</p>
-</li>
-<li><p><strong>应用层</strong> 该层直接面向用户，是OSI中的最高层。它的主要任务是为用户提供应用的接口，即提供不同计算机间的文件传送、访问与管理，电子邮件的内容处理，不同计算机通过网络交互访问的虚拟终端功能等。</p>
+<li><p><strong>Native method stack（本地方法栈）</strong><br>对于一个运行中的Java程序而言，它还能会用到一些跟本地方法相关的数据区。当某个线程调用一个本地方法时，它就进入了一个全新的并且不再受虚拟机限 制的世界。本地方法可以通过本地方法接口来访问虚拟机的运行时数据区，不止如此，它还可以做任何它想做的事情。比如，可以调用寄存器，或在操作系统中分配 内存等。总之，本地方法具有和JVM 相同的能力和权限。  (这里出现 JVM无法控制的内存溢出问题 native heap OutOfMemory ) 。  </p>
 </li>
 </ul>
+<h4 id="Sun-JVM-中对-JVM-Specification-的实现（内存部分）"><a href="#Sun-JVM-中对-JVM-Specification-的实现（内存部分）" class="headerlink" title="Sun JVM 中对 JVM Specification 的实现（内存部分）"></a>Sun JVM 中对 JVM Specification 的实现（内存部分）</h4><p>JVM Specification只是抽象的说明了 JVM 实例按照子系统、内存区、数据类型以及指令这几个术语来描述的，  但是规范并非是要强制规定 Java 虚拟机实现内部的体系结构，更多的是为了严格地定义这些实现的外部特征。  Sun JVM 实现中：Runtime data area(JVM  内存)  五个部分中的 Java Stack , Program Counter, Native method stack 三部分和规范中的描述基本一致；但对 Heap  和  Method Area 进行了自己独特的实现。这个实现和 Sun JVM  的Garbage collector（垃圾回收）机制有关。     </p>
+<h5 id="垃圾分代回收算法（Generational-Collecting）"><a href="#垃圾分代回收算法（Generational-Collecting）" class="headerlink" title="垃圾分代回收算法（Generational Collecting）"></a>垃圾分代回收算法（Generational Collecting）</h5><p>基于对对象生命周期分析后得出的垃圾回收算法。把对象分为年青代、年老代、持久代，对不同生命周期的对象使用不同的算法（上述方式中的一个）进行回收。现在的垃圾回收器（从J2SE1.2开始）都是使用此算法的。<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/51FF00BC6F604060B8EE5826F063E7FF/7803" alt="image">    </p>
+<p>如上图所示，为Java 堆中的各代分布。   </p>
+<ol>
+<li>Young（年轻代）JVM specification 中的  Heap的一部分。年轻代分三个区。一个Eden区，两个 Survivor区。大部分对象在Eden区中生成。当Eden区满时，还存活的对象将被复制到 Survivor区（两个中的一个），当这个 Survivor区满时，此区的存活对象将被复制到另外一个 Survivor区，当这个 Survivor去也满了的时候，从第一个Survivor区复制过来的并且此时还存活的对象，将被复制到年老区(Tenured)。需要注 意，Survivor的两个区是对称的，没先后关系，所以同一个区中可能同时存在从Eden复制过来的对象，和从前一个 Survivor复制过来的对象，而复制到年老区的只有从第一个 Survivor 区过来的对象。而且，Survivor 区总有一个是空的。  </li>
+<li>Tenured（年老代）JVM specification中的  Heap的一部分。年老代存放从年轻代存活的对象。一般来说年老代存放的都是生命期较长的对象。</li>
+<li>Perm（持久代）  JVM specification 中的  Method area 用于存放静态文件，如 Java 类、方法等。持久代对垃圾回收没有显著影响，但是有些应用可能动态生成或者调用一些 class，例如 Hibernate 等，在这种时候需要设置一个比较大的持久代空间来存放这些运行过程中新增的类。持久代大小通过-XX:MaxPermSize=进行设置。</li>
+</ol>
+<h2 id="内存分布"><a href="#内存分布" class="headerlink" title="内存分布"></a>内存分布</h2><p>JVM的内存分代管理结构：<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/605518F2B1504903B1A126803190723C/7805" alt="image"><br>下面是一些需要关注的常用的JVM内存配置参数，我们来看看它们是如何影响上图中的比例的。        </p>
+<h3 id="Heap-Size"><a href="#Heap-Size" class="headerlink" title="Heap Size"></a>Heap Size</h3><p><strong>-Xmx —最大Heap Size</strong>，即上图的Total size（包括Eden+form+to，Tenured，不包含Perm，见上图），限制了年轻代和年老代的可分配最大值；<br><strong>-Xms —初始化分配的Heap Size</strong><br>生产环境中ms一般设置成跟mx相等，因为若ms不等于mx那么在某些场景下JVM可能需要对Heap Size进行频繁的扩展和收缩，增加处理时间；</p>
+<h3 id="New-Young-Generation-Size"><a href="#New-Young-Generation-Size" class="headerlink" title="New/Young Generation Size"></a>New/Young Generation Size</h3><p><strong>-Xmn —最大年轻代大小</strong>，即上图中的Eden+S0+S1+Virtual<br><strong>-XX:NewSize —初始化年轻代大小</strong>，即上图中的Eden+S0+S1，在只设置了-Xmn不设置-XX:NewSize的情况下，NewSize等于mn。<br>生产环境中一般只需设置-Xmn或者设置mn和NewSize相等，理由和HeapSize的设置一样，避免容量震荡消耗资源；</p>
+<h3 id="Old-Generation-Size-（Tenured）"><a href="#Old-Generation-Size-（Tenured）" class="headerlink" title="Old Generation Size （Tenured）"></a>Old Generation Size （Tenured）</h3><p>-XX:NewRatio — Old Size/New Size，通过年老代和年轻代的比例和Heap Size就可以算出年老代的大小。一般默认为8，若Heap Size为1024m，则 NewSize=HeapSize/(NewRatio+1)=114m，OldSize=HeapSize-NewSize=910m；<br>注意：-Xmn的优先级比-XX:NewRatio高，若-Xmn已指定，则OldSize=HeapSize-NewSize，无需再按比例计算。生产环境中一般只需指定-Xmn就足够了。</p>
+<h3 id="Eden和S0、S1"><a href="#Eden和S0、S1" class="headerlink" title="Eden和S0、S1"></a>Eden和S0、S1</h3><p>-XX:SurvivorRatio — Eden/S0，即 Eden区和S0的比例，默认为8，若NewSize为114m，则S0=NewSize/(SurvivorRatio+2)=11.4m;<br>S0==S1，S0、S1的职能是一模一样的，又叫做From space和To space，在每一次minor gc后角色会交换。<br>注意：-XX类型的选项在不同的JDK版本或实现中定义可能有所区别，在近日的实践中发现，在Linux jdk_1_5_0_10_x86版本中，SurvivorRatio=(YoungSize/S0)，而Linux jdk_1_5_0_20_x64版本中，SurvivorRatio=(Eden/S0)，所以，我们在实际的工程实践中还是应该用jmap -heap输出的jvm内存结构信息为准，不要想当然。</p>
+<h3 id="Permanent-Generation-Size"><a href="#Permanent-Generation-Size" class="headerlink" title="Permanent Generation Size"></a>Permanent Generation Size</h3><p><strong>-XX:MaxPermSize</strong> —最大持久代大小，默认为64m；<br><strong>-XX:PermSize</strong> —初始化持久代大小，默认为16m；<br>生产环境中一般设置MaxPermSize和PermSize相等，理由和HeapSize的设置一样，避免容量震荡消耗资源；<br>当应用引用的类比较多或者应用了一些动态类生产技术时应该加大该区的值，一般256m对服务器程序都很足够了。  </p>
+<h3 id="Thread-Stack-Size"><a href="#Thread-Stack-Size" class="headerlink" title="Thread Stack Size"></a>Thread Stack Size</h3><p><strong>-Xss</strong> —线程堆栈大小，一般用于存放方法入口参数和返回值，以及原子类型的本地变量（即方法内部变量）；<br>一般可设置为128k.</p>
+<h3 id="Direct-Memory-Size"><a href="#Direct-Memory-Size" class="headerlink" title="Direct Memory Size"></a>Direct Memory Size</h3><p>-XX:MaxDirectMemorySize —direct byte buffer用到的本地内存，默认跟mx相等，所以生产环境中一般不设置mx大于物理内存的一半。</p>
+<h2 id="GC过程"><a href="#GC过程" class="headerlink" title="GC过程"></a>GC过程</h2><p>在讲述GC过程前我先解释一下JVM的两个控制参数：</p>
+<ul>
+<li>-XX:TargetSurvivorRatio — Survivor Space最大使用率，若存放对象的总大小超过该值，将引起对象向Old区迁移；</li>
+<li>-XX:MaxTenuringThreshold — Young区对象的最大任期阀值，即可经历minor gc的次数，超过该次数的对象直接迁移到Old区；</li>
+</ul>
+<h3 id="Heap在初始状态"><a href="#Heap在初始状态" class="headerlink" title="Heap在初始状态"></a>Heap在初始状态</h3><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/D697D9F32C4B49B695E55BA6C17F05BA/7806" alt="image">    </p>
+<h3 id="在Eden存放新对象"><a href="#在Eden存放新对象" class="headerlink" title="在Eden存放新对象"></a>在Eden存放新对象</h3><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/661FF2FC15A54B968D78771794964F82/7807" alt="image">    </p>
+<h3 id="Eden空间不足分配新对象，进行第一次minor-gc"><a href="#Eden空间不足分配新对象，进行第一次minor-gc" class="headerlink" title="Eden空间不足分配新对象，进行第一次minor gc"></a>Eden空间不足分配新对象，进行第一次minor gc</h3><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/3055967862EE440593549C52A86D1BFA/7808" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/DCC7EA8095674A87A8B731179AD2C055/7810" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/360E2E4E55074C43A2CEC0BF1E984735/7809" alt="image">    </p>
+<h3 id="Eden区再次被写满，进行第二次minor-gc"><a href="#Eden区再次被写满，进行第二次minor-gc" class="headerlink" title="Eden区再次被写满，进行第二次minor gc"></a>Eden区再次被写满，进行第二次minor gc</h3><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/D82167248EE1422F9E2E168A2E0BED2C/7811" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/02BD5695A74249788A952C94A2BB6C5B/7813" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/ECFFAB95FB884318BFBC4810FA24C7DE/7812" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/43B37C943BB94ACD98390B311FB7EEE0/7814" alt="image">   </p>
+<h3 id="Eden再次被写满，进行第3次minor-gc"><a href="#Eden再次被写满，进行第3次minor-gc" class="headerlink" title="Eden再次被写满，进行第3次minor gc"></a>Eden再次被写满，进行第3次minor gc</h3><p>第3次gc，发生了对象从from space提升到old区的迁移，然后也发生了from space到to space的copy<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/9C0C8EDA8702471AA5FDA2B245A38442/7816" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/074D37A977464B0A9666B29BEF481E9D/7815" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/4E881AF6D6A94548A6E537AF0C0DEC7F/7817" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/A30D42C7170E468E8C789FAA797ED51F/7819" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/B37B2D99E29543F98F46BFCA716CB9D8/7818" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/61FA00EA2A28452A98CB66A1348D1771/7820" alt="image">   </p>
+<p>以下是Survivor space空间不足但对象的minor gc次数未到达MaxTenuringThreshold时的gc情况：<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/C0BD54B605034553BE7F6CA3877DCD6D/7821" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/E3EBAC9AB610412AA408431B7A448D20/7822" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/4A2675338FF843A295210D7DC59557B3/7823" alt="image">   </p>
+<h2 id="GC实战"><a href="#GC实战" class="headerlink" title="GC实战"></a>GC实战</h2><p>在进行GC Tuning时有两个很强大的利器：   </p>
+<ul>
+<li>jstat：用于查看某java进程的gc情况；</li>
+<li>jmap：查看java进程堆栈分配和使用情况，以及dump出当前堆栈内容（可以用Eclipse MAT进行进一步分析） </li>
+</ul>
+<p>以上两个利器都是jdk自带，且无需java进程添加任何额外的debug信息输出参数的，直接就可以对任意java进程进行跟踪了。</p>
+<p>UseParNewGC表示对新生代采用并行gc；<br>ParallelGCThreads表示并行的线程数为8，一般是cpu的核个数，当核个数大于8时可能不是很适用；<br>UseConcMarkSweepGC表示对full gc采用CMS gc；</p>
+<p>另外还有几个跟GC有关的有用参数，这里没有用到：<br>-XX:+DisableExplicitGC 表示禁止显式gc，System.gc()<br>-XX:+UseCMSCompactAtFullCollection 适用于CMS gc，表示在进行gc的同时清理内存碎片，但会加长gc的总时间<br>-XX:CMSInitiatingOccupancyFraction=80 适用于CMS gc，表示在年老代达到80%使用率时马上进行回收</p>
+<p>另外下面是在JVM Crash时获heap信息的一些配置参数：<br>-XX:ErrorFile=./xxx.log   JVM Crash时记录heap信息<br>-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./yyy.log JVM OOM时记录heap信息<br>拿到heap文件后可以用Eclipse MAT进行分析，找出引起内存泄漏的class。</p>
 
       
     </div>
@@ -886,7 +792,81 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/7层网络协议/" data-id="cj6arwhb4000yymbl1kvu32cf" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/java 垃圾回收机制/" data-id="cj6cy7nfc002wktbl8qf3pcej" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/基础/==与equals的区别" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/12/Java/基础/==与equals的区别/">==与equals的区别</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/12/Java/基础/==与equals的区别/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h2><p><strong>==:对于基本类型来说，比较的是两个对象的值是否想等；对于引用类型来说，比较的是两个引用对象是否指向同一个对象（即两个对象的引用地址是否想等）<br>equals:该方法不能作用于基本类型的对象，比较的是两个引用对象的地址是否想等<br>注意：由于String，Integer，Byte等类重写了equals方法，所以相当于比较两个对象的值是否想等</strong></p>
+<hr>
+<p>在Java中游8种基本数据类型：</p>
+<p>　　浮点型：float(4 byte), double(8 byte)</p>
+<p>　　整型：byte(1 byte), short(2 byte), int(4 byte) , long(8 byte)</p>
+<p>　　字符型: char(2 byte)</p>
+<p>　　布尔型: boolean(JVM规范没有明确规定其所占的空间大小，仅规定其只能够取字面值”true”和”false”)</p>
+<p>　　对于这8种基本数据类型的变量，变量直接存储的是“值”，因此在用关系操作符==来进行比较时，比较的就是 “值” 本身。要注意浮点型和整型都是有符号类型的，而char是无符号类型的（char类型取值范围为0~2^16-1).
+　　</p>
+<ol>
+<li><strong>String类型的比较</strong><br>String类型比较不同对象内容是否相同，应该用equals，因为==用于比较引用类型和比较基本数据类型时具有不同的功能。</li>
+</ol>
+<p>分析如下：</p>
+<p>例子一：对象不同，内容相同，”==”返回false，equals返回true<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">String s1 = <span class="keyword">new</span> String(<span class="string">"java"</span>);</div><div class="line">String s2 = <span class="keyword">new</span> String(<span class="string">"java"</span>);</div><div class="line"></div><div class="line">System.out.println(s1==s2);            <span class="comment">//false</span></div><div class="line">System.out.println(s1.equals(s2));    <span class="comment">//true</span></div></pre></td></tr></table></figure></p>
+<p>例子二：同一对象，”==”和equals结果相同<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">String s1 = new String(&quot;java&quot;);</div><div class="line">String s2 = s1;</div><div class="line"></div><div class="line">System.out.println(s1==s2);            //true</div><div class="line">System.out.println(s1.equals(s2));    //true</div></pre></td></tr></table></figure></p>
+<p>例子三：String作为一个“基本类型”来使用</p>
+<p>如果值不相同，对象就不相同，所以”==” 和equals结果一样<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">String s1 = &quot;java&quot;;</div><div class="line">String s2 = &quot;java&quot;;</div><div class="line"></div><div class="line">System.out.println(s1==s2);            //true</div><div class="line">System.out.println(s1.equals(s2));    //true</div></pre></td></tr></table></figure></p>
+<p>如果String缓冲池内不存在与其指定值相同的String对象，那么此时虚拟机将为此创建新的String对象，并存放在String缓冲池内。</p>
+<p>如果String缓冲池内存在与其指定值相同的String对象，那么此时虚拟机将不为此创建新的String对象，而直接返回已存在的String对象的引用。</p>
+<p>　　</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/==与equals的区别/" data-id="cj6cy7nf5002mktblzowgjsu5" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -903,7 +883,7 @@
 
 
   <div id="page-nav">
-    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/2/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li><a class="page-number" href="/page/2/">2</a></li><li class="active"><span class="page-number">3</span></li><li><a class="page-number" href="/page/4/">4</a></li><li><a class="page-number" href="/page/5/">5</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/16/">16</a></li><li><a class="page-next" rel="next" href="/page/4/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
+    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/2/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li><a class="page-number" href="/page/2/">2</a></li><li class="active"><span class="page-number">3</span></li><li><a class="page-number" href="/page/4/">4</a></li><li><a class="page-number" href="/page/5/">5</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/18/">18</a></li><li><a class="page-next" rel="next" href="/page/4/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
   </div>
 
 
@@ -921,7 +901,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">35</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
   </div>
 
 
@@ -934,7 +914,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">32</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">53</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
   </div>
 
 
@@ -945,23 +925,23 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
+          <a href="/2017/08/15/Spring/Security/配置十三：session管理/">配置十三：session管理</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
+          <a href="/2017/08/15/Spring/Security/配置七：缓存UserDetails/">配置七：缓存UserDetails</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/forever/nohup node app.js &/">nohup node app.js &amp;</a>
+          <a href="/2017/08/15/Spring/Security/配置四：认证过程/">配置四：认证过程</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
+          <a href="/2017/08/15/Spring/Security/配置十：退出登录/">配置十：退出登录</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/服务器相关/resin/resin启动，停止，重启/">resin启动，停止，重启</a>
+          <a href="/2017/08/15/Spring/Security/配置十六：基于表达式的权限控制/">配置十六：基于表达式的权限控制</a>
         </li>
       
     </ul>

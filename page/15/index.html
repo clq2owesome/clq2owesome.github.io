@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-Java/Cookie/设置Session超时时间" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/SpringMVC/定义@RequestMapping注解的处理方法" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/Cookie/设置Session超时时间/">设置Session超时时间</a>
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/定义@RequestMapping注解的处理方法/">定义@RequestMapping注解的处理方法</a>
     </h1>
   
 
@@ -95,13 +95,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Java/Cookie/设置Session超时时间/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/SpringMVC/定义@RequestMapping注解的处理方法/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/Cookie/">Cookie</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
   </div>
 
 
@@ -110,11 +110,71 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="方法一：在web-xml中设置session-config如下-针对单个应用而言："><a href="#方法一：在web-xml中设置session-config如下-针对单个应用而言：" class="headerlink" title="方法一：在web.xml中设置session-config如下-针对单个应用而言："></a>方法一：在web.xml中设置session-config如下-针对单个应用而言：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;session-config&gt;</div><div class="line">  &lt;session-timeout&gt;2&lt;/session-timeout&gt;</div><div class="line">&lt;/session-config&gt;</div></pre></td></tr></table></figure>
-<p>2表示2分钟</p>
-<h2 id="方法二：在Tomcat的-conf-web-xml中session-config-默认值为：30分钟，针对整个容器而言"><a href="#方法二：在Tomcat的-conf-web-xml中session-config-默认值为：30分钟，针对整个容器而言" class="headerlink" title="方法二：在Tomcat的/conf/web.xml中session-config,默认值为：30分钟，针对整个容器而言"></a>方法二：在Tomcat的/conf/web.xml中session-config,默认值为：30分钟，针对整个容器而言</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;session-config&gt;</div><div class="line">    &lt;session-timeout&gt;30&lt;/session-timeout&gt;</div><div class="line">&lt;/session-config&gt;</div></pre></td></tr></table></figure>
-<h2 id="方法三：在Servlet中设置"><a href="#方法三：在Servlet中设置" class="headerlink" title="方法三：在Servlet中设置"></a>方法三：在Servlet中设置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">HttpSession session = request.getSession();</div><div class="line">session.setMaxInactiveInterval(60);//单位为秒</div></pre></td></tr></table></figure>
-<p><code>优先级：Servlet中API设置 &gt; 程序/web.xml设置 &gt; Tomcat/conf/web.xml设置</code></p>
+        <h1 id="PathVariable"><a href="#PathVariable" class="headerlink" title="@PathVariable"></a>@PathVariable</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path=&quot;/owners/&#123;ownerId&#125;&quot;, method=RequestMethod.GET)</div><div class="line">public String findOwner(@PathVariable String ownerId, Model model) &#123;</div><div class="line">    Owner owner = ownerService.findOwner(ownerId);</div><div class="line">    model.addAttribute(&quot;owner&quot;, owner);</div><div class="line">    return &quot;displayOwner&quot;;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>URI模板”/owners/{ownerId}”指定了一个变量，名为ownerId。当控制器处理这个请求的时候，ownerId的值就会被URI模板中对应部分的值所填充。比如说，如果请求的URI是/owners/fred，此时变量ownerId的值就是fred.<br>为了处理@PathVariables注解，Spring MVC必须通过变量名来找到URI模板中相对应的变量。你可以在注解中直接声明：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path=&quot;/owners/&#123;ownerId&#125;&#125;&quot;, method=RequestMethod.GET)</div><div class="line">public String findOwner(@PathVariable(&quot;ownerId&quot;) String theOwner, Model model) &#123;</div><div class="line">    // 具体的方法代码…</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>如果URI模板中的变量名与方法的参数名是相同的，则你可以不必再指定一次<br>一个方法可以拥有任意数量的@PathVariable注解：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path=&quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;&quot;, method=RequestMethod.GET)</div><div class="line">public String findPet(@PathVariable String ownerId, @PathVariable String petId, Model model) &#123;</div><div class="line">    Owner owner = ownerService.findOwner(ownerId);</div><div class="line">    Pet pet = owner.getPet(petId);</div><div class="line">    model.addAttribute(&quot;pet&quot;, pet);</div><div class="line">    return &quot;displayPet&quot;;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>当@PathVariable注解被应用于Map<string, string="">类型的参数上时，框架会使用所有URI模板变量来填充这个map。  </string,></p>
+<p>URI模板可以从类级别和方法级别的 @RequestMapping 注解获取数据。因此，像这样的findPet()方法可以被类似于/owners/42/pets/21这样的URL路由并调用到：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@Controller</div><div class="line">@RequestMapping(&quot;/owners/&#123;ownerId&#125;&quot;)</div><div class="line">public class RelativePathUriTemplateController &#123;</div><div class="line"></div><div class="line">    @RequestMapping(&quot;/pets/&#123;petId&#125;&quot;)</div><div class="line">    public void findPet(_@PathVariable_ String ownerId, _@PathVariable_ String petId, Model model) &#123;</div><div class="line">        // 方法实现体这里忽略</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>@PathVariable可以被应用于所有 简单类型 的参数上，比如int、long、Date等类型。Spring会自动地帮你把参数转化成合适的类型，如果转换失败，就抛出一个TypeMismatchException。如果你需要处理其他数据类型的转换，也可以注册自己的类</p>
+<h1 id="MatrixVariable"><a href="#MatrixVariable" class="headerlink" title="@MatrixVariable"></a>@MatrixVariable</h1><p>矩阵变量可以在任何路径段落中出现，每对矩阵变量之间使用一个分号“;”隔开。比如这样的URI：”/cars;color=red;year=2012”。多个值可以用逗号隔开”color=red,green,blue”，或者重复变量名多次”color=red;color=green;color=blue”<br>下面是一个例子，展示了我们如何从矩阵变量中获取到变量“q”的值：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">// GET /pets/42;q=11;r=22</div><div class="line"></div><div class="line">@RequestMapping(path = &quot;/pets/&#123;petId&#125;&quot;, method = RequestMethod.GET)</div><div class="line">public void findPet(@PathVariable String petId, @MatrixVariable int q) &#123;</div><div class="line"></div><div class="line">    // petId == 42</div><div class="line">    // q == 11</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>由于任意路径段落中都可以含有矩阵变量，在某些场景下，你需要用更精确的信息来指定一个矩阵变量的位置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">// GET /owners/42;q=11/pets/21;q=22</div><div class="line"></div><div class="line">@RequestMapping(path = &quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;&quot;, method = RequestMethod.GET)</div><div class="line">public void findPet(</div><div class="line">    @MatrixVariable(name=&quot;q&quot;, pathVar=&quot;ownerId&quot;) int q1,</div><div class="line">    @MatrixVariable(name=&quot;q&quot;, pathVar=&quot;petId&quot;) int q2) &#123;</div><div class="line"></div><div class="line">    // q1 == 11</div><div class="line">    // q2 == 22</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>你也可以声明一个矩阵变量不是必须出现的，并给它赋一个默认值：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">// GET /pets/42</div><div class="line"></div><div class="line">@RequestMapping(path = &quot;/pets/&#123;petId&#125;&quot;, method = RequestMethod.GET)</div><div class="line">public void findPet(@MatrixVariable(required=false, defaultValue=&quot;1&quot;) int q) &#123;</div><div class="line"></div><div class="line">    // q == 1</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>也可以通过一个Map来存储所有的矩阵变量：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">// GET /owners/42;q=11;r=12/pets/21;q=22;s=23</div><div class="line"></div><div class="line">@RequestMapping(path = &quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;&quot;, method = RequestMethod.GET)</div><div class="line">public void findPet(</div><div class="line">    @MatrixVariable Map&lt;String, String&gt; matrixVars,</div><div class="line">    @MatrixVariable(pathVar=&quot;petId&quot;) Map&lt;String, String&gt; petMatrixVars) &#123;</div><div class="line"></div><div class="line">    // matrixVars: [&quot;q&quot; : [11,22], &quot;r&quot; : 12, &quot;s&quot; : 23]</div><div class="line">    // petMatrixVars: [&quot;q&quot; : 11, &quot;s&quot; : 23]</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>使用MVC的命名空间配置时，你可以把<mvc:annotation-driven>元素下的enable-matrix-variables属性设置为true。该值默认情况下是配置为false的<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</div><div class="line">&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;</div><div class="line">    xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot;</div><div class="line">    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</div><div class="line">    xsi:schemaLocation=&quot;</div><div class="line">        http://www.springframework.org/schema/beans</div><div class="line">        http://www.springframework.org/schema/beans/spring-beans.xsd</div><div class="line">        http://www.springframework.org/schema/mvc</div><div class="line">        http://www.springframework.org/schema/mvc/spring-mvc.xsd&quot;&gt;</div><div class="line"></div><div class="line">    &lt;mvc:annotation-driven enable-matrix-variables=&quot;true&quot;/&gt;</div><div class="line"></div><div class="line">&lt;/beans&gt;</div></pre></td></tr></table></figure></mvc:annotation-driven></p>
+<h2 id="RequestParam"><a href="#RequestParam" class="headerlink" title="@RequestParam"></a>@RequestParam</h2><ul>
+<li>value：参数名字，即入参的请求参数名字，如username表示请求的参数区中的名字为username的参数的值将传入；</li>
+<li>required：是否必须，默认是true，表示请求中一定要有相应的参数，否则将报404错误码；</li>
+<li>defaultValue：默认值，表示如果请求中没有同名参数时的默认值<br>。<br>你可以使用@RequestParam注解将请求参数绑定到你控制器的方法参数上。<br>类似于<code>request.getParameter();</code><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">@Controller</div><div class="line">@RequestMapping(&quot;/pets&quot;)</div><div class="line">@SessionAttributes(&quot;pet&quot;)</div><div class="line">public class EditPetForm &#123;</div><div class="line">    // ...</div><div class="line">    @RequestMapping(method = RequestMapping.GET)</div><div class="line">    public String setupForm(@RequestParam(&quot;petId&quot;) int petId, ModelMap model) &#123;</div><div class="line">        Pet pet = this.clinic.loadPet(petId);</div><div class="line">        model.addAttribute(&quot;pet&quot;, pet);</div><div class="line">        return &quot;petForm&quot;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // ,..</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>若参数使用了该注解，则该参数默认是必须提供的，但你也可以把该参数标注为非必须的：只需要将@RequestParam注解的required属性设置为false即可（比如，<code>@RequestParam(path=&quot;id&quot;, required=false)</code>）。    </p>
+<p>若所注解的方法参数类型不是String，则类型转换会自动地发生。<br>若@RequestParam注解的参数类型是Map<string, string="">或者MultiValueMap<string, string="">，则该Map中会自动填充所有的请求参数。</string,></string,></p>
+<h2 id="RequestBody"><a href="#RequestBody" class="headerlink" title="@RequestBody"></a>@RequestBody</h2><p>一直以为在SpringMVC环境中，@RequestBody接收的是一个Json对象，一直在调试代码都没有成功，后来发现，其实 @RequestBody接收的是一个Json对象的字符串，而不是一个Json对象。然而在ajax请求往往传的都是Json对象，后来发现用 JSON.stringify(data)的方式就能将对象变成字符串。同时ajax请求的时候也要指定dataType: “json”,contentType:”application/json” 这样就可以轻易的将一个对象或者List传到Java端，使用@RequestBody即可绑定对象或者List.  </p>
+<p>该注解常用来处理Content-Type: 不是application/x-www-form-urlencoded编码的内容，例如application/json, application/xml等；<br>它是通过使用HandlerAdapter 配置的HttpMessageConverters来解析post data body，然后绑定到相应的bean上的。<br>因为配置有FormHttpMessageConverter，所以也可以用来处理 application/x-www-form-urlencoded的内容，处理完的结果放在一个MultiValueMap<string, string="">里，这种情况在某些特殊需求下使用，详情查看FormHttpMessageConverter api;</string,></p>
+<p>@RequestBody注解时： 根据Request对象header部分的Content-Type类型，逐一匹配合适的HttpMessageConverter来读取数据</p>
+<p>MappingJacksonHttpMessageConverter 调用了 objectMapper.writeValue(OutputStream stream, Object)方法，使用@ResponseBody注解返回的对象就传入Object参数内。若返回的对象为已经格式化好的json串时，不使用@RequestBody注解，而应该这样处理：</p>
+<ol>
+<li>response.setContentType(“application/json; charset=UTF-8”);</li>
+<li>response.getWriter().print(jsonStr);</li>
+<li>直接输出到body区，然后的视图为void。</li>
+</ol>
+<p>方法参数中的@RequestBody注解暗示了方法参数应该被绑定了HTTP请求体的值。举个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/something&quot;, method = RequestMethod.PUT)</div><div class="line">public void handle(@RequestBody String body, Writer writer) throws IOException &#123;</div><div class="line">    writer.write(body);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>请求体到方法参数的转换是由HttpMessageConverter完成的。HttpMessageConverter负责将HTTP请求信息转换成对象，以及将对象转换回一个HTTP响应体。对于@RequestBody注解，RequestMappingHandlerAdapter提供了以下几种默认的HttpMessageConverter支持：</p>
+<ul>
+<li>ByteArrayHttpMessageConverter用以转换字节数组</li>
+<li>StringHttpMessageConverter用以转换字符串</li>
+<li>FormHttpMessageConverter用以将表格数据转换成MultiValueMap<string, string="">或从MultiValueMap<string, string="">中转换出表格数据</string,></string,></li>
+<li>SourceHttpMessageConverter用于javax.xml.transform.Source类的互相转换</li>
+<li>MappingJacksonHttpMessageConverter负责读取和写入json格式的数据</li>
+</ul>
+<p>若你更倾向于阅读和编写XML文件，那么你需要配置一个MarshallingHttpMessageConverter并为其提供org.springframework.oxm包下的一个Marshaller和Unmarshaller实现。下面的示例就为你展示如何直接在配置文件中配置它。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;bean class=&quot;org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter&quot;&gt;</div><div class="line">    &lt;property name=&quot;messageConverters&quot;&gt;</div><div class="line">        &lt;util:list id=&quot;beanList&quot;&gt;</div><div class="line">            &lt;ref bean=&quot;stringHttpMessageConverter&quot;/&gt;</div><div class="line">            &lt;ref bean=&quot;marshallingHttpMessageConverter&quot;/&gt;</div><div class="line">        &lt;/util:list&gt;</div><div class="line">    &lt;/property</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;stringHttpMessageConverter&quot; class=&quot;org.springframework.http.converter.StringHttpMessageConverter&quot;/&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;marshallingHttpMessageConverter&quot;</div><div class="line">        class=&quot;org.springframework.http.converter.xml.MarshallingHttpMessageConverter&quot;&gt;</div><div class="line">    &lt;property name=&quot;marshaller&quot; ref=&quot;castorMarshaller&quot;/&gt;</div><div class="line">    &lt;property name=&quot;unmarshaller&quot; ref=&quot;castorMarshaller&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;castorMarshaller&quot; class=&quot;org.springframework.oxm.castor.CastorMarshaller&quot;/&gt;</div></pre></td></tr></table></figure></p>
+<p>注解了@RequestBody的方法参数还可以被@Valid注解，这样框架会使用已配置的Validator实例来对该参数进行验证。若你的应用是使用MVC命令空间或MVC Java编程的方式配置的，框架会假设在classpath路径下存在一个符合JSR-303规范的验证器，并自动将其作为默认配置。      </p>
+<p>与@ModelAttribute注解的参数一样，Errors也可以被传入为方法参数，用于检查错误。如果没有声明这样一个参数，那么程序会抛出一个MethodArgumentNotValidException异常。该异常默认由DefaultHandlerExceptionResolver处理，处理程序会返回一个400错误给客户端。</p>
+<h2 id="ResponseBody"><a href="#ResponseBody" class="headerlink" title="@ResponseBody"></a>@ResponseBody</h2><p>@ResponseBody注解与@RequestBody注解类似。@ResponseBody注解可被应用于方法上，标志该方法的返回值（更正，原文是return type，看起来应该是返回值）应该被直接写回到HTTP响应体中去（而不会被被放置到Model中或被解释为一个视图名）。举个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/something&quot;, method = RequestMethod.PUT)</div><div class="line">@ResponseBody</div><div class="line">public String helloWorld() &#123;</div><div class="line">    return &quot;Hello World&quot;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>上面的代码结果是文本Hello World将被写入HTTP的响应流中。<br>与@RequestBody注解类似，Spring使用了一个HttpMessageConverter来将返回对象转换到响应体中。</p>
+<h2 id="CookieValue"><a href="#CookieValue" class="headerlink" title="@CookieValue"></a>@CookieValue</h2><p>@CookieValue注解能将一个方法参数与一个HTTP cookie的值进行绑定。<br>看一个这样的场景：以下的这个cookie存储在一个HTTP请求中：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">JSESSIONID=415A4AC178C59DACE0B2C9CA727CDD84</div></pre></td></tr></table></figure></p>
+<p>下面的代码演示了拿到JSESSIONID这个cookie值的方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/displayHeaderInfo.do&quot;)</div><div class="line">public void displayHeaderInfo(@CookieValue(&quot;JSESSIONID&quot;) String cookie) &#123;</div><div class="line">    //...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>若注解的目标方法参数不是String类型，则类型转换会自动进行。</p>
+<h2 id="RequestHeader"><a href="#RequestHeader" class="headerlink" title="@RequestHeader"></a>@RequestHeader</h2><p>@RequestHeader注解能将一个方法参数与一个请求头属性进行绑定。<br>以下是一个请求头的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Host                    localhost:8080</div><div class="line">Accept                  text/html,application/xhtml+xml,application/xml;q=0.9</div><div class="line">Accept-Language         fr,en-gb;q=0.7,en;q=0.3</div><div class="line">Accept-Encoding         gzip,deflate</div><div class="line">Accept-Charset          ISO-8859-1,utf-8;q=0.7,*;q=0.7</div><div class="line">Keep-Alive              300</div></pre></td></tr></table></figure></p>
+<p>以下的代码片段展示了如何取得Accept-Encoding请求头和Keep-Alive请求头的值：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/displayHeaderInfo.do&quot;)</div><div class="line">public void displayHeaderInfo(@RequestHeader(&quot;Accept-Encoding&quot;) String encoding,</div><div class="line">        @RequestHeader(&quot;Keep-Alive&quot;) long keepAlive) &#123;</div><div class="line">    //...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>若注解的目标方法参数不是String类型，则类型转换会自动进行。<br>如果@RequestHeader注解应用在Map<string, string="">、MultiValueMap<string, string="">或HttpHeaders类型的参数上，那么所有的请求头属性值都会被填充到map中。<br>Spring内置支持将一个逗号分隔的字符串（或其他类型转换系统所能识别的类型）转换成一个String类型的列表/集合。举个例子，一个注解了@RequestHeader(“Accept”)的方法参数可以是一个String类型，但也可以是String[]或List<string>类型的。</string></string,></string,></p>
+<h2 id="HttpEntity"><a href="#HttpEntity" class="headerlink" title="@HttpEntity"></a>@HttpEntity</h2><p>HttpEntity与@RequestBody和@ResponseBody很相似。除了能获得请求体和响应体中的内容之外，HttpEntity（以及专门负责处理响应的ResponseEntity子类）还可以存取请求头和响应头，像下面这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/something&quot;)</div><div class="line">public ResponseEntity&lt;String&gt; handle(HttpEntity&lt;byte[]&gt; requestEntity) throws UnsupportedEncodingException &#123;</div><div class="line">    String requestHeader = requestEntity.getHeaders().getFirst(&quot;MyRequestHeader&quot;);</div><div class="line">    byte[] requestBody = requestEntity.getBody();</div><div class="line"></div><div class="line">    // do something with request header and body</div><div class="line"></div><div class="line">    HttpHeaders responseHeaders = new HttpHeaders();</div><div class="line">    responseHeaders.set(&quot;MyResponseHeader&quot;, &quot;MyValue&quot;);</div><div class="line">    return new ResponseEntity&lt;String&gt;(&quot;Hello World&quot;, responseHeaders, HttpStatus.CREATED);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>上面这段示例代码先是获取了MyRequestHeader请求头的值，然后读取请求体的主体内容。读完以后往影响头中添加了一个自己的响应头MyResponseHeader，然后向响应流中写了字符串Hello World，最后把响应状态码设置为201（创建成功）。<br>与@RequestBody与@ResponseBody注解一样，Spring使用了HttpMessageConverter来对请求流和响应流进行转换。</p>
+<h2 id="ModelAttribute"><a href="#ModelAttribute" class="headerlink" title="@ModelAttribute"></a>@ModelAttribute</h2><h3 id="ModelAttribute注解应用在方法上"><a href="#ModelAttribute注解应用在方法上" class="headerlink" title="@ModelAttribute注解应用在方法上"></a>@ModelAttribute注解应用在方法上</h3><p>注解在方法上的@ModelAttribute说明了方法的作用是用于添加一个或多个属性到model上。这样的方法能接受与@RequestMapping注解相同的参数类型，只不过不能直接被映射到具体的请求上。在同一个控制器中，注解了@ModelAttribute的方法实际上会在@RequestMapping方法之前被调用。以下是几个例子：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Add one attribute</span></div><div class="line"><span class="comment">// The return value of the method is added to the model under the name "account"</span></div><div class="line"><span class="comment">// You can customize the name via @ModelAttribute("myAccount")</span></div><div class="line"></div><div class="line"><span class="meta">@ModelAttribute</span></div><div class="line"><span class="function"><span class="keyword">public</span> Account <span class="title">addAccount</span><span class="params">(@RequestParam String number)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> accountManager.findAccount(number);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// Add multiple attributes</span></div><div class="line"></div><div class="line"><span class="meta">@ModelAttribute</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">populateModel</span><span class="params">(@RequestParam String number, Model model)</span> </span>&#123;</div><div class="line">    model.addAttribute(accountManager.findAccount(number));</div><div class="line">    <span class="comment">// add more ...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>@ModelAttribute方法通常被用来填充一些公共需要的属性或数据，比如一个下拉列表所预设的几种状态，或者宠物的几种类型，或者去取得一个HTML表单渲染所需要的命令对象，比如Account等。<br>留意@ModelAttribute方法的两种风格。在第一种写法中，方法通过返回值的方式默认地将添加一个属性；在第二种写法中，方法接收一个Model对象，然后可以向其中添加任意数量的属性。你可以在根据需要，在两种风格中选择合适的一种。<br>一个控制器可以拥有数量不限的@ModelAttribute方法。同个控制器内的所有这些方法，都会在@RequestMapping方法之前被调用.<br>@ModelAttribute方法也可以定义在@ControllerAdvice注解的类中，并且这些@ModelAttribute可以同时对许多控制器生效。<br>@ModelAttribute注解也可以被用在@RequestMapping方法上。这种情况下，@RequestMapping方法的返回值将会被解释为model的一个属性，而非一个视图名。此时视图名将以视图命名约定来方式来决议，与返回值为void的方法所采用的处理方法类似</p>
+<h3 id="ModelAttribute注解用在方法参数上"><a href="#ModelAttribute注解用在方法参数上" class="headerlink" title="@ModelAttribute注解用在方法参数上"></a>@ModelAttribute注解用在方法参数上</h3><p>注解在方法参数上的@ModelAttribute说明了该方法参数的值将由model中取得。如果model中找不到，那么该参数会先被实例化，然后被添加到model中。在model中存在以后，请求中所有名称匹配的参数都会填充到该参数中。这在Spring MVC中被称为数据绑定，一个非常有用的特性，节约了你每次都需要手动从表格数据中转换这些字段数据的时间。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;/edit&quot;, method = RequestMethod.POST)</div><div class="line">public String processSubmit(@ModelAttribute Pet pet) &#123; &#125;</div></pre></td></tr></table></figure></p>
+<p>以上面的代码为例，这个Pet类型的实例可能来自哪里呢？有几种可能:     </p>
+<ul>
+<li>它可能因为@SessionAttributes注解的使用已经存在于model中</li>
+<li>它可能因为在同个控制器中使用了@ModelAttribute方法已经存在于model中</li>
+<li>它可能是由URI模板变量和类型转换中取得的（下面会详细讲解）</li>
+<li>它可能是调用了自身的默认构造器被实例化出来的  </li>
+</ul>
+<p>@ModelAttribute方法常用于从数据库中取一个属性值，该值可能通过@SessionAttributes注解在请求中间传递。在一些情况下，使用URI模板变量和类型转换的方式来取得一个属性是更方便的方式。这里有个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/accounts/&#123;account&#125;&quot;, method = RequestMethod.PUT)</div><div class="line">public String save(@ModelAttribute(&quot;account&quot;) Account account) &#123;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>上面这个例子中，model属性的名称（”account”）与URI模板变量的名称相匹配。如果你配置了一个可以将String类型的账户值转换成Account类型实例的转换器Converter<string, account="">，那么上面这段代码就可以工作的很好，而不需要再额外写一个@ModelAttribute方法。<br>下一步就是数据的绑定。WebDataBinder类能将请求参数——包括字符串的查询参数和表单字段等——通过名称匹配到model的属性上。成功匹配的字段在需要的时候会进行一次类型转换（从String类型到目标字段的类型），然后被填充到model对应的属性中。数据绑定和数据验证的问题在第8章 验证，数据绑定和类型转换中提到。如何在控制器层来定制数据绑定的过程，在这一节 “定制WebDataBinder的初始化”中提及。<br>进行了数据绑定后，则可能会出现一些错误，比如没有提供必须的字段、类型转换过程的错误等。若想检查这些错误，可以在注解了@ModelAttribute的参数紧跟着声明一个BindingResult参数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;/edit&quot;, method = RequestMethod.POST)</div><div class="line">public String processSubmit(@ModelAttribute(&quot;pet&quot;) Pet pet, BindingResult result) &#123;</div><div class="line">    if (result.hasErrors()) &#123;</div><div class="line">        return &quot;petForm&quot;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // ...</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></string,></p>
+<p>拿到BindingResult参数后，你可以检查是否有错误。有时你可以通过Spring的<errors>表单标签来在同一个表单上显示错误信息。<br>BindingResult被用于记录数据绑定过程的错误，因此除了数据绑定外，你还可以把该对象传给自己定制的验证器来调用验证。这使得数据绑定过程和验证过程出现的错误可以被搜集到一处，然后一并返回给用户：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;/edit&quot;, method = RequestMethod.POST)</div><div class="line">public String processSubmit(@ModelAttribute(&quot;pet&quot;) Pet pet, BindingResult result) &#123;</div><div class="line"></div><div class="line">    new PetValidator().validate(pet, result);</div><div class="line">    if (result.hasErrors()) &#123;</div><div class="line">        return &quot;petForm&quot;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // ...</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></errors></p>
+<p>又或者，你可以通过添加一个JSR-303规范的@Valid注解，这样验证器会自动被调用。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(path = &quot;/owners/&#123;ownerId&#125;/pets/&#123;petId&#125;/edit&quot;, method = RequestMethod.POST)</div><div class="line">public String processSubmit(@Valid @ModelAttribute(&quot;pet&quot;) Pet pet, BindingResult result) &#123;</div><div class="line"></div><div class="line">    if (result.hasErrors()) &#123;</div><div class="line">        return &quot;petForm&quot;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // ...</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="SessionAttributes"><a href="#SessionAttributes" class="headerlink" title="@SessionAttributes"></a>@SessionAttributes</h2><p>类型级别的@SessionAttributes注解声明了某个特定处理器所使用的会话属性。通常它会列出该类型希望存储到session或converstaion中的model属性名或model的类型名，一般是用于在请求之间保存一些表单数据的bean。<br>以下的代码段演示了该注解的用法，它指定了模型属性的名称<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@Controller</div><div class="line">@RequestMapping(&quot;/editPet.do&quot;)</div><div class="line">@SessionAttributes(&quot;pet&quot;)</div><div class="line">public class EditPetForm &#123;</div><div class="line">    // ...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 
       
     </div>
@@ -125,7 +185,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/Cookie/设置Session超时时间/" data-id="cj6arwhd10025ymblgpm017ip" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/定义@RequestMapping注解的处理方法/" data-id="cj6cy7nib009kktbllimewgrn" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -139,13 +199,13 @@
 
 
   
-    <article id="post-Java/JAXB/xml于javabean相互转换" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/SpringMVC/异步请求" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/JAXB/xml于javabean相互转换/">xml于javabean相互转换</a>
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/异步请求/">异步请求</a>
     </h1>
   
 
@@ -154,13 +214,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Java/JAXB/xml于javabean相互转换/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/SpringMVC/异步请求/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/JAXB/">JAXB</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
   </div>
 
 
@@ -169,7 +229,50 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line">import javax.xml.bind.JAXBContext;</div><div class="line">import javax.xml.bind.JAXBException;</div><div class="line">import javax.xml.bind.Marshaller;</div><div class="line">import javax.xml.bind.Unmarshaller;</div><div class="line"> </div><div class="line">/**</div><div class="line"> * XML的帮助类</div><div class="line"> * </div><div class="line"> */</div><div class="line">public class XmlHelper</div><div class="line">&#123;</div><div class="line">	/**</div><div class="line">	 * 将自定义数据对象转化为XML字符串</div><div class="line">	 * </div><div class="line">	 * @param clazz 自定义数据类型</div><div class="line">	 * @param object 自定义数据对象</div><div class="line">	 * @return XML字符串</div><div class="line">	 * @throws JAXBException 异常</div><div class="line">	 */</div><div class="line">	public static String objectToXML(Class clazz, Object object)</div><div class="line">		throws JAXBException</div><div class="line">	&#123;</div><div class="line">		String xml = null;</div><div class="line">		JAXBContext context = JAXBContext.newInstance(clazz);</div><div class="line">		Marshaller m = context.createMarshaller();</div><div class="line">		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);</div><div class="line">		Writer w = new StringWriter();</div><div class="line">		m.marshal(object, w);</div><div class="line">		xml = w.toString();</div><div class="line">		return xml;</div><div class="line">	&#125;</div><div class="line"> </div><div class="line">	/**</div><div class="line">	 * 将XML字符串转化为自定义数据对象</div><div class="line">	 * </div><div class="line">	 * @param clazz 自定义数据类型</div><div class="line">	 * @param xml XML字符串</div><div class="line">	 * @return 自定义数据对象</div><div class="line">	 * @throws JAXBException 异常</div><div class="line">	 */</div><div class="line">	public static Object xmlToObject(Class clazz, String xml)</div><div class="line">		throws JAXBException</div><div class="line">	&#123;</div><div class="line">		JAXBContext context = JAXBContext.newInstance(clazz);</div><div class="line">		Unmarshaller um = context.createUnmarshaller();</div><div class="line">		return um.unmarshal(new StringReader(xml));</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+        <p>Spring MVC 3.2开始引入了基于Servlet 3的异步请求处理。相比以前，控制器方法已经不一定需要返回一个值，而是可以返回一个java.util.concurrent.Callable的对象，并通过Spring MVC所管理的线程来产生返回值。与此同时，Servlet容器的主线程则可以退出并释放其资源了，同时也允许容器去处理其他的请求。通过一个TaskExecutor，Spring MVC可以在另外的线程中调用Callable。当Callable返回时，请求再携带Callable返回的值，再次被分配到Servlet容器中恢复处理流程。以下代码给出了一个这样的控制器方法作为例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(method=RequestMethod.POST)</div><div class="line">public Callable&lt;String&gt; processUpload(final MultipartFile file) &#123;</div><div class="line"></div><div class="line">    return new Callable&lt;String&gt;() &#123;</div><div class="line">        public String call() throws Exception &#123;</div><div class="line">            // ...</div><div class="line">            return &quot;someView&quot;;</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>另一个选择，是让控制器方法返回一个DeferredResult的实例。这种场景下，返回值可以由任何一个线程产生，也包括那些不是由Spring MVC管理的线程。举个例子，返回值可能是为了响应某些外部事件所产生的，比如一条JMS的消息，一个计划任务，等等。以下代码给出了一个这样的控制器作为例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/quotes&quot;)</div><div class="line">@ResponseBody</div><div class="line">public DeferredResult&lt;String&gt; quotes() &#123;</div><div class="line">    DeferredResult&lt;String&gt; deferredResult = new DeferredResult&lt;String&gt;();</div><div class="line">    // Save the deferredResult somewhere..</div><div class="line">    return deferredResult;</div><div class="line">&#125;</div><div class="line"></div><div class="line">// In some other thread...</div><div class="line">deferredResult.setResult(data);</div></pre></td></tr></table></figure></p>
+<p>如果对Servlet 3.0的异步请求处理特性没有了解，理解这个特性可能会有点困难。因此，阅读一下前者的文档将会很有帮助。以下给出了这个机制运作背后的一些原理：</p>
+<ul>
+<li>一个servlet请求ServletRequest可以通过调用request.startAsync()方法而进入异步模式。这样做的主要结果就是该servlet以及所有的过滤器都可以结束，但其响应（response）会留待异步处理结束后再返回</li>
+<li>调用request.startAsync()方法会返回一个AsyncContext对象，可用它对异步处理进行进一步的控制和操作。比如说它也提供了一个与转向（forward）很相似的dispatch方法，只不过它允许应用恢复Servlet容器的请求处理进程</li>
+<li>ServletRequest提供了获取当前DispatherType的方式，后者可以用来区别当前处理的是原始请求、异步分发请求、转向，或是其他类型的请求分发类型。  </li>
+</ul>
+<p>有了上面的知识，下面可以来看一下Callable的异步请求被处理时所依次发生的事件：    </p>
+<ul>
+<li>控制器先返回一个Callable对象</li>
+<li>Spring MVC开始进行异步处理，并把该Callable对象提交给另一个独立线程的执行器TaskExecutor处理</li>
+<li>DispatcherServlet和所有过滤器都退出Servlet容器线程，但此时方法的响应对象仍未返回</li>
+<li>Callable对象最终产生一个返回结果，此时Spring MVC会重新把请求分派回Servlet容器，恢复处理</li>
+<li>DispatcherServlet再次被调用，恢复对Callable异步处理所返回结果的处理  </li>
+</ul>
+<p>对DeferredResult异步请求的处理顺序也非常类似，区别仅在于应用可以通过任何线程来计算返回一个结果：    </p>
+<ul>
+<li>控制器先返回一个DeferredResult对象，并把它存取在内存（队列或列表等）中以便存取</li>
+<li>Spring MVC开始进行异步处理</li>
+<li>DispatcherServlet和所有过滤器都退出Servlet容器线程，但此时方法的响应对象仍未返回</li>
+<li>由处理该请求的线程对 DeferredResult进行设值，然后Spring MVC会重新把请求分派回Servlet容器，恢复处理</li>
+<li>DispatcherServlet再次被调用，恢复对该异步返回结果的处理    </li>
+</ul>
+<p>关于引入异步请求处理的背景和原因，以及什么时候使用它、为什么使用异步请求处理等问题，你可以从<a href="https://spring.io/blog/2012/05/07/spring-mvc-3-2-preview-introducing-servlet-3-async-support" target="_blank" rel="external">这个系列的博客</a>中了解更多信息。</p>
+<h2 id="异步请求的异常处理"><a href="#异步请求的异常处理" class="headerlink" title="异步请求的异常处理"></a>异步请求的异常处理</h2><p>若控制器返回的Callable在执行过程中抛出了异常，又会发生什么事情？简单来说，这与一般的控制器方法抛出异常是一样的。它会被正常的异常处理流程捕获处理。更具体地说呢，当Callable抛出异常时，Spring MVC会把一个Exception对象分派给Servlet容器进行处理，而不是正常返回方法的返回值，然后容器恢复对此异步请求异常的处理。若方法返回的是一个DeferredResult对象，你可以选择调Exception实例的setResult方法还是setErrorResult方法。</p>
+<h2 id="拦截异步请求"><a href="#拦截异步请求" class="headerlink" title="拦截异步请求"></a>拦截异步请求</h2><p>处理器拦截器HandlerInterceptor可以实现AsyncHandlerInterceptor接口拦截异步请求，因为在异步请求开始时，被调用的回调方法是该接口的afterConcurrentHandlingStarted方法，而非一般的postHandle和afterCompletion方法。  </p>
+<p>如果需要与异步请求处理的生命流程有更深入的集成，比如需要处理timeout的事件等，则HandlerInterceptor需要注册一个CallableProcessingInterceptor或DeferredResultProcessingInterceptor拦截器。具体的细节可以参考AsyncHandlerInterceptor类的Java文档。  </p>
+<p>DeferredResult类还提供了onTimeout(Runnable)和onCompletion(Runnable)等方法，具体的细节可以参考DeferredResult类的Java文档。</p>
+<p>Callable需要请求过期(timeout)和完成后的拦截时，可以把它包装在一个WebAsyncTask实例中，后者提供了相关的支持。</p>
+<h2 id="HTTP-streaming"><a href="#HTTP-streaming" class="headerlink" title="HTTP streaming"></a>HTTP streaming</h2><p>如前所述，控制器可以使用DeferredResult或Callable对象来异步地计算其返回值，这可以用于实现一些有用的技术，比如 long polling技术，让服务器可以尽可能快地向客户端推送事件。<br>如果你想在一个HTTP响应中同时推送多个事件，怎么办？这样的技术已经存在，与”Long Polling”相关，叫”HTTP Streaming”。Spring MVC支持这项技术，你可以通过让方法返回一个ResponseBodyEmitter类型对象来实现，该对象可被用于发送多个对象。通常我们所使用的@ResponseBody只能返回一个对象，它是通过HttpMessageConverter写到响应体中的。<br>下面是一个实现该技术的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/events&quot;)</div><div class="line">public ResponseBodyEmitter handle() &#123;</div><div class="line">    ResponseBodyEmitter emitter = new ResponseBodyEmitter();</div><div class="line">    // Save the emitter somewhere..</div><div class="line">    return emitter;</div><div class="line">&#125;</div><div class="line"></div><div class="line">// In some other thread</div><div class="line">emitter.send(&quot;Hello once&quot;);</div><div class="line"></div><div class="line">// and again later on</div><div class="line">emitter.send(&quot;Hello again&quot;);</div><div class="line"></div><div class="line">// and done at some point</div><div class="line">emitter.complete();</div></pre></td></tr></table></figure></p>
+<p>ResponseBodyEmitter也可以被放到ResponseEntity体里面使用，这可以对响应状态和响应头做一些定制。<br>Note that ResponseBodyEmitter can also be used as the body in a ResponseEntity in order to customize the status and headers of the response.</p>
+<h2 id="使用“服务器端事件推送”的HTTP-Streaming"><a href="#使用“服务器端事件推送”的HTTP-Streaming" class="headerlink" title="使用“服务器端事件推送”的HTTP Streaming"></a>使用“服务器端事件推送”的HTTP Streaming</h2><p>SseEmitter是ResponseBodyEmitter的一个子类，提供了对服务器端事件推送的技术的支持。服务器端事件推送其实只是一种HTTP Streaming的类似实现，只不过它服务器端所推送的事件遵循了W3C Server-Sent Events规范中定义的事件格式。    </p>
+<p>“服务器端事件推送”技术正如其名，是用于由服务器端向客户端进行的事件推送。这在Spring MVC中很容易做到，只需要方法返回一个SseEmitter类型的对象即可。    </p>
+<p>需要注意的是，Internet Explorer并不支持这项服务器端事件推送的技术。另外，对于更大型的web应用及更精致的消息传输场景——比如在线游戏、在线协作、金融应用等——来说，使用Spring的WebSocket（包含SockJS风格的实时WebSocket）更成熟一些，因为它支持的浏览器范围非常广（包括IE），并且，对于一个以消息为中心的架构中，它为服务器端-客户端间的事件发布-订阅模型的交互提供了更高层级的消息模式（messaging patterns）的支持。</p>
+<h2 id="直接写回输出流OutputStream的HTTP-Streaming"><a href="#直接写回输出流OutputStream的HTTP-Streaming" class="headerlink" title="直接写回输出流OutputStream的HTTP Streaming"></a>直接写回输出流OutputStream的HTTP Streaming</h2><p>ResponseBodyEmitter也允许通过HttpMessageConverter向响应体中支持写事件对象。这可能是最常见的情形，比如写返回的JSON数据的时候。但有时，跳过消息转换的阶段，直接把数据写回响应的输出流OutputStream可能更有效，比如文件下载这样的场景。这可以通过返回一个StreamingResponseBody类型的对象来实现。<br>以下是一个实现的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/download&quot;)</div><div class="line">public StreamingResponseBody handle() &#123;</div><div class="line">    return new StreamingResponseBody() &#123;</div><div class="line">        @Override</div><div class="line">        public void writeTo(OutputStream outputStream) throws IOException &#123;</div><div class="line">            // write...</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>ResponseBodyEmitter也可以被放到ResponseEntity体里面使用，这可以对响应状态和响应头做一些定制。</p>
+<h2 id="异步请求处理的相关配置"><a href="#异步请求处理的相关配置" class="headerlink" title="异步请求处理的相关配置"></a>异步请求处理的相关配置</h2><h3 id="Servlet容器配置"><a href="#Servlet容器配置" class="headerlink" title="Servlet容器配置"></a>Servlet容器配置</h3><p>对于那些使用web.xml配置文件的应用，请确保web.xml的版本更新到3.0：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">web-app</span> <span class="attr">xmlns</span>=<span class="string">"http://java.sun.com/xml/ns/javaee"</span></span></div><div class="line">         <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance http://java.sun.com/xml/ns/javaee</span></div><div class="line">                    http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"</div><div class="line">         <span class="attr">version</span>=<span class="string">"3.0"</span>&gt;</div><div class="line"></div><div class="line">    ...</div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>异步请求必须在web.xml将DispatcherServlet下的子元素<async-supported>true</async-supported>设置为true。此外，所有可能参与异步请求处理的过滤器Filter都必须配置为支持ASYNC类型的请求分派。在Spring框架中为过滤器启用支持ASYNC类型的请求分派应是安全的，因为这些过滤器一般都继承了基类OncePerRequestFilter，后者在运行时会检查该过滤器是否需要参与到异步分派的请求处理中。<br>以下是一个例子，展示了web.xml的配置：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">web-app</span> <span class="attr">xmlns</span>=<span class="string">"http://java.sun.com/xml/ns/javaee"</span></span></div><div class="line">        <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></div><div class="line">        <span class="attr">xsi:schemaLocation</span>=<span class="string">"</span></div><div class="line">            http://java.sun.com/xml/ns/javaee</div><div class="line">            http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"</div><div class="line">    <span class="attr">version</span>=<span class="string">"3.0"</span>&gt;</div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">filter</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>Spring OpenEntityManagerInViewFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">filter-class</span>&gt;</span>org.springframework.~.OpenEntityManagerInViewFilter<span class="tag">&lt;/<span class="name">filter-class</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">async-supported</span>&gt;</span>true<span class="tag">&lt;/<span class="name">async-supported</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">filter</span>&gt;</span></div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">filter-mapping</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>Spring OpenEntityManagerInViewFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/*<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">dispatcher</span>&gt;</span>REQUEST<span class="tag">&lt;/<span class="name">dispatcher</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">dispatcher</span>&gt;</span>ASYNC<span class="tag">&lt;/<span class="name">dispatcher</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">filter-mapping</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>如果应用使用的是Servlet 3规范基于Java编程的配置方式，比如通过WebApplicationInitializer，那么你也需要设置”asyncSupported”标志和ASYNC分派类型的支持，就像你在web.xml中所配置的一样。你可以考虑直接继承AbstractDispatcherServletInitializer或AbstractAnnotationConfigDispatcherServletInitializer来简化配置，它们都自动地为你设置了这些配置项，并使得注册Filter过滤器实例变得非常简单。</p>
+<h2 id="Spring-MVC配置"><a href="#Spring-MVC配置" class="headerlink" title="Spring MVC配置"></a>Spring MVC配置</h2><p>MVC Java编程配置和MVC命名空间配置方式都提供了配置异步请求处理支持的选择。WebMvcConfigurer提供了configureAsyncSupport方法，而<mvc:annotation-driven>有一个子元素<async-support>，它们都用以为此提供支持。  </async-support></mvc:annotation-driven></p>
+<p>这些配置允许你覆写异步请求默认的超时时间，在未显式设置时，它们的值与所依赖的Servlet容器是相关的（比如，Tomcat设置的超时时间是10秒）。你也可以配置用于执行控制器返回值Callable的执行器AsyncTaskExecutor。Spring强烈推荐你配置这个选项，因为Spring MVC默认使用的是普通的执行器SimpleAsyncTaskExecutor。MVC Java编程配置及MVC命名空间配置的方式都允许你注册自己的CallableProcessingInterceptor和DeferredResultProcessingInterceptor拦截器实例。    </p>
+<p>若你需要为特定的DeferredResult覆写默认的超时时间，你可以选用合适的构造方法来实现。类似，对于Callable返回，你可以把它包装在一个WebAsyncTask对象中，并使用合适的构造方法定义超时时间。WebAsyncTask类的构造方法同时也能接受一个任务执行器AsyncTaskExecutor类型的参数。</p>
 
       
     </div>
@@ -180,7 +283,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JAXB/xml于javabean相互转换/" data-id="cj6arwhd40027ymbl7victq0c" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/异步请求/" data-id="cj6cy7nid009mktblo6z34a7n" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -194,13 +297,13 @@
 
 
   
-    <article id="post-Linux/tomcat安装" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/SpringMVC/自定义校验" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Linux/tomcat安装/">tomcat安装</a>
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/自定义校验/">自定义校验</a>
     </h1>
   
 
@@ -209,7 +312,63 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Linux/tomcat安装/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/SpringMVC/自定义校验/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="在类中根据不同的请求定义不同的校验接口"><a href="#在类中根据不同的请求定义不同的校验接口" class="headerlink" title="在类中根据不同的请求定义不同的校验接口"></a>在类中根据不同的请求定义不同的校验接口</h2> <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpressOrder</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line"></div><div class="line">   <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</div><div class="line"></div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PdaPut</span> </span>&#123;&#125;</div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PCScanPut</span> </span>&#123;&#125;</div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PdaPriceQuery</span> </span>&#123;&#125;</div><div class="line"> </div><div class="line">   <span class="meta">@NotNull</span>(groups = &#123;PdaPut.class, PdaPriceQuery.class, PdaBarcode.class&#125;)</div><div class="line">   <span class="keyword">private</span> Integer id;</div><div class="line">   </div><div class="line">   <span class="meta">@NotNull</span>(groups = &#123;PdaPut.class, PdaPriceQuery.class&#125;)</div><div class="line">   <span class="keyword">private</span> Integer serviceTypeId;</div><div class="line">   </div><div class="line">   <span class="comment">//getter and setter</span></div></pre></td></tr></table></figure>
+<p>在mvc中使用不同的校验<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/updateBarcode&quot;, method = RequestMethod.PUT)</div><div class="line">public @ResponseBody ExpressOrder updateBarcode(</div><div class="line">        @Validated(&#123;ExpressOrder.PdaBarcode.class&#125;)</div><div class="line">        @RequestBody ExpressOrder expressOrder) throws Exception &#123;</div><div class="line">	</div><div class="line">    return expressOrderService.updateBarcode(expressOrder);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/自定义校验/" data-id="cj6cy7nie009pktblzuva7rbt" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Linux/apt-get常用命令" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Linux/apt-get常用命令/">apt-get常用命令</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Linux/apt-get常用命令/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
@@ -224,11 +383,11 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="安装命令"><a href="#安装命令" class="headerlink" title="安装命令"></a>安装命令</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install tomcat7</div></pre></td></tr></table></figure>
-<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">1.用linux自带服务命令启动： service tomcat7 start</div><div class="line"></div><div class="line">2.用tomcat命令启动： cd /usr/share/tomcat7/bin</div><div class="line">./startup.sh</div><div class="line"></div><div class="line">3.以控制台方式启动:cd /usr/share/tomcat7/bin</div><div class="line">./catalina.sh</div></pre></td></tr></table></figure>
-<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">service tomcat7 stop</div><div class="line">或者</div><div class="line">cd /usr/share/tomcat7/bin</div><div class="line">./shutdown.sh</div></pre></td></tr></table></figure>
-<h2 id="查看tomcat启动情况"><a href="#查看tomcat启动情况" class="headerlink" title="查看tomcat启动情况"></a>查看tomcat启动情况</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ps -ef |grep tomcat7</div></pre></td></tr></table></figure>
-<h2 id="安装目录"><a href="#安装目录" class="headerlink" title="安装目录"></a>安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">/etc/tomcat7 - 全局配置</div><div class="line">/usr/share/tomcat7/ - 程序主目录</div><div class="line">/usr/share/tomcat7/conf/Catalina/localhost/ - 本机部署的 Catalina 配置</div><div class="line">/var/lib/tomcat7/ - 工作主目录</div><div class="line">/var/lib/tomcat7/webapps - （应用文件实际存放于此）</div><div class="line">/var/lib/tomcat7/work - 动态工作目录（动态编译的 .jsp 存放于此）</div></pre></td></tr></table></figure>
+        <h2 id="什么的是apt-get"><a href="#什么的是apt-get" class="headerlink" title="什么的是apt-get"></a>什么的是apt-get</h2><p>高级包装工具（英语：Advanced Packaging Tools,简称：APT）是Debian及其衍生发行版（如：ubuntu）的软件包管理器。APT可以自动下载，配置，安装二进制或者源代码格式的软 件包，因此简化了 Unix系统上管理软件的过程,apt-get命令一般需要root权限执行，所以一般跟着sudo命令。</p>
+<h2 id="apt-get中文参数"><a href="#apt-get中文参数" class="headerlink" title="apt-get中文参数"></a>apt-get中文参数</h2><h3 id="用法："><a href="#用法：" class="headerlink" title="用法："></a>用法：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">apt-get [选项] 命令 apt-get [选项] install|remove pkg1 [pkg2 ...]</div><div class="line"></div><div class="line">apt-get [选项] source pkg1 [pkg2 ...]</div></pre></td></tr></table></figure>
+<p>apt-get 是一个下载安装软件包的简单命令行接口。 最常用的命令是update(更新) 和install(安装)。</p>
+<h3 id="命令："><a href="#命令：" class="headerlink" title="命令："></a>命令：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div></pre></td><td class="code"><pre><div class="line">update - 重新获取软件包列表 </div><div class="line"></div><div class="line">upgrade - 进行更新 </div><div class="line"></div><div class="line">install - 安装新的软件包 </div><div class="line"></div><div class="line">remove - 移除软件包 </div><div class="line"></div><div class="line">autoremove - 自动移除全部不使用的软件包 </div><div class="line"></div><div class="line">purge - 移除软件包和配置文件 </div><div class="line"></div><div class="line">source - 下载源码档案 </div><div class="line"></div><div class="line">build-dep - 为源码包配置编译依赖 </div><div class="line"></div><div class="line">dist-upgrade - 发行版升级</div><div class="line"></div><div class="line">dselect-upgrade - 依照 dselect 的选择更新 </div><div class="line"></div><div class="line">clean - 清除下载的归档文件 </div><div class="line"></div><div class="line">autoclean - 清除旧的的已下载的归档文件 </div><div class="line"></div><div class="line">check - 检验是否有损坏的依赖 </div><div class="line"></div><div class="line">选项： </div><div class="line"></div><div class="line">-h 本帮助文件。 </div><div class="line"></div><div class="line">-q 输出到日志 - 无进展指示 </div><div class="line"></div><div class="line">-qq 不输出信息，错误除外 </div><div class="line"></div><div class="line">-d 仅下载 - 不安装或解压归档文件 </div><div class="line"></div><div class="line">-s 不实际安装。模拟执行命令</div><div class="line"></div><div class="line">-y 假定对所有的询问选是，不提示 </div><div class="line"></div><div class="line">-f 尝试修正系统依赖损坏处 </div><div class="line"></div><div class="line">-m 如果归档无法定位，尝试继续</div><div class="line"></div><div class="line">-u 同时显示更新软件包的列表 </div><div class="line"></div><div class="line">-b 获取源码包后编译 -V 显示详细的版本号</div><div class="line"></div><div class="line">-c=? 阅读此配置文件</div><div class="line"></div><div class="line">-o=? 设置自定的配置选项，如 -o dir::cache=/tmp</div></pre></td></tr></table></figure>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">apt-cache search packagename 搜索包</div><div class="line">apt-cache show packagename 获取包的相关信息，如说明、大小、版本等</div><div class="line">apt-get install packagename 安装包</div><div class="line">apt-get install packagename --reinstall 重新安装包</div><div class="line">apt-get -f install 修复安装”-f = –fix-missing”</div><div class="line">apt-get remove packagename 删除包</div><div class="line">apt-get remove packagename --purge 删除包，包括删除配置文件等</div><div class="line">apt-get update 更新源</div><div class="line">apt-get upgrade 更新已安装的包</div><div class="line">apt-get dist-upgrade 升级系统</div><div class="line">apt-get dselect-upgrade 使用 dselect 升级</div><div class="line">apt-cache depends packagename 了解使用依赖</div><div class="line">apt-cache rdepends packagename 是查看该包被哪些包依赖</div><div class="line">apt-get build-dep packagename 安装相关的编译环境</div><div class="line">apt-get source packagename 下载该包的源代码</div><div class="line">apt-get clean 清理无用的包</div><div class="line">apt-get autoclean 清理无用的包</div><div class="line">apt-get check 检查是否有损坏的依赖</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -238,7 +397,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/tomcat安装/" data-id="cj6arwhap000cymbl3bo5mdd0" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/apt-get常用命令/" data-id="cj6cy7nce0004ktblmlavuosp" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -252,13 +411,13 @@
 
 
   
-    <article id="post-Java/JAXB/注解详解" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/数据类型/BigDecimal" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/JAXB/注解详解/">注解详解</a>
+      <a class="article-title" href="/2017/07/19/Java/数据类型/BigDecimal/">BigDecimal</a>
     </h1>
   
 
@@ -267,13 +426,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Java/JAXB/注解详解/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Java/数据类型/BigDecimal/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/JAXB/">JAXB</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/数据类型/">数据类型</a>
   </div>
 
 
@@ -282,452 +441,315 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>JAXB（即Java Architecturefor XML Binding）是一个业界的标准，即是一项可以根据XML Schema产生Java类的技术。该过程中，JAXB也提供了将XML实例文档反向生成Java对象树的方法，并能将Java对象树的内容重新写到XML实例文档。  </p>
-<h2 id="注解介绍"><a href="#注解介绍" class="headerlink" title="注解介绍"></a>注解介绍</h2><h3 id="Jaxb中处理java和xml之间转换的常用注解有："><a href="#Jaxb中处理java和xml之间转换的常用注解有：" class="headerlink" title="Jaxb中处理java和xml之间转换的常用注解有："></a>Jaxb中处理java和xml之间转换的常用注解有：</h3><ul>
-<li>@XmlType</li>
-<li>@XmlElement</li>
-<li>@XmlRootElement</li>
-<li>@XmlAttribute</li>
-<li>@XmlAccessorType</li>
-<li>@XmlAccessorOrder</li>
-<li>@XmlTransient</li>
-<li>@XmlJavaTypeAdapter</li>
-<li>@XmlSchema</li>
-<li>@XmlElementWrapper</li>
-<li>@XmlElements</li>
-</ul>
-<h2 id="常用annotation使用说明"><a href="#常用annotation使用说明" class="headerlink" title="常用annotation使用说明"></a>常用annotation使用说明</h2><h3 id="XmlType"><a href="#XmlType" class="headerlink" title="@XmlType"></a>@XmlType</h3><p>该注解用在class类上，常与@XmlRootElement，@XmlAccessorType一起使用。它有三个属性：name、propOrder、namespace，经常使用的只有前两个属性。如：</p>
-<ul>
-<li>propOrder        指定映射XML时的节点顺序</li>
-<li>factoryClass     指定UnMarshal时生成映射类实例所需的工厂类，默认为这个类本身</li>
-<li>factoryMethod  指定工厂类的工厂方法</li>
-<li>name               定义XML Schema中type的名称</li>
-<li>namespace      指定Schema中的命名空间</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@XmlType(name = &quot;basicStruct&quot;, propOrder = &#123;&quot;intValue&quot;,&quot;stringArray&quot;,&quot;stringValue&quot; )  </div><div class="line">Public class myType&#123;…&#125;</div></pre></td></tr></table></figure>
-<p>在使用@XmlType的propOrder属性时，必须列出JavaBean对象中的所有属性</p>
-<h3 id="XmlElement"><a href="#XmlElement" class="headerlink" title="@XmlElement"></a>@XmlElement</h3><p>参数：</p>
-<ul>
-<li>defaultValue  指定节点默认值</li>
-<li>name             指定节点名称</li>
-<li>namespace    指定节点命名空间</li>
-<li>required    是否必须（默认为false）</li>
-<li>nillable    该字段是否包含nillable=”true” 属性（默认为false）</li>
-<li>type     定义该字段或属性的关联类型</li>
-</ul>
-<p>该注解用在java类的属性上，用于将属性映射为xml的子节点。可通过在后面配置name属性值来改变java属性在xml文件中的名称。如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@XmlElement(name=&quot;Address&quot;)　　  </div><div class="line">private String yourAddress;</div></pre></td></tr></table></figure></p>
-<p>此处配置后，在xml文件中的节点为&lt; Address&gt;&lt;/ Address&gt;，而不是&lt; yourAddress/&gt;。</p>
-<h3 id="XmlRootElement"><a href="#XmlRootElement" class="headerlink" title="@XmlRootElement"></a>@XmlRootElement</h3><p>类级别的注解，对应的是xml文件中的根节点。常与 @XmlType 和 @XmlAccessorType一起使用。<br>参数：</p>
-<ul>
-<li>name   定义这个根节点的名称</li>
-<li>namespace    定义这个根节点命名空间</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@XmlType  </div><div class="line">@XmlAccessorType(XmlAccessType.FIELD)  </div><div class="line">@XmlRootElement  </div><div class="line">public class Address &#123;&#125;</div></pre></td></tr></table></figure>
-<h3 id="XmlAttribute"><a href="#XmlAttribute" class="headerlink" title="@XmlAttribute"></a>@XmlAttribute</h3><p>用于把java对象的属性映射为xml的属性,并可通过name属性为生成的xml属性指定别名。<br>参数：  </p>
-<ul>
-<li>name   指定属性名称</li>
-<li>namespace    指定属性命名空间</li>
-<li>required  是否必须（默认为false）</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@XmlAttribute(name=&quot;Country&quot;)  </div><div class="line">private String state;</div></pre></td></tr></table></figure>
-<h3 id="XmlAccessorType"><a href="#XmlAccessorType" class="headerlink" title="@XmlAccessorType"></a>@XmlAccessorType</h3><p>@XmlAccessorType用于指定由java对象生成xml文件时对java对象属性的访问方式。常与@XmlRootElement、@XmlType一起使用。它的属性值是XmlAccessType的4个枚举值，分别为：</p>
-<ul>
-<li>XmlAccessType.FIELD：java对象中的所有成员变量；</li>
-<li>XmlAccessType.PROPERTY：java对象中所有通过getter/setter方式访问的成员变量；</li>
-<li>XmlAccessType.PUBLIC_MEMBER：java对象中所有的public访问权限的成员变量和通过getter/setter方式访问的成员变量；</li>
-<li>XmlAccessType.NONE：java对象的所有属性都不映射为xml的元素。</li>
-</ul>
-<p>注意：@XmlAccessorType的默认访问级别是XmlAccessType.PUBLIC_MEMBER。因此，<strong>如果java对象中的private成员变量设置了public权限的getter/setter方法，就不要在private变量上使用@XmlElement和@XmlAttribute注解，否则在由java对象生成xml时会报同一个属性在java类里存在两次的错误</strong>。同理，如果@XmlAccessorType的访问权限为XmlAccessType.NONE，如果在java的成员变量上使用了@XmlElement或@XmlAttribute注解，这些成员变量依然可以映射到xml文件。</p>
-<h3 id="XmlAccessorOrder"><a href="#XmlAccessorOrder" class="headerlink" title="@XmlAccessorOrder"></a>@XmlAccessorOrder</h3><p>用于对java对象生成的xml元素进行排序。它有两个属性值：</p>
-<ul>
-<li>AccessorOrder.ALPHABETICAL：对生成的xml元素按字母顺序排序；</li>
-<li>XmlAccessOrder.UNDEFINED：不排序。</li>
-</ul>
-<h3 id="XmlTransient"><a href="#XmlTransient" class="headerlink" title="@XmlTransient"></a>@XmlTransient</h3><p>用于标示在由java对象映射xml时，忽略此属性。即，在生成的xml文件中不出现此元素。</p>
-<h3 id="XmlJavaTypeAdapter"><a href="#XmlJavaTypeAdapter" class="headerlink" title="@XmlJavaTypeAdapter"></a>@XmlJavaTypeAdapter</h3><p>@XmlJavaTypeAdapter常用在转换比较复杂的对象时，如map类型或者格式化日期等。使用此注解时，需要自己写一个adapter类继承XmlAdapter抽象类，并实现里面的方法。  </p>
-<p>@XmlJavaTypeAdapter(value=xxx.class),value为自己定义的adapter类XmlAdapter如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public abstract class XmlAdapter&lt;ValueType,BoundType&gt; &#123;  </div><div class="line">    // Do-nothing constructor for the derived classes.  </div><div class="line">    protected XmlAdapter() &#123;&#125;  </div><div class="line">    // Convert a value type to a bound type.  </div><div class="line">    public abstract BoundType unmarshal(ValueType v);  </div><div class="line">    // Convert a bound type to a value type.  </div><div class="line">    public abstract ValueType marshal(BoundType v);  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h3 id="XmlSchema"><a href="#XmlSchema" class="headerlink" title="@XmlSchema"></a>@XmlSchema</h3><p>配置整个包的namespace，这个注解需放在package-info.java文件中。</p>
-<h3 id="XmlElementWrapper"><a href="#XmlElementWrapper" class="headerlink" title="@XmlElementWrapper"></a>@XmlElementWrapper</h3><p>为数组元素或集合元素定义一个父节点。</p>
-<h3 id="XmlElements"><a href="#XmlElements" class="headerlink" title="@XmlElements"></a>@XmlElements</h3><p>相当于java的泛型,XmlElement传的是什么对象，obj就是什么对象，obj对象可以是XmlElements中定义的对象中的任意一个<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">@XmlElements(</div><div class="line">    value=&#123;</div><div class="line">        @XmlElement(name=&quot;student&quot;, type=Student.class),</div><div class="line">        @XmlElement(name=&quot;teacher&quot;, type=Object.class)</div><div class="line">    &#125;</div><div class="line">)</div><div class="line">protected Object obj;</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JAXB/注解详解/" data-id="cj6arwhd8002aymbllwm8fmh4" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/加密解密／编码解码/Base64编码三种方式" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/加密解密／编码解码/Base64编码三种方式/">Base64编码三种方式</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/加密解密／编码解码/Base64编码三种方式/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>java 中使用base64编码和解码</p>
-<h2 id="第一种方式：通过反射使用java-中不对外公开的类"><a href="#第一种方式：通过反射使用java-中不对外公开的类" class="headerlink" title="第一种方式：通过反射使用java 中不对外公开的类"></a>第一种方式：通过反射使用java 中不对外公开的类</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">/*** </div><div class="line"> * encode by Base64 </div><div class="line"> */  </div><div class="line">public static String encodeBase64(byte[]input) throws Exception&#123;  </div><div class="line">	Class clazz=Class.forName(&quot;com.sun.org.apache.xerces.internal.impl.dv.util.Base64&quot;);  </div><div class="line">	Method mainMethod= clazz.getMethod(&quot;encode&quot;, byte[].class);  </div><div class="line">	mainMethod.setAccessible(true);  </div><div class="line">	Object retObj=mainMethod.invoke(null, new Object[]&#123;input&#125;);  </div><div class="line">	return (String)retObj;  </div><div class="line">&#125; </div><div class="line"> </div><div class="line">/*** </div><div class="line"> * decode by Base64 </div><div class="line"> */  </div><div class="line">public static byte[] decodeBase64(String input) throws Exception&#123;  </div><div class="line">	Class clazz=Class.forName(&quot;com.sun.org.apache.xerces.internal.impl.dv.util.Base64&quot;);  </div><div class="line">	Method mainMethod= clazz.getMethod(&quot;decode&quot;, String.class);  </div><div class="line">	mainMethod.setAccessible(true);  </div><div class="line">	Object retObj=mainMethod.invoke(null, input);  </div><div class="line">	return (byte[])retObj;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="第二种方式：使用commons-codec-jar（推荐）"><a href="#第二种方式：使用commons-codec-jar（推荐）" class="headerlink" title="第二种方式：使用commons-codec.jar（推荐）"></a>第二种方式：使用commons-codec.jar（推荐）</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">/** </div><div class="line"> * @param bytes </div><div class="line"> * @return </div><div class="line"> */  </div><div class="line">public static byte[] decode(final byte[] bytes) &#123;  </div><div class="line">	return Base64.decodeBase64(bytes);  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">/** </div><div class="line"> * 二进制数据编码为BASE64字符串 </div><div class="line"> * </div><div class="line"> * @param bytes </div><div class="line"> * @return </div><div class="line"> * @throws Exception </div><div class="line"> */  </div><div class="line">public static String encode(final byte[] bytes) &#123;  </div><div class="line">	return new String(Base64.encodeBase64(bytes));  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="第三种方式：java自带"><a href="#第三种方式：java自带" class="headerlink" title="第三种方式：java自带"></a>第三种方式：java自带</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">/**  </div><div class="line"> * 编码  </div><div class="line"> * @param bstr  </div><div class="line"> * @return String  </div><div class="line"> */    </div><div class="line">public static String encode(byte[] bstr)&#123;    </div><div class="line">	return new sun.misc.BASE64Encoder().encode(bstr);    </div><div class="line">&#125;    </div><div class="line">   </div><div class="line">/**  </div><div class="line"> * 解码  </div><div class="line"> * @param str  </div><div class="line"> * @return string  </div><div class="line"> */    </div><div class="line">public static byte[] decode(String str)&#123;    </div><div class="line">	byte[] bt = null;    </div><div class="line">	try &#123;    </div><div class="line">		sun.misc.BASE64Decoder decoder = new sun.misc.BASE64Decoder();    </div><div class="line">		bt = decoder.decodeBuffer( str );    </div><div class="line">	&#125; catch (IOException e) &#123;    </div><div class="line">		e.printStackTrace();    </div><div class="line">	&#125;    </div><div class="line">    </div><div class="line">	return bt;    </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/加密解密／编码解码/Base64编码三种方式/" data-id="cj6arwhd9002bymbligtc3c6p" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Maven/Maven把自己的包部署到远程仓库" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/Maven把自己的包部署到远程仓库/">Maven把自己的包部署到远程仓库</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Maven/Maven把自己的包部署到远程仓库/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="1-配置项目的POM文件"><a href="#1-配置项目的POM文件" class="headerlink" title="1.配置项目的POM文件"></a>1.配置项目的POM文件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;dependencyManagement&gt;</div><div class="line">    &lt;/dependencies&gt;</div><div class="line">        &lt;/dependency&gt;</div><div class="line"></div><div class="line">                ......</div><div class="line"></div><div class="line">        &lt;/dependency&gt;</div><div class="line">    &lt;/dependencies&gt;</div><div class="line">&lt;/dependencyManagement&gt;</div><div class="line">    &lt;repository&gt;</div><div class="line">        &lt;id&gt;nexus-snapshots&lt;/id&gt;</div><div class="line">        &lt;url&gt;http://192.168.1.232:8080/content/repositories/releases&lt;/url&gt;</div><div class="line">    &lt;/repository&gt;</div><div class="line">    &lt;snapshotRepository&gt;</div><div class="line">        &lt;id&gt;nexus-releases&lt;/id&gt;</div><div class="line">        &lt;url&gt;http://192.168.1.232:8080/content/repositories/snapshots&lt;/url&gt;</div><div class="line">    &lt;/snapshotRepository&gt;</div><div class="line">&lt;/distributionManagement&gt;</div></pre></td></tr></table></figure>
-<h3 id="2-运行maven命令"><a href="#2-运行maven命令" class="headerlink" title="2.运行maven命令"></a>2.运行maven命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn clean deploy</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/Maven把自己的包部署到远程仓库/" data-id="cj6arwhas000fymblz5c3mofd" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Maven/dependency下的scope含义" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/dependency下的scope含义/">dependency下的scope含义</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Maven/dependency下的scope含义/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="compile-（编译范围）"><a href="#compile-（编译范围）" class="headerlink" title="compile （编译范围）"></a>compile （编译范围）</h2><p>compile是默认的范围；如果没有提供一个范围，那该依赖的范围就是编译范围。编译范围依赖在所有的classpath 中可用，<br>同时它们也会被打包。</p>
-<h2 id="provided-（已提供范围）"><a href="#provided-（已提供范围）" class="headerlink" title="provided （已提供范围）"></a>provided （已提供范围）</h2><p>provided意味着打包的时候可以不用包进去，别的设施(Web Container)会提供。事实上该依赖理论上可以参与编译，测试，运行等周期。相当于compile，但是在打包阶段做了exclude的动作。</p>
-<h2 id="runtime-（运行时范围）"><a href="#runtime-（运行时范围）" class="headerlink" title="runtime （运行时范围）"></a>runtime （运行时范围）</h2><p>runtime 依赖在运行和测试系统的时候需要，但在编译的时候不需要。比如，你可能在编译的时候只需要JDBC API JAR，而只有在运行的时候才需要JDBC<br> 驱动实现。</p>
-<h2 id="test-（测试范围）"><a href="#test-（测试范围）" class="headerlink" title="test （测试范围）"></a>test （测试范围）</h2><p> test范围依赖 在一般的编译和运行时都不需要，它们只有在测试编译和测试运行阶段可用。</p>
-<h2 id="system-（系统范围）"><a href="#system-（系统范围）" class="headerlink" title="system （系统范围）"></a>system （系统范围）</h2><p> system范围依赖与provided 类似，但是你必须显式的提供一个对于本地系统中JAR 文件的路径。这么做是为了允许基于本地<br>对象编译，而这些对象是系统类库的一部分。这样的构件应该是一直可用的，Maven 也不会在仓库中去寻找它。如果你将一个<br>依赖范围设置成系统范围，你必须同时提供一个 systemPath 元素。注意该范围是不推荐使用的（你应该一直尽量去从公共或<br>定制的 Maven 仓库中引用依赖）。</p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/dependency下的scope含义/" data-id="cj6arwhat000hymblrwz6waet" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Maven/maven 引入外部jar包的几种方式" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/maven 引入外部jar包的几种方式/">maven 引入外部jar包的几种方式</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Maven/maven 引入外部jar包的几种方式/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="1-dependency-本地jar包"><a href="#1-dependency-本地jar包" class="headerlink" title="1.dependency 本地jar包"></a>1.dependency 本地jar包</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.hope.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>  <span class="comment">&lt;!--自定义--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>cloud<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>    <span class="comment">&lt;!--自定义--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span> <span class="comment">&lt;!--自定义--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>system<span class="tag">&lt;/<span class="name">scope</span>&gt;</span> <span class="comment">&lt;!--system，类似provided，需要显式提供依赖的jar以后，Maven就不会在Repository中查找它--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">systemPath</span>&gt;</span>$&#123;basedir&#125;/lib/cloud.jar<span class="tag">&lt;/<span class="name">systemPath</span>&gt;</span> <span class="comment">&lt;!--项目根目录下的lib文件夹下--&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
-<h2 id="2-编译阶段指定外部lib"><a href="#2-编译阶段指定外部lib" class="headerlink" title="2.编译阶段指定外部lib"></a>2.编译阶段指定外部lib</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.3.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">         <span class="tag">&lt;<span class="name">source</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">source</span>&gt;</span></div><div class="line">         <span class="tag">&lt;<span class="name">target</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">target</span>&gt;</span></div><div class="line">         <span class="tag">&lt;<span class="name">encoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">encoding</span>&gt;</span></div><div class="line">         <span class="tag">&lt;<span class="name">compilerArguments</span>&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">extdirs</span>&gt;</span>lib<span class="tag">&lt;/<span class="name">extdirs</span>&gt;</span><span class="comment">&lt;!--指定外部lib--&gt;</span></div><div class="line">         <span class="tag">&lt;/<span class="name">compilerArguments</span>&gt;</span></div><div class="line">     <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div></pre></td></tr></table></figure>
-<h2 id="3-将外部jar安装入本地maven仓库"><a href="#3-将外部jar安装入本地maven仓库" class="headerlink" title="3.将外部jar安装入本地maven仓库"></a>3.将外部jar安装入本地maven仓库</h2><p>cmd 进入jar包所在路径，执行以下命令<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn install:install-file -Dfile=cloud.jar -DgroupId=com.hope.cloud -DartifactId=cloud -Dversion=1.0 -Dpackaging=jar</div></pre></td></tr></table></figure></p>
-<ul>
-<li>==-Dfile=jar包所在目录==</li>
-<li>==-DgroupId=包的groupId==</li>
-<li>==-DartifactId=包的artifactId==</li>
-<li>==-Dversion=版本==</li>
-<li>==-Dpackaging=打包类型==</li>
-</ul>
-<p>引入：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;com.hope.cloud&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;cloud&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;1.0&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/maven 引入外部jar包的几种方式/" data-id="cj6arwhav000kymblcsrflqxi" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Maven/pom.xml结构之build" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/pom.xml结构之build/">pom.xml结构之build</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Maven/pom.xml结构之build/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="在Maven的pom-xml文件中，Build相关配置包含两个部分，一个是，另一个是，这里我们只介绍"><a href="#在Maven的pom-xml文件中，Build相关配置包含两个部分，一个是，另一个是，这里我们只介绍" class="headerlink" title="在Maven的pom.xml文件中，Build相关配置包含两个部分，一个是，另一个是，这里我们只介绍"></a>在Maven的pom.xml文件中，Build相关配置包含两个部分，一个是<build>，另一个是<reporting>，这里我们只介绍<build></build></reporting></build></h2><ol>
-<li>在Maven的pom.xml文件中，存在如下两种<build>：<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">"http://maven.apache.org/POM/4.0.0"</span>  </span></div><div class="line">  <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span>  </div><div class="line">  <span class="attr">xsi:schemaLocation</span>=<span class="string">"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"</span>&gt;  </div><div class="line">  ...  </div><div class="line">  <span class="comment">&lt;!-- "Project Build" contains elements of the BaseBuild set and the Build set--&gt;</span>  </div><div class="line">  <span class="tag">&lt;<span class="name">build</span>&gt;</span>...<span class="tag">&lt;/<span class="name">build</span>&gt;</span>  </div><div class="line">   </div><div class="line">  <span class="tag">&lt;<span class="name">profiles</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">profile</span>&gt;</span>  </div><div class="line">      <span class="comment">&lt;!-- "Profile Build" contains elements of the BaseBuild set only --&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">build</span>&gt;</span>...<span class="tag">&lt;/<span class="name">build</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;/<span class="name">profile</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;/<span class="name">profiles</span>&gt;</span>  </div><div class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></div></pre></td></tr></table></figure>
-</build></li>
+        <h4 id="在使用BigDecimal类来进行计算的时候，主要分为以下步骤："><a href="#在使用BigDecimal类来进行计算的时候，主要分为以下步骤：" class="headerlink" title="在使用BigDecimal类来进行计算的时候，主要分为以下步骤："></a>在使用BigDecimal类来进行计算的时候，主要分为以下步骤：</h4><ol>
+<li>用float或者double或者String变量构建BigDecimal对象。使用float或者double构造对象时，最好先转成String，以免发生错误</li>
+<li>通过调用BigDecimal的加，减，乘，除等相应的方法进行算术运算。</li>
+<li><p>把BigDecimal对象转换成float，double，int等类型。</p>
+<p>一般来说，可以使用BigDecimal的构造方法或者静态方法的valueOf()方法把基本类型的变量构建成BigDecimal对象。</p>
+</li>
 </ol>
-<p>说明：<br>一种<build>被称为Project Build，即是<project>的直接子元素。另一种<build>被称为Profile Build，即是<profile>的直接子元素。</profile></build></project></build></p>
-<p>Profile Build包含了基本的build元素，而Project Build还包含两个特殊的元素，即各种&lt;…Directory&gt;和<extensions>。</extensions></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">BigDecimal b1 = new BigDecimal(Double.toString(0.48));</div><div class="line">BigDecimal b2 = BigDecimal.valueOf(0.48);</div></pre></td></tr></table></figure>
+<h3 id="常用方法"><a href="#常用方法" class="headerlink" title="常用方法"></a>常用方法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public BigDecimal add(BigDecimal value);                        //加法</div><div class="line">public BigDecimal subtract(BigDecimal value);                   //减法 </div><div class="line">public BigDecimal multiply(BigDecimal value);                   //乘法</div><div class="line">public BigDecimal divide(BigDecimal value);                     //除法</div><div class="line"></div><div class="line">public int compareTo(BigDecimal val)        //比较大小</div><div class="line">结果是-1:小于  0:等于 1:大于</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/数据类型/BigDecimal/" data-id="cj6cy7nfl0039ktblkjfui2yh" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/集合/Collections排序" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/集合/Collections排序/">Collections排序</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/集合/Collections排序/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/集合/">集合</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="方法一"><a href="#方法一" class="headerlink" title="方法一"></a>方法一</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Collections.sort(list, <span class="keyword">new</span> Comparator&lt;实体&gt;() &#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(实体 arg0, 实体 arg1)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span>(比较条件) <span class="keyword">return</span> <span class="number">1</span>;</div><div class="line">        <span class="keyword">else</span> <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<h2 id="方法二：实现Comparable接口"><a href="#方法二：实现Comparable接口" class="headerlink" title="方法二：实现Comparable接口"></a>方法二：实现Comparable接口</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> <span class="keyword">implements</span> <span class="title">Comparable</span>&lt;<span class="title">User</span>&gt;</span>&#123;</div><div class="line">    <span class="keyword">private</span> String name;</div><div class="line">    <span class="keyword">private</span> Integer order;</div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> name;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.name = name;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">getOrder</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> order;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setOrder</span><span class="params">(Integer order)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.order = order;</div><div class="line">    &#125;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(User arg0)</span> </span>&#123;</div><div class="line">        比较条件</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">使用： Collections.sort(list);</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/集合/Collections排序/" data-id="cj6cy7nfm003bktblt3umqcu8" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/集合/集合排序" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/集合/集合排序/">集合排序</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/集合/集合排序/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/集合/">集合</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Map排序"><a href="#Map排序" class="headerlink" title="Map排序"></a>Map排序</h1><h2 id="TreeMap-能够把它保存的记录根据键-key-排序-默认是按升序排序-，也可以指定排序的比较器，-遍历TreeMap时，得到的记录是排过序的。TreeMap不允许key的值为null。非同步的。"><a href="#TreeMap-能够把它保存的记录根据键-key-排序-默认是按升序排序-，也可以指定排序的比较器，-遍历TreeMap时，得到的记录是排过序的。TreeMap不允许key的值为null。非同步的。" class="headerlink" title="TreeMap: 能够把它保存的记录根据键(key)排序,==默认是按升序排序==，也可以指定排序的比较器， 遍历TreeMap时，得到的记录是排过序的。TreeMap不允许key的值为null。非同步的。"></a>TreeMap: 能够把它保存的记录根据键(key)排序,==默认是按升序排序==，也可以指定排序的比较器， 遍历TreeMap时，得到的记录是排过序的。TreeMap不允许key的值为null。非同步的。</h2><h3 id="指定按key降序排序"><a href="#指定按key降序排序" class="headerlink" title="指定按key降序排序"></a>指定按key降序排序</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Map&lt;String,String&gt; map = new TreeMap&lt;String,String&gt;(new Comparator&lt;String&gt;()&#123; </div><div class="line">   public int compare(String obj1,String obj2)&#123; </div><div class="line">        //降序排序 </div><div class="line">        return obj2.compareTo(obj1); </div><div class="line">   &#125; </div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<h2 id="HashMap-最常用的Map-它根据键的HashCode-值存储数据-根据键可以直接获取它的值，具有很快的访问速度。HashMap最多只允许一条记录的键为Null-多条会覆盖-允许多条记录的值为-Null。非同步的。"><a href="#HashMap-最常用的Map-它根据键的HashCode-值存储数据-根据键可以直接获取它的值，具有很快的访问速度。HashMap最多只允许一条记录的键为Null-多条会覆盖-允许多条记录的值为-Null。非同步的。" class="headerlink" title="HashMap: 最常用的Map,它根据键的HashCode 值存储数据,根据键可以直接获取它的值，具有很快的访问速度。HashMap最多只允许一条记录的键为Null(多条会覆盖);允许多条记录的值为 Null。非同步的。"></a>HashMap: 最常用的Map,它根据键的HashCode 值存储数据,根据键可以直接获取它的值，具有很快的访问速度。HashMap最多只允许一条记录的键为Null(多条会覆盖);允许多条记录的值为 Null。非同步的。</h2><h2 id="Hashtable-与-HashMap类似-不同的是-key和value的值均不允许为null-它支持线程的同步，即任一时刻只有一个线程能写Hashtable-因此也导致了Hashtale在写入时会比较慢。"><a href="#Hashtable-与-HashMap类似-不同的是-key和value的值均不允许为null-它支持线程的同步，即任一时刻只有一个线程能写Hashtable-因此也导致了Hashtale在写入时会比较慢。" class="headerlink" title="Hashtable: 与 HashMap类似,不同的是:key和value的值均不允许为null;它支持线程的同步，即任一时刻只有一个线程能写Hashtable,因此也导致了Hashtale在写入时会比较慢。"></a>Hashtable: 与 HashMap类似,不同的是:key和value的值均不允许为null;它支持线程的同步，即任一时刻只有一个线程能写Hashtable,因此也导致了Hashtale在写入时会比较慢。</h2><h2 id="LinkedHashMap-保存了记录的插入顺序，在遍历LinkedHashMap时，先得到的记录肯定是先插入的-在遍历的时候会比HashMap慢。key和value均允许为空，非同步的。"><a href="#LinkedHashMap-保存了记录的插入顺序，在遍历LinkedHashMap时，先得到的记录肯定是先插入的-在遍历的时候会比HashMap慢。key和value均允许为空，非同步的。" class="headerlink" title="LinkedHashMap: 保存了记录的插入顺序，在遍历LinkedHashMap时，先得到的记录肯定是先插入的.在遍历的时候会比HashMap慢。key和value均允许为空，非同步的。"></a>LinkedHashMap: 保存了记录的插入顺序，在遍历LinkedHashMap时，先得到的记录肯定是先插入的.在遍历的时候会比HashMap慢。key和value均允许为空，非同步的。</h2><h1 id="统一排序方法"><a href="#统一排序方法" class="headerlink" title="统一排序方法"></a>统一排序方法</h1><p>如果要对TreeMap按照value的值进行排序，或者对HashMap,Hashtable,LinkedHashMap进行排序，则可以使用Map.Entry<k,v>接口结合List实现：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">Map&lt;String,String&gt; map = new TreeMap&lt;String,String&gt;(); </div><div class="line">map.put(&quot;aaaa&quot;, &quot;month&quot;); </div><div class="line">map.put(&quot;bbbb&quot;, &quot;bread&quot;); </div><div class="line">map.put(&quot;ccccc&quot;, &quot;attack&quot;); </div><div class="line">  </div><div class="line">  </div><div class="line">//通过ArrayList构造函数把map.entrySet()转换成list </div><div class="line">List&lt;Map.Entry&lt;String,String&gt;&gt; mappingList = new ArrayList&lt;Map.Entry&lt;String,String&gt;&gt;(map.entrySet()); </div><div class="line">//通过比较器实现比较排序,按照value值升序 </div><div class="line">Collections.sort(mappingList, new Comparator&lt;Map.Entry&lt;String,String&gt;&gt;()&#123; </div><div class="line">    public int compare(Map.Entry&lt;String,String&gt; mapping1,Map.Entry&lt;String,String&gt; mapping2)&#123; </div><div class="line">        return mapping1.getValue().compareTo(mapping2.getValue()); </div><div class="line">    &#125; </div><div class="line">&#125;); </div><div class="line"></div><div class="line">for(Map.Entry&lt;String,String&gt; mapping:mappingList)&#123; </div><div class="line">    System.out.println(mapping.getKey()+&quot;:&quot;+mapping.getValue()); </div><div class="line">&#125;</div></pre></td></tr></table></figure></k,v></p>
+<h1 id="List排序"><a href="#List排序" class="headerlink" title="List排序"></a>List排序</h1><h3 id="方法一：包装类排序"><a href="#方法一：包装类排序" class="headerlink" title="方法一：包装类排序"></a>方法一：包装类排序</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">List&lt;Integer&gt; nums = new ArrayList&lt;Integer&gt;();  </div><div class="line">nums.add(3);  </div><div class="line">nums.add(5);  </div><div class="line">nums.add(1);  </div><div class="line">nums.add(0);  </div><div class="line">Collections.sort(nums);</div></pre></td></tr></table></figure>
+<h3 id="方法二：对象排序"><a href="#方法二：对象排序" class="headerlink" title="方法二：对象排序"></a>方法二：对象排序</h3><h4 id="升序"><a href="#升序" class="headerlink" title="升序"></a>升序</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">Collections.sort(list, new Comparator&lt;Student&gt;()&#123;  </div><div class="line">  </div><div class="line">    public int compare(Student o1, Student o2) &#123;  </div><div class="line">      </div><div class="line">        //按照学生的年龄进行升序排列  </div><div class="line">        if(o1.getAge() &gt;= o2.getAge())&#123;  </div><div class="line">            return 1;  </div><div class="line">        &#125;  </div><div class="line">        return -1;  </div><div class="line">    &#125;  </div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<h4 id="降序"><a href="#降序" class="headerlink" title="降序"></a>降序</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">Collections.sort(list, new Comparator&lt;Student&gt;()&#123;  </div><div class="line">  </div><div class="line">    public int compare(Student o1, Student o2) &#123;  </div><div class="line">      </div><div class="line">        //按照学生的年龄进行降序排列  </div><div class="line">        if(o1.getAge() &lt;= o2.getAge())&#123;  </div><div class="line">            return 1;  </div><div class="line">        &#125;  </div><div class="line">        return -1;  </div><div class="line">    &#125;  </div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/集合/集合排序/" data-id="cj6cy7nfo003ektbl5rqkps6v" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/集合/集合遍历" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/集合/集合遍历/">集合遍历</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/集合/集合遍历/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/集合/">集合</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h1><h2 id="第一种-通过Map-keySet-遍历key和value"><a href="#第一种-通过Map-keySet-遍历key和value" class="headerlink" title="第一种:通过Map.keySet()遍历key和value"></a>第一种:通过Map.keySet()遍历key和value</h2><p>这里有一个二次取值的过程,所以并不推荐<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(Integer key:map.keySet())&#123; </div><div class="line"> System.out.println(&quot;key=&quot;+key+&quot;and value=&quot;+map.get(key)); </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="第二种-通过Map-entrySet-使用iterator-遍历key和value"><a href="#第二种-通过Map-entrySet-使用iterator-遍历key和value" class="headerlink" title="第二种:通过Map.entrySet()使用iterator()遍历key和value"></a>第二种:通过Map.entrySet()使用iterator()遍历key和value</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">Iterator&lt;Map.Entry&lt;Integer, String&gt;&gt; iterator=map.entrySet().iterator(); </div><div class="line"></div><div class="line">while(iterator.hasNext()) &#123; </div><div class="line"> Map.Entry&lt;Integer,String&gt; entry = iterator.next(); </div><div class="line"></div><div class="line"> System.out.println(&quot;key=&quot;+ entry.getKey() + &quot;and value = &quot;+entry.getValue()); </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="通过Map-entrySet-遍历key和value"><a href="#通过Map-entrySet-遍历key和value" class="headerlink" title="通过Map.entrySet()遍历key和value"></a>通过Map.entrySet()遍历key和value</h2><p>//JDK1.5后的遍历形式,代码看起来比较整洁,更推荐采用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(Map.Entry&lt;Integer, String&gt; entry :map.entrySet()) &#123; </div><div class="line"> System.out.println(&quot;key=&quot;+entry.getKey()+&quot; and value=&quot;+entry.getValue()); </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="Set"><a href="#Set" class="headerlink" title="Set"></a>Set</h1><h2 id="迭代遍历："><a href="#迭代遍历：" class="headerlink" title="迭代遍历："></a>迭代遍历：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Set&lt;String&gt;  set=new HashSet&lt;String&gt;(); </div><div class="line">Iterator&lt;String&gt; it = set.iterator();</div><div class="line">while(it.hasNext()) &#123;</div><div class="line">    String str = it.next();</div><div class="line">    System.out.println(str);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="for循环遍历："><a href="#for循环遍历：" class="headerlink" title="for循环遍历："></a>for循环遍历：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(Object obj : set) &#123;</div><div class="line">    System.out.println(obj);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="List"><a href="#List" class="headerlink" title="List"></a>List</h1><h2 id="迭代遍历"><a href="#迭代遍历" class="headerlink" title="迭代遍历"></a>迭代遍历</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">Iterator it1 = list.iterator();</div><div class="line">while(it1.hasNext())&#123;</div><div class="line">    System.out.println(it1.next());</div><div class="line">&#125;</div><div class="line"></div><div class="line">for(Iterator it2 = list.iterator();it2.hasNext();)&#123;</div><div class="line">    System.out.println(it2.next());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="for…each方式"><a href="#for…each方式" class="headerlink" title="for…each方式"></a>for…each方式</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(String tmp:list)&#123;</div><div class="line">    System.out.println(tmp);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="下标值遍历"><a href="#下标值遍历" class="headerlink" title="下标值遍历"></a>下标值遍历</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">for(int i = 0;i &lt; list.size(); i ++)&#123;</div><div class="line">    System.out.println(list.get(i));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/集合/集合遍历/" data-id="cj6cy7nfp003gktbl4ktbly4d" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/网络NIO/Buffer" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/Buffer/">Buffer</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/网络NIO/Buffer/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Java NIO中的Buffer用于和NIO通道进行交互。如你所知，数据是从通道读入缓冲区，从缓冲区写入到通道中的。  </p>
+<p>缓冲区本质上是一块可以写入数据，然后可以从中读取数据的内存。这块内存被包装成NIO Buffer对象，并提供了一组方法，用来方便的访问该块内存。  </p>
+<h2 id="Buffer的基本用法"><a href="#Buffer的基本用法" class="headerlink" title="Buffer的基本用法"></a>Buffer的基本用法</h2><p>使用Buffer读写数据一般遵循以下四个步骤：</p>
 <ol>
-<li>Profile Build和Project Build共用的基本build元素</li>
+<li>写入数据到Buffer</li>
+<li>调用flip()方法</li>
+<li>从Buffer中读取数据</li>
+<li>调用clear()方法或者compact()方法</li>
 </ol>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;<span class="name">defaultGoal</span>&gt;</span>install<span class="tag">&lt;/<span class="name">defaultGoal</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;<span class="name">directory</span>&gt;</span>$&#123;basedir&#125;/target<span class="tag">&lt;/<span class="name">directory</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;<span class="name">finalName</span>&gt;</span>$&#123;artifactId&#125;-$&#123;version&#125;<span class="tag">&lt;/<span class="name">finalName</span>&gt;</span>  </div><div class="line">  ...  </div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure>
-<p>说明：</p>
+<p>当向buffer写入数据时，buffer会记录下写了多少数据。一旦要读取数据，需要通过flip()方法将Buffer从写模式切换到读模式。在读模式下，可以读取之前写入到buffer的所有数据。</p>
+<p>一旦读完了所有的数据，就需要清空缓冲区，让它可以再次被写入。有两种方式能清空缓冲区：调用clear()或compact()方法。<strong>clear()方法会清空整个缓冲区。compact()方法只会清除已经读过的数据。任何未读的数据都被移到缓冲区的起始处，新写入的数据将放到缓冲区未读数据的后面</strong>。</p>
+<h3 id="Buffer的capacity-position和limit"><a href="#Buffer的capacity-position和limit" class="headerlink" title="Buffer的capacity,position和limit"></a>Buffer的capacity,position和limit</h3><p>缓冲区本质上是一块可以写入数据，然后可以从中读取数据的内存。这块内存被包装成NIO Buffer对象，并提供了一组方法，用来方便的访问该块内存。  </p>
+<p>为了理解Buffer的工作原理，需要熟悉它的三个属性：<br>capacity，position，limit   </p>
+<p>position和limit的含义取决于Buffer处在读模式还是写模式。不管Buffer处在什么模式，capacity的含义总是一样的。</p>
+<p>这里有一个关于capacity，position和limit在读写模式中的说明，详细的解释在插图后面。<br><img src="http://ifeve.com/wp-content/uploads/2013/06/buffers-modes.png" alt="image"></p>
+<h4 id="capacity"><a href="#capacity" class="headerlink" title="capacity"></a>capacity</h4><p><strong>作为一个内存块，Buffer有一个固定的大小值，也叫“capacity”</strong>.你只能往里写capacity个byte、long，char等类型。一旦Buffer满了，需要将其清空（通过读数据或者清除数据）才能继续写数据往里写数据。</p>
+<h4 id="position"><a href="#position" class="headerlink" title="position"></a>position</h4><p>当你写数据到Buffer中时，position表示当前的位置。初始的position值为0.当一个byte、long等数据写到Buffer后， position会向前移动到下一个可插入数据的Buffer单元。</p>
+<p>当读取数据时，也是从某个特定位置读。<strong>当将Buffer从写模式切换到读模式，position会被重置为0. 当从Buffer的position处读取数据时，position向前移动到下一个可读的位置</strong>。</p>
+<h4 id="limit"><a href="#limit" class="headerlink" title="limit"></a>limit</h4><p><strong>在读模式下，Buffer的limit表示你往Buffer里写了多少数据。 写模式下，limit等于Buffer的capacity</strong>。</p>
+<p>当切换Buffer到读模式时， limit表示你最多能读到多少数据。因此，<strong>当切换Buffer到读模式时，limit会被设置成写模式下的position值</strong>。换句话说，你能读到之前写入的所有数据（limit被设置成已写数据的数量，这个值在写模式下就是position）</p>
+<h2 id="Buffer的类型"><a href="#Buffer的类型" class="headerlink" title="Buffer的类型"></a>Buffer的类型</h2><p>Java NIO 有以下Buffer类型：</p>
 <ul>
-<li>defaultGoal，执行构建时默认的goal或phase，如jar:jar或者package等</li>
-<li>directory，构建的结果所在的路径，默认为${basedir}/target目录</li>
-<li>finalName，构建的最终结果的名字，该名字可能在其他plugin中被改变</li>
+<li>ByteBuffer</li>
+<li>MappedByteBuffer</li>
+<li>CharBuffer</li>
+<li>DoubleBuffer</li>
+<li>FloatBuffer</li>
+<li>IntBuffer</li>
+<li>LongBuffer</li>
+<li>ShortBuffer</li>
 </ul>
-<p>2) <resources><br>资源往往不是代码，无需编译，而是一些properties或XML配置文件，构建过程中会往往会将资源文件从源路径复制到指定的目标路径。</resources></p>
-<p><resources>给出各个资源在Maven项目中的具体路径。示例如下：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span>  </div><div class="line">  ...  </div><div class="line">  <span class="tag">&lt;<span class="name">filters</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">filter</span>&gt;</span>filters/filter1.properties<span class="tag">&lt;/<span class="name">filter</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;/<span class="name">filters</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;<span class="name">resources</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">resource</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">targetPath</span>&gt;</span>META-INF/plexus<span class="tag">&lt;/<span class="name">targetPath</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">filtering</span>&gt;</span>false<span class="tag">&lt;/<span class="name">filtering</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">directory</span>&gt;</span>$&#123;basedir&#125;/src/main/plexus<span class="tag">&lt;/<span class="name">directory</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">includes</span>&gt;</span>  </div><div class="line">        <span class="tag">&lt;<span class="name">include</span>&gt;</span>configuration.xml<span class="tag">&lt;/<span class="name">include</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;/<span class="name">includes</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">excludes</span>&gt;</span>  </div><div class="line">        <span class="tag">&lt;<span class="name">exclude</span>&gt;</span>**/*.properties<span class="tag">&lt;/<span class="name">exclude</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;/<span class="name">excludes</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;/<span class="name">resource</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;/<span class="name">resources</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;<span class="name">testResources</span>&gt;</span>  </div><div class="line">    ...  </div><div class="line">  <span class="tag">&lt;/<span class="name">testResources</span>&gt;</span>  </div><div class="line">  ...  </div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure></resources></p>
-<p>说明：  </p>
-<ul>
-<li>resources，build过程中涉及的资源文件  </li>
-<li><ul>
-<li>targetPath，资源文件的目标路径</li>
-</ul>
-</li>
-<li><ul>
-<li>filtering，构建过程中是否对资源进行过滤，默认false</li>
-</ul>
-</li>
-<li><ul>
-<li>directory，资源文件的路径，默认位于${basedir}/src/main/resources/目录下</li>
-</ul>
-</li>
-<li><ul>
-<li>includes，一组文件名的匹配模式，被匹配的资源文件将被构建过程处理</li>
-</ul>
-</li>
-<li><ul>
-<li>excludes，一组文件名的匹配模式，被匹配的资源文件将被构建过程忽略。同时被includes和excludes匹配的资源文件，将被忽略。</li>
-</ul>
-</li>
-<li>filters，给出对资源文件进行过滤的属性文件的路径，默认位于${basedir}/src/main/filters/目录下。属性文件中定义若干键值对。在构建过程中，对于资源文件中出现的变量（键），将使用属性文件中该键对应的值替换。</li>
-<li>testResources，test过程中涉及的资源文件，默认位于${basedir}/src/test/resources/目录下。这里的资源文件不会被构建到目标构件中</li>
-</ul>
-<p>3) <plugins><br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span>  </div><div class="line">  ...  </div><div class="line">  <span class="tag">&lt;<span class="name">plugins</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">plugin</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-jar-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.6<span class="tag">&lt;/<span class="name">version</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">extensions</span>&gt;</span>false<span class="tag">&lt;/<span class="name">extensions</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">inherited</span>&gt;</span>true<span class="tag">&lt;/<span class="name">inherited</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">configuration</span>&gt;</span>  </div><div class="line">        <span class="tag">&lt;<span class="name">classifier</span>&gt;</span>test<span class="tag">&lt;/<span class="name">classifier</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span>...<span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">executions</span>&gt;</span>...<span class="tag">&lt;/<span class="name">executions</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span>  </div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure></plugins></p>
-<p>说明：  </p>
-<ul>
-<li>groupId</li>
-<li>artifactId</li>
-<li>version</li>
-<li>extensions，是否加载该插件的扩展，默认false</li>
-<li>inherited，该插件的configuration中的配置是否可以被（继承该POM的其他Maven项目）继承，默认true</li>
-<li>configuration，该插件所需要的特殊配置，在父子项目之间可以覆盖或合并</li>
-<li>dependencies，该插件所特有的依赖类库</li>
-<li>executions，该插件的某个goal（一个插件中可能包含多个goal）的执行方式。一个execution有如下设置：</li>
-<li><ul>
-<li>id，唯一标识</li>
-</ul>
-</li>
-<li><ul>
-<li>goals，要执行的插件的goal（可以有多个），如<goal>run</goal></li>
-</ul>
-</li>
-<li><ul>
-<li>，插件的goal要嵌入到Maven的phase中执行，如verify</li>
-</ul>
-</li>
-<li><ul>
-<li>inherited，该execution是否可被子项目继承</li>
-</ul>
-</li>
-<li><ul>
-<li>configuration，该execution的其他配置参数</li>
-</ul>
-</li>
-</ul>
-<p>4) <pluginmanagement><br>在<build>中，<pluginmanagement>与<plugins>并列，两者之间的关系类似于<dependencymanagement>与<dependencies>之间的关系。<pluginmanagement>中也配置<plugin>，其配置参数与<plugins>中的<plugin>完全一致。只是，<pluginmanagement>往往出现在父项目中，其中配置的<plugin>往往通用于子项目。子项目中只要在<plugins>中以<plugin>声明该插件，该插件的具体配置参数则继承自父项目中<pluginmanagement>对该插件的配置，从而避免在子项目中进行重复配置。</pluginmanagement></plugin></plugins></plugin></pluginmanagement></plugin></plugins></plugin></pluginmanagement></dependencies></dependencymanagement></plugins></pluginmanagement></build></pluginmanagement></p>
+<p>如你所见，这些Buffer类型代表了不同的数据类型。换句话说，就是可以通过char，short，int，long，float 或 double类型来操作缓冲区中的字节。</p>
+<h2 id="Buffer的分配"><a href="#Buffer的分配" class="headerlink" title="Buffer的分配"></a>Buffer的分配</h2><p>要想获得一个Buffer对象首先要进行分配。 每一个Buffer类都有一个allocate方法。下面是一个分配48字节capacity的ByteBuffer的例子。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ByteBuffer buf = ByteBuffer.allocate(48);</div></pre></td></tr></table></figure></p>
+<p>这是分配一个可存储1024个字符的CharBuffer：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">CharBuffer buf = CharBuffer.allocate(1024);</div></pre></td></tr></table></figure></p>
+<h2 id="向Buffer中写数据"><a href="#向Buffer中写数据" class="headerlink" title="向Buffer中写数据"></a>向Buffer中写数据</h2><p>写数据到Buffer有两种方式：</p>
 <ol>
-<li>Project Build特有的&lt;…Directory&gt;<br>往往配置在父项目中，供所有父子项目使用。示例如下：<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">sourceDirectory</span>&gt;</span>$&#123;basedir&#125;/src/main/java<span class="tag">&lt;/<span class="name">sourceDirectory</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">scriptSourceDirectory</span>&gt;</span>$&#123;basedir&#125;/src/main/scripts<span class="tag">&lt;/<span class="name">scriptSourceDirectory</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">testSourceDirectory</span>&gt;</span>$&#123;basedir&#125;/src/test/java<span class="tag">&lt;/<span class="name">testSourceDirectory</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">outputDirectory</span>&gt;</span>$&#123;basedir&#125;/target/classes<span class="tag">&lt;/<span class="name">outputDirectory</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">testOutputDirectory</span>&gt;</span>$&#123;basedir&#125;/target/test-classes<span class="tag">&lt;/<span class="name">testOutputDirectory</span>&gt;</span>  </div><div class="line">    ...  </div><div class="line">  <span class="tag">&lt;/<span class="name">build</span>&gt;</span>  </div><div class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></div></pre></td></tr></table></figure>
-</li>
+<li>从Channel写到Buffer。</li>
+<li>通过Buffer的put()方法写到Buffer里。</li>
 </ol>
-<p>目录可以使用绝对路径，如示例所示。如果使用相对路径，则所有的相对路径都是在${basedir}目录下。</p>
+<p>从Channel写到Buffer的例子(从channel读取数据到buf中)<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">int bytesRead = inChannel.read(buf); //read into buffer</div></pre></td></tr></table></figure></p>
+<p>通过put方法写Buffer的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">buf.put(127);</div></pre></td></tr></table></figure></p>
+<p>put方法有很多版本，允许你以不同的方式把数据写入到Buffer中。例如， 写到一个指定的位置，或者把一个字节数组写入到Buffer。</p>
+<h3 id="flip-方法"><a href="#flip-方法" class="headerlink" title="flip()方法"></a>flip()方法</h3><p><strong>flip方法将Buffer从写模式切换到读模式。调用flip()方法会将position设回0，并将limit设置成之前position的值</strong>。   </p>
+<p>换句话说，position现在用于标记读的位置，limit表示之前写进了多少个byte、char等 —— 现在能读取多少个byte、char等。</p>
+<h2 id="从Buffer中读取数据"><a href="#从Buffer中读取数据" class="headerlink" title="从Buffer中读取数据"></a>从Buffer中读取数据</h2><p>从Buffer中读取数据有两种方式：</p>
 <ol>
-<li>Project Build特有的<extensions><br><extensions>是执行构建过程中可能用到的其他工具，在执行构建的过程中被加入到classpath中。</extensions></extensions></li>
+<li>从Buffer读取数据到Channel。</li>
+<li>使用get()方法从Buffer中读取数据。</li>
 </ol>
-<p>也可以通过<extensions>激活构建插件，从而改变构建的过程。</extensions></p>
-<p>通常，通过<extensions>给出通用插件的一个具体实现，用于构建过程。</extensions></p>
-<p><extensions>的使用示例如下：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span>  </div><div class="line">  ...  </div><div class="line">  <span class="tag">&lt;<span class="name">extensions</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">extension</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.wagon<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>wagon-ftp<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0-alpha-3<span class="tag">&lt;/<span class="name">version</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;/<span class="name">extension</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;/<span class="name">extensions</span>&gt;</span>  </div><div class="line">  ...  </div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure></extensions></p>
+<p>从Buffer读取数据到Channel的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">//read from buffer into channel.</div><div class="line">int bytesWritten = inChannel.write(buf);</div></pre></td></tr></table></figure></p>
+<p>使用get()方法从Buffer中读取数据的例子<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">byte aByte = buf.get();</div></pre></td></tr></table></figure></p>
+<p>get方法有很多版本，允许你以不同的方式从Buffer中读取数据。例如，从指定position读取，或者从Buffer中读取数据到字节数组。</p>
+<h3 id="rewind-方法"><a href="#rewind-方法" class="headerlink" title="rewind()方法"></a>rewind()方法</h3><p><strong>Buffer.rewind()将position设回0，所以你可以重读Buffer中的所有数据</strong>。limit保持不变，仍然表示能从Buffer中读取多少个元素（byte、char等）。</p>
+<h3 id="clear-与compact-方法"><a href="#clear-与compact-方法" class="headerlink" title="clear()与compact()方法"></a>clear()与compact()方法</h3><p>一旦读完Buffer中的数据，需要让Buffer准备好再次被写入。可以通过clear()或compact()方法来完成。</p>
+<p><strong>如果调用的是clear()方法，position将被设回0，limit被设置成 capacity的值。换句话说，Buffer 被清空了。Buffer中的数据并未清除，只是这些标记告诉我们可以从哪里开始往Buffer里写数据。</strong></p>
+<p>如果Buffer中有一些未读的数据，调用clear()方法，数据将“被遗忘”，意味着不再有任何标记会告诉你哪些数据被读过，哪些还没有。</p>
+<p>如果Buffer中仍有未读的数据，且后续还需要这些数据，但是此时想要先先写些数据，那么使用compact()方法。</p>
+<p><strong>compact()方法将所有未读的数据拷贝到Buffer起始处。然后将position设到最后一个未读元素正后面。limit属性依然像clear()方法一样，设置成capacity。现在Buffer准备好写数据了，但是不会覆盖未读的数据。</strong></p>
+<h3 id="mark-与reset-方法"><a href="#mark-与reset-方法" class="headerlink" title="mark()与reset()方法"></a>mark()与reset()方法</h3><p><strong>通过调用Buffer.mark()方法，可以标记Buffer中的一个特定position。之后可以通过调用Buffer.reset()方法恢复到这个position。</strong><br>例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">buffer.mark();</div><div class="line">//call buffer.get() a couple of times, e.g. during parsing.</div><div class="line">buffer.reset();//set position back to mark.</div></pre></td></tr></table></figure></p>
+<h3 id="equals-与compareTo-方法"><a href="#equals-与compareTo-方法" class="headerlink" title="equals()与compareTo()方法"></a>equals()与compareTo()方法</h3><p>可以使用equals()和compareTo()方法比较两个Buffer。</p>
+<h3 id="equals"><a href="#equals" class="headerlink" title="equals()"></a>equals()</h3><p>当满足下列条件时，表示两个Buffer相等：</p>
+<ol>
+<li>有相同的类型（byte、char、int等）。</li>
+<li>Buffer中剩余的byte、char等的个数相等。</li>
+<li>Buffer中所有剩余的byte、char等都相同。</li>
+</ol>
+<p>如你所见，equals只是比较Buffer的一部分，不是每一个在它里面的元素都比较。实际上，它只比较Buffer中的剩余元素。</p>
+<h3 id="compareTo-方法"><a href="#compareTo-方法" class="headerlink" title="compareTo()方法"></a>compareTo()方法</h3><p>compareTo()方法比较两个Buffer的剩余元素(byte、char等)， 如果满足下列条件，则认为一个Buffer“小于”另一个Buffer：</p>
+<ol>
+<li>第一个不相等的元素小于另一个Buffer中对应的元素 。</li>
+<li>所有元素都相等，但第一个Buffer比另一个先耗尽(第一个Buffer的元素个数比另一个少)。</li>
+</ol>
 
       
     </div>
@@ -738,7 +760,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/pom.xml结构之build/" data-id="cj6arwhax000mymbly4cy06vk" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/Buffer/" data-id="cj6cy7nfq003jktbl76gkyx52" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -752,13 +774,13 @@
 
 
   
-    <article id="post-Maven/不同环境加载不同的配置文件" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/网络NIO/DatagramChannel" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/不同环境加载不同的配置文件/">不同环境加载不同的配置文件</a>
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/DatagramChannel/">DatagramChannel</a>
     </h1>
   
 
@@ -767,13 +789,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Maven/不同环境加载不同的配置文件/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Java/网络NIO/DatagramChannel/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
   </div>
 
 
@@ -782,8 +804,16 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="先配置不同环境的配置"><a href="#先配置不同环境的配置" class="headerlink" title="先配置不同环境的配置"></a>先配置不同环境的配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line">&lt;!--  根据不同的环境取不同的配置 --&gt;</div><div class="line">&lt;profiles&gt;</div><div class="line">  &lt;!--  开发环境 --&gt;</div><div class="line">  &lt;profile&gt;</div><div class="line">	&lt;id&gt;dev&lt;/id&gt;</div><div class="line">	&lt;!--  设置默认环境 --&gt;</div><div class="line">	&lt;activation&gt;</div><div class="line">		&lt;activeByDefault&gt;true&lt;/activeByDefault&gt;</div><div class="line">	&lt;/activation&gt;</div><div class="line">	&lt;!--  配置属性 --&gt;</div><div class="line">	&lt;properties&gt;</div><div class="line">    	&lt;env&gt;dev&lt;/env&gt;</div><div class="line">    	&lt;test.skip&gt;true&lt;/test.skip&gt;</div><div class="line">	&lt;/properties&gt;</div><div class="line">  &lt;/profile&gt;</div><div class="line">	&lt;!--  开发环境 --&gt;</div><div class="line">	&lt;!--  测试环境 --&gt;</div><div class="line">	&lt;profile&gt;</div><div class="line">		&lt;id&gt;sit&lt;/id&gt;</div><div class="line">		&lt;properties&gt;</div><div class="line">			&lt;env&gt;sit&lt;/env&gt;</div><div class="line">			&lt;test.skip&gt;true&lt;/test.skip&gt;</div><div class="line">		&lt;/properties&gt;</div><div class="line">	&lt;/profile&gt;</div><div class="line">	&lt;!--  测试环境 --&gt;</div><div class="line">	&lt;!--  线上环境 --&gt;</div><div class="line">	&lt;profile&gt;</div><div class="line">		&lt;id&gt;prd&lt;/id&gt;</div><div class="line">		&lt;!-- &lt;activation&gt;</div><div class="line">			&lt;activeByDefault&gt;true&lt;/activeByDefault&gt;</div><div class="line">		&lt;/activation&gt; --&gt;</div><div class="line">		&lt;properties&gt;</div><div class="line">			&lt;env&gt;prd&lt;/env&gt;</div><div class="line">			&lt;test.skip&gt;true&lt;/test.skip&gt;</div><div class="line">		&lt;/properties&gt;</div><div class="line">	&lt;/profile&gt;</div><div class="line">	&lt;!--  线上环境 --&gt;</div><div class="line">&lt;/profiles&gt;</div><div class="line">&lt;!--  根据不同的环境取不同的配置 --&gt;</div></pre></td></tr></table></figure>
-<h2 id="build"><a href="#build" class="headerlink" title="build"></a>build</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div></pre></td><td class="code"><pre><div class="line">&lt;build&gt;</div><div class="line">  &lt;!-- 打包的包名 --&gt;</div><div class="line">  &lt;finalName&gt;roaster&lt;/finalName&gt;</div><div class="line">    &lt;!-- 过滤的原文件，配置时将filters中文件的key对应的value替换资源文件中的$&#123;key&#125;  --&gt;</div><div class="line">  	&lt;filters&gt;</div><div class="line">		&lt;filter&gt;profiles/dev/META-INF/config1/application.properties&lt;/filter&gt;</div><div class="line">	&lt;/filters&gt;</div><div class="line">	&lt;!-- 配置资源文件 --&gt;</div><div class="line">	&lt;resources&gt;</div><div class="line">	</div><div class="line">		&lt;resource&gt;</div><div class="line">		    &lt;!-- 资源文件目录 --&gt;</div><div class="line">			&lt;directory&gt;profiles/$&#123;env&#125;&lt;/directory&gt;</div><div class="line">			&lt;!--是否使用上面filters配置的文件中的key对应的value替换下面资源文件中对应的$&#123;key&#125;值 --&gt;</div><div class="line">			&lt;filtering&gt;false&lt;/filtering&gt;</div><div class="line">			&lt;!-- 配置不包括的文件，在directory配置的目录中，除了下面的文件，其它文件都将加入打包 --&gt;</div><div class="line">			&lt;excludes&gt;</div><div class="line">				&lt;exclude&gt;META-INF/config/application.properties&lt;/exclude&gt;</div><div class="line">			&lt;/excludes&gt;</div><div class="line">			</div><div class="line">			&lt;!-- 打包包括的文件 --&gt;</div><div class="line">			&lt;!-- &lt;includes&gt;</div><div class="line">				&lt;include&gt;META-INF/config/application.properties&lt;/include&gt;</div><div class="line">				&lt;include&gt;META-INF/config/jdbc.properties&lt;/include&gt;</div><div class="line">				&lt;include&gt;META-INF/config/memcached.properties&lt;/include&gt;</div><div class="line">			&lt;/includes&gt; --&gt;</div><div class="line">		&lt;/resource&gt;</div><div class="line">		</div><div class="line">		</div><div class="line">		&lt;resource&gt;</div><div class="line">			&lt;directory&gt;src/main/resources&lt;/directory&gt;</div><div class="line">			&lt;filtering&gt;true&lt;/filtering&gt;</div><div class="line">				&lt;includes&gt;</div><div class="line">					&lt;include&gt;META-INF/config/common.properties&lt;/include&gt;</div><div class="line">				&lt;/includes&gt;</div><div class="line">		&lt;/resource&gt;</div><div class="line">	</div><div class="line">	&lt;/resources&gt; </div><div class="line">    &lt;sourceDirectory&gt;src&lt;/sourceDirectory&gt;</div><div class="line">    &lt;plugins&gt;</div><div class="line">      &lt;plugin&gt;</div><div class="line">        &lt;artifactId&gt;maven-war-plugin&lt;/artifactId&gt;</div><div class="line">        &lt;version&gt;2.3&lt;/version&gt;</div><div class="line">        &lt;configuration&gt;</div><div class="line">          &lt;warSourceDirectory&gt;webapp&lt;/warSourceDirectory&gt;</div><div class="line">          &lt;failOnMissingWebXml&gt;false&lt;/failOnMissingWebXml&gt;</div><div class="line">        &lt;/configuration&gt;</div><div class="line">      &lt;/plugin&gt;</div><div class="line">      &lt;plugin&gt;</div><div class="line">        &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;</div><div class="line">        &lt;version&gt;3.1&lt;/version&gt;</div><div class="line">        &lt;configuration&gt;</div><div class="line">          &lt;source&gt;1.7&lt;/source&gt;</div><div class="line">          &lt;target&gt;1.7&lt;/target&gt;</div><div class="line">        &lt;/configuration&gt;</div><div class="line">      &lt;/plugin&gt;</div><div class="line">    &lt;/plugins&gt;</div><div class="line">  &lt;/build&gt;</div></pre></td></tr></table></figure>
+        <p><strong>Java NIO中的DatagramChannel是一个能收发UDP包的通道。因为UDP是无连接的网络协议，所以不能像其它通道那样读取和写入。它发送和接收的是数据包。</strong></p>
+<h3 id="打开-DatagramChannel"><a href="#打开-DatagramChannel" class="headerlink" title="打开 DatagramChannel"></a>打开 DatagramChannel</h3><p>下面是 DatagramChannel 的打开方式：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">DatagramChannel channel = DatagramChannel.open();</div><div class="line">channel.socket().bind(new InetSocketAddress(9999));</div></pre></td></tr></table></figure></p>
+<p>这个例子打开的 DatagramChannel可以在UDP端口9999上接收数据包。</p>
+<h3 id="接收数据"><a href="#接收数据" class="headerlink" title="接收数据"></a>接收数据</h3><p>通过receive()方法从DatagramChannel接收数据，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">ByteBuffer buf = ByteBuffer.allocate(48);</div><div class="line">buf.clear();</div><div class="line">channel.receive(buf);</div></pre></td></tr></table></figure></p>
+<p>receive()方法会将接收到的数据包内容复制到指定的Buffer. <strong>如果Buffer容不下收到的数据，多出的数据将被丢弃。</strong></p>
+<h3 id="发送数据"><a href="#发送数据" class="headerlink" title="发送数据"></a>发送数据</h3><p>通过send()方法从DatagramChannel发送数据，如:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">String newData = &quot;New String to write to file...&quot; + System.currentTimeMillis();</div><div class="line">ByteBuffer buf = ByteBuffer.allocate(48);</div><div class="line">buf.clear();</div><div class="line">buf.put(newData.getBytes());</div><div class="line">buf.flip();</div><div class="line">int bytesSent = channel.send(buf, new InetSocketAddress(&quot;jenkov.com&quot;, 80));</div></pre></td></tr></table></figure></p>
+<p>这个例子发送一串字符到”jenkov.com”服务器的UDP端口80。 因为服务端并没有监控这个端口，所以什么也不会发生。也不会通知你发出的数据包是否已收到，因为UDP在数据传送方面没有任何保证。</p>
+<h3 id="连接到特定的地址"><a href="#连接到特定的地址" class="headerlink" title="连接到特定的地址"></a>连接到特定的地址</h3><p>可以将DatagramChannel“连接”到网络中的特定地址的。由于UDP是无连接的，连接到特定地址并不会像TCP通道那样创建一个真正的连接。而是锁住DatagramChannel ，让其只能从特定地址收发数据。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">channel.connect(new InetSocketAddress(&quot;jenkov.com&quot;, 80));</div></pre></td></tr></table></figure></p>
+<p><strong>当连接后，也可以使用read()和write()方法，就像在用传统的通道一样。只是在数据传送方面没有任何保证。</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">int bytesRead = channel.read(buf);</div><div class="line">int bytesWritten = channel.write(but);</div></pre></td></tr></table></figure></p>
+
       
     </div>
 
@@ -793,7 +823,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/不同环境加载不同的配置文件/" data-id="cj6arwhay000pymblyesp8r4e" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/DatagramChannel/" data-id="cj6cy7nfq003lktblqmu3v3rn" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -810,7 +840,7 @@
 
 
   <div id="page-nav">
-    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/14/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/13/">13</a></li><li><a class="page-number" href="/page/14/">14</a></li><li class="active"><span class="page-number">15</span></li><li><a class="page-number" href="/page/16/">16</a></li><li><a class="page-next" rel="next" href="/page/16/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
+    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/14/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/13/">13</a></li><li><a class="page-number" href="/page/14/">14</a></li><li class="active"><span class="page-number">15</span></li><li><a class="page-number" href="/page/16/">16</a></li><li><a class="page-number" href="/page/17/">17</a></li><li><a class="page-number" href="/page/18/">18</a></li><li><a class="page-next" rel="next" href="/page/16/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
   </div>
 
 
@@ -828,7 +858,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">35</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
   </div>
 
 
@@ -841,7 +871,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">32</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">53</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
   </div>
 
 
@@ -852,23 +882,23 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
+          <a href="/2017/08/15/Spring/Security/配置十三：session管理/">配置十三：session管理</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
+          <a href="/2017/08/15/Spring/Security/配置七：缓存UserDetails/">配置七：缓存UserDetails</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/forever/nohup node app.js &/">nohup node app.js &amp;</a>
+          <a href="/2017/08/15/Spring/Security/配置四：认证过程/">配置四：认证过程</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
+          <a href="/2017/08/15/Spring/Security/配置十：退出登录/">配置十：退出登录</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/服务器相关/resin/resin启动，停止，重启/">resin启动，停止，重启</a>
+          <a href="/2017/08/15/Spring/Security/配置十六：基于表达式的权限控制/">配置十六：基于表达式的权限控制</a>
         </li>
       
     </ul>

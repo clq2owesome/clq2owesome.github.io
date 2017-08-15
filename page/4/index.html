@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-网络/http 消息头" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-服务器相关/Memcached/memcached命令" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/网络/http 消息头/">http 消息头</a>
+      <a class="article-title" href="/2017/08/12/服务器相关/Memcached/memcached命令/">memcached命令</a>
     </h1>
   
 
@@ -95,13 +95,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/02/网络/http 消息头/" class="article-date"><time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time></a>
+  <a href="/2017/08/12/服务器相关/Memcached/memcached命令/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/网络/">网络</a>
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/Memcached/">Memcached</a>
   </div>
 
 
@@ -110,77 +110,327 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="四种不同类型的头标："><a href="#四种不同类型的头标：" class="headerlink" title="四种不同类型的头标："></a>四种不同类型的头标：</h3><ol>
-<li>通用头标：即可用于请求，也可用于响应，是作为一个整体而不是特定资源与事务相关联。</li>
-<li>请求头标：允许客户端传递关于自身的信息和希望的响应形式。</li>
-<li>响应头标：服务器和于传递自身信息的响应。</li>
-<li>实体头标：定义被传送资源的信息。即可用于请求，也可用于响应。 </li>
+        <h4 id="启动Memcached"><a href="#启动Memcached" class="headerlink" title="启动Memcached"></a>启动Memcached</h4><p>一般情况下，简单地可以使用类似如下形式，启动Memcached服务：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/usr/local/bin/memcached -d -m 64 -I 20m -u root -l 192.168.4.86 -p 11211 -c 1024 -P /usr/local/memcached/memcached.pid</div></pre></td></tr></table></figure></p>
+<p>上述命令行中，基于上面各个选项，以及其他一些选项的含义，说明如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>含义说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-d</td>
+<td>指定memcached进程作为一个守护进程启动</td>
+</tr>
+<tr>
+<td>-m <num></num></td>
+<td>指定分配给memcached使用的内存，单位是MB</td>
+</tr>
+<tr>
+<td>-u <username></username></td>
+<td>运行memcached的用户</td>
+</tr>
+<tr>
+<td>-l <ip_addr></ip_addr></td>
+<td>监听的服务器IP地址，如果有多个地址的话，使用逗号分隔，格式可以为“IP地址:端口号”，例如：-l 指定192.168.0.184:19830,192.168.0.195:13542；端口号也可以通过-p选项指定</td>
+</tr>
+<tr>
+<td>-p <num></num></td>
+<td>Memcached监听的端口，要保证该端口号未被占用</td>
+</tr>
+<tr>
+<td>-c <num></num></td>
+<td>设置最大运行的并发连接数，默认是1024</td>
+</tr>
+<tr>
+<td>-R <num></num></td>
+<td>为避免客户端饿死（starvation），对连续达到的客户端请求数设置一个限额，如果超过该设置，会选择另一个连接来处理请求，默认为20</td>
+</tr>
+<tr>
+<td>-k</td>
+<td>设置锁定所有分页的内存，对于大缓存应用场景，谨慎使用该选项</td>
+</tr>
+<tr>
+<td>-P</td>
+<td>保存memcached进程的pid文件</td>
+</tr>
+<tr>
+<td>-s <file></file></td>
+<td>指定Memcached用于监听的UNIX socket文件</td>
+</tr>
+<tr>
+<td>-a <perms></perms></td>
+<td>设置-s选项指定的UNIX socket文件的权限</td>
+</tr>
+<tr>
+<td>-U <num></num></td>
+<td>指定监听UDP的端口，默认11211，0表示关闭</td>
+</tr>
+<tr>
+<td>-M</td>
+<td>当内存使用超出配置值时，禁止自动清除缓存中的数据项，此时Memcached不可以，直到内存被释放</td>
+</tr>
+<tr>
+<td>-r</td>
+<td>设置产生core文件大小</td>
+</tr>
+<tr>
+<td>-f <factor></factor></td>
+<td>用于计算缓存数据项的内存块大小的乘数因子，默认是1.25</td>
+</tr>
+<tr>
+<td>-n</td>
+<td>为缓存数据项的key、value、flag设置最小分配字节数，默认是48</td>
+</tr>
+<tr>
+<td>-C</td>
+<td>禁用CAS</td>
+</tr>
+<tr>
+<td>-h</td>
+<td>显示Memcached版本和摘要信息</td>
+</tr>
+<tr>
+<td>-v</td>
+<td>输出警告和错误信息</td>
+</tr>
+<tr>
+<td>-vv</td>
+<td>打印信息比-v更详细：不仅输出警告和错误信息，也输出客户端请求和响应信息</td>
+</tr>
+<tr>
+<td>-i</td>
+<td>打印libevent和Memcached的licenses信息</td>
+</tr>
+<tr>
+<td>-t <threads></threads></td>
+<td>指定用来处理请求的线程数，默认为4</td>
+</tr>
+<tr>
+<td>-D <char></char></td>
+<td>用于统计报告中Key前缀和ID之间的分隔符，默认是冒号“:”</td>
+</tr>
+<tr>
+<td>-L</td>
+<td>尝试使用大内存分页（pages）</td>
+</tr>
+<tr>
+<td>-B <proto></proto></td>
+<td>指定使用的协议，默认行为是自动协商（autonegotiate），可能使用的选项有auto、ascii、binary。</td>
+</tr>
+<tr>
+<td>-I <size></size></td>
+<td>覆盖默认的STAB页大小，默认是1M</td>
+</tr>
+<tr>
+<td>-F</td>
+<td>禁用flush_all命令</td>
+</tr>
+<tr>
+<td>-o <options></options></td>
+<td>指定逗号分隔的选项，一般用于用于扩展或实验性质的选项</td>
+</tr>
+</tbody>
+</table>
+<h3 id="停止Memcached"><a href="#停止Memcached" class="headerlink" title="停止Memcached"></a>停止Memcached</h3><p>可以通过Linux的如下命令查询到Memcached的进程号：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ps -ef | grep memcached</div></pre></td></tr></table></figure></p>
+<p>然后杀掉Memcached服务进程：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">kill -9 &lt;PID&gt;</div></pre></td></tr></table></figure></p>
+<p>-9表示强制杀掉进程。</p>
+<h4 id="Telnet客户端"><a href="#Telnet客户端" class="headerlink" title="Telnet客户端"></a>Telnet客户端</h4><p>Telnet客户端可以通过命令行的方式来监控查看Memcached服务器存储数据的情况。例如，Memcached的服务地址为192.168.4.86:11211，可以telnet到该服务端口：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">telnet 192.168.4.86 11211</div></pre></td></tr></table></figure></p>
+<p>如果连接成功，可以使用如下一些命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">stats命令</div></pre></td></tr></table></figure></p>
+<p>该命令用于显示服务器信息、统计数据等，例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line">STAT pid 22362   //memcache服务器的进程ID</div><div class="line">STAT uptime 1469315  //服务器已经运行的秒数</div><div class="line">STAT time 1339671194   //服务器当前的unix时间戳</div><div class="line">STAT version 1.4.9   //memcache版本</div><div class="line">STAT libevent 1.4.9-stable  //libevent版本</div><div class="line">STAT pointer_size 64   //当前操作系统的指针大小（32位系统一般是32bit,64就是64位操作系统）</div><div class="line">STAT rusage_user 3695.485200     //进程的累计用户时间</div><div class="line">STAT rusage_system 14751.273465  //进程的累计系统时间</div><div class="line">STAT curr_connections 69     //服务器当前存储的items数量</div><div class="line">STAT total_connections 855430    //从服务器启动以后存储的items总数量</div><div class="line">STAT connection_structures 74    //服务器分配的连接构造数</div><div class="line">STAT reserved_fds 20</div><div class="line">STAT cmd_get 328806688   //get命令（获取）总请求次数</div><div class="line">STAT cmd_set 75441133    //set命令（保存）总请求次数</div><div class="line">STAT cmd_flush 34    //flush命令请求次数</div><div class="line">STAT cmd_touch 0     //touch命令请求次数</div><div class="line">STAT get_hits 253547177  //总命中次数</div><div class="line">STAT get_misses 75259511     //总未命中次数</div><div class="line">STAT delete_misses 4     //delete命令未命中次数</div><div class="line">STAT delete_hits 565730  //delete命令命中次数</div><div class="line">STAT incr_misses 0 //incr命令未命中次数</div><div class="line">STAT incr_hits 0 //incr命令命中次数</div><div class="line">STAT decr_misses 0  //decr命令未命中次数</div><div class="line">STAT decr_hits 0  //decr命令命中次数</div><div class="line">STAT cas_misses 0  //cas命令未命中次数</div><div class="line">STAT cas_hits 0  //cas命令命中次数</div><div class="line">STAT cas_badval 0    //使用擦拭次数</div><div class="line">STAT touch_hits 0    //touch命令未命中次数</div><div class="line">STAT touch_misses 0  //touch命令命中次数</div><div class="line">STAT auth_cmds 0     //认证命令处理的次数</div><div class="line">STAT auth_errors 0   //认证失败数目</div><div class="line">STAT bytes_read 545701515844     //总读取字节数（请求字节数）</div><div class="line">STAT bytes_written 1649639749866     //总发送字节数（结果字节数）</div><div class="line">STAT limit_maxbytes 2147483648   //分配给memcache的内存大小（字节）</div><div class="line">STAT accepting_conns 1   //服务器是否达到过最大连接（0/1）</div><div class="line">STAT listen_disabled_num 0   //失效的监听数</div><div class="line">STAT threads 4   //当前线程数</div><div class="line">STAT conn_yields 14  //连接操作主动放弃数目</div><div class="line">STAT hash_power_level 16   </div><div class="line">STAT hash_bytes 524288</div><div class="line">STAT hash_is_expanding 0</div><div class="line">STAT expired_unfetched 30705763</div><div class="line">STAT evicted_unfetched 0</div><div class="line">STAT bytes 61380700  //当前存储占用的字节数</div><div class="line">STAT curr_items 28786    //当前存储的数据总数</div><div class="line">STAT total_items 75441133    //启动以来存储的数据总数</div><div class="line">STAT evictions 0     //为获取空闲内存而删除的items数（分配给memcache的空间用满后需要删除旧的items来得到空间分配给新的items)</div><div class="line">STAT reclaimed 39957976  //已过期的数据条目来存储新数据的数目</div><div class="line">END</div></pre></td></tr></table></figure></p>
+<p>stats命令有几个二级子项，说明如下表所示：   </p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>含义说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>stats slabs</td>
+<td>显示各个slab的信息，包括chunk的大小、数目、使用情况等</td>
+</tr>
+<tr>
+<td>stats items</td>
+<td>显示各个slab中item的数目和最老item的年龄（最后一次访问距离现在的秒数）</td>
+</tr>
+<tr>
+<td>stats detail [on\</td>
+<td>off\</td>
+<td>dump]</td>
+<td>设置或者显示详细操作记录；<br>参数为on，打开详细操作记录；<br>参数为off，关闭详细操作记录；<br>参数为dump，显示详细操作记录（每一个键值get、set、hit、del的次数）</td>
+</tr>
+<tr>
+<td>stats malloc</td>
+<td>打印内存分配信息</td>
+</tr>
+<tr>
+<td>stats sizes</td>
+<td>打印缓存使用信息</td>
+</tr>
+<tr>
+<td>stats reset</td>
+<td>重置统计信息</td>
+</tr>
+</tbody>
+</table>
+<h4 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h4><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>用法格式</th>
+<th>含义说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>get</td>
+<td>get <key></key></td>
+<td>用于获取缓存的数据，键为key。</td>
+</tr>
+<tr>
+<td>gets</td>
+<td>gets <key></key></td>
+<td>用于获取缓存的数据，键为一组key。</td>
+</tr>
+<tr>
+<td>set</td>
+<td>set <key> <flags> <exptime> <bytes> [noreply] <value></value></bytes></exptime></flags></key></td>
+<td>向缓存中存储数据，不管key对应的值存在与否，都设置key对应的值</td>
+</tr>
+<tr>
+<td>touch</td>
+<td>touch <key> <exptime> [noreply]</exptime></key></td>
+<td>更新缓存中key对应的值的过期时间。</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>delete <key> [<time>] [noreply]</time></key></td>
+<td>给定键key，删除缓存中key对应的数据。</td>
+</tr>
+<tr>
+<td>add</td>
+<td>add <key> <flags> <exptime> <bytes> [noreply] <value></value></bytes></exptime></flags></key></td>
+<td>向缓存中存储数据，只有key对应的值不存在时，才会设置key对应的值。</td>
+</tr>
+<tr>
+<td>replace</td>
+<td>replace <key> <flags> <exptime> <bytes> [noreply] <value></value></bytes></exptime></flags></key></td>
+<td>覆盖一个已经存在Key及其对应的Value，替换一定要保证替换后的值的长度原始长度相同，否则replace失败。</td>
+</tr>
+<tr>
+<td>append</td>
+<td>append <key> <flags> <exptime> <bytes> [noreply] <value></value></bytes></exptime></flags></key></td>
+<td>在一个已经存在的数据值（value）上追加，是在数据值的后面追加。</td>
+</tr>
+<tr>
+<td>prepend</td>
+<td>prepend <key> <flags> <exptime> <bytes> [noreply] <value></value></bytes></exptime></flags></key></td>
+<td>在一个已经存在的数据值（value）上追加，是在数据值的前面追加。</td>
+</tr>
+<tr>
+<td>incr</td>
+<td>incr <key> <value> [noreply]</value></key></td>
+<td>计数命令，可以在原来已经存在的数字上进行累加求和，计算并存储新的数值。</td>
+</tr>
+<tr>
+<td>decr</td>
+<td>decr <key> <value> [noreply]</value></key></td>
+<td>计数命令，可以在原来已经存在的数字上进行减法计算，计算并存储新的数值。</td>
+</tr>
+<tr>
+<td>flush_all</td>
+<td>flush_all [<time>] [noreply]</time></td>
+<td>使缓存中的数据项失效，可选参数是在多少秒后失效。</td>
+</tr>
+<tr>
+<td>version</td>
+<td>version</td>
+<td>返回Memcached服务器的版本信息。</td>
+</tr>
+<tr>
+<td>quit</td>
+<td>quit</td>
+<td>退出telnet终端。</td>
+</tr>
+</tbody>
+</table>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/服务器相关/Memcached/memcached命令/" data-id="cj6cy7nj500ayktbl93icpwxq" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-服务器相关/Memcached/Memcached线程模型" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/12/服务器相关/Memcached/Memcached线程模型/">Memcached线程模型</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/12/服务器相关/Memcached/Memcached线程模型/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/Memcached/">Memcached</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="模型分析"><a href="#模型分析" class="headerlink" title="模型分析"></a>模型分析</h3><p>memcached到底是如何处理我们的网络连接的？<br><strong>非阻塞的IO复用模型</strong></p>
+<p>memcached通过epoll（使用libevent，下面具体再讲）实现异步的服务器，但仍然使用多线程，主要有两种线程，分别是“主线程”和“worker线程”，一个主线程，多个worker线程。  </p>
+<p><strong>主线程负责监听网络连接，并且accept连接。当监听到连接时，accept后，连接成功，把相应的client fd丢给其中一个worker线程。<br>worker线程接收主线程丢过来的client fd，加入到自己的epoll监听队列，负责处理该连接的读写事件。</strong></p>
+<p>所以说，主线程和worker线程都各自有自己的监听队列，主线程监听的仅是listen fd，而worker线程监听的则是主线程accept成功后丢过来的client fd。</p>
+<p>memcached使用libevent实现事件监听。在这简单介绍一下libevent的使用，一般有以下几步：    </p>
+<ol>
+<li>event_base = event_init(); 初始化事件基地。</li>
+<li>event_set(event, fd, event_flags, event_handler, args); 创建事件event，fd为要监听的fd，event_flags为监听的事件类型，event_handler为事件发生后的处理函数，args为调用 处理函数时传递的参数。</li>
+<li>event_base_set(event_base, event); 为创建的事件event指定事件基地。</li>
+<li>event_add(event, timeval); 把事件加入到事件基地进行监听</li>
+<li>event_base_loop(event_base, flag); 进入事件循环，即epoll_wait<br>memcached主线程和worker线程各有自己的监听队列，故有主线程和每个worker线程都有一个独立的event_base，事件基地。</li>
 </ol>
-<h3 id="一般头字段"><a href="#一般头字段" class="headerlink" title="一般头字段"></a>一般头字段</h3><p>一般头字段可用于请求消息和响应消息。<br>| 名称                | 示例值                                |<br>| —————– | ———————————- |<br>| Cache-Control     | “max-age=10”                       |<br>| Connection        | “close”                            |<br>| Date              | “Tue, 11 Jul 2000 18:23:51 GMT”    |<br>| Pragma            | “no-cache”                         |<br>| Trailer           | “Date”                             |<br>| Transfer-Encoding | “chunked”                          |<br>| Upgrade           | “SHTTP/1.3”                        |<br>| Via               | “HTTP/1.1 Proxy1, HTTP/1.1 Proxy2” |<br>| Warning           | “112 Disconnected Operation”       |</p>
-<h3 id="请求头字段"><a href="#请求头字段" class="headerlink" title="请求头字段"></a>请求头字段</h3><p>请求头字段仅用于请求消息。<br>| 名称                  | 示例值                                      |<br>| ——————- | —————————————- |<br>| Accept              | “text/html, image/*”                     |<br>| Accept-Charset      | “iso8859-5”                              |<br>| Accept-Encoding     | “gzip, compress”                         |<br>| Accept-Language     | “en, fr”                                 |<br>| Authorization       | [credentials]                            |<br>| Content-Encoding    | “gzip”                                   |<br>| Expect              | “100-continue”                           |<br>| From                | “user@microsoft.com”                     |<br>| Host                | “www.microsoft.com”                      |<br>| If-Match            | “entity_tag001”                          |<br>| If-Modified-Since   | “Tue, 11 Jul 2000 18:23:51 GMT”          |<br>| If-None-Match       | “entity_tag001”                          |<br>| If-Range            | “entity_tag001” or “Tue, 11 Jul 2000 18:23:51 GMT” |<br>| If-Unmodified-Since | “Tue, 11 Jul 2000 18:23:51 GMT”          |<br>| Max-Forwards        | “3”                                      |<br>| Proxy-Authorization | [credentials]                            |<br>| Range               | “bytes=100-599”                          |<br>| Referer             | “<a href="http://www.microsoft.com/resources.asp" target="_blank" rel="external">http://www.microsoft.com/resources.asp</a>“ |<br>| TE                  | “trailers”                               |<br>| User-Agent          | “Mozilla/4.0 (compatible; MSIE 5.5; Windows NT 5.0)” |</p>
-<h3 id="响应头字段"><a href="#响应头字段" class="headerlink" title="响应头字段"></a>响应头字段</h3><p>响应头字段仅用于响应消息。<br>| 名称                 | 示例值                                     |<br>| —————— | ————————————— |<br>| Accept-Ranges      | “none”                                  |<br>| Age                | “2147483648(2^31)”                      |<br>| ETag               | “b38b9-17dd-367c5dcd”                   |<br>| Last-Modified      | “Tue, 11 Jul 2000 18:23:51 GMT”         |<br>| Location           | “<a href="http://localhost/redirecttarget.asp" target="_blank" rel="external">http://localhost/redirecttarget.asp</a>“   |<br>| Proxy-Authenticate | [challenge]                             |<br>| Retry-After        | “Tue, 11 Jul 2000 18:23:51 GMT” or “60” |<br>| Server             | “Microsoft-IIS/5.0”                     |<br>| Vary               | “Date”                                  |<br>| WWW-Authenticate   | [challenge]                             |</p>
-<h3 id="实体头字段"><a href="#实体头字段" class="headerlink" title="实体头字段"></a>实体头字段</h3><p>实体头字段可以用于请求消息或响应消息。实体头字段中包含消息实体正文的有关信息，如使用的编码格式。<br>| 名称               | 示例值                             |<br>| —————- | ——————————- |<br>| Allow            | “GET, HEAD”                     |<br>| Content-Encoding | “gzip”                          |<br>| Content-Language | “en”                            |<br>| Content-Length   | “8445”                          |<br>| Content-Location | “<a href="http://localhost/page.asp" target="_blank" rel="external">http://localhost/page.asp</a>“     |<br>| Content-MD5      | [md5-digest]                    |<br>| Content-Range    | “bytes 2543-4532/7898”          |<br>| Content-Type     | “text/html”                     |<br>| Expires          | “Tue, 11 Jul 2000 18:23:51 GMT” |<br>| Last-Modified    | “Tue, 11 Jul 2000 18:23:51 GMT” |</p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/http 消息头/" data-id="cj6arwhbg001aymblq53v29gb" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-网络/TCP和UDP的区别" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/网络/TCP和UDP的区别/">TCP和UDP的区别</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/08/02/网络/TCP和UDP的区别/" class="article-date"><time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/网络/">网络</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="TCP与UDP区别总结："><a href="#TCP与UDP区别总结：" class="headerlink" title="TCP与UDP区别总结："></a>TCP与UDP区别总结：</h3><ol>
-<li>TCP面向连接（如打电话要先拨号建立连接）;UDP是无连接的，即发送数据之前不需要建立连接</li>
-<li>TCP提供可靠的服务。也就是说，通过TCP连接传送的数据，无差错，不丢失，不重复，且按序到达;UDP尽最大努力交付，即不保证可靠交付</li>
-<li>TCP面向字节流，实际上是TCP把数据看成一连串无结构的字节流;UDP是面向报文的<br>UDP没有拥塞控制，因此网络出现拥塞不会使源主机的发送速率降低（对实时应用很有用，如IP电话，实时视频会议等）</li>
-<li>每一条TCP连接只能是点到点的;UDP支持一对一，一对多，多对一和多对多的交互通信</li>
-<li>TCP首部开销20字节;UDP的首部开销小，只有8个字节</li>
-<li>TCP的逻辑通信信道是全双工的可靠信道，UDP则是不可靠信道</li>
+<p>了解libevent的简单使用后，我们回到memcache线程模型上，先看看下面的图片了解它线程模型的构建逻辑：<br><img src="http://note.youdao.com/yws/public/resource/8129468ec7b125aad250ebe1448c3cae/xmlnote/7662618307C94D5093771F6409CC5700/7893" alt="image">    </p>
+<ol>
+<li>主线程首先为自己分配一个event_base，用于监听连接，即listen fd。</li>
+<li>主线程创建n个worker线程，同时每个worker线程也分配了独立的event_base。</li>
+<li>每个worker线程通过管道方式与其它线程（主要是主线程）进行通信，调用pipe函数，产生两个fd，一个是管道写入fd，一个是管道读取fd。 worker线程把管道读取fd加到自己的event_base，监听管道读取fd的可读事件，即当主线程往某个线程的管道写入fd写数据时，触发事件。</li>
+<li>主线程监听到有一个连接到达时，accept连接，产生一个client fd，然后选择一个worker线程，把这个client fd包装成一个CQ_ITEM对象（这个对象实质是起主线程与worker线程之间通信媒介的作用，主线程把client fd丢给worker线程往往不止“client fd”这一个参数，还有别的参数，所以这个CQ_ITEM相当于一个“参数对象”，把参数都包装在里面），然后压到worker线程的CQ_ITEM队列 里面去（每个worker线程有一个CQ_ITEM队列），<br>同时主线程往选中的worker线程的管道写入fd中写入一个字符“c”（触发worker线程）。</li>
+<li>主线程往选中的worker线程的管道写入fd中写入一个字符“c”，则worker线程监听到自己的管道读取fd可读，触发事件处理，而此是的事件处理 是：从自己的CQ_ITEM队列中取出CQ_ITEM对象（相当于收信，看看主线程给了自己什么东西），从4）可知，CQ_ITEM对象中包含 client fd，worker线程把此client fd加入到自己的event_base，从此负责该连接的读写工作。</li>
 </ol>
 
       
@@ -192,7 +442,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/TCP和UDP的区别/" data-id="cj6arwhb80013ymblwsjv2xz9" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/服务器相关/Memcached/Memcached线程模型/" data-id="cj6cy7nj400avktbl6dpdexn1" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -206,13 +456,13 @@
 
 
   
-    <article id="post-数据库相关/mysql/分页时计算总页数的方法" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-服务器相关/Memcached/Memcached内存管理和回收机制" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/">分页时计算总页数的方法</a>
+      <a class="article-title" href="/2017/08/12/服务器相关/Memcached/Memcached内存管理和回收机制/">Memcached内存管理和回收机制</a>
     </h1>
   
 
@@ -221,13 +471,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/08/12/服务器相关/Memcached/Memcached内存管理和回收机制/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a> / <a class="article-category-link" href="/categories/服务器相关/Memcached/">Memcached</a>
   </div>
 
 
@@ -236,187 +486,69 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>我们一般分页是这样来计算页码的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">int row=200; //记录总数     </div><div class="line">int page=5;//每页数量   </div><div class="line">int count = (row%5==0?row/page:row/page+1);</div></pre></td></tr></table></figure>
-<p>上面这种是用的最多的!</p>
-<p>那么下面我们来一种最简单的，不用任何判断！<br>看代码：    </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">int row=21;</div><div class="line">int pageCount=5;</div><div class="line">int sum=(row-1)/pageCount+1;//这样就计算好了页码数量，逢1进1</div><div class="line">System.out.println(sum);</div></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" data-id="cj6arwhhl00a6ymblrxltsdv4" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-数据库相关/mysql/mysql存储引擎" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/mysql存储引擎/">mysql存储引擎</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/mysql存储引擎/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>MySQL数 据库引擎取决于MySQL在安装的时候是如何被编译的。要添加一个新的引擎，就必须重新编译MYSQL。在缺省情况下，MYSQL支持三个引擎：ISAM、MYISAM和HEAP。另外两种类型INNODB和BERKLEY（BDB），也常常可以使用。如果技术高超，还可以使用MySQL++ API自己做一个引擎。<br>下面介绍几种数据库引擎： </p>
+        <h4 id="Memcached介绍"><a href="#Memcached介绍" class="headerlink" title="Memcached介绍"></a>Memcached介绍</h4><p><strong>memcached是高性能的分布式内存缓存服务器</strong>。一般的使用目的是，通过缓存数据库查询结果，减少数据库访问次数，以提高动态Web应用的速度、提高可扩展性。<br><img src="http://note.youdao.com/yws/public/resource/326d406a081f50818978ca890757f819/WEBRESOURCE1e683dd43b5502e9fc64afff004ffb5f" alt="image"></p>
+<h4 id="基本概念：slab，page，chunk"><a href="#基本概念：slab，page，chunk" class="headerlink" title="基本概念：slab，page，chunk"></a>基本概念：slab，page，chunk</h4><ul>
+<li><strong>slab</strong>，是一个逻辑概念。它是在启动memcached实例的时候预处理好的，每个slab对应一个chunks 数组，也就是说不同slab有不同的chunks 数组。具体分配多少个slab由参数 -f （增长因子）和 -n （chunk最小尺寸）决定的。</li>
+<li><strong>page</strong>，可以理解为内存页。大小固定为1m。slab会在存储请求时向系统申请page，并将page按chunk size进行切割。  </li>
+<li><strong>chunk</strong>，是保存用户数据的最小单位。用户数据item（包括key，value）最终会保存到chunk内。chunk规格是固定的，如果用户数据放进来后还有剩余则这剩余部分不能做其他用途。</li>
+</ul>
+<h4 id="Memcached特征"><a href="#Memcached特征" class="headerlink" title="Memcached特征"></a>Memcached特征</h4><p>memcached作为高速运行的分布式缓存服务器，具有以下的特点：   </p>
+<ol>
+<li><strong>协议简单</strong>：memcached的服务器客户端通信并不使用复杂的XML等格式，而使用简单的基于文本行的协议。因此，通过telnet也能在memcached上保存数据、取得数据。</li>
+<li><strong>基于libevent的事件处理</strong>：libevent是个程序库，它将Linux的epoll、BSD类操作系统的kqueue等事件处理功能封装成统一的接口。即使对服务器的连接数增加，也能发挥O(1)的性能。memcached使用这个libevent库，因此能在Linux、BSD、Solaris等操作系统上发挥其高性能。</li>
+<li><strong>内置内存存储方式</strong>：为了提高性能，memcached中保存的数据都存储在memcached内置的内存存储空间中。由于数据仅存在于内存中，因此重启memcached、重启操作系统会导致全部数据消失。另外，内容容量达到指定值之后，就基于LRU(Least Recently Used)算法自动删除不使用的缓存。memcached本身是为缓存而设计的服务器，因此并没有过多考虑数据的永久性问题。</li>
+<li><strong>memcached不互相通信的分布式</strong>：memcached尽管是“分布式”缓存服务器，但服务器端并没有分布式功能。各个memcached不会互相通信以共享信息。那么，分布式是完全取决于客户端的实现。memcached之间没有相互通信， 因此不会增加 memcached的负载；没有多播协议，不会网络通信量爆炸（implode）</li>
+</ol>
+<h4 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h4><p>memcahed实例启动，根据 -f 和 -n 进行预分配slab。以 -n 为最小值开始，以 -f 为比值生成等比数列，直到1m为止（每个slab的chunk size都要按8的倍数进行补全，比如：如果按比值算是556的话，会再加4到560成为8的整倍数）。然后每个slab分配一个page。当用户发来存储请求时（key,value），memcached会计算key+value的大小，看看属于哪个slab。确定slab后看里面的是否有空闲chunk放key+value，如果不够就再向系统申请一个page（如果此时已经达到 -m 参数设置的内存使用上限，则看是否设置了 -M 。如果设置了 -M 则返回错误提示，否则按LRU算法删除数据）。申请后将该page按本slab的chunk size 进行切割，然后分配一个来存放用户数据。</p>
+<h4 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h4><ol>
+<li>chunk是在page里面划分的，而page固定为1m，所以chunk最大不能超过1m。</li>
+<li>chunk实际占用内存要加48B，因为chunk数据结构本身需要占用48B。</li>
+<li>如果用户数据大于1m，则memcached会将其切割，放到多个chunk内。</li>
+<li>已分配出去的page不能回收。</li>
+</ol>
+<h4 id="优化建议"><a href="#优化建议" class="headerlink" title="优化建议"></a>优化建议</h4><ol>
+<li>-n 参数的设置，注意将此参数设置为1024可以整除的数（还要考虑48B的差值），否则余下来的部分就浪费了。</li>
+<li>不要存储超过1m的数据。因为要拆成多个chunk，计算和时间成本都成倍增加。</li>
+<li>善用stats命令查看memcached状态。</li>
+<li>消灭eviction（被删除的数据）。造成eviction是因为内存不够，有三个思路：一是在CPU有余力的情况下开启压缩（PHP扩展）；二是增加内存；三是调整 -f 参数，减少内存浪费。</li>
+<li>调整业务代码，提高命中率。</li>
+<li>缓存小数据。省带宽，省网络I/O时间，省内存。</li>
+<li>根据业务特点，为数据尺寸区间小的业务分配专用的memcached实例。这样可以调小 -f 参数，使数据集中存在少数几个slab上，内存浪费较少。</li>
+</ol>
+<h4 id="缓存机制"><a href="#缓存机制" class="headerlink" title="缓存机制"></a>缓存机制</h4><p>Slab Allocation机制：整理内存以便重复使用<br>目前memcached采用Slab Allocator的机制分配、管理内存。<br>Slab Allocator的基本原理是按照预先规定的大小，将分配的内存分割成特定长度的块，以完全解决内存碎片问题。<br>当memcached启动的时候，我们会在系统中给他分配一定大小的内存，假设这里是1个G，但是刚启动的时候memcached不会一下就将这1G的内存全部吃进去，它是按需索取，一点一点增加的。<br><img src="http://up.2cto.com/os/201103/20110304120438975.png" alt="image"></p>
+<ol>
+<li>如上图所示，Slab Allocation将分配的内存分割成各种尺寸的块（chunk，用于缓存记录的内存空间），并把尺寸相同的块分成组（chunk的集合，每个chunk的大小相同）。默认一个slab（chunks）的大小是1MB，叫1Page。</li>
+</ol>
+<p>首先，他会创建很多个slab，每个slab的大小应该是一个page，page默认是1M大小。<br>然后每个slab中会分出很多个chunk，chunk的大小是和growth factor（增长因子）参数相关的。<br>比如说，你的growth factor默认的是1.25，那么初始的chunk大小是88k，那下一个级别的就是88*1.25=112k。    </p>
+<p>slab就是相同大小的chunk的一个组。比如说，slab1中全是88k大小的chunk，slab2中就全是112k大小的chunk。这样当一个100k大小的数据进来，他会存放在chunk大小为112k的slab2中，选择一个可用的空闲chunk存贮起来。 </p>
+<ol>
+<li><p>slab allocator有重复使用已分配的内存的目的。也就是说，<strong>分配到的内存不会释放，而是重复利用</strong>。</p>
+</li>
+<li><p>memcached根据收到的数据的大小，选择最适合数据大小的slab。 memcached中保存着slab内空闲chunk的列表，根据该列表选择chunk， 然后将数据缓存于其中。如当来了100bytes数据，会选择最合适的112bytes的chunk（假如slab classes中chunk的大小包含有88bytes、112bytes、144bytes……）</p>
+</li>
+<li><p>Slab Allocator解决了当初的内存碎片问题，但由于分配的是特定长度的内存，因此无法有效利用分配的内存。例如，将100字节的数据缓存到128字节的chunk中，剩余的28字节就浪费了。</p>
+</li>
+</ol>
+<h4 id="内存回收机制"><a href="#内存回收机制" class="headerlink" title="内存回收机制"></a>内存回收机制</h4><p>memcached的内存回收机制不是说你设置的key到了生命周期就自动从内存中清除的，这个时候必须有一个新的对象入驻请求这个大小的chunk或者这个过期的对象被get的时候才会清除。那当所有给memcache的内存都被占用了，这个时候，memcache有两个设置，要么报错，要么，就是用LRU方法，把last recently used的数据清除出去，也就是删除近段时间最少使用的同规格chunk。   </p>
+<p>这个时候就会引发应外一个问题，就是当你chunk大小设置不合理的时候，比如slab20 chunk大小非常大，一开始占用了很多内存，但是之后不论是否过期，不被再次利用到的时候就一直处于内存中，这样，当比较小的slab1中的chunk满了，也没有内存新建slab并分割和slab1同样规格的chunk的时候，memcached就要启动LRU，来清理这个slab下的数据。那这种情况就会造成在内存的极大程度浪费和cache命中率下降，是某些关键性的数据总是在内存中进进出出，得不到持久的保存。<br>这个时候我们可以调整factor参数，让chunk的大小达到我们的需要，这个需要根据业务来做。  </p>
+<p>那slab数量，growth factor大小，LRU频率以及空间浪费情况可以估计出来如下结果：<br>growth factor↑ slab数量 ↓ LRU频率↑ 空间浪费↑<br>growth factor↓ slab数量 ↑ LRU频率↓ 空间浪费↓    </p>
+<p>所以我们在使用memcached的时候，需要根据自己的业务，一点一点调整出来相对合适的growth factor,在空间和时间上取得一个折中的点。</p>
+<h4 id="Memcached的分布式"><a href="#Memcached的分布式" class="headerlink" title="Memcached的分布式"></a>Memcached的分布式</h4><p>memcached但服务器端并没有“分布式”功能。分布式是完全由客户端程序库实现的。这种分布式是memcached的最大特点</p>
+<h5 id="memcached如何实现冗余机制"><a href="#memcached如何实现冗余机制" class="headerlink" title="memcached如何实现冗余机制"></a>memcached如何实现冗余机制</h5><p>不实现！我们对这个问题感到很惊讶。Memcached应该是应用的缓存层。它的设计本身就不带有任何冗余机制。如果一个memcached节点 失去了所 有数据，您应该可以从数据源（比如数据库）再次获取到数据。您应该特别注意，您的应用应该可以容忍节点的失效。不要写一些糟糕的查询代码，寄希望于 memcached来保证一切！如果您担心节点失效会大大加重数据库的负担，那么您可以采取一些办法。比如您可以增加更多的节点（来减少丢失一个节点的影 响），热备节点（在其他节点down了的时候接管IP），等等。  </p>
+<h4 id="memcached如何处理容错的"><a href="#memcached如何处理容错的" class="headerlink" title="memcached如何处理容错的"></a>memcached如何处理容错的</h4><p>不处理！在memcached节点失效的情况下，集群没有必要做任何容错处理。如果发生了节点失效，应对的措施完全取决于用户。节点失效时，下面列出几种方案供您选择：   </p>
 <ul>
-<li><p>ISAM：ISAM是一个定义明确且历经时间考验的数据表格管理方法，它在设计之时就考虑到 数据库被查询的次数要远大于更新的次数。因此，I<strong>SAM执行读取操作的速度很快，而且不占用大量的内存和存储资源。ISAM的两个主要不足之处在于，它不 支持事务处理，也不能够容错</strong>：如果你的硬盘崩溃了，那么数据文件就无法恢复了。如果你正在把ISAM用在关键任务应用程序里，那就必须经常备份你所有的实 时数据，通过其复制特性，MYSQL能够支持这样的备份应用程序。</p>
-</li>
-<li><p>MyISAM：MyISAM是MySQL的ISAM扩展格式和<strong>默认的数据库引擎（Mysql5.5.5之前）</strong>。除了提供ISAM里所没有的索引和字段管理的大量功能，MyISAM还使用一种表格锁定的机制，来优化多个并发的读写操作，其代价是你需要经常运行OPTIMIZE TABLE命令，来恢复被更新机制所浪费的空间。MyISAM还有一些有用的扩展，例如用来修复数据库文件的MyISAMCHK工具和用来恢复浪费空间的 MyISAMPACK工具。<strong>MYISAM强调了快速读取操作</strong>，这可能就是为什么MySQL受到了WEB开发如此青睐的主要原因：在WEB开发中你所进行的大量数据操作都是读取操作。所以，<strong>大多数虚拟主机提供商和INTERNET平台提供商只允许使用MYISAM格式。MyISAM格式的一个重要缺陷就是不能在表损坏后恢复数据。</strong></p>
-</li>
-<li><p>HEAP：<strong>HEAP允许只驻留在内存里的临时表格</strong>。驻留在内存里让HEAP要比ISAM和MYISAM都快，但是它所管理的数据是不稳定的，而且如果在关机之前没有进行保存，那么所有的数据都会丢失。在数据行被删除的时候，HEAP也不会浪费大量的空间。HEAP表格在你需要使用SELECT表达式来选择和操控数据的时候非常有用。要记住，在用完表格之后就删除表格。</p>
-</li>
-<li><p>InnoDB：InnoDB数据库引擎都是造就MySQL灵活性的技术的直接产品，这项技术就是MYSQL++ API。在使用MYSQL的时候，你所面对的每一个挑战几乎都源于ISAM和MyISAM数据库引擎不支持事务处理（transaction process）也不支持外键。尽管要比ISAM和 MyISAM引擎慢很多，但是<strong>InnoDB包括了对事务处理和外键的支持</strong>，这两点都是前两个引擎所没有的。如前所述，如果你的设计需要这些特性中的一者 或者两者，那你就要被迫使用后两个引擎中的一个了。 </p>
-</li>
+<li>忽略它！ 在失效节点被恢复或替换之前，还有很多其他节点可以应对节点失效带来的影响。 </li>
+<li>把失效的节点从节点列表中移除。做这个操作千万要小心！在默认情况下（余数式哈希算法），客户端添加或移除节点，会导致所有的缓存数据不可用！因为哈希参照的节点列表变化了，大部分key会因为哈希值的改变而被映射到（与原来）不同的节点上。 </li>
+<li>启动热备节点，接管失效节点所占用的IP。这样可以防止哈希紊乱（hashing chaos）。 </li>
+<li>如果希望添加和移除节点，而不影响原先的哈希结果，可以使用一致性哈希算法（consistent hashing）。您可以百度一下一致性哈希算法。支持一致性哈希的客户端已经很成熟，而且被广泛使用。去尝试一下吧！ </li>
+<li>两次哈希（reshing）。当客户端存取数据时，如果发现一个节点down了，就再做一次哈希（哈希算法与前一次不同），重新选择另一个节点（需要注意 的时，客户端并没有把down的节点从节点列表中移除，下次还是有可能先哈希到它）。如果某个节点时好时坏，两次哈希的方法就有风险了，好的节点和坏的节 点上都可能存在脏数据（stale data）。</li>
 </ul>
-<h3 id="MySQL-官方对InnoDB是这样解释的"><a href="#MySQL-官方对InnoDB是这样解释的" class="headerlink" title="MySQL 官方对InnoDB是这样解释的"></a>MySQL 官方对InnoDB是这样解释的</h3><ul>
-<li><p>InnoDB给MySQL提供了具有提交、回滚和崩溃恢复能力的事务安全（ACID兼容）存储引擎。InnoDB锁定在行级并且也在SELECT语句提供一个Oracle风格一致的非锁定读，这些特色增加了多用户部署和性能。没有在InnoDB中扩大锁定的需要，因为在InnoDB中行级锁定适合非常小的空间。InnoDB也支持FOREIGN KEY强制。在SQL查询中，你可以自由地将InnoDB类型的表与其它MySQL的表的类型混合起来，甚至在同一个查询中也可以混合。</p>
-</li>
-<li><p>InnoDB是为处理巨大数据量时的最大性能设计，它的CPU效率可能是任何其它基于磁盘的关系数据库引擎所不能匹敌的。</p>
-</li>
-<li><p>InnoDB存储引擎被完全与MySQL服务器整合，InnoDB存储引擎为在主内存中缓存数据和索引而维持它自己的缓冲池。InnoDB存储它的表＆索引在一个表空间中，表空间可以包含数个文件（或原始磁盘分区）。这与MyISAM表不同，比如在MyISAM表中每个表被存在分离的文件中。InnoDB 表可以是任何尺寸，即使在文件尺寸被限制为2GB的操作系统上。</p>
-</li>
-<li><p>InnoDB默认地被包含在MySQL二进制分发中。Windows Essentials installer使InnoDB成为Windows上MySQL的默认表。</p>
-</li>
-<li><p>InnoDB被用来在众多需要高性能的大型数据库站点上产生。著名的Internet新闻站点Slashdot.org运行在InnoDB上。 Mytrix, Inc.在InnoDB上存储超过1TB的数据，还有一些其它站点在InnoDB上处理平均每秒800次插入/更新的</p>
-</li>
+<h4 id="memcached的限制"><a href="#memcached的限制" class="headerlink" title="memcached的限制"></a>memcached的限制</h4><ul>
+<li><strong>key 的最大长度是250个字符</strong>。需要注意的是，250是memcached服务器端内部的限制，如果您使用的客户端支持”key的前缀”或类似特性，那么 key（前缀+原始key）的最大长度是可以超过250个字符的。我们推荐使用使用较短的key，因为可以节省内存和带宽。</li>
+<li><strong>过期时间最大可以达到30天</strong>。memcached把传入的过期时间（时间段）解释成时间点后，一旦到了这个时间点，memcached就把item置为失效状态。这是一个简单但obscure的机制。</li>
+<li><strong>memcached最大能存储1MB的单个item</strong>。如果你的数据大于1MB，可以考虑在客户端压缩或拆分到多个key中</li>
 </ul>
-<p>一般来说，MyISAM适合：  </p>
-<ol>
-<li>做很多count 的计算；</li>
-<li>插入不频繁，查询非常频繁；</li>
-<li>没有事务。</li>
-</ol>
-<p>InnoDB适合：    </p>
-<ol>
-<li>可靠性要求比较高，或者要求事务；</li>
-<li>表更新和查询都相当的频繁，并且表锁定的机会比较大的情况。</li>
-</ol>
-<p>一般情况下，MySQL会默认提供多种存储引擎，可以通过下面的查看:</p>
-<ol>
-<li>看你的MySQL现在已提供什么存储引擎: mysql&gt; show engines;</li>
-<li>看你的MySQL当前默认的存储引擎: mysql&gt; show variables like ‘%storage_engine%’;</li>
-<li>你要看某个表用了什么引擎(在显示结果里参数engine后面的就表示该表当前用的存储引擎): mysql&gt; show create table 表名;</li>
-</ol>
-<p> 所有的性能测试在：Micrisoft window xp sp2 ， Intel(R) Pentinum(R) M processor 1.6oGHz 1G 内存的电脑上测试。<br> 测试方法：连续提交10个query， 表记录总数：38万 ， 时间单位 s</p>
-<table>
-<thead>
-<tr>
-<th>引擎类型</th>
-<th>MyISAM</th>
-<th>InnoDB</th>
-<th>性能相差</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>count</td>
-<td>0.0008357</td>
-<td>3.0163</td>
-<td>3609</td>
-</tr>
-<tr>
-<td>查询主键</td>
-<td>0.005708</td>
-<td>0.1574</td>
-<td>27.57</td>
-</tr>
-<tr>
-<td>查询非主键</td>
-<td>24.01</td>
-<td>80.37</td>
-<td>3.348</td>
-</tr>
-<tr>
-<td>更新主键</td>
-<td>0.008124</td>
-<td>0.8183</td>
-<td>100.7</td>
-</tr>
-<tr>
-<td>更新非主键</td>
-<td>0.004141</td>
-<td>0.02625</td>
-<td>6.338</td>
-</tr>
-<tr>
-<td>插入</td>
-<td>0.004188</td>
-<td>0.3694</td>
-<td>88.21</td>
-</tr>
-</tbody>
-</table>
-<ol>
-<li>加了索引以后，对于MyISAM查询可以加快：4 206.09733倍，对InnoDB查询加快510.72921倍，同时对MyISAM更新速度减慢为原来的1/2，InnoDB的更新速度减慢为原来的1/30。要看情况决定是否要加索引，比如不查询的log表，不要做任何的索引。</li>
-<li>如果你的数据量是百万级别的，并且没有任何的事务处理，那么用MyISAM是性能最好的选择。</li>
-<li>InnoDB表的大小更加的大，用MyISAM可省很多的硬盘空间。 </li>
-</ol>
-<p>在我们测试的这个38w的表中，表占用空间的情况如下：</p>
-<table>
-<thead>
-<tr>
-<th>引擎类型</th>
-<th>MyISAM</th>
-<th>InnoDB</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>数据</td>
-<td>53,924 KB</td>
-<td>58,976 KB</td>
-</tr>
-<tr>
-<td>索引</td>
-<td>13,640 KB</td>
-<td>21,072 KB</td>
-</tr>
-<tr>
-<td>占用总空间</td>
-<td>67,564 KB</td>
-<td>80,048 KB</td>
-</tr>
-</tbody>
-</table>
-<p>另外一个176W万记录的表， 表占用空间的情况如下：<br>| 引擎类型  | MyISAM     | InnoDB     |<br>| —– | ———- | ———- |<br>| 数据    | 56,166 KB  | 90,736 KB  |<br>| 索引    | 67,103 KB  | 88,848 KB  |<br>| 占用总空间 | 123,269 KB | 179,584 KB |</p>
+<h5 id="Memcached并发控制"><a href="#Memcached并发控制" class="headerlink" title="Memcached并发控制"></a>Memcached并发控制</h5><p>gets，cas，add等方法都是线性安全的<br>get，set，replace等方法都是非线性安全的</p>
 
       
     </div>
@@ -427,7 +559,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql存储引擎/" data-id="cj6arwhhd009rymbl0fqzb0c3" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/服务器相关/Memcached/Memcached内存管理和回收机制/" data-id="cj6cy7nj300atktblas2357w1" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -441,13 +573,13 @@
 
 
   
-    <article id="post-数据库相关/mysql/not null 和 default" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/基础/JVM的堆和栈" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/not null 和 default/">not null 和 default</a>
+      <a class="article-title" href="/2017/08/12/Java/基础/JVM的堆和栈/">JVM的堆和栈</a>
     </h1>
   
 
@@ -456,13 +588,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/not null 和 default/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/08/12/Java/基础/JVM的堆和栈/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
   </div>
 
 
@@ -471,13 +603,129 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="没有设置default"><a href="#没有设置default" class="headerlink" title="没有设置default"></a>没有设置default</h3><ul>
-<li><p>当插入数据时，没有操作某一字段，并且该字段为null且没有defualt值时，mysql会自动出入null值；</p>
-</li>
-<li><p>当该字段为not null且没有defualt值时，会报错</p>
-</li>
+        <h3 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h3><p>栈是java程序运行的关键，在java中，每一个线程都会有一个与之对应的线程栈。它是由许多栈帧（stack frame）或者说帧（frame）组成的，一个栈帧包含一个java方法调用的状态。当线程调用一个java方法时，虚拟机压入一个新的栈帧到该线程的java栈中，当该方法返回时，这个栈帧被从java栈中弹出并抛弃。总结起来就是，<strong>栈负责java程序运行过程中的进程和程序处理逻辑的控制</strong>。  </p>
+<p>栈帧由三部分组成：局部变量区，操作数栈和帧数据区。</p>
+<ol>
+<li>局部变量区，顾名思义，存储对应方法的参数和局部变量。</li>
+<li>操作数栈，相当于寄存器，存储虚拟机的程序指令。</li>
+<li>帧数据区，除了局部变量区和操作数栈中的数据外，java栈帧还需要一些数据来支持常量池解析，正常方法返回以及异常派发机制，这些信息都保存在帧数据区中。    </li>
+</ol>
+<p>由于栈的结构和功能设计导致它不适合动态增长，因此在java的虚拟机规范中，<strong>栈只能存储基本类型的数据和对堆中对象的引用</strong>。<strong>java栈上的数据都是此线程私有的，任何线程都不能访问另外一个线程的栈数据</strong>。  </p>
+<h3 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h3><p>堆是java程序运行时创建的实例和数组的存储空间。每一个java虚拟机实例只会存在一个堆空间，因此，<strong>所有线程都将共享这个堆</strong>。    </p>
+<p> 由堆的作用可以很容易的知道，它是一个随时都会有大量新数据产生，大量老数据过期的地方，因此对数据的管理和垃圾回收机制是影响堆性能很重要的指标。java虚拟机并没有强制规定怎么去实现一个堆，它只要求虚拟机必须以某种方式来管理自己的堆空间。因此，堆的构成和处理机制不能一概而论，不同的jvm可能会有各自独特的实现。  </p>
+<p>堆一般由两部分构成：年轻代，年老代。</p>
+<ol>
+<li>年轻代：作用是作为程序中所有刚生成的对象的存储空间，设计这一空间的目的是尽可能快的回收掉那些生命周期不长的对象，提高堆空间的利用率。年轻代的内部还有更细划分，涉及到垃圾回收机制的介绍，在后续笔记中会说明。</li>
+<li>年老代：用于存放那些生命周期较长，经历了数次垃圾回收后仍然健在的对象。存放于年老代的数据基本上都经过年轻代的过滤，比较稳定。</li>
+</ol>
+<h3 id="堆和栈的联系和区别"><a href="#堆和栈的联系和区别" class="headerlink" title="堆和栈的联系和区别"></a>堆和栈的联系和区别</h3><p>堆和栈是程序运行的关键，很有必要把他们的关系说清楚。<br><img src="http://note.youdao.com/yws/public/resource/5ae3ccd96f4823c07e89aa21f066d959/xmlnote/A54E95E4BFD74BCBA2EB0A5FA12C5BD1/7827" alt="image"><br><strong>栈是运行时的单位，而堆是存储的单位</strong>。    </p>
+<p>栈解决程序的运行问题，即程序如何执行，或者说如何处理数据；堆解决的是数据存储的问题，即数据怎么放、放在哪儿。    </p>
+<p>在Java中一个线程就会相应有一个线程栈与之对应，这点很容易理解，因为不同的线程执行逻辑有所不同，因此需要一个独立的线程栈。而堆则是所有线程共享的。栈因为是运行单位，因此里面存储的信息都是跟当前线程（或程序）相关信息的。包括局部变量、程序运行状态、方法返回值等等；而堆只负责存储对象信息。    </p>
+<h4 id="为什么要把堆和栈区分出来呢？栈中不是也可以存储数据吗？"><a href="#为什么要把堆和栈区分出来呢？栈中不是也可以存储数据吗？" class="headerlink" title="为什么要把堆和栈区分出来呢？栈中不是也可以存储数据吗？"></a>为什么要把堆和栈区分出来呢？栈中不是也可以存储数据吗？</h4><ol>
+<li>从软件设计的角度看，<strong>栈代表了处理逻辑</strong>，而<strong>堆代表了数据</strong>。这样分开，使得处理逻辑更为清晰。分而治之的思想。这种隔离、模块化的思想在软件设计的方方面面都有体现。</li>
+<li>堆与栈的分离，使得堆中的内容可以被多个栈共享（也可以理解为多个线程访问同一个对象）。这种共享的收益是很多的。一方面这种共享提供了一种有效的数据交互方式(如：共享内存)，另一方面，堆中的共享常量和缓存可以被所有栈访问，节省了空间。</li>
+<li>栈因为运行时的需要，比如保存系统运行的上下文，需要进行地址段的划分。由于栈只能向上增长，因此就会限制住栈存储内容的能力。而堆不同，堆中的对象是可以根据需要动态增长的，因此栈和堆的拆分，使得动态增长成为可能，相应栈中只需记录堆中的一个地址即可。</li>
+<li><strong>面向对象就是堆和栈的完美结合</strong>。其实，面向对象方式的程序与以前结构化的程序在执行上没有任何区别。但是，面向对象的引入，使得对待问题的思考方式发生了改变，而更接近于自然方式的思考。当我们把对象拆开，你会发现，对象的属性其实就是数据，存放在堆中；而对象的行为（方法），就是运行逻辑，放在栈中。我们在编写对象的时候，其实即编写了数据结构，也编写的处理数据的逻辑。不得不承认，面向对象的设计，确实很美。</li>
+</ol>
+<h4 id="在Java中，Main函数就是栈的起始点，也是程序的起始点。"><a href="#在Java中，Main函数就是栈的起始点，也是程序的起始点。" class="headerlink" title="在Java中，Main函数就是栈的起始点，也是程序的起始点。"></a>在Java中，Main函数就是栈的起始点，也是程序的起始点。</h4><p> 程序要运行总是有一个起点的。同C语言一样，java中的Main就是那个起点。无论什么java程序，找到main就找到了程序执行的入口：     </p>
+<h5 id="堆中存什么？栈中存什么？"><a href="#堆中存什么？栈中存什么？" class="headerlink" title="堆中存什么？栈中存什么？"></a>堆中存什么？栈中存什么？</h5><p> <strong>堆中存的是对象</strong>。<strong>栈中存的是基本数据类型和堆中对象的引用</strong>。一个对象的大小是不可估计的，或者说是可以动态变化的，但是在栈中，一个对象只对应了一个4btye的引用（堆栈分离的好处）  </p>
+<p> 为什么不把基本类型放堆中呢？因为其占用的空间一般是1~8个字节——需要空间比较少，而且因为是基本类型，所以不会出现动态增长的情况——长度固定，因此栈中存储就够了，如果把他存在堆中是没有什么意义的（还会浪费空间，后面说明）。可以这么说，基本类型和对象的引用都是存放在栈中，而且都是几个字节的一个数，因此在程序运行时，他们的处理方式是统一的。但是基本类型、对象引用和对象本身就有所区别了，因为一个是栈中的数据一个是堆中的数据。最常见的一个问题就是，Java中参数传递时的问题。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/JVM的堆和栈/" data-id="cj6cy7nff002zktbl2isha4zt" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/基础/JVM垃圾回收算法" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/12/Java/基础/JVM垃圾回收算法/">JVM垃圾回收算法</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/12/Java/基础/JVM垃圾回收算法/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="GC的类型"><a href="#GC的类型" class="headerlink" title="GC的类型"></a>GC的类型</h2><p>当每个代满了之后都会自动促发collection，各收集器触发的条件不一样，当然也可以通过一些参数进行强制设定。主要分为两种类型：</p>
+<ul>
+<li>Minor Collection：GC用较高的频率对young进行扫描和回收，采用复制算法。</li>
+<li>Major Collection：同时对Young和Old进行内存收集，也叫<strong>Full GC</strong>；因为成本关系对Old的检查回收频率要比Young低很多，采用标记清除/标记整理算法。可以通过调用代码System.gc()引发major collection，使用-XX:+DisableExplicitGC禁止它，或设为CMS并发-XX:+ExplicitGCInvokesConcurrent。</li>
 </ul>
-<h3 id="有设置default"><a href="#有设置default" class="headerlink" title="有设置default"></a>有设置default</h3><p>若有设置default值并且插入数据时没有操作该字段，不管该字段是否设置not null 还是null，mysql统一设置default的值</p>
+<p>更为具体的阐述如下：<br>由于年轻代进进出出的人多而频繁，所以年轻代的GC也就频繁一点，但涉及范围也就年轻代这点弹丸之地内的对象，其特点就是少量，多次，但快速，称之为Minor Collection。当年轻代的内存使用达到一定的阀值时，Minor Collection就被触发，Eden及某一Survior space（from space）之内存活的的对象被移到另一个空的Survior space（to space）中，然后from space和to space角色对调。当一个对象在两个survivor space之间移动过一定次数（达到预设的阀值）时，它就足够old了，够资格呆在年老代了。当然，如果survivor space比较小不足以容下所有live objects时，部分live objects也会直接晋升到年老代。 </p>
+<p>Survior spaces可以看作是Eden和年老代之间的缓冲，通过该缓冲可以检验一个对象生命周期是否足够的长，因为某些对象虽然逃过了一次Minor Collection，并不能说明其生命周期足够长，说不定在下一次Minor Collection之前就挂了。这样一定程度上确保了进入年老代的对象是货真价实的，减少了年老代空间使用的增长速度，也就降低年老代GC的频率。    </p>
+<p>当年老代或者永久代的内存使用达到一定阀值时，一次基于所有代的GC就触发了，其特定是涉及范围广（量大），耗费的时间相对较长（较慢），但是频率比较低（次数少），称之为Major Collection(Full Collection)。通常，首先使用针对年轻代的GC算法进行年轻代的GC，然后使用针对年老代的GC算法对年老代和永久代进行GC。    </p>
+<h2 id="基本GC收集算法"><a href="#基本GC收集算法" class="headerlink" title="基本GC收集算法"></a>基本GC收集算法</h2><p><strong>复制(copying)</strong>：将堆内分成两个相同空间，从根(ThreadLocal的对象，静态对象）开始访问每一个关联的活跃对象，将空间A的活跃对象全部复制到空间B，然后一次性回收整个空间A。</p>
+<p>因为只访问活跃对象，将所有活动对象复制走之后就清空整个空间，不用去访问死对象，所以遍历空间的成本较小，但需要巨大的复制成本和较多的内存。可参考如下的示例图：<br><img src="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/B30EF1FE809B4E2AABD3328DD2070A06/7829" alt="image"> </p>
+<p><strong>标记清除(mark-sweep)</strong>：收集器先从根开始访问所有活跃对象，标记为活跃对象。然后再遍历一次整个内存区域，把所有没有标记活跃的对象进行回收处理。该算法遍历整个空间的成本较大暂停时间随空间大小线性增大，而且整理后堆里的碎片很多。可参考如下的示例图：<br><img src="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/CCA572C93C2D41698291596531755BB2/7831" alt="image"> </p>
+<p><strong>标记整理(mark-sweep-compact)</strong>：综合了上述两者的做法和优点，先标记活跃对象，然后将其合并成较大的内存块。可参考如下的示例图：<br><img src="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/0BCD8C3038BE460A8F667934590C8F36/7830" alt="image"> </p>
+<h2 id="GC收集器类型"><a href="#GC收集器类型" class="headerlink" title="GC收集器类型"></a>GC收集器类型</h2><ol>
+<li><p>古老的串行收集器(Serial Collector)<br>-XX:+UseSerialGC：策略为年轻代串行复制，年老代串行标记整理。可参考如下的示例图：<br><img src="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/A12CF0AE8F964A51B683F4CEDCA62F7A/7832" alt="image"> </p>
+</li>
+<li><p>吞吐量优先的并行收集器(Throughput Collector)<br>-XX:+UseParallelGC：这是JDK5 -server的默认值。策略为：  </p>
+</li>
+</ol>
+<ul>
+<li>年轻代：暂停应用程序，多个垃圾收集线程并行的复制收集，线程数默认为CPU个数，CPU很多时，可用-XX:ParallelGCThreads= 设定线程数。</li>
+<li>年老代：暂停应用程序，与串行收集器一样，单垃圾收集线程标记整理。  </li>
+</ul>
+<p>如上可知该收集器需要2+的CPU时才会优于串行收集器，适用于后台处理，科学计算。<br>可以使用-XX:MaxGCPauseMillis= 和 -XX:GCTimeRatio 来调整GC的时间。可参考如下的示例图：<br><img src="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/17A78FA4872B4A038D19829CACC0729B/7833" alt="image"> </p>
+<ol>
+<li>暂停时间优先的并发收集器(Concurrent Low Pause Collector-CMS)<br>-XX:+UseConcMarkSweepGC：这是以上两种策略的升级版，策略为：</li>
+</ol>
+<ul>
+<li>年轻代：同样是暂停应用程序，多个垃圾收集线程并行的复制收集。</li>
+<li>年老代：则只有两次短暂停，其他时间应用程序与收集线程并发的清除。</li>
+</ul>
+<p>若要采用标记整理算法，则可以通过设置参数实现；可参考如下的示例图：<br><img src="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/05D08D75547241658B7B643CC85F476D/7834" alt="image"> </p>
+<ol>
+<li>增量并发收集器(Incremental Concurrent-Mark-Sweep/i-CMS)：<br>虽然CMS收集算法在最为耗时的内存区域遍历时采用多线程并发操作，但对于服务器CPU资源不够的情况下，其实对性能是没有提升的，反而会导致系统吞吐量的下降，为了尽量避免这种情况的出现，就有了增量CMS收集算法，就是在并发标记、清理的时候让GC线程、用户线程交叉运行，尽量减少GC线程的全程独占式执行；可参考如下的示例图：<br><img src="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/DBE249783C8D4BF08521C141F082AE60/7835" alt="image"> </li>
+</ol>
+<h3 id="并行、并发的区别"><a href="#并行、并发的区别" class="headerlink" title="并行、并发的区别"></a>并行、并发的区别</h3><p>并行(Parallel)与并发(Concurrent)仅一字之差，但体现的意思却完全不同，这可能也是很多同学非常困惑的地方，要想深刻体会这其中的差别，可以多揣摩下上面关于GC收集器的示例图；</p>
+<ul>
+<li>并行：指多条垃圾收集线程并行，此时用户线程是没有运行的；</li>
+<li>并发：指用户线程与垃圾收集线程并发执行，程序在继续运行，而垃圾收集程序运行于另一个CPU上。   </li>
+</ul>
+<p>并发收集一开始会很短暂的停止一次所有线程来开始初始标记根对象，然后标记线程与应用线程一起并发运行，最后又很短的暂停一次，多线程并行的重新标记之前可能因为并发而漏掉的对象，然后就开始与应用程序并发的清除过程。可见，最长的两个遍历过程都是与应用程序并发执行的，比以前的串行算法改进太多太多了！！！    </p>
+<p>串行标记清除是等年老代满了再开始收集的，而并发收集因为要与应用程序一起运行，如果满了才收集，应用程序就无内存可用，所以系统默认68%满的时候就开始收集。内存已设得较大，吃内存又没有这么快的时候，可以用-XX:CMSInitiatingOccupancyFraction=恰当增大该比率。</p>
+<h3 id="年轻代的痛"><a href="#年轻代的痛" class="headerlink" title="年轻代的痛"></a>年轻代的痛</h3><p>由于对年轻代的复制收集，依然必须停止所有应用程序线程，原理如此，只能靠多CPU，多收集线程并发来提高收集速度，但除非你的Server独占整台服务器，否则如果服务器上本身还有很多其他线程时，切换起来速度就….. 所以，搞到最后，暂停时间的瓶颈就落在了年轻代的复制算法上。<br>因此Young的大小设置挺重要的，大点就不用频繁GC，而且增大GC的间隔后，可以让多点对象自己死掉而不用复制了。但Young增大时，GC造成的停顿时间攀升得非常恐怖，据某人的测试结果显示：默认8M的Young，只需要几毫秒的时间，64M就升到90毫秒，而升到256M时，就要到300毫秒了，峰值还会攀到恐怖的800ms。谁叫复制算法，要等Young满了才开始收集，开始收集就要停止所有线程呢。</p>
 
       
     </div>
@@ -488,7 +736,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/not null 和 default/" data-id="cj6arwhhg009wymblgkfx0qbu" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/JVM垃圾回收算法/" data-id="cj6cy7nfa002uktbl1ffenwbp" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -502,13 +750,13 @@
 
 
   
-    <article id="post-数据库相关/mysql/乐观锁和悲观锁" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/基础/单例模式" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/">乐观锁和悲观锁</a>
+      <a class="article-title" href="/2017/08/12/Java/基础/单例模式/">单例模式</a>
     </h1>
   
 
@@ -517,13 +765,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/08/12/Java/基础/单例模式/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
   </div>
 
 
@@ -532,23 +780,24 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="锁（-locking-）"><a href="#锁（-locking-）" class="headerlink" title="锁（ locking ）"></a>锁（ locking ）</h3><p>业务逻辑的实现过程中，往往需要保证数据访问的排他性。如在金融系统的日终结算<br>处理中，我们希望针对某个 cut-off 时间点的数据进行处理，而不希望在结算进行过程中<br>（可能是几秒种，也可能是几个小时），数据再发生变化。此时，我们就需要通过一些机<br>制来保证这些数据在某个操作过程中不会被外界修改，这样的机制，在这里，也就是所谓<br>的 “ 锁 ” ，即给我们选定的目标数据上锁，使其无法被其他程序修改。</p>
-<p>Hibernate 支持两种锁机制：即通常所说的 “ 悲观锁（ Pessimistic Locking ） ”<br>和 “ 乐观锁（ Optimistic Locking ） ” 。</p>
-<h3 id="悲观锁（-Pessimistic-Locking-）"><a href="#悲观锁（-Pessimistic-Locking-）" class="headerlink" title="悲观锁（ Pessimistic Locking ）"></a>悲观锁（ Pessimistic Locking ）</h3><p>悲观锁，正如其名，它指的是对数据被外界（包括本系统当前的其他事务，以及来自<br>外部系统的事务处理）修改持保守态度，因此，在整个数据处理过程中，将数据处于锁定<br>状态。悲观锁的实现，往往依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能<br>真正保证数据访问的排他性，否则，即使在本系统中实现了加锁机制，也无法保证外部系<br>统不会修改数据）。</p>
-<p>一个典型的倚赖数据库的悲观锁调用：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">select * from account where name=”Erica” for update</div></pre></td></tr></table></figure></p>
-<p>这条 sql 语句锁定了 account 表中所有符合检索条件（ name=”Erica” ）的记录。<br>本次事务提交之前（事务提交时会释放事务过程中的锁），外界无法修改这些记录。<br>Hibernate 的悲观锁，也是基于数据库的锁机制实现。</p>
-<p>注意，只有在查询开始之前（也就是 Hiberate 生成 SQL 之前）设定加锁，才会<br>真正通过数据库的锁机制进行加锁处理，否则，数据已经通过不包含 for update<br>子句的 Select SQL 加载进来，所谓数据库加锁也就无从谈起。</p>
-<h3 id="乐观锁（-Optimistic-Locking-）"><a href="#乐观锁（-Optimistic-Locking-）" class="headerlink" title="乐观锁（ Optimistic Locking ）"></a>乐观锁（ Optimistic Locking ）</h3><p>相对悲观锁而言，乐观锁机制采取了更加宽松的加锁机制。悲观锁大多数情况下依<br>靠数据库的锁机制实现，以保证操作最大程度的独占性。但随之而来的就是数据库<br>性能的大量开销，特别是对长事务而言，这样的开销往往无法承受。<br>如一个金融系统，当某个操作员读取用户的数据，并在读出的用户数据的基础上进<br>行修改时（如更改用户帐户余额），如果采用悲观锁机制，也就意味着整个操作过<br>程中（从操作员读出数据、开始修改直至提交修改结果的全过程，甚至还包括操作<br>员中途去煮咖啡的时间），数据库记录始终处于加锁状态，可以想见，如果面对几<br>百上千个并发，这样的情况将导致怎样的后果。</p>
-<p>乐观锁机制在一定程度上解决了这个问题。乐观锁，大多是基于数据版本<br>（ Version ）记录机制实现。何谓数据版本？即为数据增加一个版本标识，在基于<br>数据库表的版本解决方案中，一般是通过为数据库表增加一个 “version” 字段来<br>实现。  </p>
-<p>读取出数据时，将此版本号一同读出，之后更新时，对此版本号加一。此时，将提<br>交数据的版本数据与数据库表对应记录的当前版本信息进行比对，如果提交的数据<br>版本号大于数据库表当前版本号，则予以更新，否则认为是过期数据。<br>对于上面修改用户帐户信息的例子而言，假设数据库中帐户信息表中有一个<br>version 字段，当前值为 1 ；而当前帐户余额字段（ balance ）为 $100 。     </p>
-<ol>
-<li>操作员 A 此时将其读出（ version=1 ），并从其帐户余额中扣除 $50<br>（ $100-$50 ）。</li>
-<li>在操作员 A 操作的过程中，操作员 B 也读入此用户信息（ version=1 ），并<br>从其帐户余额中扣除 $20 （ $100-$20 ）。</li>
-<li>操作员 A 完成了修改工作，将数据版本号加一（ version=2 ），连同帐户扣<br>除后余额（ balance=$50 ），提交至数据库更新，此时由于提交数据版本大<br>于数据库记录当前版本，数据被更新，数据库记录 version 更新为 2 。</li>
-<li>操作员 B 完成了操作，也将版本号加一（ version=2 ）试图向数据库提交数<br>据（ balance=$80 ），但此时比对数据库记录版本时发现，操作员 B 提交的<br>数据版本号为 2 ，数据库记录当前版本也为 2 ，不满足 “ 提交版本必须大于记<br>录当前版本才能执行更新 “ 的乐观锁策略，因此，操作员 B 的提交被驳回。<br>这样，就避免了操作员 B 用基于 version=1 的旧数据修改的结果覆盖操作<br>员 A 的操作结果的可能。 </li>
+        <h3 id="第一种（懒汉，线程不安全）："><a href="#第一种（懒汉，线程不安全）：" class="headerlink" title="第一种（懒汉，线程不安全）："></a>第一种（懒汉，线程不安全）：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public class Singleton &#123; </div><div class="line">	private static Singleton instance; </div><div class="line">	private Singleton ()&#123;&#125; </div><div class="line">	    </div><div class="line">	public static Singleton getInstance() &#123; </div><div class="line">		if (instance == null) &#123; </div><div class="line">			instance = new Singleton(); </div><div class="line">		&#125; </div><div class="line">		return instance; </div><div class="line">	&#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这种写法lazy loading很明显，但是致命的是在多线程不能正常工作。</p>
+<h3 id="第二种（懒汉，线程安全）："><a href="#第二种（懒汉，线程安全）：" class="headerlink" title="第二种（懒汉，线程安全）："></a>第二种（懒汉，线程安全）：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">public class Singleton &#123; </div><div class="line">    private static Singleton instance; </div><div class="line">    private Singleton ()&#123;&#125; </div><div class="line">    public static synchronized Singleton getInstance() &#123;    </div><div class="line">        if (instance == null) &#123; </div><div class="line">            instance = new Singleton(); </div><div class="line">        &#125; </div><div class="line">        return instance; </div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这种写法能够在多线程中很好的工作，而且看起来它也具备很好的lazy loading，但是，遗憾的是，效率很低，99%情况下不需要同步。</p>
+<h3 id="第三种（饿汉）："><a href="#第三种（饿汉）：" class="headerlink" title="第三种（饿汉）："></a>第三种（饿汉）：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public class Singleton &#123; </div><div class="line">    private static Singleton instance = new Singleton(); </div><div class="line">    private Singleton ()&#123;&#125; </div><div class="line">    public static Singleton getInstance() &#123; </div><div class="line">        return instance; </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这种方式基于classloder机制避免了多线程的同步问题，不过，instance在类装载时就实例化，虽然导致类装载的原因有很多种，在单例模式中大多数都是调用getInstance方法，但是也不能确定有其他的方式（或者其他的静态方法）导致类装载，这时候初始化instance显然没有达到lazy loading的效果。</p>
+<h3 id="第四种（饿汉，变种）："><a href="#第四种（饿汉，变种）：" class="headerlink" title="第四种（饿汉，变种）："></a>第四种（饿汉，变种）：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">public class Singleton &#123; </div><div class="line">    private Singleton instance = null; </div><div class="line">    static &#123; </div><div class="line">        instance = new Singleton(); </div><div class="line">    &#125; </div><div class="line">    private Singleton ()&#123;&#125; </div><div class="line">    public static Singleton getInstance() &#123; </div><div class="line">        return this.instance; </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>表面上看起来差别挺大，其实跟第三种方式差不多，都是在类初始化即实例化instance。</p>
+<h3 id="第五种（静态内部类）："><a href="#第五种（静态内部类）：" class="headerlink" title="第五种（静态内部类）："></a>第五种（静态内部类）：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public class Singleton &#123; </div><div class="line">    private static class SingletonHolder &#123; </div><div class="line">        private static final Singleton INSTANCE = new Singleton(); </div><div class="line">    &#125; </div><div class="line">    private Singleton ()&#123;&#125; </div><div class="line">    public static final Singleton getInstance() &#123; </div><div class="line">        return SingletonHolder.INSTANCE; </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这种方式同样利用了classloder的机制来保证初始化instance时只有一个线程，它跟第三种和第四种方式不同的是（很细微的差别）：第三种和第四种方式是只要Singleton类被装载了，那么instance就会被实例化（没有达到lazy loading效果），而这种方式是Singleton类被装载了，instance不一定被初始化。因为SingletonHolder类没有被主动使用，只有显示通过调用getInstance方法时，才会显示装载SingletonHolder类，从而实例化instance。想象一下，如果实例化instance很消耗资源，我想让他延迟加载，另外一方面，我不希望在Singleton类加载时就实例化，因为我不能确保Singleton类还可能在其他的地方被主动使用从而被加载，那么这个时候实例化instance显然是不合适的。这个时候，这种方式相比第三和第四种方式就显得很合理。</p>
+<h3 id="第六种（枚举）："><a href="#第六种（枚举）：" class="headerlink" title="第六种（枚举）："></a>第六种（枚举）：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">public enum Singleton &#123; </div><div class="line">    INSTANCE; </div><div class="line">    public void whateverMethod() &#123;&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这种方式是Effective Java作者Josh Bloch 提倡的方式，它不仅能避免多线程同步问题，而且还能防止反序列化重新创建新的对象，可谓是很坚强的壁垒啊，不过，个人认为由于1.5中才加入enum特性，用这种方式写不免让人感觉生疏，在实际工作中，我也很少看见有人这么写过。</p>
+<h3 id="第七种（双重校验锁）："><a href="#第七种（双重校验锁）：" class="headerlink" title="第七种（双重校验锁）："></a>第七种（双重校验锁）：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">public class Singleton &#123; </div><div class="line">    private volatile static Singleton singleton; </div><div class="line">    private Singleton ()&#123;&#125; </div><div class="line">    public static Singleton getSingleton() &#123; </div><div class="line">        if (singleton == null) &#123; </div><div class="line">            synchronized (Singleton.class) &#123; </div><div class="line">                if (singleton == null) &#123; </div><div class="line">                    singleton = new Singleton(); </div><div class="line">                &#125;  </div><div class="line">            &#125; </div><div class="line">        &#125; </div><div class="line">        return singleton; </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>private Singleton (){}：私有化构造函数，防止外部创建实例</li>
+<li>在运用单例模式时，要考虑所在的运行环境，在多线程的环境下，要考虑多线程安全的问题，一般来说，加锁会导致效率变低</li>
+<li>要根据调用情况合理选择饿汉还是懒汉的加载方式</li>
 </ol>
-<p>从上面的例子可以看出，乐观锁机制避免了长事务中的数据库加锁开销（操作员 A<br>和操作员 B 操作过程中，都没有对数据库数据加锁），大大提升了大并发量下的系<br>统整体性能表现。</p>
-<p>需要注意的是，乐观锁机制往往基于系统中的数据存储逻辑，因此也具备一定的局<br>限性，如在上例中，由于乐观锁机制是在我们的系统中实现，来自外部系统的用户<br>余额更新操作不受我们系统的控制，因此可能会造成脏数据被更新到数据库中。在<br>系统设计阶段，我们应该充分考虑到这些情况出现的可能性，并进行相应调整（如<br>将乐观锁策略在数据库存储过程中实现，对外只开放基于此存储过程的数据更新途<br>径，而不是将数据库表直接对外公开）。</p>
 
       
     </div>
@@ -559,7 +808,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/" data-id="cj6arwhhh009zymbljfz8yq7f" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/单例模式/" data-id="cj6cy7nf8002rktblvk0t67ol" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -573,13 +822,13 @@
 
 
   
-    <article id="post-数据库相关/mysql/mysql索引原理" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/基础/生成随机数" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/mysql索引原理/">mysql索引原理</a>
+      <a class="article-title" href="/2017/08/12/Java/基础/生成随机数/">生成随机数</a>
     </h1>
   
 
@@ -588,13 +837,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/mysql索引原理/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/08/12/Java/基础/生成随机数/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
   </div>
 
 
@@ -603,83 +852,12 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>本篇介绍下Mysql的InnoDB索引相关知识，从各种树到索引原理到存储的细节。</p>
-<p>　　InnoDB是Mysql的默认存储引擎(Mysql5.5.5之前是MyISAM，文档)。本着高效学习的目的，本篇以介绍InnoDB为主，少量涉及MyISAM作为对比。</p>
-<p>　　这篇文章是我在学习过程中总结完成的，内容主要来自书本和博客(参考文献会给出)，过程中加入了一些自己的理解，描述不准确的地方烦请指出。</p>
-<h2 id="各种树形结构"><a href="#各种树形结构" class="headerlink" title="各种树形结构"></a>各种树形结构</h2><p>本来不打算从二叉搜索树开始，因为网上已经有太多相关文章，但是考虑到清晰的图示对理解问题有很大帮助，也为了保证文章完整性，最后还是加上了这部分。  </p>
-<p>先看看几种树形结构：</p>
-<ol>
-<li><p>搜索二叉树：每个节点有两个子节点，数据量的增大必然导致高度的快速增加，显然这个不适合作为大量数据存储的基础结构。</p>
-</li>
-<li><p>B树：一棵m阶B树是一棵平衡的m路搜索树。最重要的性质是每个非根节点所包含的关键字个数 j 满足：┌m/2┐ - 1 &lt;= j &lt;= m - 1；一个节点的子节点数量会比关键字个数多1，这样关键字就变成了子节点的分割标志。一般会在图示中把关键字画到子节点中间，非常形象，也容易和后面的B+树区分。由于数据同时存在于叶子节点和非叶子结点中，无法简单完成按顺序遍历B树中的关键字，必须用中序遍历的方法。    </p>
-</li>
-<li><p>B+树：一棵m阶B树是一棵平衡的m路搜索树。最重要的性质是每个非根节点所包含的关键字个数 j 满足：┌m/2┐ - 1 &lt;= j &lt;= m；子树的个数最多可以与关键字一样多。非叶节点存储的是子树里最小的关键字。同时数据节点只存在于叶子节点中，且叶子节点间增加了横向的指针，这样顺序遍历所有数据将变得非常容易。    </p>
-</li>
-<li><p>B*树：一棵m阶B树是一棵平衡的m路搜索树。最重要的两个性质是1每个非根节点所包含的关键字个数 j 满足：┌m2/3┐ - 1 &lt;= j &lt;= m；2非叶节点间添加了横向指针。  </p>
-</li>
-</ol>
-<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091300383225.PNG" alt="image"><br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091308112206.PNG" alt="image"><br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091317678858.PNG" alt="image"> </p>
-<p>B/B+/B*三种树有相似的操作，比如检索/插入/删除节点。这里只重点关注插入节点的情况，且只分析他们在当前节点已满情况下的插入操作，因为这个动作稍微复杂且能充分体现几种树的差异。与之对比的是检索节点比较容易实现，而删除节点只要完成与插入相反的过程即可（在实际应用中删除并不是插入的完全逆操作，往往只删除数据而保留下空间为后续使用）。</p>
-<p>先看B树的分裂，下图的红色值即为每次新插入的节点。每当一个节点满后，就需要发生分裂（分裂是一个递归过程，参考下面7的插入导致了两层分裂），由于B树的非叶子节点同样保存了键值，所以已满节点分裂后的值将分布在三个地方：1原节点，2原节点的父节点，3原节点的新建兄弟节点（参考5，7的插入过程）。分裂有可能导致树的高度增加（参考3，7的插入过程），也可能不影响树的高度（参考5，6的插入过程）。    </p>
-<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091402944893.PNG" alt="image"><br>B+树的分裂：当一个结点满时，分配一个新的结点，并将原结点中1/2的数据复制到新结点，最后在父结点中增加新结点的指针；B+树的分裂只影响原结点和父结点，而不会影响兄弟结点，所以它不需要指向兄弟节点的指针。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091412822063.PNG" alt="image"><br>B<em>树的分裂：当一个结点满时，如果它的下一个兄弟结点未满，那么将一部分数据移到兄弟结点中，再在原结点插入关键字，最后修改父结点中兄弟结点的关键字（因为兄弟结点的关键字范围改变了）。如果兄弟也满了，则在原结点与兄弟结点之间增加新结点，并各复制1/3的数据到新结点，最后在父结点增加新结点的指针。可以看到B</em>树的分裂非常巧妙，因为B<em>树要保证分裂后的节点还要2/3满，如果采用B+树的方法，只是简单的将已满的节点一分为二，会导致每个节点只有1/2满，这不满足B</em>树的要求了。所以B<em>树采取的策略是在本节点满后，继续插入兄弟节点（这也是为什么B</em>树需要在非叶子节点加一个兄弟间的链表），直到把兄弟节点也塞满，然后拉上兄弟节点一起凑份子，自己和兄弟节点各出资1/3成立新节点，这样的结果是3个节点刚好是2/3满，达到B*树的要求，皆大欢喜。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091423290770.PNG" alt="image"><br>B+树适合作为数据库的基础结构，完全是因为计算机的内存-机械硬盘两层存储结构。内存可以完成快速的随机访问（随机访问即给出任意一个地址，要求返回这个地址存储的数据）但是容量较小。而硬盘的随机访问要经过机械动作（1磁头移动 2盘片转动），访问效率比内存低几个数量级，但是硬盘容量较大。典型的数据库容量大大超过可用内存大小，这就决定了在B+树中检索一条数据很可能要借助几次磁盘IO操作来完成。如下图所示：通常向下读取一个节点的动作可能会是一次磁盘IO操作，不过非叶节点通常会在初始阶段载入内存以加快访问速度。同时为提高在节点间横向遍历速度，真实数据库中可能会将图中蓝色的CPU计算/内存读取优化成二叉搜索树（InnoDB中的page directory机制）。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091432578535.PNG" alt="image"><br>真实数据库中的B+树应该是非常扁平的，可以通过向表中顺序插入足够数据的方式来验证InnoDB中的B+树到底有多扁平。我们通过如下图的CREATE语句建立一个只有简单字段的测试表，然后不断添加数据来填充这个表。通过下图的统计数据（来源见参考文献1）可以分析出几个直观的结论，这几个结论宏观的展现了数据库里B+树的尺度。  </p>
-<ol>
-<li><p>每个叶子节点存储了468行数据，每个非叶子节点存储了大约1200个键值，这是一棵平衡的1200路搜索树！</p>
-</li>
-<li><p>对于一个22.1G容量的表，也只需要高度为3的B+树就能存储了，这个容量大概能满足很多应用的需要了。如果把高度增大到4，则B+树的存储容量立刻增大到25.9T之巨！</p>
-</li>
-<li><p>对于一个22.1G容量的表，B+树的高度是3，如果要把非叶节点全部加载到内存也只需要少于18.8M的内存（如何得出的这个结论？因为对于高度为2的树，1203个叶子节点也只需要18.8M空间，而22.1G从良表的高度是3，非叶节点1204个。同时我们假设叶子节点的尺寸是大于非叶节点的，因为叶子节点存储了行数据而非叶节点只有键和少量数据。），只使用如此少的内存就可以保证只需要一次磁盘IO操作就检索出所需的数据，效率是非常之高的。    </p>
-</li>
-</ol>
-<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091442379434.PNG" alt="image"> </p>
-<h2 id="Mysql的存储引擎和索引"><a href="#Mysql的存储引擎和索引" class="headerlink" title="Mysql的存储引擎和索引"></a>Mysql的存储引擎和索引</h2><p>可以说数据库必须有索引，没有索引则检索过程变成了顺序查找，O(n)的时间复杂度几乎是不能忍受的。我们非常容易想象出一个只有单关键字组成的表如何使用B+树进行索引，只要将关键字存储到树的节点即可。当数据库一条记录里包含多个字段时，一棵B+树就只能存储主键，如果检索的是非主键字段，则主键索引失去作用，又变成顺序查找了。这时应该在第二个要检索的列上建立第二套索引。 这个索引由独立的B+树来组织。有两种常见的方法可以解决多个B+树访问同一套表数据的问题，一种叫做<strong>聚簇索引</strong>（clustered index ），一种叫做<strong>非聚簇索引</strong>（secondary index）。这两个名字虽然都叫做索引，但这并不是一种单独的索引类型，而是一种数据存储方式。对于聚簇索引存储来说，行数据和主键B+树存储在一起，辅助键B+树只存储辅助键和主键，主键和非主键B+树几乎是两种类型的树。对于非聚簇索引存储来说，主键B+树在叶子节点存储指向真正数据行的指针，而非主键。  </p>
-<p><strong>InnoDB使用的是聚簇索引，将主键组织到一棵B+树中，而行数据就储存在叶子节点上，若使用”where id = 14”这样的条件查找主键，则按照B+树的检索算法即可查找到对应的叶节点，之后获得行数据。若对Name列进行条件搜索，则需要两个步骤：第一步在辅助索引B+树中检索Name，到达其叶子节点获取对应的主键。第二步使用主键在主索引B+树种再执行一次B+树检索操作，最终到达叶子节点即可获取整行数据。</strong>  </p>
-<p><strong>MyISM使用的是非聚簇索引，非聚簇索引的两棵B+树看上去没什么不同，节点的结构完全一致只是存储的内容不同而已，主键索引B+树的节点存储了主键，辅助键索引B+树存储了辅助键。表数据存储在独立的地方，这两棵B+树的叶子节点都使用一个地址指向真正的表数据，对于表数据来说，这两个键没有任何差别。由于索引树是独立的，通过辅助键检索无需访问主键的索引树。</strong></p>
-<p>为了更形象说明这两种索引的区别，我们假想一个表如下图存储了4行数据。其中Id作为主索引，Name作为辅助索引。图示清晰的显示了聚簇索引和非聚簇索引的差异。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091453469704.PNG" alt="image"><br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091503903957.PNG" alt="image"><br>我们重点关注聚簇索引，看上去聚簇索引的效率明显要低于非聚簇索引，因为每次使用辅助索引检索都要经过两次B+树查找，这不是多此一举吗？聚簇索引的优势在哪？</p>
-<ol>
-<li>由于行数据和叶子节点存储在一起，这样主键和行数据是一起被载入内存的，找到叶子节点就可以立刻将行数据返回了，如果按照主键Id来组织数据，获得数据更快。</li>
-<li>辅助索引使用主键作为”指针” 而不是使用地址值作为指针的好处是，减少了当出现行移动或者数据页分裂时辅助索引的维护工作，使用主键值当作指针会让辅助索引占用更多的空间，换来的好处是InnoDB在移动行时无须更新辅助索引中的这个”指针”。也就是说行的位置（实现中通过16K的Page来定位，后面会涉及）会随着数据库里数据的修改而发生变化（前面的B+树节点分裂以及Page的分裂），使用聚簇索引就可以保证不管这个主键B+树的节点如何变化，辅助索引树都不受影响。    </li>
-</ol>
-<h2 id="Page结构"><a href="#Page结构" class="headerlink" title="Page结构"></a>Page结构</h2><p>如果说前面的内容偏向于解释原理，那后面就开始涉及具体实现了。<br>理解InnoDB的实现不得不提Page结构，Page是整个InnoDB存储的最基本构件，也是InnoDB磁盘管理的最小单位，与数据库相关的所有内容都存储在这种Page结构里。Page分为几种类型，常见的页类型有<strong>数据页（B-tree Node）Undo页（Undo Log Page）系统页（System Page） 事务数据页（Transaction System Page）</strong>等。  </p>
-<p>单个Page的大小是16K（编译宏UNIV_PAGE_SIZE控制），每个Page使用一个32位的int值来唯一标识，这也正好对应InnoDB最大64TB的存储容量（16Kib * 2^32 = 64Tib）。一个Page的基本结构如下图所示：<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091512695110.PNG" alt="image"><br>每个Page都有通用的头和尾，但是中部的内容根据Page的类型不同而发生变化。Page的头部里有我们关心的一些数据，下图把Page的头部详细信息显示出来：<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091523976520.PNG" alt="image"><br>我们重点关注和数据组织结构相关的字段：Page的头部保存了两个指针，分别指向前一个Page和后一个Page，头部还有Page的类型信息和用来唯一标识Page的编号。根据这两个指针我们很容易想象出Page链接起来就是一个双向链表的结构。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091532199537.PNG" alt="image"><br>再看看Page的主体内容，我们主要关注行数据和索引的存储，他们都位于Page的User Records部分，User Records占据Page的大部分空间，User Records由一条一条的Record组成，每条记录代表索引树上的一个节点（非叶子节点和叶子节点）。在一个Page内部，单链表的头尾由固定内容的两条记录来表示，字符串形式的”Infimum”代表开头，”Supremum”代表结尾。这两个用来代表开头结尾的Record存储在System Records的段里，这个System Records和User Records是两个平行的段。 </p>
-<p>InnoDB存在4种不同的Record:</p>
-<ol>
-<li>主键索引树非叶节点</li>
-<li>主键索引树叶子节点</li>
-<li>辅助键索引树非叶节点</li>
-<li>辅助键索引树叶子节点。</li>
-</ol>
-<p>这4种节点的Record格式有一些差异，但是它们都存储着Next指针指向下一个Record。后续我们会详细介绍这4种节点，现在只需要把Record当成一个存储了数据同时含有Next指针的单链表节点即可。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091541081339.PNG" alt="image"><br>User Record在Page内以单链表的形式存在，最初数据是按照插入的先后顺序排列的，但是随着新数据的插入和旧数据的删除，数据物理顺序会变得混乱，但他们依然保持着逻辑上的先后顺序。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091551111655.PNG" alt="image"><br>把User Record的组织形式和若干Page组合起来，就看到了稍微完整的形式。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091600910753.PNG" alt="image">         </p>
-<p>现在看下如何定位一个Record：</p>
-<ol>
-<li>通过根节点开始遍历一个索引的B+树，通过各层非叶子节点最终到达一个Page，这个Page里存放的都是叶子节点。</li>
-<li>在Page内从”Infimum”节点开始遍历单链表（这种遍历往往会被优化），如果找到该键则成功返回。如果记录到达了”supremum”，说明当前Page里没有合适的键，这时要借助Page的Next Page指针，跳转到下一个Page继续从”Infimum”开始逐个查找。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091608678237.PNG" alt="image">    </li>
-</ol>
-<p>详细看下不同类型的Record里到底存储了什么数据，根据B+树节点的不同，User Record可以被分成四种格式，下图种按照颜色予以区分。  </p>
-<h3 id="主索引树非叶节点（绿色）"><a href="#主索引树非叶节点（绿色）" class="headerlink" title="主索引树非叶节点（绿色）"></a>主索引树非叶节点（绿色）</h3><ol>
-<li>子节点存储的主键里最小的值（Min Cluster Key on Child），这是B+树必须的，作用是在一个Page里定位到具体的记录的位置。</li>
-<li>最小的值所在的Page的编号（Child Page Number），作用是定位Record。</li>
-</ol>
-<h3 id="主索引树叶子节点（黄色）"><a href="#主索引树叶子节点（黄色）" class="headerlink" title="主索引树叶子节点（黄色）"></a>主索引树叶子节点（黄色）</h3><ol>
-<li>主键（Cluster Key Fields），B+树必须的，也是数据行的一部分</li>
-<li>除去主键以外的所有列（Non-Key Fields），这是数据行的除去主键的其他所有列的集合。</li>
-</ol>
-<p>这里的1和2两部分加起来就是一个完整的数据行。</p>
-<h3 id="辅助索引树非叶节点非（蓝色）"><a href="#辅助索引树非叶节点非（蓝色）" class="headerlink" title="辅助索引树非叶节点非（蓝色）"></a>辅助索引树非叶节点非（蓝色）</h3><ol>
-<li>子节点里存储的辅助键值里的最小的值（Min Secondary-Key on Child），这是B+树必须的，作用是在一个Page里定位到具体的记录的位置。</li>
-<li>主键值（Cluster Key Fields），非叶子节点为什么要存储主键呢？因为辅助索引是可以不唯一的，但是B+树要求键的值必须唯一，所以这里把辅助键的值和主键的值合并起来作为在B+树中的真正键值，保证了唯一性。但是这也导致在辅助索引B+树中非叶节点反而比叶子节点多了4个字节。（即下图中蓝色节点反而比红色多了4字节）</li>
-<li>最小的值所在的Page的编号（Child Page Number），作用是定位Record。</li>
-</ol>
-<h3 id="辅助索引树叶子节点（红色）"><a href="#辅助索引树叶子节点（红色）" class="headerlink" title="辅助索引树叶子节点（红色）"></a>辅助索引树叶子节点（红色）</h3><ol>
-<li>辅助索引键值（Secondary Key Fields），这是B+树必须的。</li>
-<li>主键值（Cluster Key Fields），用来在主索引树里再做一次B+树检索来找到整条记录。</li>
-</ol>
-<p><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091620754769.PNG" alt="image"><br>下面是本篇最重要的部分了，结合B+树的结构和前面介绍的4种Record的内容，我们终于可以画出一幅全景图。由于辅助索引的B+树与主键索引有相似的结构，这里只画出了主键索引树的结构图，只包含了”主键非叶节点”和”主键叶子节点”两种节点，也就是上图的的绿色和黄色的部分。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091631948071.PNG" alt="image"><br>把上图还原成下面这个更简洁的树形示意图，这就是B+树的一部分。注意Page和B+树节点之间并没有一一对应的关系，Page只是作为一个Record的保存容器，它存在的目的是便于对磁盘空间进行批量管理，上图中的编号为47的Page在树形结构上就被拆分成了两个独立节点。<br><img src="http://www.admin10000.com/UploadFiles/Document/201410/27/20141027091642165340.PNG" alt="image"><br>至此本篇就算结束了，本篇只是对InnoDB索引相关的数据结构和实现进行了一些梳理总结，并未涉及到Mysql的实战经验。这主要是基于几点原因：</p>
-<ol>
-<li>原理是基石，只有充分了解InnoDB索引的工作方式，我们才有能力高效的使用好它。</li>
-<li>原理性知识特别适合使用图示，我个人非常喜欢这种表达方式。</li>
-<li>关于InnoDB优化，在《高性能Mysql》里有更加全面的介绍，</li>
-</ol>
-
+        <p>使用java.util.Random包</p>
+<h3 id="计算公式"><a href="#计算公式" class="headerlink" title="计算公式"></a>计算公式</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">int randNumber = rand.nextInt(MAX - MIN + 1) + MIN; // randNumber 将被赋值为一个 [MIN,MAX] 范围内的随机数</div></pre></td></tr></table></figure>
+<p>例如：生成[1000, 9999]的随机数<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Random rand = new Random();</div><div class="line">int random =  rand.nextInt(9999-1000+1) + 1000;</div></pre></td></tr></table></figure></p>
+<p>说明：如果没有提供种子，java会默认处理,详情请查阅api</p>
+<p>如果指定不变的种子，则每次返回的随机数都是一样的，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Random rand = new Random(100);</div><div class="line">int random =  rand.nextInt(9999-1000+1) + 1000;</div><div class="line">每次返回的random都一样</div></pre></td></tr></table></figure></p>
+<h2 id="工具类"><a href="#工具类" class="headerlink" title="工具类"></a>工具类</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div></pre></td><td class="code"><pre><div class="line">import java.util.Random;</div><div class="line">import org.apache.commons.lang3.RandomStringUtils;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 生成随机字符串，随机数工具类</div><div class="line"> * @author  chenliqiang, 2017年4月19日 下午9:47:25 &lt;br/&gt;   </div><div class="line"> * @version  1.0</div><div class="line"> * @see 	 </div><div class="line"> */</div><div class="line">public class RandomUtil extends RandomStringUtils &#123;</div><div class="line">	</div><div class="line">	public static final String stringBase = &quot;abcdefghijklmnopqrstuvwxyz0123456789&quot;;</div><div class="line">	public static final String numberBase = &quot;0123456789&quot;;</div><div class="line">	</div><div class="line">	/**</div><div class="line">	 *  获取特定位数的随机字符串</div><div class="line">	 * @param length  随机串长度</div><div class="line">	 * @param toUpperCase 是否转成大写</div><div class="line">	 * @return</div><div class="line">	 * @author chenliqiang， 2017年4月19日 下午9:48:54 &lt;br/&gt;</div><div class="line">	 */</div><div class="line">	public static String getRandomString(int length, boolean toUpperCase) &#123; //length表示生成字符串的长度  </div><div class="line">	    Random random = new Random();     </div><div class="line">	    StringBuffer sb = new StringBuffer();     </div><div class="line">	    for (int i = 0; i &lt; length; i++) &#123;     </div><div class="line">	        int number = random.nextInt(stringBase.length());     </div><div class="line">	        sb.append(stringBase.charAt(number));     </div><div class="line">	    &#125;</div><div class="line">	    if(toUpperCase) &#123;</div><div class="line">	    	return sb.toString().toUpperCase();  </div><div class="line">	    &#125;</div><div class="line">	    return  sb.toString();</div><div class="line">	 &#125;</div><div class="line">	</div><div class="line">	/**</div><div class="line">	 * 获取特定位数的随机数</div><div class="line">	 * @param length  随机数长度</div><div class="line">	 * @return</div><div class="line">	 * @author chenliqiang， 2017年4月19日 下午9:53:29 &lt;br/&gt;</div><div class="line">	 */</div><div class="line">	public static String getRandomNumber(int length) &#123; </div><div class="line">	    Random random = new Random();     </div><div class="line">	    StringBuffer sb = new StringBuffer();     </div><div class="line">	    for (int i = 0; i &lt; length; i++) &#123;     </div><div class="line">	        int number = random.nextInt(numberBase.length());     </div><div class="line">	        sb.append(numberBase.charAt(number));     </div><div class="line">	    &#125;</div><div class="line">	    return  sb.toString();</div><div class="line">	 &#125;</div><div class="line">	</div><div class="line">	public static void main(String[] args) &#123;</div><div class="line">		System.out.println(randomAlphanumeric(50));</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -689,7 +867,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql索引原理/" data-id="cj6arwhhi00a1ymblq1il49fw" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/生成随机数/" data-id="cj6cy7nfh0031ktblg7lwkciq" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -703,13 +881,13 @@
 
 
   
-    <article id="post-数据库相关/mysql/事务的ACID特性和隔离级别" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/基础/JVM体系结构" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/事务的ACID特性和隔离级别/">事务的ACID特性和隔离级别</a>
+      <a class="article-title" href="/2017/08/12/Java/基础/JVM体系结构/">JVM体系结构</a>
     </h1>
   
 
@@ -718,13 +896,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/事务的ACID特性和隔离级别/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/08/12/Java/基础/JVM体系结构/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
   </div>
 
 
@@ -733,72 +911,53 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>事务(Transaction)是并发控制的基本单位。所谓事务，它是一个操作序列，这些操作要么都执行，要么都不执行，它是一个不可分割的工作单位。例如，银行转帐工作：从一个帐号扣款并使另一个帐号增款，这两个操作要么都执行，要么都不执行。  </p>
-<h3 id="数据库事务必须具备ACID特性，ACID是Atomic（原子性）、Consistency（一致性）、Isolation（隔离性）和Durability（持久性）的英文缩写。"><a href="#数据库事务必须具备ACID特性，ACID是Atomic（原子性）、Consistency（一致性）、Isolation（隔离性）和Durability（持久性）的英文缩写。" class="headerlink" title="数据库事务必须具备ACID特性，ACID是Atomic（原子性）、Consistency（一致性）、Isolation（隔离性）和Durability（持久性）的英文缩写。"></a>数据库事务必须具备ACID特性，ACID是Atomic（原子性）、Consistency（一致性）、Isolation（隔离性）和Durability（持久性）的英文缩写。</h3><h4 id="原子性（Atomicity）"><a href="#原子性（Atomicity）" class="headerlink" title="原子性（Atomicity）"></a>原子性（Atomicity）</h4><p>一个事务(transaction)中的所有操作，要么全部完成，要么全部不完成，不会结束在中间某个环节。事务在执行过程中发生错误，会被回滚（Rollback）到事务开始前的状态，就像这个事务从来没有执行过一样。</p>
-<h4 id="一致性（Consistency）"><a href="#一致性（Consistency）" class="headerlink" title="一致性（Consistency）"></a>一致性（Consistency）</h4><p>事务的一致性指的是在一个事务执行之前和执行之后数据库都必须处于一致性状态。如果事务成功地完成，那么系统中所有变化将正确地应用，系统处于有效状态。如果在事务中出现错误，那么系统中的所有变化将自动地回滚，系统返回到原始状态。    </p>
-<h4 id="隔离性（Isolation）"><a href="#隔离性（Isolation）" class="headerlink" title="隔离性（Isolation）"></a>隔离性（Isolation）</h4><p>指的是在并发环境中，当不同的事务同时操纵相同的数据时，每个事务都有各自的完整数据空间。由并发事务所做的修改必须与任何其他并发事务所做的修改隔离。事务查看数据更新时，数据所处的状态要么是另一事务修改它之前的状态，要么是另一事务修改它之后的状态，事务不会查看到中间状态的数据。</p>
-<h4 id="持久性（Durability）"><a href="#持久性（Durability）" class="headerlink" title="持久性（Durability）"></a>持久性（Durability）</h4><p>指的是只要事务成功结束，它对数据库所做的更新就必须永久保存下来。即使发生系统崩溃，重新启动数据库系统后，数据库还能恢复到事务成功结束时的状态。</p>
-<p>事务的（ACID）特性是由关系数据库管理系统（RDBMS，数据库系统）来实现的。<strong>数据库管理系统采用日志来保证事务的原子性、一致性和持久性</strong>。日志记录了事务对数据库所做的更新，如果某个事务在执行过程中发生错误，就可以根据日志，撤销事务对数据库已做的更新，使数据库退回到执行事务前的初始状态。  </p>
-<p><strong>数据库管理系统采用锁机制来实现事务的隔离性</strong>。当多个事务同时更新数据库中相同的数据时，只允许持有锁的事务能更新该数据，其他事务必须等待，直到前一个事务释放了锁，其他事务才有机会更新该数据。  </p>
-<p>在关系型数据库中，事务的隔离性分为四个隔离级别，在解读这四个级别前先介绍几个关于读数据的概念。</p>
+        <p><strong>jvm的全称是Java Virtual Machine，即java虚拟机</strong>，它是构建于操作系统内存中一个虚拟软件，用于支持java程序的运行，是java之所以能够跨平台的关键。对java开发者来说，jvm既重要，又不重要。说它重要是因为我们的每一个程序，每一行代码，都必须通过它才能运行。说他不重要则是因为就算对它一无所知，实际上也不影响绝大部分java开发者日常工作。</p>
+<p>当一个java程序被运行时，一个java虚拟机实例也就随之被创建。如果启动多个java程序，对应的，就会有多个虚拟机实例存在于内存中。一言以蔽之，jvm先java程序而生，后Java程序而亡。</p>
+<p>那么一个jvm有哪些组成部分呢？如下图所示：<br><img src="http://note.youdao.com/yws/public/resource/1ba13d8b1eecc2e67ee0bff89b1d2735/xmlnote/D0F22E55CAC34EAEB73DCD810FAF8527/7828" alt="image"><br>上图就是jvm的构成图，也就是jvm的基本体系结构，可以看到，jvm大体上可以分为四大部分：   </p>
 <ol>
-<li><p>脏读（Dirty Reads）：所谓脏读就是对脏数据（Drity Data）的读取，而脏数据所指的就是未提交的数据。也就是说，一个事务正在对一条记录做修改，在这个事务完成并提交之前，这条数据是处于待定状态的（可能提交也可能回滚），这时，第二个事务来读取这条没有提交的数据，并据此做进一步的处理，就会产生未提交的数据依赖关系。这种现象被称为脏读。</p>
+<li><p>class loader，也就是类加载器。它的作用是查找符合java class格式的类文件（也就是图中的class files），并将之加载进Runtime Data Area。值得一提的是，只要文件符合.class文件的格式要求，就会被它加载，至于是否能够顺利运行，就不是它的职责了。</p>
 </li>
-<li><p>不可重复读（Non-Repeatable Reads）：一个事务先后读取同一条记录，但两次读取的数据不同，我们称之为不可重复读。也就是说，这个事务在两次读取之间该数据被其它事务所修改。</p>
-</li>
-<li><p>幻读（Phantom Reads）：一个事务按相同的查询条件重新读取以前检索过的数据，却发现其他事务插入了满足其查询条件的新数据，这种现象就称为幻读。</p>
+<li><p>Runtime Data Area，顾名思义，运行时数据区。java程序运行时数据管理，对象的生成与消亡，内存的分配与回收都发生在这个区域。也是程序员主要关注的区域，一般意义上的jvm优化指的就是针对这个区域的优化，它由以下几个部分构成：</p>
 </li>
 </ol>
-<h3 id="事务四个隔离级别对比"><a href="#事务四个隔离级别对比" class="headerlink" title="事务四个隔离级别对比"></a>事务四个隔离级别对比</h3><ol>
-<li><p>未提交读（Read Uncommitted）：SELECT语句以非锁定方式被执行，所以有可能读到脏数据，隔离级别最低。</p>
+<ul>
+<li>stack，也就是java栈。栈是java程序运行的关键，java中的每一个线程都会有一个与之相对应的线程栈。里面存储的信息都是跟当前线程相关的信息，包括局部变量，程序运行状态，方法返回值等。每一次方法的调用都将作为一个整体帧被压入栈中，遵循”先入后出”原则。不同的栈无法访问彼此的数据，栈中只能存储基本类型和堆中对象的引用。</li>
+<li>heap，堆内存。堆负责java对象信息的存储，堆中的内容可以被多个栈共享，堆的存在，使得java多个线程之间可以共享数据。每一个java虚拟机都只有一个堆内存，它主要由两个部分构成：年轻代、老年代，对堆内存的分配与垃圾的回收机制是jvm优化的一个极端重要的课题，这部分留待在后续的学习笔记中介绍。  </li>
+<li>method area，方法区（永久代）。该区域被所有线程所共享，主要用于存储java类信息，常量，静态变量等。</li>
+<li>PC Register，程序计数器。每一个java线程都有一个自己的pc register，它的内容总是指向下一条被执行指令的地址，不做深究。</li>
+<li>native method stack，本地方法栈。其作用类似于java栈，不同之处是它负责存储本地方法的调用信息，也就是当java程序调用native方法时(简单地讲，一个Native Method就是一个Java调用非java代码的接口)，其相关的运行信息将被压入本地方法栈，而不是Java栈。</li>
+</ul>
+<ol>
+<li><p>Execution Engine，执行引擎，也叫解释器。负责解释命令，执行字节码或本地方法。太偏向于底层，不做深究。</p>
 </li>
-<li><p>提交读（Read Committed）：只能读取到已经提交的数据。即解决了脏读，但未解决不可重复读。</p>
-</li>
-<li><p>可重复读（Repeated Read）：在同一个事务内的查询都是事务开始时刻一致的，InnoDB的默认级别。在SQL标准中，该隔离级别消除了不可重复读，但是还存在幻读。</p>
-</li>
-<li><p>串行读（Serializable）：完全的串行化读，所有SELECT语句都被隐式的转换成SELECT … LOCK IN SHARE MODE，即读取使用表级共享锁，读写相互都会阻塞。隔离级别最高。</p>
+<li><p>Native Interface，本地接口。它赋予了java调用由其它语言编写而成的接口的能力，通过执行引擎加载执行，现在的用处较少，有兴趣的同学可自行学习。</p>
 </li>
 </ol>
-<p>隔离级别对比表：</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th></th>
-<th>脏读</th>
-<th>可重复读</th>
-<th>幻读</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>未提交读</td>
-<td>✖️️</td>
-<td>✖️️</td>
-<td>✖️ ️️️</td>
-</tr>
-<tr>
-<td>提交读</td>
-<td>☑️</td>
-<td>✖️️</td>
-<td>️✖️️</td>
-</tr>
-<tr>
-<td>可重复读</td>
-<td>☑️</td>
-<td>☑️</td>
-<td>✖️</td>
-</tr>
-<tr>
-<td>串行读</td>
-<td>☑️</td>
-<td>☑️</td>
-<td>☑️  </td>
-</tr>
-</tbody>
-</table>
-<h4 id="事务隔离级别的设置"><a href="#事务隔离级别的设置" class="headerlink" title="事务隔离级别的设置"></a>事务隔离级别的设置</h4><p>服务启动选项–transaction-isolation或在配置文件中设置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">[mysqld]</div><div class="line">transaction-isolation = &#123;READ-UNCOMMITTED | READ-COMMITTED</div><div class="line"> | REPEATABLE-READ | SERIALIZABLE&#125;</div></pre></td></tr></table></figure></p>
-<p>2）服务启动后的设置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">SET [GLOBAL | SESSION] TRANSACTION ISOLATION LEVEL</div><div class="line">&#123; READ UNCOMMITTED | READ COMMITTED | REPEATABLE READ | SERIALIZABLE &#125;</div></pre></td></tr></table></figure></p>
+<p>下面重点讲解一下运行数据区</p>
+<h2 id="运行数据区"><a href="#运行数据区" class="headerlink" title="运行数据区"></a>运行数据区</h2><p>Java虚拟机在执行Java程序的过程中会把它所管理的内存划分为若干个不同的数据区域。这些区域都有各自的用途，以及创建和销毁的时间，有的区域随着虚拟机进程的启动而存在，有些区域则是依赖用户线程的启动和结束而建立和销毁。根据《Java虚拟机规范（第2版）》的规定，Java虚拟机所管理的内存将会包括以下几个运行时数据区域，如下图所示：<br><img src="http://pic002.cnblogs.com/images/2012/416402/2012101820014328.jpg" alt="image">    </p>
+<h4 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h4><p>程序计数器（Program Counter Register）是一块较小的内存空间，它的作用可以看做是当前线程所执行的字节码的行号指示器。在虚拟机的概念模型里（仅是概念模型，各种虚拟机可能会通过一些更高效的方式去实现），字节码解释器工作时就是通过改变这个计数器的值来选取下一条需要执行的字节码指令，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖这个计数器来完成。        </p>
+<p>由于Java虚拟机的多线程是通过线程轮流切换并分配处理器执行时间的方式来实现的，在任何一个确定的时刻，一个处理器（对于多核处理器来说是一个内核）只会执行一条线程中的指令。因此，为了线程切换后能恢复到正确的执行位置，每条线程都需要有一个独立的程序计数器，各条线程之间的计数器互不影响，独立存储，我们称这类内存区域为“线程私有”的内存。</p>
+<p>如果线程正在执行的是一个Java方法，这个计数器记录的是正在执行的虚拟机字节码指令的地址；如果正在执行的是Natvie方法，这个计数器值则为空（Undefined）。此内存区域是唯一一个在Java虚拟机规范中没有规定任何OutOfMemoryError情况的区域。</p>
+<h4 id="Java虚拟机栈"><a href="#Java虚拟机栈" class="headerlink" title="Java虚拟机栈"></a>Java虚拟机栈</h4><p>与程序计数器一样，Java虚拟机栈（Java Virtual Machine Stacks）也是线程私有的，它的生命周期与线程相同。虚拟机栈描述的是Java方法执行的内存模型：<strong>每个方法被执行的时候都会同时创建一个栈帧（Stack Frame）用于存储局部变量表、操作栈、动态链接、方法出口等信息。每一个方法被调用直至执行完成的过程，就对应着一个栈帧在虚拟机栈中从入栈到出栈的过程</strong>。<br>经常有人把Java内存区分为堆内存（Heap）和栈内存（Stack），这种分法比较粗糙，Java内存区域的划分实际上远比这复杂。这种划分方式的流行只能说明大多数程序员最关注的、与对象内存分配关系最密切的内存区域是这两块。其中所指的“堆”在后面会专门讲述，而所指的“栈”就是现在讲的虚拟机栈，或者说是虚拟机栈中的局部变量表部分。  </p>
+<p>局部变量表存放了<strong>编译期可知的各种基本数据类型（boolean、byte、char、short、int、float、long、double）、对象引用（reference类型）</strong>，它不等同于对象本身，根据不同的虚拟机实现，它可能是一个指向对象起始地址的引用指针，也可能指向一个代表对象的句柄或者其他与此对象相关的位置）和returnAddress类型（指向了一条字节码指令的地址）。    </p>
+<p>其中64位长度的long和double类型的数据会占用2个局部变量空间（Slot），其余的数据类型只占用1个。局部变量表所需的内存空间在编译期间完成分配，当进入一个方法时，这个方法需要在帧中分配多大的局部变量空间是完全确定的，在方法运行期间不会改变局部变量表的大小。 在Java虚拟机规范中，对这个区域规定了两种异常状况：如果线程请求的栈深度大于虚拟机所允许的深度，将抛出StackOverflowError异常；如果虚拟机栈可以动态扩展（当前大部分的Java虚拟机都可动态扩展，只不过Java虚拟机规范中也允许固定长度的虚拟机栈），当扩展时无法申请到足够的内存时会抛出OutOfMemoryError异常。    </p>
+<h4 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h4><p>本地方法栈（Native Method Stacks）与虚拟机栈所发挥的作用是非常相似的，其区别不过是虚拟机栈为虚拟机执行Java方法（也就是字节码）服务，而本地方法栈则是为虚拟机使用到的Native方法服务。虚拟机规范中对本地方法栈中的方法使用的语言、使用方式与数据结构并没有强制规定，因此具体的虚拟机可以自由实现它。甚至有的虚拟机（譬如Sun HotSpot虚拟机）直接就把本地方法栈和虚拟机栈合二为一。   </p>
+<p>与虚拟机栈一样，本地方法栈区域也会抛出StackOverflowError和OutOfMemoryError异常。</p>
+<h4 id="Java堆"><a href="#Java堆" class="headerlink" title="Java堆"></a>Java堆</h4><p>对于大多数应用来说，<strong>Java堆（Java Heap）是Java虚拟机所管理的内存中最大的一块。Java堆是被所有线程共享的一块内存区域，在虚拟机启动时创建</strong>。<strong>此内存区域的唯一目的就是存放对象实例，几乎所有的对象实例都在这里分配内存</strong>。这一点在Java虚拟机规范中的描述是：所有的对象实例以及数组都要在堆上分配，但是随着JIT编译器的发展与逃逸分析技术的逐渐成熟，栈上分配、标量替换优化技术将会导致一些微妙的变化发生，所有的对象都分配在堆上也渐渐变得不是那么“绝对”了。    </p>
+<p>Java堆是垃圾收集器管理的主要区域，因此很多时候也被称做“GC堆”（Garbage Collected Heap，幸好国内没翻译成“垃圾堆”）。如果从内存回收的角度看，由于现在收集器基本都是采用的分代收集算法，所以<strong>Java堆中还可以细分为：新生代和老年代；再细致一点的有Eden空间、From Survivor空间、To Survivor空间等</strong>。如果从内存分配的角度看，线程共享的Java堆中可能划分出多个线程私有的分配缓冲区（Thread Local Allocation Buffer，TLAB）。不过，无论如何划分，都与存放内容无关，无论哪个区域，存储的都仍然是对象实例，进一步划分的目的是为了更好地回收内存，或者更快地分配内存。在本章中，我们仅仅针对内存区域的作用进行讨论，Java堆中的上述各个区域的分配和回收等细节将会是下一章的主题。      </p>
+<p>根据Java虚拟机规范的规定，Java堆可以处于物理上不连续的内存空间中，只要逻辑上是连续的即可，就像我们的磁盘空间一样。在实现时，既可以实现成固定大小的，也可以是可扩展的，不过当前主流的虚拟机都是按照可扩展来实现的（通过-Xmx和-Xms控制）。如果在堆中没有内存完成实例分配，并且堆也无法再扩展时，将会抛出OutOfMemoryError异常。</p>
+<h4 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h4><p><strong>方法区（Method Area）与Java堆一样，是各个线程共享的内存区域</strong>，它<strong>用于存储已被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码等数据</strong>。虽然Java虚拟机规范把方法区描述为堆的一个逻辑部分，但是它却有一个别名叫做Non-Heap（非堆），目的应该是与Java堆区分开来。  </p>
+<p>对于习惯在HotSpot虚拟机上开发和部署程序的开发者来说，很多人愿意把方法区称为“永久代”（Permanent Generation），本质上两者并不等价，仅仅是因为HotSpot虚拟机的设计团队选择把GC分代收集扩展至方法区，或者说使用永久代来实现方法区而已。对于其他虚拟机（如BEA JRockit、IBM J9等）来说是不存在永久代的概念的。即使是HotSpot虚拟机本身，根据官方发布的路线图信息，现在也有放弃永久代并“搬家”至Native Memory来实现方法区的规划了。    </p>
+<p><strong>Java虚拟机规范对这个区域的限制非常宽松，除了和Java堆一样不需要连续的内存和可以选择固定大小或者可扩展外，还可以选择不实现垃圾收集</strong>。相对而言，垃圾收集行为在这个区域是比较少出现的，但并非数据进入了方法区就如永久代的名字一样“永久”存在了。这个区域的内存回收目标主要是针对常量池的回收和对类型的卸载，一般来说这个区域的回收“成绩”比较难以令人满意，尤其是类型的卸载，条件相当苛刻，但是这部分区域的回收确实是有必要的。在Sun公司的BUG列表中，曾出现过的若干个严重的BUG就是由于低版本的HotSpot虚拟机对此区域未完全回收而导致内存泄漏。 根据Java虚拟机规范的规定，当方法区无法满足内存分配需求时，将抛出OutOfMemoryError异常。</p>
+<h4 id="运行时常量池"><a href="#运行时常量池" class="headerlink" title="运行时常量池"></a>运行时常量池</h4><p><strong>运行时常量池（Runtime Constant Pool）是方法区的一部分</strong>。Class文件中除了有类的版本、字段、方法、接口等描述等信息外，还有一项信息是常量池（Constant Pool Table），<strong>用于存放编译期生成的各种字面量和符号引用，这部分内容将在类加载后存放到方法区的运行时常量池中</strong>。  </p>
+<p>Java虚拟机对Class文件的每一部分（自然也包括常量池）的格式都有严格的规定，每一个字节用于存储哪种数据都必须符合规范上的要求，这样才会被虚拟机认可、装载和执行。但对于运行时常量池，Java虚拟机规范没有做任何细节的要求，不同的提供商实现的虚拟机可以按照自己的需要来实现这个内存区域。不过，一般来说，除了保存Class文件中描述的符号引用外，还会把翻译出来的直接引用也存储在运行时常量池中。    </p>
+<p><strong>运行时常量池相对于Class文件常量池的另外一个重要特征是具备动态性，Java语言并不要求常量一定只能在编译期产生，也就是并非预置入Class文件中常量池的内容才能进入方法区运行时常量池，运行期间也可能将新的常量放入池中</strong>，这种特性被开发人员利用得比较多的便是String类的intern()方法。 既然运行时常量池是方法区的一部分，自然会受到方法区内存的限制，当常量池无法再申请到内存时会抛出OutOfMemoryError异常。</p>
+<h2 id="对象访问"><a href="#对象访问" class="headerlink" title="对象访问"></a>对象访问</h2><p>介绍完Java虚拟机的运行时数据区之后，我们就可以来探讨一个问题：在Java语言中，对象访问是如何进行的？对象访问在Java语言中无处不在，是最普通的程序行为，但即使是最简单的访问，也会却涉及Java栈、Java堆、方法区这三个最重要内存区域之间的关联关系，如下面的这句代码：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Object obj = new Object();</div></pre></td></tr></table></figure></p>
+<p>假设这句代码出现在方法体中，那“Object obj”这部分的语义将会反映到Java栈的本地变量表中，作为一个reference类型数据出现。而“new Object()”这部分的语义将会反映到Java堆中，形成一块存储了Object类型所有实例数据值（Instance Data，对象中各个实例字段的数据）的结构化内存，根据具体类型以及虚拟机实现的对象内存布局（Object Memory Layout）的不同，这块内存的长度是不固定的。另外，在Java堆中还必须包含能查找到此对象类型数据（如对象类型、父类、实现的接口、方法等）的地址信息，这些类型数据则存储在方法区中。    </p>
+<p>由于reference类型在Java虚拟机规范里面只规定了一个指向对象的引用，并没有定义这个引用应该通过哪种方式去定位，以及访问到Java堆中的对象的具体位置，因此不同虚拟机实现的对象访问方式会有所不同，<strong>主流的访问方式有两种：使用句柄和直接指针</strong>。    </p>
+<p>如果使用句柄访问方式，Java堆中将会划分出一块内存来作为句柄池，reference中存储的就是对象的句柄地址，而句柄中包含了对象实例数据和类型数据各自的具体地址信息，如下图所示：<br><img src="http://pic002.cnblogs.com/images/2012/416402/2012101820441174.jpg" alt="image">       </p>
+<p>如果使用的是直接指针访问方式，Java堆对象的布局中就必须考虑如何放置访问类型数据的相关信息，reference中直接存储的就是对象地址，如下图所示：<br><img src="http://pic002.cnblogs.com/images/2012/416402/2012101820481861.jpg" alt="image">   </p>
+<p>这两种对象的访问方式各有优势，使用句柄访问方式的最大好处就是reference中存储的是稳定的句柄地址，在对象被移动（垃圾收集时移动对象是非常普遍的行为）时只会改变句柄中的实例数据指针，而reference本身不需要被修改。使用直接指针访问方式的最大好处就是速度更快，它节省了一次指针定位的时间开销，由于对象的访问在Java中非常频繁，因此这类开销积少成多后也是一项非常可观的执行成本。</p>
 
       
     </div>
@@ -809,7 +968,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/事务的ACID特性和隔离级别/" data-id="cj6arwhhk00a4ymbl2aztib2o" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/JVM体系结构/" data-id="cj6cy7nf5002pktbln63mmlt6" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -823,13 +982,13 @@
 
 
   
-    <article id="post-数据库相关/mysql/设置mysql可以远程登录" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/基础/静态代码块和静态方法" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/">设置mysql可以远程登录</a>
+      <a class="article-title" href="/2017/08/12/Java/基础/静态代码块和静态方法/">静态代码块和静态方法</a>
     </h1>
   
 
@@ -838,13 +997,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/08/12/Java/基础/静态代码块和静态方法/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
   </div>
 
 
@@ -853,15 +1012,22 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="打开远程连接"><a href="#打开远程连接" class="headerlink" title="打开远程连接"></a>打开远程连接</h1><h3 id="登陆"><a href="#登陆" class="headerlink" title="登陆"></a>登陆</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql -u root -h localhost -p</div></pre></td></tr></table></figure>
-<h3 id="使用mysql数据库"><a href="#使用mysql数据库" class="headerlink" title="使用mysql数据库"></a>使用mysql数据库</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">use mysql  #打开mysql数据库</div></pre></td></tr></table></figure>
-<h3 id="更改用户连接的地址"><a href="#更改用户连接的地址" class="headerlink" title="更改用户连接的地址"></a>更改用户连接的地址</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">#将host设置为%表示任何ip都能连接mysql，当然您也可以将host指定为某个ip</div><div class="line"></div><div class="line"></div><div class="line">update user set host=&apos;%&apos; where user=&apos;root&apos; and host=&apos;localhost&apos;;</div><div class="line"></div><div class="line">flush privileges;        #刷新权限表，使配置生效</div><div class="line"></div><div class="line">然后我们就能远程连接我们的mysql了。</div></pre></td></tr></table></figure>
-<h1 id="关闭远程连接"><a href="#关闭远程连接" class="headerlink" title="关闭远程连接"></a>关闭远程连接</h1><p>如果您想关闭远程连接，恢复mysql的默认设置（只能本地连接），您可以通过以下步骤操作：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">use mysql  #打开mysql数据库</div><div class="line"></div><div class="line">#将host设置为localhost表示只能本地连接mysql</div><div class="line"></div><div class="line">update user set host=&apos;localhost&apos; where user=&apos;root&apos;;</div><div class="line"></div><div class="line">flush privileges;        #刷新权限表，使配置生效</div></pre></td></tr></table></figure></p>
-<h1 id="添加可以远程连接的用户"><a href="#添加可以远程连接的用户" class="headerlink" title="添加可以远程连接的用户"></a>添加可以远程连接的用户</h1><p>您也可以添加一个用户名为yuancheng，密码为123456，权限为%（表示任意ip都能连接）的远程连接用户。命令参考如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">grant all on *.* to &apos;yuancheng&apos;@&apos;%&apos; identified by &apos;123456&apos;;</div><div class="line"></div><div class="line">flush privileges;</div></pre></td></tr></table></figure></p>
-<h1 id="更改3306端口监听所有地址（默认只监听127-0-0-1）"><a href="#更改3306端口监听所有地址（默认只监听127-0-0-1）" class="headerlink" title="更改3306端口监听所有地址（默认只监听127.0.0.1）"></a>更改3306端口监听所有地址（默认只监听127.0.0.1）</h1><h3 id="第一步：查看是都3306端口开启"><a href="#第一步：查看是都3306端口开启" class="headerlink" title="第一步：查看是都3306端口开启"></a>第一步：查看是都3306端口开启</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">netstat -an | grep 3306</div></pre></td></tr></table></figure>
-<p>如果结果显示类似：tcp        0      0 127.0.0.1:3306          0.0.0.0:*               LISTEN<br>从结果可以看出3306端口只是在IP 127.0.0.1上监听，所以拒绝了其他IP的访问。</p>
-<h3 id="第二步：修改配置文件"><a href="#第二步：修改配置文件" class="headerlink" title="第二步：修改配置文件"></a>第二步：修改配置文件</h3><p>修改文件 /etc/mysql/my.cnf文件，打开文件，找到下面内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"># Instead of skip-networking the default is now to listen only on</div><div class="line"># localhost which is more compatible and is not less secure.</div><div class="line">bind-address  = 127.0.0.1</div></pre></td></tr></table></figure></p>
-<p>把上面这一行注释掉或者把127.0.0.1换成合适的IP，建议注释掉。<br>重新启动后，重新使用netstat检测：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">~# netstat -an | grep 3306</div><div class="line">tcp        0      0 0.0.0.0:3306            0.0.0.0:*               LISTEN</div></pre></td></tr></table></figure></p>
+        <p>如果有些代码必须在项目启动的时候就执行,就需要使用静态代码块,这种代码是主动执行的;需要在项目启动的时候就初始化但是不执行,在不创建对象的情况下,可以供其他程序调用,而在调用的时候才执行，这需要使用静态方法,这种代码是被动执行的. 静态方法在类加载的时候 就已经加载 可以用类名直接调用。</p>
+<h4 id="静态代码块和静态方法的区别"><a href="#静态代码块和静态方法的区别" class="headerlink" title="静态代码块和静态方法的区别"></a>静态代码块和静态方法的区别</h4><ol>
+<li>静态代码块是自动执行的</li>
+<li>静态方法是被调用的时候才执行的</li>
+</ol>
+<h4 id="在使用静态方法的时候需要注意一下几个方面"><a href="#在使用静态方法的时候需要注意一下几个方面" class="headerlink" title="在使用静态方法的时候需要注意一下几个方面"></a>在使用静态方法的时候需要注意一下几个方面</h4><ol>
+<li>在静态方法里只能直接调用同类中其他的静态成员（包括变量和方法），而不能直接访问类中的非静态成员。这是因为，对于非静态的方法和变量，需要先创建类的实例对象后才可使用，而静态方法在使用前不用创建任何对象。（备注：静态变量是属于整个类的变量而不是属于某个对象的）</li>
+<li>静态方法不能以任何方式引用this和super关键字，因为静态方法在使用前不用创建任何实例对象，当静态方法调用时，this所引用的对象根本没有产生</li>
+</ol>
+<h4 id="静态变量：一直存于内存中，所以一般要少使用静态变量"><a href="#静态变量：一直存于内存中，所以一般要少使用静态变量" class="headerlink" title="静态变量：一直存于内存中，所以一般要少使用静态变量"></a>静态变量：一直存于内存中，所以一般要少使用静态变量</h4><p>建议使用场景：</p>
+<ol>
+<li>变量所包含的对象体积较大，占用内存较多。</li>
+<li>变量所包含的对象生命周期较长。</li>
+<li>变量所包含的对象数据稳定。</li>
+<li>该类的对象实例有对该变量所包含的对象的共享需求。</li>
+</ol>
 
       
     </div>
@@ -872,7 +1038,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/" data-id="cj6arwhhp00agymbl6bndjerl" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/静态代码块和静态方法/" data-id="cj6cy7nfk0036ktblnjtoxa1n" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -886,13 +1052,13 @@
 
 
   
-    <article id="post-数据库相关/mysql/数据库连接池介绍" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/加密解密／编码解码/AES完整实现（Java）" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/数据库连接池介绍/">数据库连接池介绍</a>
+      <a class="article-title" href="/2017/08/10/Java/加密解密／编码解码/AES完整实现（Java）/">AES完整实现（Java）</a>
     </h1>
   
 
@@ -901,13 +1067,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/数据库连接池介绍/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/08/10/Java/加密解密／编码解码/AES完整实现（Java）/" class="article-date"><time datetime="2017-08-10T02:09:45.000Z" itemprop="datePublished">2017-08-10</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a>
   </div>
 
 
@@ -916,17 +1082,12 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="连接池的基本工作原理"><a href="#连接池的基本工作原理" class="headerlink" title="连接池的基本工作原理"></a>连接池的基本工作原理</h2><h3 id="基本概念及原理"><a href="#基本概念及原理" class="headerlink" title="基本概念及原理"></a>基本概念及原理</h3><p>由上面的分析可以看出，问题的根源就在于对数据库连接资源的低效管理。我们知道，对于共享资源，有一个很著名的设计模式：资源池 (Resource Pool)。该模式正是为了解决资源的频繁分配?释放所造成的问题。为解决上述问题，可以采用数据库连接池技术。数据库连接池的基本思想就是为数据库连接 建立一个“缓冲池”。预先在缓冲池中放入一定数量的连接，当需要建立数据库连接时，只需从“缓冲池”中取出一个，使用完毕之后再放回去。我们可以通过设定 连接池最大连接数来防止系统无尽的与数据库连接。更为重要的是我们可以通过连接池的管理机制监视数据库的连接的数量?使用情况，为系统开发?测试及性能调 整提供依据。    </p>
-<h3 id="服务器自带的连接池"><a href="#服务器自带的连接池" class="headerlink" title="服务器自带的连接池"></a>服务器自带的连接池</h3><p>JDBC的API中没有提供连接池的方法。一些大型的WEB应用服务器如BEA的WebLogic和IBM的WebSphere等提供了连接池的机制，但是必须有其第三方的专用类方法支持连接池的用法。    </p>
-<h2 id="连接池关键问题分析"><a href="#连接池关键问题分析" class="headerlink" title="连接池关键问题分析"></a>连接池关键问题分析</h2><h3 id="并发问题"><a href="#并发问题" class="headerlink" title="并发问题"></a>并发问题</h3><p>为了使连接管理服务具有最大的通用性，必须考虑多线程环境，即并发问题。这个问题相对比较好解决，因为Java语言自身提供了对并发管理的支 持，使用synchronized关键字即可确保线程是同步的。使用方法为直接在类方法前面加上synchronized关键字，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public synchronized Connection getConnection()</div></pre></td></tr></table></figure></p>
-<h3 id="多数据库服务器和多用户"><a href="#多数据库服务器和多用户" class="headerlink" title="多数据库服务器和多用户"></a>多数据库服务器和多用户</h3><p>对于大型的企业级应用，常常需要同时连接不同的数据库(如连接Oracle和Sybase)。如何连接不同的数据库呢?我们采用的策略是：设计 一个符合单例模式的连接池管理类，在连接池管理类的唯一实例被创建时读取一个资源文件，其中资源文件中存放着多个数据库的url地址()?用户名()?密 码()等信息。如 tx.url=172.21.15.123：5000/tx_it，tx.user=yang，tx.password=yang321。根据资源文件提 供的信息，创建多个连接池类的实例，每一个实例都是一个特定数据库的连接池。连接池管理类实例为每个连接池实例取一个名字，通过不同的名字来管理不同的连 接池。 </p>
-<p>对于同一个数据库有多个用户使用不同的名称和密码访问的情况，也可以通过资源文件处理，即在资源文件中设置多个具有相同url地址，但具有不同用户名和密码的数据库连接信息。  </p>
-<h3 id="事务处理"><a href="#事务处理" class="headerlink" title="事务处理"></a>事务处理</h3><p>我们知道，事务具有原子性，此时要求对数据库的操作符合“ALL-ALL-NOTHING”原则,即对于一组SQL语句要么全做，要么全不做。   </p>
-<p>在Java语言中，Connection类本身提供了对事务的支持，可以通过设置Connection的AutoCommit属性为 false,然后显式的调用commit或rollback方法来实现。但要高效的进行Connection复用，就必须提供相应的事务支持机制。可采用 每一个事务独占一个连接来实现，这种方法可以大大降低事务管理的复杂性。    </p>
-<h3 id="连接池的分配与释放"><a href="#连接池的分配与释放" class="headerlink" title="连接池的分配与释放"></a>连接池的分配与释放</h3><p>连接池的分配与释放，对系统的性能有很大的影响。合理的分配与释放，可以提高连接的复用度，从而降低建立新连接的开销，同时还可以加快用户的访问速度。  </p>
-<p>对于连接的管理可使用空闲池。即把已经创建但尚未分配出去的连接按创建时间存放到一个空闲池中。每当用户请求一个连接时，系统首先检查空闲池内 有没有空闲连接。如果有就把建立时间最长(通过容器的顺序存放实现)的那个连接分配给他(实际是先做连接是否有效的判断，如果可用就分配给用户，如不可用 就把这个连接从空闲池删掉，重新检测空闲池是否还有连接);如果没有则检查当前所开连接池是否达到连接池所允许的最大连接数(maxConn),如果没有 达到，就新建一个连接，如果已经达到，就等待一定的时间(timeout)。如果在等待的时间内有连接被释放出来就可以把这个连接分配给等待的用户，如果 等待时间超过预定时间timeout,则返回空值(null)。系统对已经分配出去正在使用的连接只做计数，当使用完后再返还给空闲池。对于空闲连接的状 态，可开辟专门的线程定时检测，这样会花费一定的系统开销，但可以保证较快的响应速度。也可采取不开辟专门线程，只是在分配前检测的方法。  </p>
-<h3 id="连接池的配置与维护"><a href="#连接池的配置与维护" class="headerlink" title="连接池的配置与维护"></a>连接池的配置与维护</h3><p>连接池中到底应该放置多少连接，才能使系统的性能最佳?系统可采取设置最小连接数(minConn)和最大连接数(maxConn)来控制连接 池中的连接。最小连接数是系统启动时连接池所创建的连接数。如果创建过多，则系统启动就慢，但创建后系统的响应速度会很快;如果创建过少，则系统启动的很 快，响应起来却慢。这样，可以在开发时，设置较小的最小连接数，开发起来会快，而在系统实际使用时设置较大的，因为这样对访问客户来说速度会快些。最大连 接数是连接池中允许连接的最大数目，具体设置多少，要看系统的访问量，可通过反复测试，找到最佳点。<br>​<br>如何确保连接池中的最小连接数呢?有动态和静态两种策略。动态即每隔一定时间就对连接池进行检测，如果发现连接数量小于最小连接数，则补充相应数量的新连接,以保证连接池的正常运转。静态是发现空闲连接不够时再去检查。</p>
-
+        <h2 id="AES加密解密用到的工具类"><a href="#AES加密解密用到的工具类" class="headerlink" title="AES加密解密用到的工具类"></a>AES加密解密用到的工具类</h2><h3 id="SHA1"><a href="#SHA1" class="headerlink" title="SHA1"></a>SHA1</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 对公众平台发送给公众账号的消息加解密示例代码.</div><div class="line"> * </div><div class="line"> * @copyright Copyright (c) 1998-2014 Tencent Inc.</div><div class="line"> */</div><div class="line"></div><div class="line">// ------------------------------------------------------------------------</div><div class="line"></div><div class="line">package com.xx.aes;</div><div class="line"></div><div class="line">import java.security.MessageDigest;</div><div class="line">import java.util.Arrays;</div><div class="line"></div><div class="line">/**</div><div class="line"> * SHA1 class</div><div class="line"> *</div><div class="line"> * 计算公众平台的消息签名接口.</div><div class="line"> */</div><div class="line">class SHA1 &#123;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 用SHA1算法生成安全签名</div><div class="line">	 * @param token 票据</div><div class="line">	 * @param timestamp 时间戳</div><div class="line">	 * @param nonce 随机字符串</div><div class="line">	 * @param encrypt 密文</div><div class="line">	 * @return 安全签名</div><div class="line">	 * @throws AesException </div><div class="line">	 */</div><div class="line">	public static String getSHA1(String token, String timestamp, String nonce, String encrypt) throws AesException &#123;</div><div class="line">		try &#123;</div><div class="line">			String[] array = new String[] &#123; token, timestamp, nonce, encrypt &#125;;</div><div class="line">			StringBuffer sb = new StringBuffer();</div><div class="line">			// 字符串排序</div><div class="line">			Arrays.sort(array);</div><div class="line">			for (int i = 0; i &lt; 4; i++) &#123;</div><div class="line">				sb.append(array[i]);</div><div class="line">			&#125;</div><div class="line">			String str = sb.toString();</div><div class="line">			// SHA1签名生成</div><div class="line">			MessageDigest md = MessageDigest.getInstance(&quot;SHA-1&quot;);</div><div class="line">			md.update(str.getBytes());</div><div class="line">			byte[] digest = md.digest();</div><div class="line"></div><div class="line">			StringBuffer hexstr = new StringBuffer();</div><div class="line">			String shaHex = &quot;&quot;;</div><div class="line">			for (int i = 0; i &lt; digest.length; i++) &#123;</div><div class="line">				shaHex = Integer.toHexString(digest[i] &amp; 0xFF);</div><div class="line">				if (shaHex.length() &lt; 2) &#123;</div><div class="line">					hexstr.append(0);</div><div class="line">				&#125;</div><div class="line">				hexstr.append(shaHex);</div><div class="line">			&#125;</div><div class="line">			return hexstr.toString();</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			throw new AesException(AesException.ComputeSignatureError);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="PKCS7Encoder"><a href="#PKCS7Encoder" class="headerlink" title="PKCS7Encoder"></a>PKCS7Encoder</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 对公众平台发送给公众账号的消息加解密示例代码.</div><div class="line"> * </div><div class="line"> * @copyright Copyright (c) 1998-2014 Tencent Inc.</div><div class="line"> */</div><div class="line"></div><div class="line">// ------------------------------------------------------------------------</div><div class="line"></div><div class="line">package com.xx0.aes;</div><div class="line"></div><div class="line">import java.nio.charset.Charset;</div><div class="line">import java.util.Arrays;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 提供基于PKCS7算法的加解密接口.</div><div class="line"> */</div><div class="line">class PKCS7Encoder &#123;</div><div class="line">	static Charset CHARSET = Charset.forName(&quot;utf-8&quot;);</div><div class="line">	static int BLOCK_SIZE = 32;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 获得对明文进行补位填充的字节.</div><div class="line">	 * </div><div class="line">	 * @param count 需要进行填充补位操作的明文字节个数</div><div class="line">	 * @return 补齐用的字节数组</div><div class="line">	 */</div><div class="line">	static byte[] encode(int count) &#123;</div><div class="line">		// 计算需要填充的位数</div><div class="line">		int amountToPad = BLOCK_SIZE - (count % BLOCK_SIZE);</div><div class="line">		if (amountToPad == 0) &#123;</div><div class="line">			amountToPad = BLOCK_SIZE;</div><div class="line">		&#125;</div><div class="line">		// 获得补位所用的字符</div><div class="line">		char padChr = chr(amountToPad);</div><div class="line">		String tmp = new String();</div><div class="line">		for (int index = 0; index &lt; amountToPad; index++) &#123;</div><div class="line">			tmp += padChr;</div><div class="line">		&#125;</div><div class="line">		return tmp.getBytes(CHARSET);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 删除解密后明文的补位字符</div><div class="line">	 * </div><div class="line">	 * @param decrypted 解密后的明文</div><div class="line">	 * @return 删除补位字符后的明文</div><div class="line">	 */</div><div class="line">	static byte[] decode(byte[] decrypted) &#123;</div><div class="line">		int pad = (int) decrypted[decrypted.length - 1];</div><div class="line">		if (pad &lt; 1 || pad &gt; 32) &#123;</div><div class="line">			pad = 0;</div><div class="line">		&#125;</div><div class="line">		return Arrays.copyOfRange(decrypted, 0, decrypted.length - pad);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 将数字转化成ASCII码对应的字符，用于对明文进行补码</div><div class="line">	 * </div><div class="line">	 * @param a 需要转化的数字</div><div class="line">	 * @return 转化得到的字符</div><div class="line">	 */</div><div class="line">	static char chr(int a) &#123;</div><div class="line">		byte target = (byte) (a &amp; 0xFF);</div><div class="line">		return (char) target;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="EncryptedMessage"><a href="#EncryptedMessage" class="headerlink" title="EncryptedMessage"></a>EncryptedMessage</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line">package com.xxx.aes;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 携带加密运算后得到的签名、时间戳、随机串和密文的对象</div><div class="line"> */</div><div class="line">public class EncryptedMessage &#123;</div><div class="line"></div><div class="line">	private String signature;</div><div class="line">	private String timestamp;</div><div class="line">	private String nonce;</div><div class="line">	private String data;</div><div class="line">	public EncryptedMessage(String signature, String timestamp, String nonce,</div><div class="line">			String data) &#123;</div><div class="line">		super();</div><div class="line">		this.signature = signature;</div><div class="line">		this.timestamp = timestamp;</div><div class="line">		this.nonce = nonce;</div><div class="line">		this.data = data;</div><div class="line">	&#125;</div><div class="line">	public String getSignature() &#123;</div><div class="line">		return signature;</div><div class="line">	&#125;</div><div class="line">	public void setSignature(String signature) &#123;</div><div class="line">		this.signature = signature;</div><div class="line">	&#125;</div><div class="line">	public String getTimestamp() &#123;</div><div class="line">		return timestamp;</div><div class="line">	&#125;</div><div class="line">	public void setTimestamp(String timeStamp) &#123;</div><div class="line">		this.timestamp = timeStamp;</div><div class="line">	&#125;</div><div class="line">	public String getNonce() &#123;</div><div class="line">		return nonce;</div><div class="line">	&#125;</div><div class="line">	public void setNonce(String nonce) &#123;</div><div class="line">		this.nonce = nonce;</div><div class="line">	&#125;</div><div class="line">	public String getData() &#123;</div><div class="line">		return data;</div><div class="line">	&#125;</div><div class="line">	public void setData(String data) &#123;</div><div class="line">		this.data = data;</div><div class="line">	&#125;</div><div class="line">	@Override</div><div class="line">	public String toString() &#123;</div><div class="line">		return &quot;EncryptedMessage [signature=&quot; + signature + &quot;, timestamp=&quot;</div><div class="line">				+ timestamp + &quot;, nonce=&quot; + nonce + &quot;, data=&quot; + data + &quot;]&quot;;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="ByteGroup"><a href="#ByteGroup" class="headerlink" title="ByteGroup"></a>ByteGroup</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">package com.xx.aes;</div><div class="line"></div><div class="line">import java.util.ArrayList;</div><div class="line"></div><div class="line">class ByteGroup &#123;</div><div class="line">	ArrayList&lt;Byte&gt; byteContainer = new ArrayList&lt;Byte&gt;();</div><div class="line"></div><div class="line">	public byte[] toBytes() &#123;</div><div class="line">		byte[] bytes = new byte[byteContainer.size()];</div><div class="line">		for (int i = 0; i &lt; byteContainer.size(); i++) &#123;</div><div class="line">			bytes[i] = byteContainer.get(i);</div><div class="line">		&#125;</div><div class="line">		return bytes;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public ByteGroup addBytes(byte[] bytes) &#123;</div><div class="line">		for (byte b : bytes) &#123;</div><div class="line">			byteContainer.add(b);</div><div class="line">		&#125;</div><div class="line">		return this;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public int size() &#123;</div><div class="line">		return byteContainer.size();</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="AES加密解密"><a href="#AES加密解密" class="headerlink" title="AES加密解密"></a>AES加密解密</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div><div class="line">171</div><div class="line">172</div><div class="line">173</div><div class="line">174</div><div class="line">175</div><div class="line">176</div><div class="line">177</div><div class="line">178</div><div class="line">179</div><div class="line">180</div><div class="line">181</div><div class="line">182</div><div class="line">183</div><div class="line">184</div><div class="line">185</div><div class="line">186</div><div class="line">187</div><div class="line">188</div><div class="line">189</div><div class="line">190</div><div class="line">191</div><div class="line">192</div><div class="line">193</div><div class="line">194</div><div class="line">195</div><div class="line">196</div><div class="line">197</div><div class="line">198</div><div class="line">199</div><div class="line">200</div><div class="line">201</div><div class="line">202</div><div class="line">203</div><div class="line">204</div><div class="line">205</div><div class="line">206</div><div class="line">207</div><div class="line">208</div><div class="line">209</div><div class="line">210</div><div class="line">211</div><div class="line">212</div><div class="line">213</div><div class="line">214</div><div class="line">215</div><div class="line">216</div><div class="line">217</div><div class="line">218</div><div class="line">219</div><div class="line">220</div><div class="line">221</div><div class="line">222</div><div class="line">223</div><div class="line">224</div><div class="line">225</div><div class="line">226</div><div class="line">227</div><div class="line">228</div><div class="line">229</div><div class="line">230</div><div class="line">231</div><div class="line">232</div><div class="line">233</div><div class="line">234</div><div class="line">235</div><div class="line">236</div><div class="line">237</div><div class="line">238</div><div class="line">239</div><div class="line">240</div><div class="line">241</div><div class="line">242</div><div class="line">243</div><div class="line">244</div><div class="line">245</div><div class="line">246</div><div class="line">247</div><div class="line">248</div><div class="line">249</div><div class="line">250</div><div class="line">251</div><div class="line">252</div><div class="line">253</div><div class="line">254</div><div class="line">255</div><div class="line">256</div><div class="line">257</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 针对org.apache.commons.codec.binary.Base64，</div><div class="line"> * 需要导入架包commons-codec-1.9（或commons-codec-1.8等其他版本）</div><div class="line"> * 官方下载地址：http://commons.apache.org/proper/commons-codec/download_codec.cgi</div><div class="line"> */</div><div class="line">package com.xx.aes;</div><div class="line"></div><div class="line">import java.net.URISyntaxException;</div><div class="line">import java.nio.charset.Charset;</div><div class="line">import java.util.Arrays;</div><div class="line">import java.util.Random;</div><div class="line"></div><div class="line">import javax.crypto.Cipher;</div><div class="line">import javax.crypto.spec.IvParameterSpec;</div><div class="line">import javax.crypto.spec.SecretKeySpec;</div><div class="line"></div><div class="line">import org.apache.commons.codec.binary.Base64;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 用于加密和解密网络中互相传送消息，并且验证消息的安全性，消息加密后用Base64进行编码</div><div class="line"> * 说明：异常java.security.InvalidKeyException:illegal Key Size的解决方案</div><div class="line"> * &lt;ol&gt;</div><div class="line"> * 	&lt;li&gt;在官方网站下载JCE无限制权限策略文件（JDK7的下载地址：</div><div class="line"> *      http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html&lt;/li&gt;</div><div class="line"> * 	&lt;li&gt;下载后解压，可以看到local_policy.jar和US_export_policy.jar以及readme.txt&lt;/li&gt;</div><div class="line"> * 	&lt;li&gt;如果安装了JRE，将两个jar文件放到%JRE_HOME%\lib\security目录下覆盖原来的文件&lt;/li&gt;</div><div class="line"> * 	&lt;li&gt;如果安装了JDK，将两个jar文件放到%JDK_HOME%\jre\lib\security目录下覆盖原来文件&lt;/li&gt;</div><div class="line"> * &lt;/ol&gt;</div><div class="line"> */</div><div class="line">public class HBBizMsgCrypt &#123;</div><div class="line">	static Charset CHARSET = Charset.forName(&quot;utf-8&quot;);</div><div class="line">	Base64 base64 = new Base64();</div><div class="line">	byte[] aesKey;</div><div class="line">	String token;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 构造函数</div><div class="line">	 * @param token 开发者设置的token</div><div class="line">	 * @param encodingAesKey 开发者设置的EncodingAESKey</div><div class="line">	 * </div><div class="line">	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息</div><div class="line">	 */</div><div class="line">	public HBBizMsgCrypt(String token, String encodingAesKey) throws AesException &#123;</div><div class="line">		if (encodingAesKey.length() != 43) &#123;</div><div class="line">			throw new AesException(AesException.IllegalAesKey);</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		this.token = token;</div><div class="line">		this.aesKey = Base64.decodeBase64(encodingAesKey + &quot;=&quot;);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	// 生成4个字节的网络字节序</div><div class="line">	byte[] getNetworkBytesOrder(int sourceNumber) &#123;</div><div class="line">		byte[] orderBytes = new byte[4];</div><div class="line">		orderBytes[3] = (byte) (sourceNumber &amp; 0xFF);</div><div class="line">		orderBytes[2] = (byte) (sourceNumber &gt;&gt; 8 &amp; 0xFF);</div><div class="line">		orderBytes[1] = (byte) (sourceNumber &gt;&gt; 16 &amp; 0xFF);</div><div class="line">		orderBytes[0] = (byte) (sourceNumber &gt;&gt; 24 &amp; 0xFF);</div><div class="line">		return orderBytes;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	// 还原4个字节的网络字节序</div><div class="line">	int recoverNetworkBytesOrder(byte[] orderBytes) &#123;</div><div class="line">		int sourceNumber = 0;</div><div class="line">		for (int i = 0; i &lt; 4; i++) &#123;</div><div class="line">			sourceNumber &lt;&lt;= 8;</div><div class="line">			sourceNumber |= orderBytes[i] &amp; 0xff;</div><div class="line">		&#125;</div><div class="line">		return sourceNumber;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	// 随机生成16位字符串</div><div class="line">	public	String getRandomStr() &#123;</div><div class="line">		String base = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&quot;;</div><div class="line">		Random random = new Random();</div><div class="line">		StringBuffer sb = new StringBuffer();</div><div class="line">		for (int i = 0; i &lt; 16; i++) &#123;</div><div class="line">			int number = random.nextInt(base.length());</div><div class="line">			sb.append(base.charAt(number));</div><div class="line">		&#125;</div><div class="line">		return sb.toString();</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 对明文进行加密.</div><div class="line">	 * </div><div class="line">	 * @param randomStr 随机字符串</div><div class="line">	 * @param text 需要加密的明文</div><div class="line">	 * @return 加密后base64编码的字符串</div><div class="line">	 * @throws AesException aes加密失败</div><div class="line">	 */</div><div class="line">	 public String encrypt(String randomStr, String text) throws AesException &#123;</div><div class="line">		ByteGroup byteCollector = new ByteGroup();</div><div class="line">		byte[] randomStrBytes = randomStr.getBytes(CHARSET);</div><div class="line">		byte[] textBytes = text.getBytes(CHARSET);</div><div class="line">		byte[] networkBytesOrder = getNetworkBytesOrder(textBytes.length);</div><div class="line"></div><div class="line">		// randomStr + networkBytesOrder + text</div><div class="line">		byteCollector.addBytes(randomStrBytes);</div><div class="line">		byteCollector.addBytes(networkBytesOrder);</div><div class="line">		byteCollector.addBytes(textBytes);</div><div class="line"></div><div class="line">		// ... + pad: 使用自定义的填充方式对明文进行补位填充</div><div class="line">		byte[] padBytes = PKCS7Encoder.encode(byteCollector.size());</div><div class="line">		byteCollector.addBytes(padBytes);</div><div class="line"></div><div class="line">		// 获得最终的字节流, 未加密</div><div class="line">		byte[] unencrypted = byteCollector.toBytes();</div><div class="line"></div><div class="line">		try &#123;</div><div class="line">			// 设置加密模式为AES的CBC模式</div><div class="line">			Cipher cipher = Cipher.getInstance(&quot;AES/CBC/NoPadding&quot;);</div><div class="line">			SecretKeySpec keySpec = new SecretKeySpec(aesKey, &quot;AES&quot;);</div><div class="line">			IvParameterSpec iv = new IvParameterSpec(aesKey, 0, 16);</div><div class="line">			cipher.init(Cipher.ENCRYPT_MODE, keySpec, iv);</div><div class="line"></div><div class="line">			// 加密</div><div class="line">			byte[] encrypted = cipher.doFinal(unencrypted);</div><div class="line"></div><div class="line">			// 使用BASE64对加密后的字符串进行编码</div><div class="line">			String base64Encrypted = base64.encodeToString(encrypted);</div><div class="line"></div><div class="line">			return base64Encrypted;</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			throw new AesException(AesException.EncryptAESError);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 对密文进行解密.</div><div class="line">	 * </div><div class="line">	 * @param text 需要解密的密文</div><div class="line">	 * @return 解密得到的明文</div><div class="line">	 * @throws AesException aes解密失败</div><div class="line">	 */</div><div class="line">	public String decrypt(String text) throws AesException &#123;</div><div class="line">		byte[] original;</div><div class="line">		try &#123;</div><div class="line">			// 设置解密模式为AES的CBC模式</div><div class="line">			Cipher cipher = Cipher.getInstance(&quot;AES/CBC/NoPadding&quot;);</div><div class="line">			SecretKeySpec key_spec = new SecretKeySpec(aesKey, &quot;AES&quot;);</div><div class="line">			IvParameterSpec iv = new IvParameterSpec(Arrays.copyOfRange(aesKey, 0, 16));</div><div class="line">			cipher.init(Cipher.DECRYPT_MODE, key_spec, iv);</div><div class="line"></div><div class="line">			// 使用BASE64对密文进行解码</div><div class="line">			byte[] encrypted = Base64.decodeBase64(text);</div><div class="line"></div><div class="line">			// 解密</div><div class="line">			original = cipher.doFinal(encrypted);</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			throw new AesException(AesException.DecryptAESError);</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		String decrypt;</div><div class="line">		try &#123;</div><div class="line">			// 去除补位字符</div><div class="line">			byte[] bytes = PKCS7Encoder.decode(original);</div><div class="line"></div><div class="line">			// 分离16位随机字符串,网络字节序</div><div class="line">			byte[] networkOrder = Arrays.copyOfRange(bytes, 16, 20);</div><div class="line"></div><div class="line">			int textLength = recoverNetworkBytesOrder(networkOrder);</div><div class="line"></div><div class="line">			decrypt = new String(Arrays.copyOfRange(bytes, 20, 20 + textLength), CHARSET);</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			throw new AesException(AesException.IllegalBuffer);</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		return decrypt;</div><div class="line"></div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 将发送的消息加密打包.</div><div class="line">	 * &lt;ol&gt;</div><div class="line">	 * 	&lt;li&gt;对要发送的消息进行AES-CBC加密&lt;/li&gt;</div><div class="line">	 * 	&lt;li&gt;生成安全签名&lt;/li&gt;</div><div class="line">	 * &lt;/ol&gt;</div><div class="line">	 * </div><div class="line">	 * @param msg 需要加密的消息</div><div class="line">	 * @param timestamp 时间戳，可以自己生成</div><div class="line">	 * @param nonce 随机串，可以自己生成</div><div class="line">	 * </div><div class="line">	 * @return 加密后的信息载体，包括signature, timestamp, nonce, encrypt的字符串</div><div class="line">	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息</div><div class="line">	 * @throws URISyntaxException URI语法错误</div><div class="line">	 */</div><div class="line">	public EncryptedMessage encryptMsg(String msg, String timestamp, String nonce) throws AesException, URISyntaxException &#123;</div><div class="line">		// 加密</div><div class="line">		String encrypt = encrypt(getRandomStr(), msg);</div><div class="line">		</div><div class="line">		if (timestamp == null || &quot;&quot;.equals(timestamp)) &#123;</div><div class="line">			timestamp = String.valueOf(System.currentTimeMillis());</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">		String signature = SHA1.getSHA1(token, timestamp, nonce, encrypt);</div><div class="line"></div><div class="line">		return new EncryptedMessage(signature, timestamp, nonce, encrypt);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 检验消息的真实性，并且获取解密后的明文.</div><div class="line">	 * &lt;ol&gt;</div><div class="line">	 * 	&lt;li&gt;利用收到的密文生成安全签名，进行签名验证&lt;/li&gt;</div><div class="line">	 * 	&lt;li&gt;对消息进行解密&lt;/li&gt;</div><div class="line">	 * &lt;/ol&gt;</div><div class="line">	 * </div><div class="line">	 * @param msgSignature 签名串，对应URL参数的signature</div><div class="line">	 * @param timestamp 时间戳，对应URL参数的timestamp</div><div class="line">	 * @param nonce 随机串，对应URL参数的nonce</div><div class="line">	 * @param data 密文，对应URL参数的data</div><div class="line">	 * </div><div class="line">	 * @return 解密后的原文</div><div class="line">	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息</div><div class="line">	 */</div><div class="line">	public String decryptMsg(String msgSignature, String timestamp, String nonce, String data)</div><div class="line">			throws AesException &#123;</div><div class="line"></div><div class="line">		// 验证安全签名</div><div class="line">		String signature = SHA1.getSHA1(token, timestamp, nonce, data);</div><div class="line"></div><div class="line">		// 和URL中的签名比较是否相等</div><div class="line">		// System.out.println(&quot;URL中的签名：&quot; + msg_sign);</div><div class="line">		// System.out.println(&quot;校验签名：&quot; + signature);</div><div class="line">		if (!signature.equals(msgSignature)) &#123;</div><div class="line">			throw new AesException(AesException.ValidateSignatureError);</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		// 解密</div><div class="line">		String result = decrypt(data);</div><div class="line">		return result;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	public static void main(String[] args) throws AesException, URISyntaxException &#123;</div><div class="line">		HBBizMsgCrypt hBBizMsgCrypt=new HBBizMsgCrypt(&quot;123456&quot;,&quot;0123456789012345678901234567890123456789123&quot;);</div><div class="line">		</div><div class="line">		String name=&quot;李四&quot;;</div><div class="line">		String idCard=&quot;123456789123456789&quot;;</div><div class="line">		String mobile=&quot;13428825923&quot;;</div><div class="line">		String bankAccount=&quot;123456789&quot;;</div><div class="line">		String s1=hBBizMsgCrypt.encrypt(hBBizMsgCrypt.getRandomStr(), name);</div><div class="line">		String s2=hBBizMsgCrypt.encrypt(hBBizMsgCrypt.getRandomStr(), idCard);</div><div class="line">		String s3=hBBizMsgCrypt.encrypt(hBBizMsgCrypt.getRandomStr(), mobile);</div><div class="line">		String s4=hBBizMsgCrypt.encrypt(hBBizMsgCrypt.getRandomStr(), bankAccount);</div><div class="line">        </div><div class="line"></div><div class="line">		System.out.println(hBBizMsgCrypt.decrypt(s1));</div><div class="line">		System.out.println(hBBizMsgCrypt.decrypt(s2));</div><div class="line">		System.out.println(hBBizMsgCrypt.decrypt(s3));</div><div class="line">		System.out.println(hBBizMsgCrypt.decrypt(s4));</div><div class="line">	</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="加密解密异常类"><a href="#加密解密异常类" class="headerlink" title="加密解密异常类"></a>加密解密异常类</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line">package com.xx.aes;</div><div class="line"></div><div class="line">@SuppressWarnings(&quot;serial&quot;)</div><div class="line">public class AesException extends Exception &#123;</div><div class="line"></div><div class="line">	public final static int OK = 0;</div><div class="line">	public final static int ValidateSignatureError = -40001;</div><div class="line">	public final static int ParseXmlError = -40002;</div><div class="line">	public final static int ComputeSignatureError = -40003;</div><div class="line">	public final static int IllegalAesKey = -40004;</div><div class="line">	public final static int ValidateAppidError = -40005;</div><div class="line">	public final static int EncryptAESError = -40006;</div><div class="line">	public final static int DecryptAESError = -40007;</div><div class="line">	public final static int IllegalBuffer = -40008;</div><div class="line">	//public final static int EncodeBase64Error = -40009;</div><div class="line">	//public final static int DecodeBase64Error = -40010;</div><div class="line">	//public final static int GenReturnXmlError = -40011;</div><div class="line"></div><div class="line">	private int code;</div><div class="line"></div><div class="line">	private static String getMessage(int code) &#123;</div><div class="line">		switch (code) &#123;</div><div class="line">		case ValidateSignatureError:</div><div class="line">			return &quot;签名验证错误&quot;;</div><div class="line">		case ParseXmlError:</div><div class="line">			return &quot;xml解析失败&quot;;</div><div class="line">		case ComputeSignatureError:</div><div class="line">			return &quot;sha加密生成签名失败&quot;;</div><div class="line">		case IllegalAesKey:</div><div class="line">			return &quot;SymmetricKey非法&quot;;</div><div class="line">		case ValidateAppidError:</div><div class="line">			return &quot;appid校验失败&quot;;</div><div class="line">		case EncryptAESError:</div><div class="line">			return &quot;aes加密失败&quot;;</div><div class="line">		case DecryptAESError:</div><div class="line">			return &quot;aes解密失败&quot;;</div><div class="line">		case IllegalBuffer:</div><div class="line">			return &quot;解密后得到的buffer非法&quot;;</div><div class="line">//		case EncodeBase64Error:</div><div class="line">//			return &quot;base64加密错误&quot;;</div><div class="line">//		case DecodeBase64Error:</div><div class="line">//			return &quot;base64解密错误&quot;;</div><div class="line">//		case GenReturnXmlError:</div><div class="line">//			return &quot;xml生成失败&quot;;</div><div class="line">		default:</div><div class="line">			return null; // cannot be</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public int getCode() &#123;</div><div class="line">		return code;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	AesException(int code) &#123;</div><div class="line">		super(getMessage(code));</div><div class="line">		this.code = code;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -936,7 +1097,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/数据库连接池介绍/" data-id="cj6arwhhm00a9ymblatzh0peu" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/10/Java/加密解密／编码解码/AES完整实现（Java）/" data-id="cj6cy7nf0002dktbljworqp7w" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -953,7 +1114,7 @@
 
 
   <div id="page-nav">
-    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/3/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li><a class="page-number" href="/page/2/">2</a></li><li><a class="page-number" href="/page/3/">3</a></li><li class="active"><span class="page-number">4</span></li><li><a class="page-number" href="/page/5/">5</a></li><li><a class="page-number" href="/page/6/">6</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/16/">16</a></li><li><a class="page-next" rel="next" href="/page/5/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
+    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/3/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li><a class="page-number" href="/page/2/">2</a></li><li><a class="page-number" href="/page/3/">3</a></li><li class="active"><span class="page-number">4</span></li><li><a class="page-number" href="/page/5/">5</a></li><li><a class="page-number" href="/page/6/">6</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/18/">18</a></li><li><a class="page-next" rel="next" href="/page/5/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
   </div>
 
 
@@ -971,7 +1132,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">35</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
   </div>
 
 
@@ -984,7 +1145,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">32</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">53</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
   </div>
 
 
@@ -995,23 +1156,23 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
+          <a href="/2017/08/15/Spring/Security/配置十三：session管理/">配置十三：session管理</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
+          <a href="/2017/08/15/Spring/Security/配置七：缓存UserDetails/">配置七：缓存UserDetails</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/forever/nohup node app.js &/">nohup node app.js &amp;</a>
+          <a href="/2017/08/15/Spring/Security/配置四：认证过程/">配置四：认证过程</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
+          <a href="/2017/08/15/Spring/Security/配置十：退出登录/">配置十：退出登录</a>
         </li>
       
         <li>
-          <a href="/2017/08/13/服务器相关/resin/resin启动，停止，重启/">resin启动，停止，重启</a>
+          <a href="/2017/08/15/Spring/Security/配置十六：基于表达式的权限控制/">配置十六：基于表达式的权限控制</a>
         </li>
       
     </ul>

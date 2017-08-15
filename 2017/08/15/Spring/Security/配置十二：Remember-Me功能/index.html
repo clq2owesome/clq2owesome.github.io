@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>配置十二：Remember-Me功能 | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="一. 概述&amp;emsp;&amp;emsp;Remember-Me是指网站能够在Session之间记住登录用户的身份，具体来说就是我成功认证一次之后在一定的时间内我可以不用再输入用户名和密码进行登录了，系统会自动给我登录。这通常是通过服务端发送一个cookie给客户端浏览器，下次浏览器再访问服务端时服务端能够自动检测客户端的cookie，根据cookie值触发自动登录操作。Spring Security为这">
+<meta property="og:type" content="article">
+<meta property="og:title" content="配置十二：Remember-Me功能">
+<meta property="og:url" content="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置十二：Remember-Me功能/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="一. 概述&amp;emsp;&amp;emsp;Remember-Me是指网站能够在Session之间记住登录用户的身份，具体来说就是我成功认证一次之后在一定的时间内我可以不用再输入用户名和密码进行登录了，系统会自动给我登录。这通常是通过服务端发送一个cookie给客户端浏览器，下次浏览器再访问服务端时服务端能够自动检测客户端的cookie，根据cookie值触发自动登录操作。Spring Security为这">
+<meta property="og:updated_time" content="2017-08-15T02:03:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="配置十二：Remember-Me功能">
+<meta name="twitter:description" content="一. 概述&amp;emsp;&amp;emsp;Remember-Me是指网站能够在Session之间记住登录用户的身份，具体来说就是我成功认证一次之后在一定的时间内我可以不用再输入用户名和密码进行登录了，系统会自动给我登录。这通常是通过服务端发送一个cookie给客户端浏览器，下次浏览器再访问服务端时服务端能够自动检测客户端的cookie，根据cookie值触发自动登录操作。Spring Security为这">
+  
+    <link rel="alternate" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" integrity="sha384-XdYbMnZ/QjLh6iI4ogqCTaIjrFk87ip+ekIjefZch0Y+PvJ8CDYtEs1ipDmPorQ+" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="/css/styles.css">
+  
+
+</head>
+
+<body>
+  <nav class="navbar navbar-inverse">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-menu-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="main-menu-navbar">
+      <ul class="nav navbar-nav">
+        
+          <li><a class=""
+                 href="/index.html">Home</a></li>
+        
+          <li><a class=""
+                 href="/archives/">Archives</a></li>
+        
+      </ul>
+
+      <!--
+      <ul class="nav navbar-nav navbar-right">
+        
+          <li><a href="/atom.xml" title="RSS Feed"><i class="fa fa-rss"></i></a></li>
+        
+      </ul>
+      -->
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+  <div class="container">
+    <div class="blog-header">
+  <h1 class="blog-title">LeoChan&#39;s 个人博客</h1>
+  
+    <p class="lead blog-description">技术都是通用的，重要的是是否具有自主解决问题的能力！</p>
+  
+</div>
+
+    <div class="row">
+        <div class="col-sm-8 blog-main">
+          <article id="post-Spring/Security/配置十二：Remember-Me功能" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 class="article-title" itemprop="name">
+      配置十二：Remember-Me功能
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/15/Spring/Security/配置十二：Remember-Me功能/" class="article-date"><time datetime="2017-08-15T02:09:45.000Z" itemprop="datePublished">2017-08-15</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Security/">Security</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>一. <strong>概述</strong><br>&emsp;&emsp;Remember-Me是指网站能够在Session之间记住登录用户的身份，具体来说就是我成功认证一次之后在一定的时间内我可以不用再输入用户名和密码进行登录了，系统会自动给我登录。这通常是通过服务端发送一个cookie给客户端浏览器，下次浏览器再访问服务端时服务端能够自动检测客户端的cookie，根据cookie值触发自动登录操作。Spring Security为这些操作的发生提供必要的钩子，并且针对于Remember-Me功能有两种实现。一种是简单的使用加密来保证基于cookie的token的安全，另一种是通过数据库或其它持久化存储机制来保存生成的token。<br>&emsp;&emsp;需要注意的是两种实现都需要一个UserDetailsService。如果你使用的AuthenticationProvider不使用UserDetailsService，那么记住我将会不起作用，除非在你的ApplicationContext中拥有一个UserDetailsService类型的bean。</p>
+<p>二. <strong>基于简单加密token的方法</strong><br>&emsp;&emsp;当用户选择了记住我成功登录后，Spring Security将会生成一个cookie发送给客户端浏览器。cookie值由如下方式组成：<br>base64(username+”:”+expirationTime+”:”+md5Hex(username+”:”+expirationTime+”:”+password+”:”+key))  </p>
+<ul>
+<li>username：登录的用户名。</li>
+<li>password：登录的密码。</li>
+<li>expirationTime：token失效的日期和时间，以毫秒表示。</li>
+<li>key：用来防止修改token的一个key。</li>
+</ul>
+<p>&emsp;&emsp;这样用来实现Remember-Me功能的token只能在指定的时间内有效，且必须保证token中所包含的username、password和key没有被改变才行。需要注意的是，这样做其实是存在安全隐患的，那就是在用户获取到实现记住我功能的token后，任何用户都可以在该token过期之前通过该token进行自动登录。如果用户发现自己的token被盗用了，那么他可以通过改变自己的登录密码来立即使其所有的记住我token失效。如果希望我们的应用能够更安全一点，可以使用接下来要介绍的持久化token方式，或者不使用Remember-Me功能，因为Remember-Me功能总是有点不安全的。<br>&emsp;&emsp;使用这种方式时，我们只需要在http元素下定义一个remember-me元素，同时指定其key属性即可。key属性是用来标记存放token的cookie的，对应上文提到的生成token时的那个key。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:http</span> <span class="attr">auto-config</span>=<span class="string">"true"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:form-login</span>/&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 定义记住我功能 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:remember-me</span> <span class="attr">key</span>=<span class="string">"elim"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/**"</span> <span class="attr">access</span>=<span class="string">"ROLE_USER"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:http</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;这里有两个需要注意的地方：</p>
+<ol>
+<li>如果你的登录页面是自定义的，那么需要在登录页面上新增一个名为“_spring_security_remember_me”的checkbox，这是基于NameSpace定义提供的默认名称，如果要自定义可以自己定义TokenBasedRememberMeServices或PersistentTokenBasedRememberMeServices对应的bean，然后通过其parameter属性进行指定。</li>
+<li>上述功能需要一个UserDetailsService，如果在你的ApplicationContext中已经拥有一个了，那么Spring Security将自动获取；如果没有，那么当然你需要定义一个；如果拥有在ApplicationContext中拥有多个UserDetailsService定义，那么你需要通过remember-me元素的user-service-ref属性指定将要使用的那个。如：<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">  <span class="tag">&lt;<span class="name">security:http</span> <span class="attr">auto-config</span>=<span class="string">"true"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:form-login</span>/&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 定义记住我功能，通过user-service-ref指定将要使用的UserDetailsService--&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:remember-me</span> <span class="attr">key</span>=<span class="string">"elim"</span> <span class="attr">user-service-ref</span>=<span class="string">"userDetailsService"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/**"</span> <span class="attr">access</span>=<span class="string">"ROLE_USER"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:http</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"userDetailsService"</span> <span class="attr">class</span>=<span class="string">"org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>三. <strong>基于持久化token的方法</strong><br>&emsp;&emsp;持久化token的方法跟简单加密token的方法在实现Remember-Me功能上大体相同，都是在用户选择了“记住我”成功登录后，将生成的token存入cookie中并发送到客户端浏览器，待到下次用户访问系统时，系统将直接从客户端cookie中读取token进行认证。所不同的是基于简单加密token的方法，一旦用户登录成功后，生成的token将在客户端保存一段时间，如果用户不点击退出登录，或者不修改密码，那么在cookie失效之前，他都可以使用该token进行登录，哪怕该token被别人盗用了，用户与盗用者都同样可以进行登录。而基于持久化token的方法采用这样的实现逻辑：<br>（1）用户选择了“记住我”成功登录后，将会把username、随机产生的序列号、生成的token存入一个数据库表中，同时将它们的组合生成一个cookie发送给客户端浏览器。<br>（2）当下一次没有登录的用户访问系统时，首先检查cookie，如果对应cookie中包含的username、序列号和token与数据库中保存的一致，则表示其通过验证，系统将重新生成一个新的token替换数据库中对应组合的旧token，序列号保持不变，同时删除旧的cookie，重新生成包含新生成的token，旧的序列号和username的cookie发送给客户端。<br>（3）如果检查cookie时，cookie中包含的username和序列号跟数据库中保存的匹配，但是token不匹配。这种情况极有可能是因为你的cookie被人盗用了，由于盗用者使用你原本通过认证的cookie进行登录了导致旧的token失效，而产生了新的token。这个时候Spring Security就可以发现cookie被盗用的情况，它将删除数据库中与当前用户相关的所有token记录，这样盗用者使用原有的cookie将不能再登录，同时提醒用户其帐号有被盗用的可能性。<br>（4）如果对应cookie不存在，或者包含的username和序列号与数据库中保存的不一致，那么将会引导用户到登录页面。</p>
+<p>&emsp;&emsp;从以上逻辑我们可以看出持久化token的方法比简单加密token的方法更安全，因为一旦你的cookie被人盗用了，你只要再利用原有的cookie试图自动登录一次，原有的token将失效导致盗用者不能再使用原来盗用的cookie进行登录了，同时用户可以发现自己的cookie有被盗用的可能性。但因为cookie被盗用后盗用者还可以在用户下一次登录前顺利的进行登录，所以如果你的应用对安全性要求比较高就不要使用Remember-Me功能了。<br>&emsp;&emsp;使用持久化token方法时需要我们的数据库中拥有如下表及其表结构。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">create table persistent_logins (username varchar(64) not null,</div><div class="line">    series varchar(64) primary key,</div><div class="line">    token varchar(64) not null,</div><div class="line">    last_used timestamp not null)</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;然后还是通过remember-me元素来使用，只是这个时候我们需要其data-source-ref属性指定对应的数据源，同时别忘了它也同样需要ApplicationContext中拥有UserDetailsService，如果拥有多个，请使用user-service-ref属性指定remember-me使用的是哪一个。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"> <span class="tag">&lt;<span class="name">security:http</span> <span class="attr">auto-config</span>=<span class="string">"true"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:form-login</span>/&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 定义记住我功能 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:remember-me</span> <span class="attr">data-source-ref</span>=<span class="string">"dataSource"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/**"</span> <span class="attr">access</span>=<span class="string">"ROLE_USER"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:http</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>四. <strong>Remember-Me相关接口和实现类</strong><br>&emsp;&emsp;在上述介绍中，我们实现Remember-Me功能是通过Spring Security为了简化Remember-Me而提供的NameSpace进行定义的。而底层实际上还是通过RememberMeServices、UsernamePasswordAuthenticationFilter和RememberMeAuthenticationFilter的协作来完成的。RememberMeServices是Spring Security为Remember-Me提供的一个服务接口，其定义如下。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">publicinterface RememberMeServices &#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 自动登录。在实现这个方法的时候应该判断用户提供的Remember-Me cookie是否有效，如果无效，应当直接忽略。</div><div class="line">     * 如果认证成功应当返回一个AuthenticationToken，推荐返回RememberMeAuthenticationToken；</div><div class="line">     * 如果认证不成功应当返回null。</div><div class="line">     */</div><div class="line">    <span class="function">Authentication <span class="title">autoLogin</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span></span>;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 在用户登录失败时调用。实现者应当做一些类似于删除cookie之类的处理。</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">void</span> <span class="title">loginFail</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span></span>;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * 在用户成功登录后调用。实现者可以在这里判断用户是否选择了“Remember-Me”登录，然后做相应的处理。</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">void</span> <span class="title">loginSuccess</span><span class="params">(HttpServletRequest request, HttpServletResponse response,</span></span></div><div class="line">        Authentication successfulAuthentication);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;UsernamePasswordAuthenticationFilter拥有一个RememberMeServices的引用，默认是一个空实现的NullRememberMeServices，而实际当我们通过remember-me定义启用Remember-Me时，它会是一个具体的实现。用户的请求会先通过UsernamePasswordAuthenticationFilter，如认证成功会调用RememberMeServices的loginSuccess()方法，否则调用RememberMeServices的loginFail()方法。UsernamePasswordAuthenticationFilter是不会调用RememberMeServices的autoLogin()方法进行自动登录的。之后运行到RememberMeAuthenticationFilter时如果检测到还没有登录，那么RememberMeAuthenticationFilter会尝试着调用所包含的RememberMeServices的autoLogin()方法进行自动登录。关于RememberMeServices Spring Security已经为我们提供了两种实现，分别对应于前文提到的基于简单加密token和基于持久化token的方法。</p>
+<p>五. <strong>TokenBasedRememberMeServices</strong><br>&emsp;&emsp;TokenBasedRememberMeServices对应于前文介绍的使用namespace时基于简单加密token的实现。TokenBasedRememberMeServices会在用户选择了记住我成功登录后，生成一个包含token信息的cookie发送到客户端；如果用户登录失败则会删除客户端保存的实现Remember-Me的cookie。需要自动登录时，它会判断cookie中所包含的关于Remember-Me的信息是否与系统一致，一致则返回一个RememberMeAuthenticationToken供RememberMeAuthenticationProvider处理，不一致则会删除客户端的Remember-Me cookie。TokenBasedRememberMeServices还实现了Spring Security的LogoutHandler接口，所以它可以在用户退出登录时立即清除Remember-Me cookie。<br>&emsp;&emsp; 如果把使用namespace定义Remember-Me改为直接定义RememberMeServices和对应的Filter来使用的话，那么我们可以如下定义。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line"> <span class="tag">&lt;<span class="name">security:http</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:form-login</span> <span class="attr">login-page</span>=<span class="string">"/login.jsp"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/login*.jsp*"</span> <span class="attr">access</span>=<span class="string">"IS_AUTHENTICATED_ANONYMOUSLY"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/**"</span> <span class="attr">access</span>=<span class="string">"ROLE_USER"</span> /&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 把usernamePasswordAuthenticationFilter加入FilterChain --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:custom-filter</span> <span class="attr">ref</span>=<span class="string">"usernamePasswordAuthenticationFilter"</span> <span class="attr">before</span>=<span class="string">"FORM_LOGIN_FILTER"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:custom-filter</span> <span class="attr">ref</span>=<span class="string">"rememberMeFilter"</span> <span class="attr">position</span>=<span class="string">"REMEMBER_ME_FILTER"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:http</span>&gt;</span></div><div class="line"><span class="comment">&lt;!-- 用于认证的AuthenticationManager --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">security:authentication-manager</span> <span class="attr">alias</span>=<span class="string">"authenticationManager"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:authentication-provider</span></span></div><div class="line">     <span class="attr">user-service-ref</span>=<span class="string">"userDetailsService"</span>/&gt;</div><div class="line">  <span class="tag">&lt;<span class="name">security:authentication-provider</span> <span class="attr">ref</span>=<span class="string">"rememberMeAuthenticationProvider"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"userDetailsService"</span></span></div><div class="line">  <span class="attr">class</span>=<span class="string">"org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl"</span>&gt;</div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"usernamePasswordAuthenticationFilter"</span> <span class="attr">class</span>=<span class="string">"org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"rememberMeServices"</span> <span class="attr">ref</span>=<span class="string">"rememberMeServices"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"authenticationManager"</span> <span class="attr">ref</span>=<span class="string">"authenticationManager"</span>/&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 指定request中包含的用户名对应的参数名 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"usernameParameter"</span> <span class="attr">value</span>=<span class="string">"username"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"passwordParameter"</span> <span class="attr">value</span>=<span class="string">"password"</span>/&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 指定登录的提交地址 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"filterProcessesUrl"</span> <span class="attr">value</span>=<span class="string">"/login.do"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div><div class="line"><span class="comment">&lt;!-- Remember-Me对应的Filter --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"rememberMeFilter"</span></span></div><div class="line"><span class="attr">class</span>=<span class="string">"org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter"</span>&gt;</div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"rememberMeServices"</span> <span class="attr">ref</span>=<span class="string">"rememberMeServices"</span> /&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"authenticationManager"</span> <span class="attr">ref</span>=<span class="string">"authenticationManager"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div><div class="line"><span class="comment">&lt;!-- RememberMeServices的实现 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"rememberMeServices"</span></span></div><div class="line"><span class="attr">class</span>=<span class="string">"org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices"</span>&gt;</div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"userDetailsService"</span> <span class="attr">ref</span>=<span class="string">"userDetailsService"</span> /&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"key"</span> <span class="attr">value</span>=<span class="string">"elim"</span> /&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 指定request中包含的用户是否选择了记住我的参数名 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"parameter"</span> <span class="attr">value</span>=<span class="string">"rememberMe"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div><div class="line"><span class="comment">&lt;!-- key值需与对应的RememberMeServices保持一致 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"rememberMeAuthenticationProvider"</span></span></div><div class="line"><span class="attr">class</span>=<span class="string">"org.springframework.security.authentication.RememberMeAuthenticationProvider"</span>&gt;</div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"key"</span> <span class="attr">value</span>=<span class="string">"elim"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;需要注意的是RememberMeAuthenticationProvider在认证RememberMeAuthenticationToken的时候是比较它们拥有的key是否相等，而RememberMeAuthenticationToken的key是TokenBasedRememberMeServices提供的，所以在使用时需要保证RememberMeAuthenticationProvider和TokenBasedRememberMeServices的key属性值保持一致。需要配置UsernamePasswordAuthenticationFilter的rememberMeServices为我们定义好的TokenBasedRememberMeServices，把RememberMeAuthenticationProvider加入AuthenticationManager的providers列表，并添加RememberMeAuthenticationFilter和UsernamePasswordAuthenticationFilter到FilterChainProxy。  </p>
+<p>六. <strong>PersistentTokenBasedRememberMeServices</strong><br>&emsp;&emsp;PersistentTokenBasedRememberMeServices是RememberMeServices基于前文提到的持久化token的方式实现的。具体实现逻辑跟前文介绍的以NameSpace的方式使用基于持久化token的Remember-Me是一样的，这里就不再赘述了。此外，如果单独使用，其使用方式和上文描述的TokenBasedRememberMeServices是一样的，这里也不再赘述了。<br>&emsp;&emsp;需要注意的是PersistentTokenBasedRememberMeServices是需要将token进行持久化的，所以我们必须为其指定存储token的PersistentTokenRepository。Spring Security对此有两种实现，InMemoryTokenRepositoryImpl和JdbcTokenRepositoryImpl。前者是将token存放在内存中的，通常用于测试，而后者是将token存放在数据库中。PersistentTokenBasedRememberMeServices默认使用的是前者，我们可以通过其tokenRepository属性来指定使用的PersistentTokenRepository。<br>&emsp;&emsp;使用JdbcTokenRepositoryImpl时我们可以使用在前文提到的默认表结构。如果需要使用自定义的表，那么我们可以对JdbcTokenRepositoryImpl进行重写。定义JdbcTokenRepositoryImpl时需要指定一个数据源dataSource，同时可以通过设置参数createTableOnStartup的值来控制是否要在系统启动时创建对应的存入token的表，默认创建语句为“create table persistent_logins (username varchar(64) not null, series varchar(64) primary key, token varchar(64) not null, last_used timestamp not null)”，但是如果自动创建时对应的表已经存在于数据库中，则会抛出异常。createTableOnStartup属性默认为false。<br>&emsp;&emsp;直接显示地使用PersistentTokenBasedRememberMeServices和上文提到的直接显示地使用TokenBasedRememberMeServices的方式是一样的，我们只需要将上文提到的配置中RememberMeServices实现类TokenBasedRememberMeServices换成PersistentTokenBasedRememberMeServices即可。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!-- RememberMeServices的实现 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"rememberMeServices"</span></span></div><div class="line">   <span class="attr">class</span>=<span class="string">"org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices"</span>&gt;</div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"userDetailsService"</span> <span class="attr">ref</span>=<span class="string">"userDetailsService"</span> /&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"key"</span> <span class="attr">value</span>=<span class="string">"elim"</span> /&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 指定request中包含的用户是否选择了记住我的参数名 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"parameter"</span> <span class="attr">value</span>=<span class="string">"rememberMe"</span>/&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 指定PersistentTokenRepository --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"tokenRepository"</span>&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl"</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 数据源 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span>/&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 是否在系统启动时创建持久化token的数据库表 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"createTableOnStartup"</span> <span class="attr">value</span>=<span class="string">"false"</span>/&gt;</span></div><div class="line">     <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置十二：Remember-Me功能/" data-id="cj6cy7nh6006sktbl38ja2ysv" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+    
+<ul id="article-nav" class="nav nav-pills nav-justified">
+  
+  <li role="presentation">
+    <a href="/2017/08/15/Spring/Security/配置十九：对Acl的支持/" id="article-nav-older" class="article-nav-link-wrap">
+      <i class="fa fa-chevron-left pull-left"></i>
+      <span class="article-nav-link-title">配置十九：对Acl的支持</span>
+    </a>
+  </li>
+  
+  
+  <li role="presentation">
+    <a href="/2017/08/15/Spring/Security/配置十五：权限鉴定结构/" id="article-nav-newer" class="article-nav-link-wrap">
+      <span class="article-nav-link-title">配置十五：权限鉴定结构</span>
+      <i class="fa fa-chevron-right pull-right"></i>
+    </a>
+  </li>
+  
+</ul>
+
+
+  
+</article>
+
+
+
+
+        </div>
+        <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+          
+  <div class="sidebar-module sidebar-module-inset">
+  <h4>关于</h4>
+  <p>该博客内的文章是博主在日常工作或者学习中总结出来，部分内容来自网络.</p>
+
+</div>
+
+
+  
+  <div class="sidebar-module">
+    <h4>分类</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+  </div>
+
+
+
+  
+
+
+  
+
+  
+  <div class="sidebar-module">
+    <h4>归档</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">53</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+  </div>
+
+
+
+  
+  <div class="sidebar-module">
+    <h4>最近文章</h4>
+    <ul class="sidebar-module-list">
+      
+        <li>
+          <a href="/2017/08/15/Spring/Security/配置十三：session管理/">配置十三：session管理</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/15/Spring/Security/配置七：缓存UserDetails/">配置七：缓存UserDetails</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/15/Spring/Security/配置四：认证过程/">配置四：认证过程</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/15/Spring/Security/配置十：退出登录/">配置十：退出登录</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/15/Spring/Security/配置十六：基于表达式的权限控制/">配置十六：基于表达式的权限控制</a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+
+        </div>
+    </div>
+  </div>
+  <footer class="blog-footer">
+  <div class="container">
+    <div id="footer-info" class="inner">
+      &copy; 2017 LeoChan<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+  
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" integrity="sha384-8gBf6Y4YYq7Jx97PIqmTwLPin4hxIzQw5aDmUg/DDhul9fFpbbLcLh3nTIIDJKhx" crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+
+
+<script src="/js/script.js"></script>
+
+</body>
+</html>
