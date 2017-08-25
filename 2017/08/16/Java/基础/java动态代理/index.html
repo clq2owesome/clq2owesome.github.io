@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>java动态代理 | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="class文件简介及加载 Java编译器编译好Java文件之后，产生.class 文件在磁盘中。这种class文件是二进制文件，内容是只有JVM虚拟机能够识别的机器码。JVM虚拟机读取字节码文件，取出二进制数据，加载到内存中，解析.class 文件内的信息，生成对应的 Class对象: 在运行期的代码中生成二进制字节码由于JVM通过字节码的二进制信息加载类的，那么，如果我们在运行期系统中，遵循Ja">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java动态代理">
+<meta property="og:url" content="https://clq2owesome.github.io/2017/08/16/Java/基础/java动态代理/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="class文件简介及加载 Java编译器编译好Java文件之后，产生.class 文件在磁盘中。这种class文件是二进制文件，内容是只有JVM虚拟机能够识别的机器码。JVM虚拟机读取字节码文件，取出二进制数据，加载到内存中，解析.class 文件内的信息，生成对应的 Class对象: 在运行期的代码中生成二进制字节码由于JVM通过字节码的二进制信息加载类的，那么，如果我们在运行期系统中，遵循Ja">
+<meta property="og:image" content="http://img.blog.csdn.net/20140427155129031">
+<meta property="og:image" content="http://img.blog.csdn.net/20140427160344203?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbHVhbmxvdWlz/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:image" content="http://img.blog.csdn.net/20140526164603234?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbHVhbmxvdWlz/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:image" content="http://img.blog.csdn.net/20140603152131484?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMDM0OTE2OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:image" content="http://img.blog.csdn.net/20140515134257500?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbHVhbmxvdWlz/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:updated_time" content="2017-08-16T09:18:53.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="java动态代理">
+<meta name="twitter:description" content="class文件简介及加载 Java编译器编译好Java文件之后，产生.class 文件在磁盘中。这种class文件是二进制文件，内容是只有JVM虚拟机能够识别的机器码。JVM虚拟机读取字节码文件，取出二进制数据，加载到内存中，解析.class 文件内的信息，生成对应的 Class对象: 在运行期的代码中生成二进制字节码由于JVM通过字节码的二进制信息加载类的，那么，如果我们在运行期系统中，遵循Ja">
+<meta name="twitter:image" content="http://img.blog.csdn.net/20140427155129031">
+  
+    <link rel="alternate" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" integrity="sha384-XdYbMnZ/QjLh6iI4ogqCTaIjrFk87ip+ekIjefZch0Y+PvJ8CDYtEs1ipDmPorQ+" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="/css/styles.css">
+  
+
+</head>
+
+<body>
+  <nav class="navbar navbar-inverse">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-menu-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="main-menu-navbar">
+      <ul class="nav navbar-nav">
+        
+          <li><a class=""
+                 href="/index.html">Home</a></li>
+        
+          <li><a class=""
+                 href="/archives/">Archives</a></li>
+        
+      </ul>
+
+      <!--
+      <ul class="nav navbar-nav navbar-right">
+        
+          <li><a href="/atom.xml" title="RSS Feed"><i class="fa fa-rss"></i></a></li>
+        
+      </ul>
+      -->
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+  <div class="container">
+    <div class="blog-header">
+  <h1 class="blog-title">LeoChan&#39;s 个人博客</h1>
+  
+    <p class="lead blog-description">技术都是通用的，重要的是是否具有自主解决问题的能力！</p>
+  
+</div>
+
+    <div class="row">
+        <div class="col-sm-8 blog-main">
+          <article id="post-Java/基础/java动态代理" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 class="article-title" itemprop="name">
+      java动态代理
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/16/Java/基础/java动态代理/" class="article-date"><time datetime="2017-08-16T02:09:45.000Z" itemprop="datePublished">2017-08-16</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="class文件简介及加载"><a href="#class文件简介及加载" class="headerlink" title="class文件简介及加载"></a>class文件简介及加载</h2><p> Java编译器编译好Java文件之后，产生.class 文件在磁盘中。这种class文件是二进制文件，内容是只有JVM虚拟机能够识别的机器码。JVM虚拟机读取字节码文件，取出二进制数据，加载到内存中，解析.class 文件内的信息，生成对应的 Class对象:<br><img src="http://img.blog.csdn.net/20140427155129031" alt="image"></p>
+<h3 id="在运行期的代码中生成二进制字节码"><a href="#在运行期的代码中生成二进制字节码" class="headerlink" title="在运行期的代码中生成二进制字节码"></a>在运行期的代码中生成二进制字节码</h3><p>由于JVM通过字节码的二进制信息加载类的，那么，如果我们在运行期系统中，遵循Java编译系统组织.class文件的格式和结构，生成相应的二进制数据，然后再把这个二进制数据加载转换成对应的类，这样，就完成了在代码中，动态创建一个类的能力了。<br><img src="http://img.blog.csdn.net/20140427160344203?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbHVhbmxvdWlz/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="image"><br>在运行时期可以按照Java虚拟机规范对class文件的组织规则生成对应的二进制字节码。当前有很多开源框架可以完成这些功能，如ASM，Javassist。</p>
+<h4 id="在运行时期可以按照Java虚拟机规范对class文件的组织规则生成对应的二进制字节码。当前有很多开源框架可以完成这些功能，如ASM，Javassist。"><a href="#在运行时期可以按照Java虚拟机规范对class文件的组织规则生成对应的二进制字节码。当前有很多开源框架可以完成这些功能，如ASM，Javassist。" class="headerlink" title="在运行时期可以按照Java虚拟机规范对class文件的组织规则生成对应的二进制字节码。当前有很多开源框架可以完成这些功能，如ASM，Javassist。"></a>在运行时期可以按照Java虚拟机规范对class文件的组织规则生成对应的二进制字节码。当前有很多开源框架可以完成这些功能，如ASM，Javassist。</h4><p>ASM 是一个 Java 字节码操控框架。它能够以二进制形式修改已有类或者动态生成类。ASM 可以直接产生二进制 class 文件，也可以在类被加载入 Java 虚拟机之前动态改变类行为。ASM 从类文件中读入信息后，能够改变类行为，分析类信息，甚至能够根据用户要求生成新类。  </p>
+<p><strong>不过ASM在创建class字节码的过程中，操纵的级别是底层JVM的汇编指令级别，这要求ASM使用者要对class组织结构和JVM汇编指令有一定的了解。</strong></p>
+<h4 id="Java字节码生成开源框架介绍–Javassist："><a href="#Java字节码生成开源框架介绍–Javassist：" class="headerlink" title="Java字节码生成开源框架介绍–Javassist："></a>Java字节码生成开源框架介绍–Javassist：</h4><p>Javassist是一个开源的分析、编辑和创建Java字节码的类库。是由东京工业大学的数学和计算机科学系的 Shigeru Chiba （千叶 滋）所创建的。它已加入了开放源代码JBoss 应用服务器项目,通过使用Javassist对字节码操作为JBoss实现动态AOP框架。javassist是jboss的一个子项目，其主要的优点，在于简单，而且快速。直接使用java编码的形式，而不需要了解虚拟机指令，就能动态改变类的结构，或者动态生成类。</p>
+<h2 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h2><p>代理模式上，基本上有Subject角色，RealSubject角色，Proxy角色。其中：Subject角色负责定义RealSubject和Proxy角色应该实现的接口；RealSubject角色用来真正完成业务服务功能；Proxy角色负责将自身的Request请求，调用realsubject 对应的request功能来实现业务功能，自己不真正做业务。   <img src="http://img.blog.csdn.net/20140526164603234?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbHVhbmxvdWlz/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="image"><br>上面的这幅代理结构图是典型的静态的代理模式：<br><strong>当在代码阶段规定这种代理关系，Proxy类通过编译器编译成class文件，当系统运行时，此class已经存在了。这种静态的代理模式固然在访问无法访问的资源，增强现有的接口业务功能方面有很大的优点，但是大量使用这种静态代理，会使我们系统内的类的规模增大，并且不易维护；并且由于Proxy和RealSubject的功能 本质上是相同的，Proxy只是起到了中介的作用，这种代理在系统中的存在，导致系统结构比较臃肿和松散。</strong>  </p>
+<p>为了解决这个问题，就有了动态地创建Proxy的想法：在运行状态中，需要代理的地方，根据Subject 和RealSubject，动态地创建一个Proxy，用完之后，就会销毁，这样就可以避免了Proxy 角色的class在系统中冗杂的问题了。</p>
+<h2 id="JDK动态代理"><a href="#JDK动态代理" class="headerlink" title="JDK动态代理"></a>JDK动态代理</h2><p>仔细思考代理模式中的代理Proxy角色。Proxy角色在执行代理业务的时候，无非是在调用真正业务之前或者之后做一些“额外”业务。<br><img src="http://img.blog.csdn.net/20140603152131484?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMDM0OTE2OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="image"><br>有上图可以看出，代理类处理的逻辑很简单：<strong>在调用某个方法前及方法后做一些额外的业务</strong>。换一种思路就是：<strong>在触发（invoke）真实角色的方法之前或者之后做一些额外的业务</strong>。那么，为了构造出具有通用性和简单性的代理类，可以将所有的触发真实角色动作交给一个触发的管理器，让这个管理器统一地管理触发。这种管理器就是InvocationHandler。<br>动态代理模式的结构跟上面的静态代理模式稍微有所不同，多引入了一个InvocationHandler角色。    </p>
+<p>动态代理工作的基本模式就是将自己的方法功能的实现交给 InvocationHandler角色，外界对Proxy角色中的每一个方法的调用，Proxy角色都会交给InvocationHandler来处理，而InvocationHandler则调用具体对象角色的方法。如下图所示：<br><img src="http://img.blog.csdn.net/20140515134257500?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbHVhbmxvdWlz/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="image"><br>在这种模式之中：代理Proxy 和RealSubject 应该实现相同的功能，这一点相当重要。（我这里说的功能，可以理解为某个类的public方法）  </p>
+<p>在面向对象的编程之中，如果我们想要约定Proxy 和RealSubject可以实现相同的功能，有两种方式：</p>
+<ol>
+<li>JDK动态代理模式：就是定义一个功能接口，然后让Proxy 和RealSubject来实现这个接口。</li>
+<li>CGLIB模式：通过继承。因为如果Proxy 继承自RealSubject，这样Proxy则拥有了RealSubject的功能，Proxy还可以通过重写RealSubject中的方法，来实现多态。</li>
+</ol>
+<p>Java 动态代理机制的一些特点：</p>
+<ol>
+<li>包：如果所代理的接口都是 public 的，那么它将被定义在顶层包（即包路径为空），如果所代理的接口中有非 public 的接口（因为接口不能被定义为 protect 或 private，所以除 public 之外就是默认的 package 访问级别），那么它将被定义在该接口所在包（假设代理了 com.ibm.developerworks 包中的某非 public 接口 A，那么新生成的代理类所在的包就是 com.ibm.developerworks），这样设计的目的是为了最大程度的保证动态代理类不会因为包管理的问题而无法被成功定义并访问；</li>
+<li>类名：格式是“$ProxyN”，其中 N 是一个逐一递增的阿拉伯数字，代表 Proxy 类第 N 次生成的动态代理类，值得注意的一点是，并不是每次调用 Proxy 的静态方法创建动态代理类都会使得 N 值增加，原因是如果对同一组接口（包括接口排列的顺序相同）试图重复创建动态代理类，它会很聪明地返回先前已经创建好的代理类的类对象，而不会再尝试去创建一个全新的代理类，这样可以节省不必要的代码重复生成，提高了代理类的创建效率。</li>
+<li>要注意不能有重复的接口，以避免动态代理类代码生成时的编译错误。</li>
+<li>这些接口对于类装载器必须可见，否则类装载器将无法链接它们，将会导致类定义失败。再次，需被代理的所有非public的接口必须在同一个包中，否则代理类生成也会失败。</li>
+<li>接口的数目不能超过 65535，这是 JVM 设定的限制。</li>
+</ol>
+<h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><h4 id="目标接口TargetInterface"><a href="#目标接口TargetInterface" class="headerlink" title="目标接口TargetInterface"></a>目标接口TargetInterface</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">public interface TargetInterface &#123; </div><div class="line">    public int targetMethodA(int number); </div><div class="line">    public int targetMethodB(int number); </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h4 id="实现该接口的委托类ConcreteClass"><a href="#实现该接口的委托类ConcreteClass" class="headerlink" title="实现该接口的委托类ConcreteClass"></a>实现该接口的委托类ConcreteClass</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">public class ConcreteClass implements TargetInterface&#123; </div><div class="line"> </div><div class="line">    public int targetMethodA(int number) &#123; </div><div class="line">        System.out.println(&quot;开始调用目标类的方法targetMethodA...&quot;); </div><div class="line">        System.out.println(&quot;操作-打印数字:&quot;+number); </div><div class="line">        System.out.println(&quot;结束调用目标类的方法targetMethodA...&quot;); </div><div class="line">        return number; </div><div class="line">    &#125; </div><div class="line"> </div><div class="line">    public int targetMethodB(int number)&#123; </div><div class="line">        System.out.println(&quot;开始调用目标类的方法targetMethodB...&quot;); </div><div class="line">        System.out.println(&quot;操作-打印数字:&quot;+number); </div><div class="line">        System.out.println(&quot;结束调用目标类的方法targetMethodB...&quot;); </div><div class="line">        return number; </div><div class="line">    &#125; </div><div class="line"> </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>很简单，一个普通的类，实现了目标接口。</p>
+<h4 id="代理处理器类ProxyHandler"><a href="#代理处理器类ProxyHandler" class="headerlink" title="代理处理器类ProxyHandler"></a>代理处理器类ProxyHandler</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">public class ProxyHandler implements InvocationHandler&#123; </div><div class="line">    private Object concreteClass; </div><div class="line"> </div><div class="line">    public ProxyHandler(Object concreteClass)&#123; </div><div class="line">        this.concreteClass=concreteClass; </div><div class="line">    &#125; </div><div class="line"> </div><div class="line">    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable &#123; </div><div class="line">        System.out.println(&quot;proxy:&quot;+proxy.getClass().getName()); </div><div class="line">        System.out.println(&quot;method:&quot;+method.getName()); </div><div class="line">        System.out.println(&quot;args:&quot;+args[0].getClass().getName());  </div><div class="line">        System.out.println(&quot;Before invoke method...&quot;); </div><div class="line">        Object object=method.invoke(concreteClass, args);//普通的Java反射代码,通过反射执行某个类的某方法 </div><div class="line"></div><div class="line">        System.out.println(&quot;After invoke method...&quot;); </div><div class="line">        return object; </div><div class="line">    &#125; </div><div class="line"> </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>该类实现了Java反射包中的InvocationHandler接口。代理实例调用方法时，将对方法调用指派到它的代理处理器程序的invoke方法中。invoke方法内部实现预处理，对委托类方法调用，事后处理等逻辑。</p>
+<h4 id="测试类"><a href="#测试类" class="headerlink" title="测试类"></a>测试类</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">public class DynamicProxyExample &#123; </div><div class="line">    public static void main(String[] args)&#123; </div><div class="line">        ConcreteClass c = new ConcreteClass();//元对象(被代理对象) </div><div class="line">        InvocationHandler ih = new ProxyHandler(c);//代理实例的调用处理程序。 </div><div class="line">        //创建一个实现业务接口的代理类,用于访问业务类(见代理模式)。 </div><div class="line">        //返回一个指定接口的代理类实例，该接口可以将方法调用指派到指定的调用处理程序，如ProxyHandler。 </div><div class="line">        TargetInterface targetInterface = (TargetInterface)Proxy.newProxyInstance(c.getClass().getClassLoader(),c.getClass().getInterfaces(),ih); </div><div class="line">        //调用代理类方法,Java执行InvocationHandler接口的方法. </div><div class="line">        int i = targetInterface.targetMethodA(5); </div><div class="line">        System.out.println(i); </div><div class="line">        System.out.println(); </div><div class="line">        int j = targetInterface.targetMethodB(15); </div><div class="line">        System.out.println(j); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>首先创建委托类对象，将其以构造函数传入代理处理器，代理处理器ProxyHandler中会以Java反射方式调用该委托类对应的方法。然后使用Java反射机制中的Proxy.newProxyInstance方式创建一个代理类实例，创建该实例需要指定该实例的类加载器，需要实现的接口(即目标接口)，以及处理代理实例接口调用的处理器。<br>最后，调用代理类目标接口方法时，会自动将其转发到代理处理器中的invoke方法内，invoke方法内部实现预处理，对委托类方法调用，事后处理等逻辑。</p>
+<h2 id="CGlib（Code-Generation-Library）动态代理"><a href="#CGlib（Code-Generation-Library）动态代理" class="headerlink" title="CGlib（Code Generation Library）动态代理"></a>CGlib（Code Generation Library）动态代理</h2><p>CGLIB（Code Generation Library），是一个强大的，高性能，高质量的Code生成类库，它可以在运行期扩展Java类与实现Java接口。</p>
+<p>JDK中提供的生成动态代理类的机制有个鲜明的特点是： <strong>某个类必须有实现的接口，而生成的代理类也只能代理某个类接口定义的方法</strong><br>如果某个类没有实现接口，那么这个类就不能同JDK产生动态代理了！<br>此时，cglib可以通过继承的方式实现动态代理。</p>
+<p>使用CGLib实现动态代理，完全不受代理类必须实现接口的限制，而且CGLib底层采用ASM字节码生成框架，使用字节码技术生成代理类，比使用Java反射效率要高。唯一需要注意的是，CGLib不能对声明为final的方法进行代理，因为CGLib原理是动态生成被代理类的子类。</p>
+<p>cglib 创建某个类A的动态代理类的模式是：</p>
+<ol>
+<li>查找A上的所有非final 的public类型的方法定义；</li>
+<li>将这些方法的定义转换成字节码；</li>
+<li>将组成的字节码转换成相应的代理的class对象；</li>
+<li>实现 MethodInterceptor接口，用来处理 对代理类上所有方法的请求（这个接口和JDK动态代理InvocationHandler的功能和角色是一样的）</li>
+</ol>
+<h4 id="实例-1"><a href="#实例-1" class="headerlink" title="实例"></a>实例</h4><h5 id="被代理类-首先，定义一个类，该类没有实现任何接口。"><a href="#被代理类-首先，定义一个类，该类没有实现任何接口。" class="headerlink" title="被代理类:首先，定义一个类，该类没有实现任何接口。"></a>被代理类:首先，定义一个类，该类没有实现任何接口。</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">public class ConcreteClassNoInterface &#123; </div><div class="line">    public String getConcreteMethodA(String str)&#123; </div><div class="line">        System.out.println(&quot;ConcreteMethod A ... &quot;+str); </div><div class="line">        return str; </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h5 id="拦截器：定义一个拦截器。在调用目标方法时，CGLib会回调MethodInterceptor接口方法拦截，来实现你自己的代理逻辑，类似于JDK中的InvocationHandler接口。"><a href="#拦截器：定义一个拦截器。在调用目标方法时，CGLib会回调MethodInterceptor接口方法拦截，来实现你自己的代理逻辑，类似于JDK中的InvocationHandler接口。" class="headerlink" title="拦截器：定义一个拦截器。在调用目标方法时，CGLib会回调MethodInterceptor接口方法拦截，来实现你自己的代理逻辑，类似于JDK中的InvocationHandler接口。"></a>拦截器：定义一个拦截器。在调用目标方法时，CGLib会回调MethodInterceptor接口方法拦截，来实现你自己的代理逻辑，类似于JDK中的InvocationHandler接口。</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public class ConcreteClassInterceptor implements MethodInterceptor&#123; </div><div class="line">    public Object intercept(Object obj, Method method, Object[] arg, MethodProxy proxy) throws Throwable &#123; </div><div class="line">        System.out.println(&quot;Before:&quot;+method); </div><div class="line">        Object object=proxy.invokeSuper(obj, arg); </div><div class="line">        System.out.println(&quot;After:&quot;+method); </div><div class="line">        return object; </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>参数：  </p>
+<ul>
+<li>Object为由CGLib动态生成的代理类实例</li>
+<li>Method为上文中实体类所调用的被代理的方法引用</li>
+<li>Object[]为参数值列表，MethodProxy为生成的代理类对方法的代理引用。</li>
+<li>proxy.invokeSuper(obj,arg)：调用代理类实例上的proxy方法的父类方法（即实体类ConcreteClassNoInterface中对应的方法）</li>
+<li>返回：从代理实例的方法调用返回的值。</li>
+</ul>
+<h5 id="生成动态代理类"><a href="#生成动态代理类" class="headerlink" title="生成动态代理类"></a>生成动态代理类</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Enhancer enhancer=new Enhancer(); </div><div class="line">enhancer.setSuperclass(ConcreteClassNoInterface.class); </div><div class="line">enhancer.setCallback(new ConcreteClassInterceptor()); </div><div class="line">ConcreteClassNoInterface ccni = (ConcreteClassNoInterface)enhancer.create();</div></pre></td></tr></table></figure>
+<p>这里Enhancer类是CGLib中的一个字节码增强器，它可以方便的对你想要处理的类进行扩展。<br>首先将被代理类ConcreteClassNoInterface设置成父类，然后设置拦截器ConcreteClassInterceptor，最后执行enhancer.create()动态生成一个代理类，并从Object强制转型成父类型ConcreteClassNoInterface。<br>最后，在代理类上调用方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ccni.getConcreteMethodA(&quot;haha&quot;);</div></pre></td></tr></table></figure></p>
+<p>调用getConcreteMethodA()是在拦截器中的intercept方法中调用的，在调用前后，进行了一些逻辑处理，这里只是简单的打印了一些语句</p>
+<p>　　</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/16/Java/基础/java动态代理/" data-id="cj6rbmivi002slhblnn6pra0y" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+    
+<ul id="article-nav" class="nav nav-pills nav-justified">
+  
+  <li role="presentation">
+    <a href="/2017/08/16/Java/基础/重载与重写/" id="article-nav-older" class="article-nav-link-wrap">
+      <i class="fa fa-chevron-left pull-left"></i>
+      <span class="article-nav-link-title">重载与重写</span>
+    </a>
+  </li>
+  
+  
+</ul>
+
+
+  
+</article>
+
+
+
+
+        </div>
+        <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+          
+  <div class="sidebar-module sidebar-module-inset">
+  <h4>关于</h4>
+  <p>该博客内的文章是博主在日常工作或者学习中总结出来，部分内容来自网络.</p>
+
+</div>
+
+
+  
+  <div class="sidebar-module">
+    <h4>分类</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">63</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">11</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+  </div>
+
+
+
+  
+
+
+  
+
+  
+  <div class="sidebar-module">
+    <h4>归档</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">56</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+  </div>
+
+
+
+  
+  <div class="sidebar-module">
+    <h4>最近文章</h4>
+    <ul class="sidebar-module-list">
+      
+        <li>
+          <a href="/2017/08/16/Java/基础/java动态代理/">java动态代理</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/16/Java/基础/重载与重写/">重载与重写</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/15/Spring/Security/配置七：缓存UserDetails/">配置七：缓存UserDetails</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/15/Spring/Security/配置十二：Remember-Me功能/">配置十二：Remember-Me功能</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/15/Spring/Security/配置十五：权限鉴定结构/">配置十五：权限鉴定结构</a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+
+        </div>
+    </div>
+  </div>
+  <footer class="blog-footer">
+  <div class="container">
+    <div id="footer-info" class="inner">
+      &copy; 2017 LeoChan<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+  
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" integrity="sha384-8gBf6Y4YYq7Jx97PIqmTwLPin4hxIzQw5aDmUg/DDhul9fFpbbLcLh3nTIIDJKhx" crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+
+
+<script src="/js/script.js"></script>
+
+</body>
+</html>

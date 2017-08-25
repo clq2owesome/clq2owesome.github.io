@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-Spring/Security/配置三：核心类介绍" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/Security/配置五：异常信息本地化" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/15/Spring/Security/配置三：核心类介绍/">配置三：核心类介绍</a>
+      <a class="article-title" href="/2017/08/15/Spring/Security/配置五：异常信息本地化/">配置五：异常信息本地化</a>
     </h1>
   
 
@@ -95,7 +95,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/15/Spring/Security/配置三：核心类介绍/" class="article-date"><time datetime="2017-08-15T02:09:45.000Z" itemprop="datePublished">2017-08-15</time></a>
+  <a href="/2017/08/15/Spring/Security/配置五：异常信息本地化/" class="article-date"><time datetime="2017-08-15T02:09:45.000Z" itemprop="datePublished">2017-08-15</time></a>
 </div>
 
     
@@ -110,22 +110,10 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="Authentication"><a href="#Authentication" class="headerlink" title="Authentication"></a>Authentication</h2><p> Authentication是一个接口，用来表示用户认证信息的，在用户登录认证之前相关信息会封装为一个Authentication具体实现类的对象，在登录认证成功之后又会生成一个信息更全面，包含用户权限等信息的Authentication对象，然后把它保存在SecurityContextHolder所持有的SecurityContext中，供后续的程序进行调用，如访问权限的鉴定等。</p>
-<h2 id="SecurityContextHolder"><a href="#SecurityContextHolder" class="headerlink" title="SecurityContextHolder"></a>SecurityContextHolder</h2><p>&emsp;&emsp;SecurityContextHolder是用来保存SecurityContext的。SecurityContext中含有当前正在访问系统的用户的详细信息。默认情况下，SecurityContextHolder将使用ThreadLocal来保存SecurityContext，这也就意味着在处于同一线程中的方法中我们可以从ThreadLocal中获取到当前的SecurityContext。因为线程池的原因，如果我们每次在请求完成后都将ThreadLocal进行清除的话，那么我们把SecurityContext存放在ThreadLocal中还是比较安全的。这些工作Spring Security已经自动为我们做了，即在每一次request结束后都将清除当前线程的ThreadLocal。<br>&emsp;&emsp;SecurityContextHolder中定义了一系列的静态方法，而这些静态方法内部逻辑基本上都是通过SecurityContextHolder持有的SecurityContextHolderStrategy来实现的，如getContext()、setContext()、clearContext()等。而默认使用的strategy就是基于ThreadLocal的ThreadLocalSecurityContextHolderStrategy。另外，Spring Security还提供了两种类型的strategy实现，GlobalSecurityContextHolderStrategy和InheritableThreadLocalSecurityContextHolderStrategy，前者表示全局使用同一个SecurityContext，如C/S结构的客户端；后者使用InheritableThreadLocal来存放SecurityContext，即子线程可以使用父线程中存放的变量。<br>&emsp;&emsp;一般而言，我们使用默认的strategy就可以了，但是如果要改变默认的strategy，Spring Security为我们提供了两种方法，这两种方式都是通过改变strategyName来实现的。SecurityContextHolder中为三种不同类型的strategy分别命名为MODE_THREADLOCAL、MODE_INHERITABLETHREADLOCAL和MODE_GLOBAL。第一种方式是通过SecurityContextHolder的静态方法setStrategyName()来指定需要使用的strategy；第二种方式是通过系统属性进行指定，其中属性名默认为“spring.security.strategy”，属性值为对应strategy的名称。<br>&emsp;&emsp;Spring Security使用一个Authentication对象来描述当前用户的相关信息。SecurityContextHolder中持有的是当前用户的SecurityContext，而SecurityContext持有的是代表当前用户相关信息的Authentication的引用。这个Authentication对象不需要我们自己去创建，在与系统交互的过程中，Spring Security会自动为我们创建相应的Authentication对象，然后赋值给当前的SecurityContext。但是往往我们需要在程序中获取当前用户的相关信息，比如最常见的是获取当前登录用户的用户名。在程序的任何地方，通过如下方式我们可以获取到当前用户的用户名。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getCurrentUsername</span><span class="params">()</span> </span>&#123;</div><div class="line">  Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();</div><div class="line">  <span class="keyword">if</span> (principal <span class="keyword">instanceof</span> UserDetails) &#123;</div><div class="line">     <span class="keyword">return</span> ((UserDetails) principal).getUsername();</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">if</span> (principal <span class="keyword">instanceof</span> Principal) &#123;</div><div class="line">     <span class="keyword">return</span> ((Principal) principal).getName();</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> String.valueOf(principal);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>&emsp;&emsp;通过Authentication.getPrincipal()可以获取到代表当前用户的信息，这个对象通常是UserDetails的实例。获取当前用户的用户名是一种比较常见的需求，关于上述代码其实Spring Security在Authentication中的实现类中已经为我们做了相关实现，所以获取当前用户的用户名最简单的方式应当如下。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"> <span class="function"><span class="keyword">public</span> String <span class="title">getCurrentUsername</span><span class="params">()</span> </span>&#123;</div><div class="line">      <span class="keyword">return</span> SecurityContextHolder.getContext().getAuthentication().getName();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>&emsp;&emsp;此外，调用SecurityContextHolder.getContext()获取SecurityContext时，如果对应的SecurityContext不存在，则Spring Security将为我们建立一个空的SecurityContext并进行返回。</p>
-<h2 id="AuthenticationManager和AuthenticationProvider"><a href="#AuthenticationManager和AuthenticationProvider" class="headerlink" title="AuthenticationManager和AuthenticationProvider"></a>AuthenticationManager和AuthenticationProvider</h2><p>&emsp;&emsp;AuthenticationManager是一个用来处理认证（Authentication）请求的接口。在其中只定义了一个方法authenticate()，该方法只接收一个代表认证请求的Authentication对象作为参数，如果认证成功，则会返回一个封装了当前用户权限等信息的Authentication对象进行返回。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function">Authentication <span class="title">authenticate</span><span class="params">(Authentication authentication)</span> <span class="keyword">throws</span> AuthenticationException</span>;</div></pre></td></tr></table></figure></p>
-<p>&emsp;&emsp;在Spring Security中，AuthenticationManager的默认实现是ProviderManager，而且它不直接自己处理认证请求，而是委托给其所配置的AuthenticationProvider列表，然后会依次使用每一个AuthenticationProvider进行认证，如果有一个AuthenticationProvider认证后的结果不为null，则表示该AuthenticationProvider已经认证成功，之后的AuthenticationProvider将不再继续认证。然后直接以该AuthenticationProvider的认证结果作为ProviderManager的认证结果。如果所有的AuthenticationProvider的认证结果都为null，则表示认证失败，将抛出一个ProviderNotFoundException。校验认证请求最常用的方法是根据请求的用户名加载对应的UserDetails，然后比对UserDetails的密码与认证请求的密码是否一致，一致则表示认证通过。Spring Security内部的DaoAuthenticationProvider就是使用的这种方式。其内部使用UserDetailsService来负责加载UserDetails，UserDetailsService将在下节讲解。在认证成功以后会使用加载的UserDetails来封装要返回的Authentication对象，加载的UserDetails对象是包含用户权限等信息的。认证成功返回的Authentication对象将会保存在当前的SecurityContext中。<br>&emsp;&emsp;当我们在使用NameSpace时， authentication-manager元素的使用会使Spring Security 在内部创建一个ProviderManager，然后可以通过authentication-provider元素往其中添加AuthenticationProvider。当定义authentication-provider元素时，如果没有通过ref属性指定关联哪个AuthenticationProvider，Spring Security默认就会使用DaoAuthenticationProvider。使用了NameSpace后我们就不要再声明ProviderManager了。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:authentication-manager</span> <span class="attr">alias</span>=<span class="string">"authenticationManager"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:authentication-provider</span></span></div><div class="line">     <span class="attr">user-service-ref</span>=<span class="string">"userDetailsService"</span>/&gt;</div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div></pre></td></tr></table></figure></p>
-<p>&emsp;&emsp;如果我们没有使用NameSpace，那么我们就应该在ApplicationContext中声明一个ProviderManager。</p>
-<h2 id="认证成功后清除凭证"><a href="#认证成功后清除凭证" class="headerlink" title="认证成功后清除凭证"></a>认证成功后清除凭证</h2><p>&emsp;&emsp;默认情况下，在认证成功后ProviderManager将清除返回的Authentication中的凭证信息，如密码。所以如果你在无状态的应用中将返回的Authentication信息缓存起来了，那么以后你再利用缓存的信息去认证将会失败，因为它已经不存在密码这样的凭证信息了。所以在使用缓存的时候你应该考虑到这个问题。一种解决办法是设置ProviderManager的eraseCredentialsAfterAuthentication 属性为false，或者想办法在缓存时将凭证信息一起缓存。</p>
-<h2 id="UserDetailsService"><a href="#UserDetailsService" class="headerlink" title="UserDetailsService"></a>UserDetailsService</h2><p>&emsp;&emsp;通过Authentication.getPrincipal()的返回类型是Object，但很多情况下其返回的其实是一个UserDetails的实例。UserDetails是Spring Security中一个核心的接口。其中定义了一些可以获取用户名、密码、权限等与认证相关的信息的方法。Spring Security内部使用的UserDetails实现类大都是内置的User类，我们如果要使用UserDetails时也可以直接使用该类。在Spring Security内部很多地方需要使用用户信息的时候基本上都是使用的UserDetails，比如在登录认证的时候。登录认证的时候Spring Security会通过UserDetailsService的loadUserByUsername()方法获取对应的UserDetails进行认证，认证通过后会将该UserDetails赋给认证通过的Authentication的principal，然后再把该Authentication存入到SecurityContext中。之后如果需要使用用户信息的时候就是通过SecurityContextHolder获取存放在SecurityContext中的Authentication的principal。<br>&emsp;&emsp;通常我们需要在应用中获取当前用户的其它信息，如Email、电话等。这时存放在Authentication的principal中只包含有认证相关信息的UserDetails对象可能就不能满足我们的要求了。这时我们可以实现自己的UserDetails，在该实现类中我们可以定义一些获取用户其它信息的方法，这样将来我们就可以直接从当前SecurityContext的Authentication的principal中获取这些信息了。上文已经提到了UserDetails是通过UserDetailsService的loadUserByUsername()方法进行加载的。UserDetailsService也是一个接口，我们也需要实现自己的UserDetailsService来加载我们自定义的UserDetails信息。然后把它指定给AuthenticationProvider即可。如下是一个配置UserDetailsService的示例。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!-- 用于认证的AuthenticationManager --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">security:authentication-manager</span> <span class="attr">alias</span>=<span class="string">"authenticationManager"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:authentication-provider</span></span></div><div class="line">     <span class="attr">user-service-ref</span>=<span class="string">"userDetailsService"</span> /&gt;</div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"userDetailsService"</span></span></div><div class="line">  <span class="attr">class</span>=<span class="string">"org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl"</span>&gt;</div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure></p>
-<p>&emsp;&emsp;上述代码中我们使用的JdbcDaoImpl是Spring Security为我们提供的UserDetailsService的实现，另外Spring Security还为我们提供了UserDetailsService另外一个实现，InMemoryDaoImpl。<br>&emsp;&emsp;其作用是从数据库中加载UserDetails信息。其中已经定义好了加载相关信息的默认脚本，这些脚本也可以通过JdbcDaoImpl的相关属性进行指定。关于JdbcDaoImpl使用方式会在讲解AuthenticationProvider的时候做一个相对详细一点的介绍。</p>
-<h2 id="JdbcDaoImpl"><a href="#JdbcDaoImpl" class="headerlink" title="JdbcDaoImpl"></a>JdbcDaoImpl</h2><p>&emsp;&emsp;JdbcDaoImpl允许我们从数据库来加载UserDetails，其底层使用的是Spring的JdbcTemplate进行操作，所以我们需要给其指定一个数据源。此外，我们需要通过usersByUsernameQuery属性指定通过username查询用户信息的SQL语句；通过authoritiesByUsernameQuery属性指定通过username查询用户所拥有的权限的SQL语句；如果我们通过设置JdbcDaoImpl的enableGroups为true启用了用户组权限的支持，则我们还需要通过groupAuthoritiesByUsernameQuery属性指定根据username查询用户组权限的SQL语句。当这些信息都没有指定时，将使用默认的SQL语句，默认的SQL语句如下所示。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">select username, password, enabled from users where username=? --根据username查询用户信息</div><div class="line">select username, authority from authorities where username=? --根据username查询用户权限信息</div><div class="line">select g.id, g.group_name, ga.authority from groups g, groups_members gm, groups_authorities ga where gm.username=? and g.id=ga.group_id and g.id=gm.group_id --根据username查询用户组权限</div></pre></td></tr></table></figure></p>
-<p>&emsp;&emsp;使用默认的SQL语句进行查询时意味着我们对应的数据库中应该有对应的表和表结构，Spring Security为我们提供的默认表的创建脚本如下。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="function">create table <span class="title">users</span><span class="params">(</span></span></div><div class="line">      username varchar_ignorecase(<span class="number">50</span>) not <span class="keyword">null</span> primary key,</div><div class="line">      password <span class="title">varchar_ignorecase</span><span class="params">(<span class="number">50</span>)</span> not <span class="keyword">null</span>,</div><div class="line">      enabled <span class="keyword">boolean</span> not <span class="keyword">null</span>);</div><div class="line"> </div><div class="line"><span class="function">create table <span class="title">authorities</span> <span class="params">(</span></span></div><div class="line">      username varchar_ignorecase(<span class="number">50</span>) not <span class="keyword">null</span>,</div><div class="line">      authority <span class="title">varchar_ignorecase</span><span class="params">(<span class="number">50</span>)</span> not <span class="keyword">null</span>,</div><div class="line">      constraint fk_authorities_users foreign <span class="title">key</span><span class="params">(username)</span> references <span class="title">users</span><span class="params">(username)</span>);</div><div class="line">      <span class="function">create unique index ix_auth_username on <span class="title">authorities</span> <span class="params">(username,authority)</span></span>;</div><div class="line">     </div><div class="line"><span class="function">create table <span class="title">groups</span> <span class="params">(</span></span></div><div class="line">      id bigint generated by <span class="keyword">default</span> as identity(start with <span class="number">0</span>) primary key,</div><div class="line">      group_name <span class="title">varchar_ignorecase</span><span class="params">(<span class="number">50</span>)</span> notnull);</div><div class="line"> </div><div class="line"><span class="function">create table <span class="title">group_authorities</span> <span class="params">(</span></span></div><div class="line">      group_id bigint notnull,</div><div class="line">      authority varchar(<span class="number">50</span>) notnull,</div><div class="line">      constraint fk_group_authorities_group foreign <span class="title">key</span><span class="params">(group_id)</span> references <span class="title">groups</span><span class="params">(id)</span>);</div><div class="line"> </div><div class="line"><span class="function">create table <span class="title">group_members</span> <span class="params">(</span></span></div><div class="line">      id bigint generated by <span class="keyword">default</span> as identity(start with <span class="number">0</span>) primary key,</div><div class="line">      username <span class="title">varchar</span><span class="params">(<span class="number">50</span>)</span> notnull,</div><div class="line">      group_id bigint notnull,</div><div class="line">      constraint fk_group_members_group foreign <span class="title">key</span><span class="params">(group_id)</span> references <span class="title">groups</span><span class="params">(id)</span>);</div></pre></td></tr></table></figure></p>
-<p>&emsp;&emsp;此外，使用jdbc-user-service元素时在底层Spring Security默认使用的就是JdbcDaoImpl。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"> <span class="tag">&lt;<span class="name">security:authentication-manager</span> <span class="attr">alias</span>=<span class="string">"authenticationManager"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:authentication-provider</span>&gt;</span></div><div class="line">     <span class="comment">&lt;!-- 基于Jdbc的UserDetailsService实现，JdbcDaoImpl --&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">security:jdbc-user-service</span> <span class="attr">data-source-ref</span>=<span class="string">"dataSource"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">security:authentication-provider</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div></pre></td></tr></table></figure></p>
-<h2 id="InMemoryDaoImpl"><a href="#InMemoryDaoImpl" class="headerlink" title="InMemoryDaoImpl"></a>InMemoryDaoImpl</h2><p>&emsp;&emsp;  InMemoryDaoImpl主要是测试用的，其只是简单的将用户信息保存在内存中。使用NameSpace时，使用user-service元素Spring Security底层使用的UserDetailsService就是InMemoryDaoImpl。此时，我们可以简单的使用user元素来定义一个UserDetails。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:user-service</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:user</span> <span class="attr">name</span>=<span class="string">"user"</span> <span class="attr">password</span>=<span class="string">"user"</span> <span class="attr">authorities</span>=<span class="string">"ROLE_USER"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:user-service</span>&gt;</span></div></pre></td></tr></table></figure></p>
-<p>&emsp;&emsp;<br>如上配置表示我们定义了一个用户user，其对应的密码为user，拥有ROLE_USER的权限。此外，user-service还支持通过properties文件来指定用户信息，如：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"> <span class="tag">&lt;<span class="name">security:user-service</span> <span class="attr">properties</span>=<span class="string">"/WEB-INF/config/users.properties"</span>/&gt;</span></div><div class="line">   其中属性文件应遵循如下格式：</div><div class="line">username=password,grantedAuthority[,grantedAuthority][,enabled|disabled]</div><div class="line">   所以，对应上面的配置文件，我们的users.properties文件的内容应该如下所示：</div><div class="line">#username=password,grantedAuthority[,grantedAuthority][,enabled|disabled]</div><div class="line">user=user,ROLE_USER</div></pre></td></tr></table></figure></p>
-<h2 id="GrantedAuthority"><a href="#GrantedAuthority" class="headerlink" title="GrantedAuthority"></a>GrantedAuthority</h2><p>&emsp;&emsp; Authentication的getAuthorities()可以返回当前Authentication对象拥有的权限，即当前用户拥有的权限。其返回值是一个GrantedAuthority类型的数组，每一个GrantedAuthority对象代表赋予给当前用户的一种权限。GrantedAuthority是一个接口，其通常是通过UserDetailsService进行加载，然后赋予给UserDetails的。<br>&emsp;&emsp;GrantedAuthority中只定义了一个getAuthority()方法，该方法返回一个字符串，表示对应权限的字符串表示，如果对应权限不能用字符串表示，则应当返回null。<br>&emsp;&emsp;<br>Spring Security针对GrantedAuthority有一个简单实现SimpleGrantedAuthority。该类只是简单的接收一个表示权限的字符串。Spring Security内部的所有AuthenticationProvider都是使用SimpleGrantedAuthority来封装Authentication对象。</p>
+        <p>&emsp;&emsp;Spring Security支持将展现给终端用户看的异常信息本地化，这些信息包括认证失败、访问被拒绝等。而对于展现给开发者看的异常信息和日志信息（如配置错误）则是不能够进行本地化的，它们是以英文硬编码在Spring Security的代码中的。在Spring-Security-core-xxx.jar包的org.springframework.security包下拥有一个以英文异常信息为基础的messages.properties文件，以及其它一些常用语言的异常信息对应的文件，如messages_zh_CN.properties文件。那么对于用户而言所需要做的就是在自己的ApplicationContext中定义如下这样一个bean。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"messageSource"</span></span></div><div class="line">    <span class="attr">class</span>=<span class="string">"org.springframework.context.support.ReloadableResourceBundleMessageSource"</span>&gt;</div><div class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"basename"</span></span></div><div class="line">         <span class="attr">value</span>=<span class="string">"classpath:org/springframework/security/messages"</span> /&gt;</div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;如果要自己定制messages.properties文件，或者需要新增本地化支持文件，则可以copy Spring Security提供的默认messages.properties文件，将其中的内容进行修改后再注入到上述bean中。比如我要定制一些中文的提示信息，那么我可以在copy一个messages.properties文件到类路径的“com/xxx”下，然后将其重命名为messages_zh_CN.properties，并修改其中的提示信息。然后通过basenames属性注入到上述bean中，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"> &lt;bean id=&quot;messageSource&quot;</div><div class="line">   class=&quot;org.springframework.context.support.ReloadableResourceBundleMessageSource&quot;&gt;</div><div class="line">  &lt;property name=&quot;basenames&quot;&gt;</div><div class="line">     &lt;array&gt;</div><div class="line">        &lt;!-- 将自定义的放在Spring Security内置的之前 --&gt;</div><div class="line">        &lt;value&gt;classpath:com/xxx/messages&lt;/value&gt;</div><div class="line">        &lt;value&gt;classpath:org/springframework/security/messages&lt;/value&gt;</div><div class="line">     &lt;/array&gt;</div><div class="line">  &lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;有一点需要注意的是将自定义的messages.properties文件路径定义在Spring Security内置的message.properties路径定义之前。</p>
 
       
     </div>
@@ -136,7 +124,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置三：核心类介绍/" data-id="cj6cy7ngq005uktbltt0o9vpk" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置五：异常信息本地化/" data-id="cj6rbmixm006zlhblqg7vn17h" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -150,13 +138,13 @@
 
 
   
-    <article id="post-前端技术相关/forever/使用forever后台运行node.js" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/Security/配置八：intercept-url配置" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
+      <a class="article-title" href="/2017/08/15/Spring/Security/配置八：intercept-url配置/">配置八：intercept-url配置</a>
     </h1>
   
 
@@ -165,13 +153,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
+  <a href="/2017/08/15/Spring/Security/配置八：intercept-url配置/" class="article-date"><time datetime="2017-08-15T02:09:45.000Z" itemprop="datePublished">2017-08-15</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/前端技术相关/">前端技术相关</a> / <a class="article-category-link" href="/categories/前端技术相关/forever/">forever</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Security/">Security</a>
   </div>
 
 
@@ -180,14 +168,24 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>forever能做更多的事情，比如分别记录输出和错误日志，宕机重启，热部署。比如可以在js中作为api使用</p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">npm install forever -g</div></pre></td></tr></table></figure>
-<h2 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service forever start</div></pre></td></tr></table></figure>
-<h2 id="使用forever启动js文件"><a href="#使用forever启动js文件" class="headerlink" title="使用forever启动js文件"></a>使用forever启动js文件</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever start app.js</div></pre></td></tr></table></figure>
-<h2 id="停止js文件"><a href="#停止js文件" class="headerlink" title="停止js文件"></a>停止js文件</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever stop app.js</div></pre></td></tr></table></figure>
-<h2 id="启动js文件并输出日志文件"><a href="#启动js文件并输出日志文件" class="headerlink" title="启动js文件并输出日志文件"></a>启动js文件并输出日志文件</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever start -l forever.log -o out.log -e err.log app.js</div></pre></td></tr></table></figure>
-<h2 id="重启js文件"><a href="#重启js文件" class="headerlink" title="重启js文件"></a>重启js文件</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever restart app.js</div></pre></td></tr></table></figure>
-<h2 id="查看正在运行的进程"><a href="#查看正在运行的进程" class="headerlink" title="查看正在运行的进程"></a>查看正在运行的进程</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever list</div></pre></td></tr></table></figure>
+        <p>一. <strong>指定拦截的url</strong><br>通过pattern指定当前intercept-url定义应当作用于哪些url。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/**"</span> <span class="attr">access</span>=<span class="string">"ROLE_USER"</span>/&gt;</span></div></pre></td></tr></table></figure>
+<p>二. <strong>指定访问权限</strong><br>&emsp;&emsp;可以通过access属性来指定intercept-url对应URL访问所应当具有的权限。access的值是一个字符串，其可以直接是一个权限的定义，也可以是一个表达式。常用的类型有简单的角色名称定义，多个名称之间用逗号分隔，如：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/secure/**"</span> <span class="attr">access</span>=<span class="string">"ROLE_USER,ROLE_ADMIN"</span>/&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;在上述配置中就表示secure路径下的所有URL请求都应当具有ROLE_USER或ROLE<em>ADMIN权限。当access的值是以“ROLE</em>”开头的则将会交由RoleVoter进行处理。</p>
+<p>&emsp;&emsp;此外，其还可以是一个表达式，上述配置如果使用表达式来表示的话则应该是如下这个样子。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:http</span> <span class="attr">use-expressions</span>=<span class="string">"true"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:form-login</span> /&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:logout</span> /&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/secure/**"</span> <span class="attr">access</span>=<span class="string">"hasAnyRole('ROLE_USER','ROLE_ADMIN')"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:http</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;或者是使用hasRole()表达式，然后中间以or连接，如：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/secure/**"</span> <span class="attr">access</span>=<span class="string">"hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')"</span>/&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;<strong>需要注意的是使用表达式时需要指定http元素的use-expressions=”true”</strong>。更多关于使用表达式的内容将在后文介绍。当intercept-url的access属性使用表达式时默认将使用WebExpressionVoter进行处理。<br>&emsp;&emsp;       此外，还可以指定三个比较特殊的属性值，默认情况下将使用AuthenticatedVoter来处理它们。</p>
+<ul>
+<li>IS_AUTHENTICATED_ANONYMOUSLY表示用户不需要登录就可以访问；</li>
+<li>IS_AUTHENTICATED_REMEMBERED表示用户需要是通过Remember-Me功能进行自动登录的才能访问；</li>
+<li>IS_AUTHENTICATED_FULLY表示用户的认证类型应该是除前两者以外的，也就是用户需要是通过登录入口进行登录认证的才能访问。如我们通常会将登录地址设置为IS_AUTHENTICATED_ANONYMOUSLY。<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:http</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:form-login</span> <span class="attr">login-page</span>=<span class="string">"/login.jsp"</span>/&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 登录页面可以匿名访问 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/login.jsp*"</span> <span class="attr">access</span>=<span class="string">"IS_AUTHENTICATED_ANONYMOUSLY"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/**"</span> <span class="attr">access</span>=<span class="string">"ROLE_USER"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:http</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>三. <strong>指定访问协议</strong><br>&emsp;&emsp;如果你的应用同时支持Http和Https访问，且要求某些URL只能通过Https访问，这个需求可以通过指定intercept-url的requires-channel属性来指定。<br>requires-channel支持三个值：<code>http</code>、<code>https</code>和<code>any</code>。any表示http和https都可以访问。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:http</span> <span class="attr">auto-config</span>=<span class="string">"true"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:form-login</span>/&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 只能通过https访问 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/admin/**"</span> <span class="attr">access</span>=<span class="string">"ROLE_ADMIN"</span> <span class="attr">requires-channel</span>=<span class="string">"https"</span>/&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 只能通过http访问 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/**"</span> <span class="attr">access</span>=<span class="string">"ROLE_USER"</span> <span class="attr">requires-channel</span>=<span class="string">"http"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:http</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;需要注意的是当试图使用http请求限制了只能通过https访问的资源时会自动跳转到对应的https通道重新请求。如果所使用的http或者https协议不是监听在标准的端口上（http默认是80，https默认是443），则需要我们通过port-mapping元素定义好它们的对应关系。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:http</span> <span class="attr">auto-config</span>=<span class="string">"true"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:form-login</span>/&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 只能通过https访问 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/admin/**"</span> <span class="attr">access</span>=<span class="string">"ROLE_ADMIN"</span> <span class="attr">requires-channel</span>=<span class="string">"https"</span>/&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 只能通过http访问 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/**"</span> <span class="attr">access</span>=<span class="string">"ROLE_USER"</span> <span class="attr">requires-channel</span>=<span class="string">"http"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:port-mappings</span>&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">security:port-mapping</span> <span class="attr">http</span>=<span class="string">"8899"</span> <span class="attr">https</span>=<span class="string">"9988"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">security:port-mappings</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:http</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>四. <strong>指定请求方法</strong><br>&emsp;&emsp;通常我们都会要求某些URL只能通过POST请求，某些URL只能通过GET请求。这些限制Spring Security也已经为我们实现了，通过指定intercept-url的method属性可以限制当前intercept-url适用的请求方式，默认为所有的方式都可以。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:http</span> <span class="attr">auto-config</span>=<span class="string">"true"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:form-login</span>/&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 只能通过POST访问 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/post/**"</span> <span class="attr">method</span>=<span class="string">"POST"</span>/&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 只能通过GET访问 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/**"</span> <span class="attr">access</span>=<span class="string">"ROLE_USER"</span> <span class="attr">method</span>=<span class="string">"GET"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:http</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>method的可选值有<code>GET</code>、<code>POST</code>、<code>DELETE</code>、<code>PUT</code>、<code>HEAD</code>、<code>OPTIONS</code>和<code>TRACE</code>。</p>
+
       
     </div>
 
@@ -197,7 +195,274 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/" data-id="cj6cy7nhm007yktblypl97xpq" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置八：intercept-url配置/" data-id="cj6rbmixn0071lhblnmlch8yz" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/Security/配置六：AuthenticationProvider" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/15/Spring/Security/配置六：AuthenticationProvider/">配置六：AuthenticationProvider</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/15/Spring/Security/配置六：AuthenticationProvider/" class="article-date"><time datetime="2017-08-15T02:09:45.000Z" itemprop="datePublished">2017-08-15</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Security/">Security</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>&emsp;&emsp;认证是由AuthenticationManager来管理的，但是真正进行认证的是AuthenticationManager中定义的AuthenticationProvider。AuthenticationManager中可以定义有多个AuthenticationProvider。当我们使用authentication-provider元素来定义一个AuthenticationProvider时，如果没有指定对应关联的AuthenticationProvider对象，Spring Security默认会使用DaoAuthenticationProvider。DaoAuthenticationProvider在进行认证的时候需要一个UserDetailsService来获取用户的信息UserDetails，其中包括用户名、密码和所拥有的权限等。所以如果我们需要改变认证的方式，我们可以实现自己的AuthenticationProvider；如果需要改变认证的用户信息来源，我们可以实现UserDetailsService。</p>
+<p>&emsp;&emsp;实现了自己的AuthenticationProvider之后，我们可以在配置文件中这样配置来使用我们自己的AuthenticationProvider。其中myAuthenticationProvider就是我们自己的AuthenticationProvider实现类对应的bean。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"> <span class="tag">&lt;<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">security:authentication-provider</span> <span class="attr">ref</span>=<span class="string">"myAuthenticationProvider"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>&emsp;&emsp;实现了自己的UserDetailsService之后，我们可以在配置文件中这样配置来使用我们自己的UserDetailsService。其中的myUserDetailsService就是我们自己的UserDetailsService实现类对应的bean。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">security:authentication-provider</span> <span class="attr">user-service-ref</span>=<span class="string">"myUserDetailsService"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>一. <strong>用户信息从数据库获取</strong><br>&emsp;&emsp;通常我们的用户信息都不会向第一节示例中那样简单的写在配置文件中，而是从其它存储位置获取，比如数据库。根据之前的介绍我们知道用户信息是通过UserDetailsService获取的，要从数据库获取用户信息，我们就需要实现自己的UserDetailsService。幸运的是像这种常用的方式Spring Security已经为我们做了实现了。</p>
+<p>二. <strong>使用jdbc-user-service获取</strong><br>&emsp;&emsp;在Spring Security的命名空间中在authentication-provider下定义了一个jdbc-user-service元素，通过该元素我们可以定义一个从数据库获取UserDetails的UserDetailsService。jdbc-user-service需要接收一个数据源的引用。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"> <span class="tag">&lt;<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">security:authentication-provider</span>&gt;</span></div><div class="line">         <span class="tag">&lt;<span class="name">security:jdbc-user-service</span> <span class="attr">data-source-ref</span>=<span class="string">"dataSource"</span>/&gt;</span>      </div><div class="line">      <span class="tag">&lt;/<span class="name">security:authentication-provider</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;上述配置中dataSource是对应数据源配置的bean引用。使用此种方式需要我们的数据库拥有如下表和表结构。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="function">create table <span class="title">users</span><span class="params">(</span></span></div><div class="line">      username varchar_ignorecase(<span class="number">50</span>) not <span class="keyword">null</span> primary key,</div><div class="line">      password <span class="title">varchar_ignorecase</span><span class="params">(<span class="number">50</span>)</span> not <span class="keyword">null</span>,</div><div class="line">      enabled <span class="keyword">boolean</span> not <span class="keyword">null</span>);</div><div class="line"> </div><div class="line"><span class="function">create table <span class="title">authorities</span> <span class="params">(</span></span></div><div class="line">      username varchar_ignorecase(<span class="number">50</span>) not <span class="keyword">null</span>,</div><div class="line">      authority <span class="title">varchar_ignorecase</span><span class="params">(<span class="number">50</span>)</span> not <span class="keyword">null</span>,</div><div class="line">      constraint fk_authorities_users foreign <span class="title">key</span><span class="params">(username)</span> references <span class="title">users</span><span class="params">(username)</span>);</div><div class="line">      <span class="function">create unique index ix_auth_username on <span class="title">authorities</span> <span class="params">(username,authority)</span></span>;</div><div class="line">     </div><div class="line"><span class="function">create table <span class="title">groups</span> <span class="params">(</span></span></div><div class="line">      id bigint generated by <span class="keyword">default</span> as identity(start with <span class="number">0</span>) primary key,</div><div class="line">      group_name <span class="title">varchar_ignorecase</span><span class="params">(<span class="number">50</span>)</span> notnull);</div><div class="line"> </div><div class="line"><span class="function">create table <span class="title">group_authorities</span> <span class="params">(</span></span></div><div class="line">      group_id bigint notnull,</div><div class="line">      authority varchar(<span class="number">50</span>) notnull,</div><div class="line">      constraint fk_group_authorities_group foreign <span class="title">key</span><span class="params">(group_id)</span> references <span class="title">groups</span><span class="params">(id)</span>);</div><div class="line"> </div><div class="line"><span class="function">create table <span class="title">group_members</span> <span class="params">(</span></span></div><div class="line">      id bigint generated by <span class="keyword">default</span> as identity(start with <span class="number">0</span>) primary key,</div><div class="line">      username <span class="title">varchar</span><span class="params">(<span class="number">50</span>)</span> notnull,</div><div class="line">      group_id bigint notnull,</div><div class="line">      constraint fk_group_members_group foreign <span class="title">key</span><span class="params">(group_id)</span> references <span class="title">groups</span><span class="params">(id)</span>);</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;这是因为默认情况下jdbc-user-service将使用SQL语句“select username, password, enabled from users where username = ?”来获取用户信息；使用SQL语句“select username, authority from authorities where username = ?”来获取用户对应的权限；使用SQL语句“select g.id, g.group_name, ga.authority from groups g, group_members gm, group_authorities ga where gm.username = ? and g.id = ga.group_id and g.id = gm.group_id”来获取用户所属组的权限。需要注意的是jdbc-user-service定义是不支持用户组权限的，所以使用jdbc-user-service时用户组相关表也是可以不定义的。如果需要使用用户组权限请使用JdbcDaoImpl，这个在后文后讲到。<br>&emsp;&emsp;当然这只是默认配置及默认的表结构。如果我们的表名或者表结构跟Spring Security默认的不一样，我们可以通过以下几个属性来定义我们自己查询用户信息、用户权限和用户组权限的SQL。</p>
+<table>
+<thead>
+<tr>
+<th>属性名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>users-by-username-query</td>
+<td>指定查询用户信息的SQL</td>
+</tr>
+<tr>
+<td>authorities-by-username-query</td>
+<td>指定查询用户权限的SQL</td>
+</tr>
+<tr>
+<td>group-authorities-by-username-query</td>
+<td>指定查询用户组权限的SQL</td>
+</tr>
+</tbody>
+</table>
+<p>&emsp;&emsp;假设我们的用户表是t_user，而不是默认的users，则我们可以通过属性users-by-username-query来指定查询用户信息的时候是从用户表t_user查询。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">security:authentication-provider</span>&gt;</span></div><div class="line">         <span class="tag">&lt;<span class="name">security:jdbc-user-service</span></span></div><div class="line">            <span class="attr">data-source-ref</span>=<span class="string">"dataSource"</span></div><div class="line">            <span class="attr">users-by-username-query</span>=<span class="string">"select username, password, enabled from t_user where username = ?"</span> /&gt;</div><div class="line">        <span class="tag">&lt;/<span class="name">security:authentication-provider</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p><strong>role-prefix属性</strong><br>&emsp;&emsp;jdbc-user-service还有一个属性role-prefix可以用来指定角色的前缀。这是什么意思呢？这表示我们从库里面查询出来的权限需要加上什么样的前缀。举个例子，假设我们库里面存放的权限都是“USER”，而我们指定了某个URL的访问权限access=”ROLE<em>USER”，显然这是不匹配的，Spring Security不会给我们放行，通过指定jdbc-user-service的role-prefix=”ROLE</em>”之后就会满足了。当role-prefix的值为“none”时表示没有前缀，当然默认也是没有的。</p>
+<p>三. <strong>直接使用JdbcDaoImpl</strong><br>&emsp;&emsp;JdbcDaoImpl是UserDetailsService的一个实现。其用法和jdbc-user-service类似，只是我们需要把它定义为一个bean，然后通过authentication-provider的user-service-ref进行引用。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:authentication-provider</span> <span class="attr">user-service-ref</span>=<span class="string">"userDetailsService"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"userDetailsService"</span> <span class="attr">class</span>=<span class="string">"org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;如你所见，JdbcDaoImpl同样需要一个dataSource的引用。如果就是上面这样配置的话我们数据库表结构也需要是标准的表结构。当然，如果我们的表结构和标准的不一样，可以通过usersByUsernameQuery、authoritiesByUsernameQuery和groupAuthoritiesByUsernameQuery属性来指定对应的查询SQL。</p>
+<p>四. <strong>用户权限和用户组权限</strong><br>&emsp;&emsp;JdbcDaoImpl使用enableAuthorities和enableGroups两个属性来控制权限的启用。默认启用的是enableAuthorities，即用户权限，而enableGroups默认是不启用的。如果需要启用用户组权限，需要指定enableGroups属性值为true。当然这两种权限是可以同时启用的。需要注意的是使用jdbc-user-service定义的UserDetailsService是不支持用户组权限的，如果需要支持用户组权限的话需要我们使用JdbcDaoImpl。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"> <span class="tag">&lt;<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:authentication-provider</span> <span class="attr">user-service-ref</span>=<span class="string">"userDetailsService"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"userDetailsService"</span> <span class="attr">class</span>=<span class="string">"org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span> <span class="attr">ref</span>=<span class="string">"dataSource"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"enableGroups"</span> <span class="attr">value</span>=<span class="string">"true"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>五. <strong>PasswordEncoder</strong><br>5.1 <strong>使用内置的PasswordEncoder</strong><br>&emsp;&emsp;通常我们保存的密码都不会像之前介绍的那样，保存的明文，而是加密之后的结果。为此，我们的AuthenticationProvider在做认证时也需要将传递的明文密码使用对应的算法加密后再与保存好的密码做比较。Spring Security对这方面也有支持。通过在authentication-provider下定义一个password-encoder我们可以定义当前AuthenticationProvider需要在进行认证时需要使用的password-encoder。password-encoder是一个PasswordEncoder的实例，我们可以直接使用它，如：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:authentication-provider</span> <span class="attr">user-service-ref</span>=<span class="string">"userDetailsService"</span>&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">security:password-encoder</span> <span class="attr">hash</span>=<span class="string">"md5"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">security:authentication-provider</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;其属性hash表示我们将用来进行加密的哈希算法，系统已经为我们实现的有plaintext、sha、sha-256、md4、md5、{sha}和{ssha}。它们对应的PasswordEncoder实现类如下：</p>
+<table>
+<thead>
+<tr>
+<th>加密算法</th>
+<th>PasswordEncoder实现类</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>plaintext</td>
+<td>PlaintextPasswordEncoder</td>
+</tr>
+<tr>
+<td>sha</td>
+<td>ShaPasswordEncoder</td>
+</tr>
+<tr>
+<td>sha-256</td>
+<td>ShaPasswordEncoder，使用时new ShaPasswordEncoder(256)</td>
+</tr>
+<tr>
+<td>md4</td>
+<td>Md4PasswordEncoder</td>
+</tr>
+<tr>
+<td>md5</td>
+<td>Md5PasswordEncoder</td>
+</tr>
+<tr>
+<td>{sha}</td>
+<td>LdapShaPasswordEncoder</td>
+</tr>
+<tr>
+<td>{ssha}</td>
+<td>LdapShaPasswordEncoder</td>
+</tr>
+</tbody>
+</table>
+<p><strong>使用BASE64编码加密后的密码</strong><br>&emsp;&emsp;此外，使用password-encoder时我们还可以指定一个属性base64，表示是否需要对加密后的密码使用BASE64进行编码，默认是false。如果需要则设为true。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:password-encoder</span> <span class="attr">hash</span>=<span class="string">"md5"</span> <span class="attr">base64</span>=<span class="string">"true"</span>/&gt;</span></div></pre></td></tr></table></figure></p>
+<p><strong>加密时使用salt</strong><br>&emsp;&emsp;加密时使用salt也是很常见的需求，Spring Security内置的password-encoder也对它有支持。通过password-encoder元素下的子元素salt-source，我们可以指定当前PasswordEncoder需要使用的salt。这个salt可以是一个常量，也可以是当前UserDetails的某一个属性，还可以通过实现SaltSource接口实现自己的获取salt的逻辑，SaltSource中只定义了如下一个方法。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public Object getSalt(UserDetails user);</div></pre></td></tr></table></figure></p>
+<p>下面来看几个使用salt-source的示例。<br>（1）下面的配置将使用常量“abc”作为salt。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:authentication-provider</span> <span class="attr">user-service-ref</span>=<span class="string">"userDetailsService"</span>&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">security:password-encoder</span> <span class="attr">hash</span>=<span class="string">"md5"</span> <span class="attr">base64</span>=<span class="string">"true"</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">security:salt-source</span> <span class="attr">system-wide</span>=<span class="string">"abc"</span>/&gt;</span></div><div class="line">     <span class="tag">&lt;/<span class="name">security:password-encoder</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">security:authentication-provider</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>（2）下面的配置将使用UserDetails的username作为salt。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;security:authentication-manager&gt;</div><div class="line">  &lt;security:authentication-provider user-service-ref=&quot;userDetailsService&quot;&gt;</div><div class="line">     &lt;security:password-encoder hash=&quot;md5&quot; base64=&quot;true&quot;&gt;</div><div class="line">        &lt;security:salt-source user-property=&quot;username&quot;/&gt;</div><div class="line">     &lt;/security:password-encoder&gt;</div><div class="line">  &lt;/security:authentication-provider&gt;</div><div class="line">&lt;/security:authentication-manager&gt;</div></pre></td></tr></table></figure></p>
+<p>（3）下面的配置将使用自己实现的SaltSource获取salt。其中mySaltSource就是SaltSource实现类对应的bean的引用。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;security:authentication-manager&gt;</div><div class="line">  &lt;security:authentication-provider user-service-ref=&quot;userDetailsService&quot;&gt;</div><div class="line">     &lt;security:password-encoder hash=&quot;md5&quot; base64=&quot;true&quot;&gt;</div><div class="line">        &lt;security:salt-source ref=&quot;mySaltSource&quot;/&gt;</div><div class="line">     &lt;/security:password-encoder&gt;</div><div class="line">  &lt;/security:authentication-provider&gt;</div><div class="line">&lt;/security:authentication-manager&gt;</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;需要注意的是AuthenticationProvider进行认证时所使用的PasswordEncoder，包括它们的算法和规则都应当与我们保存用户密码时是一致的。也就是说如果AuthenticationProvider使用Md5PasswordEncoder进行认证，我们在保存用户密码时也需要使用Md5PasswordEncoder；如果AuthenticationProvider在认证时使用了username作为salt，那么我们在保存用户密码时也需要使用username作为salt。如：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Md5PasswordEncoder encoder = <span class="keyword">new</span> Md5PasswordEncoder();</div><div class="line">encoder.setEncodeHashAsBase64(<span class="keyword">true</span>);</div><div class="line">System.out.println(encoder.encodePassword(<span class="string">"user"</span>, <span class="string">"user"</span>));</div></pre></td></tr></table></figure></p>
+<p>5.2 <strong>使用自定义的PasswordEncoder</strong><br>&emsp;&emsp;除了通过password-encoder使用Spring Security已经为我们实现了的PasswordEncoder之外，我们也可以实现自己的PasswordEncoder，然后通过password-encoder的ref属性关联到我们自己实现的PasswordEncoder对应的bean对象。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">security:authentication-provider</span> <span class="attr">user-service-ref</span>=<span class="string">"userDetailsService"</span>&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">security:password-encoder</span> <span class="attr">ref</span>=<span class="string">"passwordEncoder"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">security:authentication-provider</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:authentication-manager</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"passwordEncoder"</span> <span class="attr">class</span>=<span class="string">"com.xxx.MyPasswordEncoder"</span>/&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;在Spring Security内部定义有两种类型的PasswordEncoder，分别是org.springframework.security.authentication.encoding.PasswordEncoder和org.springframework.security.crypto.password.PasswordEncoder。直接通过password-encoder元素的hash属性指定使用内置的PasswordEncoder都是基于org.springframework.security.authentication.encoding.PasswordEncoder的实现，然而它现在已经被废弃了，Spring Security推荐我们使用org.springframework.security.crypto.password.PasswordEncoder，它的设计理念是为了使用随机生成的salt。关于后者Spring Security也已经提供了几个实现类，更多信息请查看Spring Security的API文档。我们在通过password-encoder使用自定义的PasswordEncoder时两种PasswordEncoder的实现类都是支持的。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置六：AuthenticationProvider/" data-id="cj6rbmixp0074lhblbptpcnv6" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/Security/配置十六：基于表达式的权限控制" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/15/Spring/Security/配置十六：基于表达式的权限控制/">配置十六：基于表达式的权限控制</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/15/Spring/Security/配置十六：基于表达式的权限控制/" class="article-date"><time datetime="2017-08-15T02:09:45.000Z" itemprop="datePublished">2017-08-15</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Security/">Security</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>&emsp;&emsp;Spring Security允许我们在定义URL访问或方法访问所应有的权限时使用Spring EL表达式，在定义所需的访问权限时如果对应的表达式返回结果为true则表示拥有对应的权限，反之则无。Spring Security可用表达式对象的基类是SecurityExpressionRoot，其为我们提供了如下在使用Spring EL表达式对URL或方法进行权限控制时通用的内置表达式。</p>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>hasRole([role])</td>
+<td>当前用户是否拥有指定角色。</td>
+</tr>
+<tr>
+<td>hasAnyRole([role1,role2])</td>
+<td>多个角色是一个以逗号进行分隔的字符串。如果当前用户拥有指定角色中的任意一个则返回true。</td>
+</tr>
+<tr>
+<td>hasAuthority([auth])</td>
+<td>等同于hasRole</td>
+</tr>
+<tr>
+<td>hasAnyAuthority([auth1,auth2])</td>
+<td>等同于hasAnyRole</td>
+</tr>
+<tr>
+<td>Principle</td>
+<td>代表当前用户的principle对象</td>
+</tr>
+<tr>
+<td>authentication</td>
+<td>直接从SecurityContext获取的当前Authentication对象</td>
+</tr>
+<tr>
+<td>permitAll</td>
+<td>总是返回true，表示允许所有的</td>
+</tr>
+<tr>
+<td>denyAll</td>
+<td>总是返回false，表示拒绝所有的</td>
+</tr>
+<tr>
+<td>isAnonymous()</td>
+<td>当前用户是否是一个匿名用户</td>
+</tr>
+<tr>
+<td>isRememberMe()</td>
+<td>表示当前用户是否是通过Remember-Me自动登录的</td>
+</tr>
+<tr>
+<td>isAuthenticated()</td>
+<td>表示当前用户是否已经登录认证成功了。</td>
+</tr>
+<tr>
+<td>isFullyAuthenticated()</td>
+<td>如果当前用户既不是一个匿名用户，同时又不是通过Remember-Me自动登录的，则返回true。</td>
+</tr>
+</tbody>
+</table>
+<p>一. <strong>通过表达式控制URL权限</strong><br>&emsp;&emsp;URL的访问权限是通过http元素下的intercept-url元素进行定义的，其access属性用来定义访问配置属性。默认情况下该属性值只能是以字符串进行分隔的字符串列表，且每一个元素都对应着一个角色，因为默认使用的是RoleVoter。通过设置http元素的use-expressions=”true”可以启用intercept-url元素的access属性对Spring EL表达式的支持，use-expressions的值默认为false。启用access属性对Spring EL表达式的支持后每个access属性值都应该是一个返回结果为boolean类型的表达式，当表达式返回结果为true时表示当前用户拥有访问权限。此外WebExpressionVoter将加入AccessDecisionManager的AccessDecisionVoter列表，所以如果不使用NameSpace时应当手动添加WebExpressionVoter到AccessDecisionVoter。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:http</span> <span class="attr">use-expressions</span>=<span class="string">"true"</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">security:form-login</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">security:logout</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/**"</span> <span class="attr">access</span>=<span class="string">"hasRole('ROLE_USER')"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:http</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;在上述配置中我们定义了只有拥有ROLE_USER角色的用户才能访问系统。<br>&emsp;&emsp;使用表达式控制URL权限使用的表达式对象类是继承自SecurityExpressionRoot的WebSecurityExpressionRoot类。其相比基类而言新增了一个表达式hasIpAddress。hasIpAddress可用来限制只有指定IP或指定范围内的IP才可以访问。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:http</span> <span class="attr">use-expressions</span>=<span class="string">"true"</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">security:form-login</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">security:logout</span>/&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">security:intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/**"</span> <span class="attr">access</span>=<span class="string">"hasRole('ROLE_USER') and hasIpAddress('10.10.10.3')"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:http</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;在上面的配置中我们限制了只有IP为”10.10.10.3”，且拥有ROLE_USER角色的用户才能访问。hasIpAddress是通过Ip地址或子网掩码来进行匹配的。如果要设置10.10.10下所有的子网都可以使用，那么我们对应的hasIpAddress的参数应为“10.10.10.n/24”，其中n可以是合法IP内的任意值。具体规则可以参照hasIpAddress()表达式用于比较的IpAddressMatcher的matches方法源码。以下是IpAddressMatcher的源码。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> org.springframework.security.web.util;</div><div class="line"> </div><div class="line"><span class="keyword">import</span> java.net.InetAddress;</div><div class="line"><span class="keyword">import</span> java.net.UnknownHostException;</div><div class="line"><span class="keyword">import</span> java.util.Arrays;</div><div class="line"> </div><div class="line"><span class="keyword">import</span> javax.servlet.http.HttpServletRequest;</div><div class="line"> </div><div class="line"><span class="keyword">import</span> org.springframework.util.StringUtils;</div><div class="line"> </div><div class="line"><span class="comment">/**</span></div><div class="line"> * Matches a request based on IP Address or subnet mask matching against the remote address.</div><div class="line"> * &lt;p&gt;</div><div class="line"> * Both IPv6 and IPv4 addresses are supported, but a matcher which is configured with an IPv4 address will</div><div class="line"> * never match a request which returns an IPv6 address, and vice-versa.</div><div class="line"> *</div><div class="line"> * <span class="doctag">@author</span> Luke Taylor</div><div class="line"> * <span class="doctag">@since</span> 3.0.2</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">IpAddressMatcher</span> <span class="keyword">implements</span> <span class="title">RequestMatcher</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> nMaskBits;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> InetAddress requiredAddress;</div><div class="line"> </div><div class="line">    <span class="comment">/**</span></div><div class="line">     * Takes a specific IP address or a range specified using the</div><div class="line">     * IP/Netmask (e.g. 192.168.1.0/24 or 202.24.0.0/14).</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> ipAddress the address or range of addresses from which the request must come.</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">IpAddressMatcher</span><span class="params">(String ipAddress)</span> </span>&#123;</div><div class="line"> </div><div class="line">        <span class="keyword">if</span> (ipAddress.indexOf(<span class="string">'/'</span>) &gt; <span class="number">0</span>) &#123;</div><div class="line">            String[] addressAndMask = StringUtils.split(ipAddress, <span class="string">"/"</span>);</div><div class="line">            ipAddress = addressAndMask[<span class="number">0</span>];</div><div class="line">            nMaskBits = Integer.parseInt(addressAndMask[<span class="number">1</span>]);</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            nMaskBits = -<span class="number">1</span>;</div><div class="line">        &#125;</div><div class="line">        requiredAddress = parseAddress(ipAddress);</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">matches</span><span class="params">(HttpServletRequest request)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> matches(request.getRemoteAddr());</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">matches</span><span class="params">(String address)</span> </span>&#123;</div><div class="line">        InetAddress remoteAddress = parseAddress(address);</div><div class="line"> </div><div class="line">        <span class="keyword">if</span> (!requiredAddress.getClass().equals(remoteAddress.getClass())) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">        &#125;</div><div class="line"> </div><div class="line">        <span class="keyword">if</span> (nMaskBits &lt; <span class="number">0</span>) &#123;</div><div class="line">            <span class="keyword">return</span> remoteAddress.equals(requiredAddress);</div><div class="line">        &#125;</div><div class="line"> </div><div class="line">        <span class="keyword">byte</span>[] remAddr = remoteAddress.getAddress();</div><div class="line">        <span class="keyword">byte</span>[] reqAddr = requiredAddress.getAddress();</div><div class="line"> </div><div class="line">        <span class="keyword">int</span> oddBits = nMaskBits % <span class="number">8</span>;</div><div class="line">        <span class="keyword">int</span> nMaskBytes = nMaskBits/<span class="number">8</span> + (oddBits == <span class="number">0</span> ? <span class="number">0</span> : <span class="number">1</span>);</div><div class="line">        <span class="keyword">byte</span>[] mask = newbyte[nMaskBytes];</div><div class="line"> </div><div class="line">        Arrays.fill(mask, <span class="number">0</span>, oddBits == <span class="number">0</span> ? mask.length : mask.length - <span class="number">1</span>, (<span class="keyword">byte</span>)<span class="number">0xFF</span>);</div><div class="line"> </div><div class="line">        <span class="keyword">if</span> (oddBits != <span class="number">0</span>) &#123;</div><div class="line">            <span class="keyword">int</span> finalByte = (<span class="number">1</span> &lt;&lt; oddBits) - <span class="number">1</span>;</div><div class="line">            finalByte &lt;&lt;= <span class="number">8</span>-oddBits;</div><div class="line">            mask[mask.length - <span class="number">1</span>] = (<span class="keyword">byte</span>) finalByte;</div><div class="line">        &#125;</div><div class="line"> </div><div class="line"> <span class="comment">//       System.out.println("Mask is " + new sun.misc.HexDumpEncoder().encode(mask));</span></div><div class="line"> </div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i &lt; mask.length; i++) &#123;</div><div class="line">            <span class="keyword">if</span> ((remAddr[i] &amp; mask[i]) != (reqAddr[i] &amp; mask[i])) &#123;</div><div class="line">                <span class="keyword">return</span> alse;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"> </div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    <span class="function"><span class="keyword">private</span> InetAddress <span class="title">parseAddress</span><span class="params">(String address)</span> </span>&#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="keyword">return</span> InetAddress.getByName(address);</div><div class="line">        &#125; <span class="keyword">catch</span> (UnknownHostException e) &#123;</div><div class="line">            <span class="function">thrownew <span class="title">IllegalArgumentException</span><span class="params">(<span class="string">"Failed to parse address"</span> + address, e)</span></span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>二. <strong>通过表达式控制方法权限</strong><br>&emsp;&emsp;Spring Security中定义了四个支持使用表达式的注解，分别是@PreAuthorize、@PostAuthorize、@PreFilter和@PostFilter。其中前两者可以用来在方法调用前或者调用后进行权限检查，后两者可以用来对集合类型的参数或者返回值进行过滤。要使它们的定义能够对我们的方法的调用产生影响我们需要设置global-method-security元素的pre-post-annotations=”enabled”，默认为disabled。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:global-method-security</span> <span class="attr">pre-post-annotations</span>=<span class="string">"disabled"</span>/&gt;</span></div></pre></td></tr></table></figure></p>
+<p>2.1 使用@PreAuthorize和@PostAuthorize进行访问控制<br>&emsp;&emsp;@PreAuthorize可以用来控制一个方法是否能够被调用。<br> <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"> <span class="meta">@Service</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserServiceImpl</span> <span class="keyword">implements</span> <span class="title">UserService</span> </span>&#123;</div><div class="line"> </div><div class="line">   <span class="meta">@PreAuthorize</span>(<span class="string">"hasRole('ROLE_ADMIN')"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addUser</span><span class="params">(User user)</span> </span>&#123;</div><div class="line">      System.out.println(<span class="string">"addUser................"</span> + user);</div><div class="line">   &#125;</div><div class="line"> </div><div class="line">   <span class="meta">@PreAuthorize</span>(<span class="string">"hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> User <span class="title">find</span><span class="params">(<span class="keyword">int</span> id)</span> </span>&#123;</div><div class="line">      System.out.println(<span class="string">"find user by id............."</span> + id);</div><div class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div><div class="line"> </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;在上面的代码中我们定义了只有拥有角色ROLE_ADMIN的用户才能访问adduser()方法，而访问find()方法需要有ROLE_USER角色或ROLE_ADMIN角色。使用表达式时我们还可以在表达式中使用方法参数。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserServiceImpl</span> <span class="keyword">implements</span> <span class="title">UserService</span> </span>&#123;</div><div class="line"> </div><div class="line">   <span class="comment">/**</span></div><div class="line">    * 限制只能查询Id小于10的用户</div><div class="line">    */</div><div class="line">   <span class="meta">@PreAuthorize</span>(<span class="string">"#id&lt;10"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> User <span class="title">find</span><span class="params">(<span class="keyword">int</span> id)</span> </span>&#123;</div><div class="line">      System.out.println(<span class="string">"find user by id........."</span> + id);</div><div class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div><div class="line">  </div><div class="line">   <span class="comment">/**</span></div><div class="line">    * 限制只能查询自己的信息</div><div class="line">    */</div><div class="line">   <span class="meta">@PreAuthorize</span>(<span class="string">"principal.username.equals(#username)"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> User <span class="title">find</span><span class="params">(String username)</span> </span>&#123;</div><div class="line">      System.out.println(<span class="string">"find user by username......"</span> + username);</div><div class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div><div class="line"> </div><div class="line">   <span class="comment">/**</span></div><div class="line">    * 限制只能新增用户名称为abc的用户</div><div class="line">    */</div><div class="line">   <span class="meta">@PreAuthorize</span>(<span class="string">"#user.name.equals('abc')"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(User user)</span> </span>&#123;</div><div class="line">      System.out.println(<span class="string">"addUser............"</span> + user);</div><div class="line">   &#125;</div><div class="line"> </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;在上面代码中我们定义了调用find(int id)方法时，只允许参数id小于10的调用；调用find(String username)时只允许username为当前用户的用户名；定义了调用add()方法时只有当参数user的name为abc时才可以调用。<br>&emsp;&emsp;有时候可能你会想在方法调用完之后进行权限检查，这种情况比较少，但是如果你有的话，Spring Security也为我们提供了支持，通过@PostAuthorize可以达到这一效果。使用@PostAuthorize时我们可以使用内置的表达式returnObject表示方法的返回值。我们来看下面这一段示例代码。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@PostAuthorize</span>(<span class="string">"returnObject.id%2==0"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> User <span class="title">find</span><span class="params">(<span class="keyword">int</span> id)</span> </span>&#123;</div><div class="line">  User user = <span class="keyword">new</span> User();</div><div class="line">  user.setId(id);</div><div class="line">  <span class="keyword">return</span> user;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;上面这一段代码表示将在方法find()调用完成后进行权限检查，如果返回值的id是偶数则表示校验通过，否则表示校验失败，将抛出AccessDeniedException。       需要注意的是@PostAuthorize是在方法调用完成后进行权限检查，它不能控制方法是否能被调用，只能在方法调用完成后检查权限决定是否要抛出AccessDeniedException。</p>
+<p>2.2 使用@PreFilter和@PostFilter进行过滤<br>&emsp;&emsp;使用@PreFilter和@PostFilter可以对集合类型的参数或返回值进行过滤。使用@PreFilter和@PostFilter时，Spring Security将移除使对应表达式的结果为false的元素。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"> <span class="meta">@PostFilter</span>(<span class="string">"filterObject.id%2==0"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> List&lt;User&gt; <span class="title">findAll</span><span class="params">()</span> </span>&#123;</div><div class="line">  List&lt;User&gt; userList = <span class="keyword">new</span> ArrayList&lt;User&gt;();</div><div class="line">  User user;</div><div class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;<span class="number">10</span>; i++) &#123;</div><div class="line">     user = <span class="keyword">new</span> User();</div><div class="line">     user.setId(i);</div><div class="line">     userList.add(user);</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> userList;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;上述代码表示将对返回结果中id不为偶数的user进行移除。filterObject是使用@PreFilter和@PostFilter时的一个内置表达式，表示集合中的当前对象。当@PreFilter标注的方法拥有多个集合类型的参数时，需要通过@PreFilter的filterTarget属性指定当前@PreFilter是针对哪个参数进行过滤的。如下面代码就通过filterTarget指定了当前@PreFilter是用来过滤参数ids的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@PreFilter(filterTarget=&quot;ids&quot;, value=&quot;filterObject%2==0&quot;)</div><div class="line">public void delete(List&lt;Integer&gt; ids, List&lt;String&gt; usernames) &#123;</div><div class="line">  ...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>2.3 使用hasPermission表达式<br>&emsp;&emsp;Spring Security为我们定义了hasPermission的两种使用方式，它们分别对应着PermissionEvaluator的两个不同的hasPermission()方法。Spring Security默认处理Web、方法的表达式处理器分别为DefaultWebSecurityExpressionHandler和DefaultMethodSecurityExpressionHandler，它们都继承自AbstractSecurityExpressionHandler，其所持有的PermissionEvaluator是DenyAllPermissionEvaluator，其对于所有的hasPermission表达式都将返回false。所以当我们要使用表达式hasPermission时，我们需要自已手动定义SecurityExpressionHandler对应的bean定义，然后指定其PermissionEvaluator为我们自己实现的PermissionEvaluator，然后通过global-method-security元素或http元素下的expression-handler元素指定使用的SecurityExpressionHandler为我们自己手动定义的那个bean。<br>&emsp;&emsp;接下来看一个自己实现PermissionEvaluator使用hasPermission()表达式的简单示例。<br>&emsp;&emsp;首先实现自己的PermissionEvaluator，如下所示：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyPermissionEvaluator</span> <span class="keyword">implements</span> <span class="title">PermissionEvaluator</span> </span>&#123;</div><div class="line"> </div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasPermission</span><span class="params">(Authentication authentication,</span></span></div><div class="line">         Object targetDomainObject, Object permission) &#123;</div><div class="line">      <span class="keyword">if</span> (<span class="string">"user"</span>.equals(targetDomainObject)) &#123;</div><div class="line">         <span class="keyword">return</span> <span class="keyword">this</span>.hasPermission(authentication, permission);</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">   &#125;</div><div class="line"> </div><div class="line">   <span class="comment">/**</span></div><div class="line">    * 总是认为有权限</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasPermission</span><span class="params">(Authentication authentication,</span></span></div><div class="line">         Serializable targetId, String targetType, Object permission) &#123;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">   &#125;</div><div class="line">  </div><div class="line">   <span class="comment">/**</span></div><div class="line">    * 简单的字符串比较，相同则认为有权限</div><div class="line">    */</div><div class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">hasPermission</span><span class="params">(Authentication authentication, Object permission)</span> </span>&#123;</div><div class="line">      Collection&lt;? extends GrantedAuthority&gt; authorities = authentication.getAuthorities();</div><div class="line">      <span class="keyword">for</span> (GrantedAuthority authority : authorities) &#123;</div><div class="line">         <span class="keyword">if</span> (authority.getAuthority().equals(permission)) &#123;</div><div class="line">            returntrue;</div><div class="line">         &#125;</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">   &#125;</div><div class="line"> </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;接下来在ApplicationContext中显示的配置一个将使用PermissionEvaluator的SecurityExpressionHandler实现类，然后指定其所使用的PermissionEvaluator为我们自己实现的那个。这里我们选择配置一个针对于方法调用使用的表达式处理器，DefaultMethodSecurityExpressionHandler，具体如下所示。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"expressionHandler"</span></span></div><div class="line">   <span class="attr">class</span>=<span class="string">"org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler"</span>&gt;</div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"permissionEvaluator"</span> <span class="attr">ref</span>=<span class="string">"myPermissionEvaluator"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div><div class="line"><span class="comment">&lt;!-- 自定义的PermissionEvaluator实现 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"myPermissionEvaluator"</span> <span class="attr">class</span>=<span class="string">"com.xxx.MyPermissionEvaluator"</span>/&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;有了SecurityExpressionHandler之后，我们还要告诉Spring Security，在使用SecurityExpressionHandler时应该使用我们显示配置的那个，这样我们自定义的PermissionEvaluator才能起作用。因为我们上面定义的是针对于方法的SecurityExpressionHandler，所以我们要指定在进行方法权限控制时应该使用它来进行处理，同时注意设置pre-post-annotations=”true”以启用对支持使用表达式的@PreAuthorize等注解的支持。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">security:global-method-security</span></span></div><div class="line">      <span class="attr">pre-post-annotations</span>=<span class="string">"enabled"</span>&gt;</div><div class="line">      <span class="tag">&lt;<span class="name">security:expression-handler</span> <span class="attr">ref</span>=<span class="string">"expressionHandler"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">security:global-method-security</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;之后我们就可以在需要进行权限控制的方法上使用@PreAuthorize以及hasPermission()表达式进行权限控制了。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Service</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserServiceImpl</span> <span class="keyword">implements</span> <span class="title">UserService</span> </span>&#123;</div><div class="line"> </div><div class="line">   <span class="comment">/**</span></div><div class="line">    * 将使用方法hasPermission(Authentication authentication,</div><div class="line">         Object targetDomainObject, Object permission)进行验证。</div><div class="line">    */</div><div class="line">   <span class="meta">@PreAuthorize</span>(<span class="string">"hasPermission('user', 'ROLE_USER')"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> User <span class="title">find</span><span class="params">(<span class="keyword">int</span> id)</span> </span>&#123;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div><div class="line">  </div><div class="line">   <span class="comment">/**</span></div><div class="line">    * 将使用PermissionEvaluator的第二个方法，即hasPermission(Authentication authentication,</div><div class="line">         Serializable targetId, String targetType, Object permission)进行验证。</div><div class="line">    */</div><div class="line">   <span class="meta">@PreAuthorize</span>(<span class="string">"hasPermission('targetId','targetType','permission')"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> User <span class="title">find</span><span class="params">(String username)</span> </span>&#123;</div><div class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">   &#125;</div><div class="line"> </div><div class="line">   <span class="meta">@PreAuthorize</span>(<span class="string">"hasPermission('user', 'ROLE_ADMIN')"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(User user)</span> </span>&#123;</div><div class="line"> </div><div class="line">   &#125;</div><div class="line"> </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;在上面的配置中，find(int id)和add()方法将使用PermissionEvaluator中接收三个参数的hasPermission()方法进行验证，而find(String username)方法将使用四个参数的hasPermission()方法进行验证。因为hasPermission()表达式与PermissionEvaluator中hasPermission()方法的对应关系就是在hasPermission()表达式使用的参数基础上加上当前Authentication对象调用对应的hasPermission()方法进行验证。<br>&emsp;&emsp;其实Spring Security已经针对于ACL实现了一个AclPermissionEvaluator。关于ACL的内容将在后文进行介绍。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置十六：基于表达式的权限控制/" data-id="cj6rbmixx007olhbly36yjq4w" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -263,7 +528,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/13/服务器相关/resin/resin启动，停止，重启/" data-id="cj6cy7nj800b4ktbluu3hwa37" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/服务器相关/resin/resin启动，停止，重启/" data-id="cj6rbmizl00b7lhbl0sus6cev" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -277,13 +542,13 @@
 
 
   
-    <article id="post-前端技术相关/javascript/js中去掉空格的方法" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/基础/Bean注入：Autowired和Resource" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/">js中去掉空格的方法</a>
+      <a class="article-title" href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
     </h1>
   
 
@@ -292,61 +557,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/前端技术相关/">前端技术相关</a> / <a class="article-category-link" href="/categories/前端技术相关/javascript/">javascript</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/javascript/js中去掉空格的方法/" data-id="cj6cy7nih009rktbl3se1lc5p" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/基础/Spring  Bean的scope作用域" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/13/Spring/基础/Spring  Bean的scope作用域/">Spring  Bean的scope作用域</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/08/13/Spring/基础/Spring  Bean的scope作用域/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
+  <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
 </div>
 
     
@@ -361,73 +572,12 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <blockquote>
-<p>在SSH中一般来说Dao Service为singleton，Action为prototype</p>
-</blockquote>
-<h3 id="spring-Framework支持五种作用域（其中有三种只能用在基于web的Spring-ApplicationContext"><a href="#spring-Framework支持五种作用域（其中有三种只能用在基于web的Spring-ApplicationContext" class="headerlink" title="spring Framework支持五种作用域（其中有三种只能用在基于web的Spring ApplicationContext"></a>spring Framework支持五种作用域（其中有三种只能用在基于web的Spring ApplicationContext</h3><p>内置支持的作用域分列如下：</p>
-<table>
-<thead>
-<tr>
-<th>类型</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>singleton(默认)</td>
-<td>在每个Spring IoC容器中一个bean定义对应一个对象实例。</td>
-</tr>
-<tr>
-<td>prototype</td>
-<td>一个bean定义对应多个对象实例。</td>
-</tr>
-<tr>
-<td>request</td>
-<td>在一次HTTP请求中，一个bean定义对应一个实例；即每次HTTP请求将会有各自的bean实例， 它们依据某个bean定义创建而成。该作用域仅在基于web的Spring ApplicationContext 情形下有效。</td>
-</tr>
-<tr>
-<td>session</td>
-<td>在一个HTTP Session中，一个bean定义对应一个实例。该作用域仅在基于web的SpringApplicationContext 情形下有效。</td>
-</tr>
-<tr>
-<td>global session</td>
-<td>在一个全局的HTTP Session 中，一个bean定义对应一个实例。典型情况下，仅在使用portlet context的时候有效。该作用域仅在基于web的Spring ApplicationContext 情形下有效。</td>
-</tr>
-</tbody>
-</table>
-<ol>
-<li>Singleton作用域<br>当一个bean的作用域为singleton, 那么Spring IoC容器中只会存在一个共享的bean实例，并且所有对bean的请求，只要id与该bean定义相匹配，则只会返回bean的同一实例。换言之，当把一个bean定义设置为singlton作用域时，Spring IoC容器只会创建该bean定义的唯一实例。这个单一实例会被存储到单例缓存（singleton cache）中，并且所有针对该bean的后续请求和引用都将返回被缓存的对象实例。<br><img src="http://note.youdao.com/yws/public/resource/e8ccc8ff6b52067fb6cb7822f7b5ab50/AFC196873FBC470D9E57DEDE8973D262" alt="image"><br>请注意Spring的singleton bean概念与GoF模式一书中定义的Singleton模式是完全不同的。经典的GoF Singleton模式中所谓的对象范围是指在每一个ClassLoader中指定class创建的实例有且仅有一个。把Spring的singleton作用域描述成一个Container (容器)对应一个bean实例最为贴切。也就是说假如在单个Spring容器内定义了某个指定class的bean，那么Spring容器将会创建一个并且仅有一个由该bean定义指定的类实例。Singleton作用域是Spring中的缺省作用域。要在XML中将bean定义成singleton，可以这样配置： <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot;/&gt; </div><div class="line"> </div><div class="line">&lt;!-- the following is equivalent, though redundant (singleton scope is the default); using spring-beans-2.0.dtd or upper--&gt; </div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot; scope=&quot;singleton&quot;/&gt; </div><div class="line"> </div><div class="line">&lt;!-- the following is equivalent  and preserved for backward compatibility in spring-beans.dtd--&gt; </div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot; singleton=&quot;true&quot;/&gt;</div></pre></td></tr></table></figure>
-</li>
+        <ol>
+<li>@Resource默认是按照名称来装配注入的，只有当找不到与名称匹配的bean才会按照类型来装配注入；</li>
+<li>@Autowired默认是按照类型装配注入的，如果想按照名称来转配注入，则需要结合@Qualifier一起使用；</li>
+<li>@Resource注解是由J2EE提供，而@Autowired是由Spring提供，故减少系统对spring的依赖建议使用@Resource的方式；</li>
+<li>@Resource和@Autowired都可以书写标注在字段或者该字段的setter方法之上</li>
 </ol>
-<h5 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h5><p>beans.xml配置文件中配置如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot; &gt;&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
-<p>测试代码如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">public class SpringTest &#123; </div><div class="line"> </div><div class="line">    @Test </div><div class="line">    public void instanceSpring()&#123; </div><div class="line">        ApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;beans.xml&quot;); </div><div class="line">        PersonService personService1 = (PersonService)ctx.getBean(&quot;personService&quot;); </div><div class="line">        PersonService personService2 = (PersonService)ctx.getBean(&quot;personService&quot;); </div><div class="line">        System.out.println(personService1==personService2); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>运行测试程序，结果输出为: true.说明是只创建了一个PersonServiceBean.</p>
-<ol>
-<li>Prototype作用域<br>Prototype作用域的bean会导致在每次对该bean请求（将其注入到另一个bean中，或者以程序的方式调用容器的getBean() 方法）时都会创建一个新的bean实例 。根据经验，<strong>对有状态的bean应该使用prototype作用域，而对无状态的bean则应该使用singleton作用域</strong>。 </li>
-</ol>
-<p>下图演示了Spring的prototype作用域。请注意，通常情况下，DAO不会被配置成prototype，因为DAO通常不会持有任何会话状态，因此应该使用singleton作用域。<br><img src="http://note.youdao.com/yws/public/resource/e8ccc8ff6b52067fb6cb7822f7b5ab50/421AD7A31E2E48B4BE1CAE58E7A681D4" alt="image"><br>在XML中将bean定义成prototype，可以这样配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;!-- using spring-beans-2.0.dtd or upper --&gt; </div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot; scope=&quot;prototype&quot;/&gt; </div><div class="line">&lt;!-- the following is equivalent and preserved for backward compatibility in spring-beans.dtd --&gt; </div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot; singleton=&quot;false&quot;/&gt;</div></pre></td></tr></table></figure></p>
-<p>将beans.xml配置文件中的配置信息改为如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;cn.itcast.service.impl.PersonServiceBean&quot; scope=&quot;prototype&quot;&gt;&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
-<p>再运行上面的测试程序，输出结果为:false，说明创建了两个PersonServiceBean.</p>
-<p><strong>其他作用域，即request、session以及global session 仅在基于web的应用中使用（不必关心你所采用的是什么web应用框架）。这些作用域仅仅在使用基于web的Spring ApplicationContext实现（如XmlWebApplicationContext）时有用。 如果在普通的Spring IoC容器中，比如像XmlBeanFactory或ClassPathXmlApplicationContext， 尝试使用这些作用域，你将会得到一个IllegalStateException异常（未知的bean作用域）。</strong></p>
-<h3 id="Bean的生命周期"><a href="#Bean的生命周期" class="headerlink" title="Bean的生命周期"></a>Bean的生命周期</h3><h4 id="什么时候初始化bean实例"><a href="#什么时候初始化bean实例" class="headerlink" title="什么时候初始化bean实例"></a>什么时候初始化bean实例</h4><p><strong>当scope＝singleton，即默认情况，会在容器初始化时实例化。但我们可以指定Bean节点的lazy-init=”true”来延迟初始化bean,这时候，只有第一次获取bean才会初始化bean，即第一次请求该bean时才初始化</strong>。如下配置所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=”xxx” class=”examples.test.OrderServiceBean” lazy-init=”true” /&gt;</div></pre></td></tr></table></figure></p>
-<p>如果想对所有bean都应用延迟初始化，可以在根节点beans设置default-lazy-init=”true”,如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;beans default-lazy-init=”true” …&gt;</div></pre></td></tr></table></figure></p>
-<p><strong>当scope=prototype时，也会延迟初始化bean,即第一次请求该bean时才初始化(如调用getBean()方法时).</strong></p>
-<h5 id="测试如下："><a href="#测试如下：" class="headerlink" title="测试如下："></a>测试如下：</h5><p>PersonServiceBean代码如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">public class PersonServiceBean implements PersonService &#123; </div><div class="line">    public void init()&#123; </div><div class="line">        System.out.println(&quot;Get the database connection and initialize other beans!&quot;); </div><div class="line">    &#125; </div><div class="line">    </div><div class="line">    public PersonServiceBean()&#123; </div><div class="line">        System.out.println(&quot;PersonServiceBean is initialized!&quot;); </div><div class="line">    &#125; </div><div class="line">    </div><div class="line">    public void destroy()&#123; </div><div class="line">        System.out.println(&quot;close the database connection!&quot;); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>beans.xml配置文件如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot; /&gt; &lt;!-- 1 --&gt; </div><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot;  scope=&quot;singleton&quot; /&gt; &lt;!-- 2 --&gt;</div></pre></td></tr></table></figure></p>
-<p>测试程序如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public class SpringTest &#123; </div><div class="line">    @Test </div><div class="line">    public void instanceSpring()&#123; </div><div class="line">        ApplicationContext ctx =  new  ClassPathXmlApplicationContext(&quot;beans.xml&quot;); </div><div class="line">        System.out.println(&quot;------------------&quot;); </div><div class="line">        PersonService personService = (PersonServiceBean)ctx.getBean(&quot;personService&quot;); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>分1，2两种情况运行程序，控制台打印信息如下所示：<br>PersonServiceBean is initialized!<br>-—————–      </p>
-<p>将配置文件修改成如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot; lazy-init=&quot;true&quot; /&gt; &lt;!-- 1 --&gt; </div><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot; scope=&quot;prototype&quot; /&gt; &lt;!-- 2 --&gt;</div></pre></td></tr></table></figure></p>
-<p>分1，2两种情况运行程序，控制台打印信息如下所示:<br>-—————–<br>PersonServiceBean is initialized!<br>​<br>以上测试说明：<br>Bean默认是在容器初始化时初始化的，即<br>ApplicationContext ctx = new ClassPathXmlApplicationContext(“beans.xml”);语句执行时就实例化bean了。如果把scope设成scope=”prototype” 或设置lazy-init=”true”，则会延迟bean的实例化，bean会在PersonService personService = (PersonServiceBean)ctx.getBean(“personService”);语句执行时才实例化。<br>当配置文件为如下所示时，测试结果同上。</p>
-<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><p>构造器、init方法、获取bean后的操作、destroy方法（ctx.close时执行）<br><strong>注意:如果bean的scope设为prototype时，当ctx.close时，destroy方法不会被调用.</strong>   </p>
-<p>原因：对于prototype作用域的bean，有一点非常重要，那就是Spring不能对一个prototype bean的整个生命周期负责：容器在初始化、配置、装饰或者是装配完一个prototype实例后，将它交给客户端，随后就对该prototype实例不闻不问了。不管何种作用域，容器都会调用所有对象的初始化生命周期回调方法。但对prototype而言，任何配置好的析构生命周期回调方法都将不会被调用。清除prototype作用域的对象并释放任何prototype bean所持有的昂贵资源，都是客户端代码的职责。（让Spring容器释放被prototype作用域bean占用资源的一种可行方式是，通过使用bean的后置处理器，该处理器持有要被清除的bean的引用。）    </p>
-<p><strong>谈及prototype作用域的bean时，在某些方面你可以将Spring容器的角色看作是Java new 操作的替代者。任何迟于该时间点的生命周期事宜都得交由客户端来处理</strong>。</p>
-<p>配置文件信息如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;cn.itcast.service.impl.PersonServiceBean&quot; init-method=&quot;init&quot; destroy-method=&quot;destroy&quot;/&gt;</div></pre></td></tr></table></figure></p>
-<p>测试程序如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public class SpringTest &#123; </div><div class="line">    @Test </div><div class="line">    public void instanceSpring()&#123; </div><div class="line">        AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;beans.xml&quot;); </div><div class="line">        System.out.println(&quot;------------------&quot;); </div><div class="line">        PersonService personService = (PersonServiceBean)ctx.getBean(&quot;personService&quot;); </div><div class="line">        ctx.close(); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>运行测试程序，控制台打印信息如下所示：<br>PersonServiceBean is initialized!<br>Get the database connection and initialize other beans!<br>-—————–<br>close the database connection!  </p>
-<p>修改配置文件信息如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;cn.itcast.service.impl.PersonServiceBean&quot; scope=&quot;prototype&quot; init-method=&quot;init&quot; destroy-method=&quot;destroy&quot;/&gt;</div></pre></td></tr></table></figure></p>
-<p>再次运行测试程序，控制台打印信息如下所示：<br>-—————–<br>PersonServiceBean is initialized!<br>Get the database connection and initialize other beans! </p>
-<p>修改配置文件信息如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;cn.itcast.service.impl.PersonServiceBean&quot; lazy-init=&quot;true&quot; init-method=&quot;init&quot; destroy-method=&quot;destroy&quot;/&gt;</div></pre></td></tr></table></figure></p>
-<p>此时再次运行测试程序，控制台打印信息如下所示：<br>-—————–<br>PersonServiceBean is initialized!<br>Get the database connection and initialize other beans!<br>close the database connection!  </p>
 
       
     </div>
@@ -438,7 +588,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/Spring  Bean的scope作用域/" data-id="cj6cy7nhr008dktblr5jr5uwl" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/" data-id="cj6rbmiy40088lhblfj4feg0c" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -568,7 +718,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/AOP事务管理/" data-id="cj6cy7nhq008bktbl4mw59237" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/AOP事务管理/" data-id="cj6rbmiy5008alhblj2uxvm0m" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -582,13 +732,13 @@
 
 
   
-    <article id="post-Spring/基础/Bean注入：Autowired和Resource" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/基础/Spring  Bean的scope作用域" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/">Bean注入：Autowired和Resource</a>
+      <a class="article-title" href="/2017/08/13/Spring/基础/Spring  Bean的scope作用域/">Spring  Bean的scope作用域</a>
     </h1>
   
 
@@ -597,7 +747,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
+  <a href="/2017/08/13/Spring/基础/Spring  Bean的scope作用域/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
 </div>
 
     
@@ -612,12 +762,73 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <ol>
-<li>@Resource默认是按照名称来装配注入的，只有当找不到与名称匹配的bean才会按照类型来装配注入；</li>
-<li>@Autowired默认是按照类型装配注入的，如果想按照名称来转配注入，则需要结合@Qualifier一起使用；</li>
-<li>@Resource注解是由J2EE提供，而@Autowired是由Spring提供，故减少系统对spring的依赖建议使用@Resource的方式；</li>
-<li>@Resource和@Autowired都可以书写标注在字段或者该字段的setter方法之上</li>
+        <blockquote>
+<p>在SSH中一般来说Dao Service为singleton，Action为prototype</p>
+</blockquote>
+<h3 id="spring-Framework支持五种作用域（其中有三种只能用在基于web的Spring-ApplicationContext"><a href="#spring-Framework支持五种作用域（其中有三种只能用在基于web的Spring-ApplicationContext" class="headerlink" title="spring Framework支持五种作用域（其中有三种只能用在基于web的Spring ApplicationContext"></a>spring Framework支持五种作用域（其中有三种只能用在基于web的Spring ApplicationContext</h3><p>内置支持的作用域分列如下：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>singleton(默认)</td>
+<td>在每个Spring IoC容器中一个bean定义对应一个对象实例。</td>
+</tr>
+<tr>
+<td>prototype</td>
+<td>一个bean定义对应多个对象实例。</td>
+</tr>
+<tr>
+<td>request</td>
+<td>在一次HTTP请求中，一个bean定义对应一个实例；即每次HTTP请求将会有各自的bean实例， 它们依据某个bean定义创建而成。该作用域仅在基于web的Spring ApplicationContext 情形下有效。</td>
+</tr>
+<tr>
+<td>session</td>
+<td>在一个HTTP Session中，一个bean定义对应一个实例。该作用域仅在基于web的SpringApplicationContext 情形下有效。</td>
+</tr>
+<tr>
+<td>global session</td>
+<td>在一个全局的HTTP Session 中，一个bean定义对应一个实例。典型情况下，仅在使用portlet context的时候有效。该作用域仅在基于web的Spring ApplicationContext 情形下有效。</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Singleton作用域<br>当一个bean的作用域为singleton, 那么Spring IoC容器中只会存在一个共享的bean实例，并且所有对bean的请求，只要id与该bean定义相匹配，则只会返回bean的同一实例。换言之，当把一个bean定义设置为singlton作用域时，Spring IoC容器只会创建该bean定义的唯一实例。这个单一实例会被存储到单例缓存（singleton cache）中，并且所有针对该bean的后续请求和引用都将返回被缓存的对象实例。<br><img src="http://note.youdao.com/yws/public/resource/e8ccc8ff6b52067fb6cb7822f7b5ab50/AFC196873FBC470D9E57DEDE8973D262" alt="image"><br>请注意Spring的singleton bean概念与GoF模式一书中定义的Singleton模式是完全不同的。经典的GoF Singleton模式中所谓的对象范围是指在每一个ClassLoader中指定class创建的实例有且仅有一个。把Spring的singleton作用域描述成一个Container (容器)对应一个bean实例最为贴切。也就是说假如在单个Spring容器内定义了某个指定class的bean，那么Spring容器将会创建一个并且仅有一个由该bean定义指定的类实例。Singleton作用域是Spring中的缺省作用域。要在XML中将bean定义成singleton，可以这样配置： <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot;/&gt; </div><div class="line"> </div><div class="line">&lt;!-- the following is equivalent, though redundant (singleton scope is the default); using spring-beans-2.0.dtd or upper--&gt; </div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot; scope=&quot;singleton&quot;/&gt; </div><div class="line"> </div><div class="line">&lt;!-- the following is equivalent  and preserved for backward compatibility in spring-beans.dtd--&gt; </div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot; singleton=&quot;true&quot;/&gt;</div></pre></td></tr></table></figure>
+</li>
 </ol>
+<h5 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h5><p>beans.xml配置文件中配置如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot; &gt;&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
+<p>测试代码如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">public class SpringTest &#123; </div><div class="line"> </div><div class="line">    @Test </div><div class="line">    public void instanceSpring()&#123; </div><div class="line">        ApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;beans.xml&quot;); </div><div class="line">        PersonService personService1 = (PersonService)ctx.getBean(&quot;personService&quot;); </div><div class="line">        PersonService personService2 = (PersonService)ctx.getBean(&quot;personService&quot;); </div><div class="line">        System.out.println(personService1==personService2); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>运行测试程序，结果输出为: true.说明是只创建了一个PersonServiceBean.</p>
+<ol>
+<li>Prototype作用域<br>Prototype作用域的bean会导致在每次对该bean请求（将其注入到另一个bean中，或者以程序的方式调用容器的getBean() 方法）时都会创建一个新的bean实例 。根据经验，<strong>对有状态的bean应该使用prototype作用域，而对无状态的bean则应该使用singleton作用域</strong>。 </li>
+</ol>
+<p>下图演示了Spring的prototype作用域。请注意，通常情况下，DAO不会被配置成prototype，因为DAO通常不会持有任何会话状态，因此应该使用singleton作用域。<br><img src="http://note.youdao.com/yws/public/resource/e8ccc8ff6b52067fb6cb7822f7b5ab50/421AD7A31E2E48B4BE1CAE58E7A681D4" alt="image"><br>在XML中将bean定义成prototype，可以这样配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;!-- using spring-beans-2.0.dtd or upper --&gt; </div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot; scope=&quot;prototype&quot;/&gt; </div><div class="line">&lt;!-- the following is equivalent and preserved for backward compatibility in spring-beans.dtd --&gt; </div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;com.foo.DefaultAccountService&quot; singleton=&quot;false&quot;/&gt;</div></pre></td></tr></table></figure></p>
+<p>将beans.xml配置文件中的配置信息改为如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;cn.itcast.service.impl.PersonServiceBean&quot; scope=&quot;prototype&quot;&gt;&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
+<p>再运行上面的测试程序，输出结果为:false，说明创建了两个PersonServiceBean.</p>
+<p><strong>其他作用域，即request、session以及global session 仅在基于web的应用中使用（不必关心你所采用的是什么web应用框架）。这些作用域仅仅在使用基于web的Spring ApplicationContext实现（如XmlWebApplicationContext）时有用。 如果在普通的Spring IoC容器中，比如像XmlBeanFactory或ClassPathXmlApplicationContext， 尝试使用这些作用域，你将会得到一个IllegalStateException异常（未知的bean作用域）。</strong></p>
+<h3 id="Bean的生命周期"><a href="#Bean的生命周期" class="headerlink" title="Bean的生命周期"></a>Bean的生命周期</h3><h4 id="什么时候初始化bean实例"><a href="#什么时候初始化bean实例" class="headerlink" title="什么时候初始化bean实例"></a>什么时候初始化bean实例</h4><p><strong>当scope＝singleton，即默认情况，会在容器初始化时实例化。但我们可以指定Bean节点的lazy-init=”true”来延迟初始化bean,这时候，只有第一次获取bean才会初始化bean，即第一次请求该bean时才初始化</strong>。如下配置所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=”xxx” class=”examples.test.OrderServiceBean” lazy-init=”true” /&gt;</div></pre></td></tr></table></figure></p>
+<p>如果想对所有bean都应用延迟初始化，可以在根节点beans设置default-lazy-init=”true”,如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;beans default-lazy-init=”true” …&gt;</div></pre></td></tr></table></figure></p>
+<p><strong>当scope=prototype时，也会延迟初始化bean,即第一次请求该bean时才初始化(如调用getBean()方法时).</strong></p>
+<h5 id="测试如下："><a href="#测试如下：" class="headerlink" title="测试如下："></a>测试如下：</h5><p>PersonServiceBean代码如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">public class PersonServiceBean implements PersonService &#123; </div><div class="line">    public void init()&#123; </div><div class="line">        System.out.println(&quot;Get the database connection and initialize other beans!&quot;); </div><div class="line">    &#125; </div><div class="line">    </div><div class="line">    public PersonServiceBean()&#123; </div><div class="line">        System.out.println(&quot;PersonServiceBean is initialized!&quot;); </div><div class="line">    &#125; </div><div class="line">    </div><div class="line">    public void destroy()&#123; </div><div class="line">        System.out.println(&quot;close the database connection!&quot;); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>beans.xml配置文件如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot; /&gt; &lt;!-- 1 --&gt; </div><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot;  scope=&quot;singleton&quot; /&gt; &lt;!-- 2 --&gt;</div></pre></td></tr></table></figure></p>
+<p>测试程序如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public class SpringTest &#123; </div><div class="line">    @Test </div><div class="line">    public void instanceSpring()&#123; </div><div class="line">        ApplicationContext ctx =  new  ClassPathXmlApplicationContext(&quot;beans.xml&quot;); </div><div class="line">        System.out.println(&quot;------------------&quot;); </div><div class="line">        PersonService personService = (PersonServiceBean)ctx.getBean(&quot;personService&quot;); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>分1，2两种情况运行程序，控制台打印信息如下所示：<br>PersonServiceBean is initialized!<br>-—————–      </p>
+<p>将配置文件修改成如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot; lazy-init=&quot;true&quot; /&gt; &lt;!-- 1 --&gt; </div><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;examples.test.PersonServiceBean&quot; scope=&quot;prototype&quot; /&gt; &lt;!-- 2 --&gt;</div></pre></td></tr></table></figure></p>
+<p>分1，2两种情况运行程序，控制台打印信息如下所示:<br>-—————–<br>PersonServiceBean is initialized!<br>​<br>以上测试说明：<br>Bean默认是在容器初始化时初始化的，即<br>ApplicationContext ctx = new ClassPathXmlApplicationContext(“beans.xml”);语句执行时就实例化bean了。如果把scope设成scope=”prototype” 或设置lazy-init=”true”，则会延迟bean的实例化，bean会在PersonService personService = (PersonServiceBean)ctx.getBean(“personService”);语句执行时才实例化。<br>当配置文件为如下所示时，测试结果同上。</p>
+<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><p>构造器、init方法、获取bean后的操作、destroy方法（ctx.close时执行）<br><strong>注意:如果bean的scope设为prototype时，当ctx.close时，destroy方法不会被调用.</strong>   </p>
+<p>原因：对于prototype作用域的bean，有一点非常重要，那就是Spring不能对一个prototype bean的整个生命周期负责：容器在初始化、配置、装饰或者是装配完一个prototype实例后，将它交给客户端，随后就对该prototype实例不闻不问了。不管何种作用域，容器都会调用所有对象的初始化生命周期回调方法。但对prototype而言，任何配置好的析构生命周期回调方法都将不会被调用。清除prototype作用域的对象并释放任何prototype bean所持有的昂贵资源，都是客户端代码的职责。（让Spring容器释放被prototype作用域bean占用资源的一种可行方式是，通过使用bean的后置处理器，该处理器持有要被清除的bean的引用。）    </p>
+<p><strong>谈及prototype作用域的bean时，在某些方面你可以将Spring容器的角色看作是Java new 操作的替代者。任何迟于该时间点的生命周期事宜都得交由客户端来处理</strong>。</p>
+<p>配置文件信息如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;cn.itcast.service.impl.PersonServiceBean&quot; init-method=&quot;init&quot; destroy-method=&quot;destroy&quot;/&gt;</div></pre></td></tr></table></figure></p>
+<p>测试程序如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public class SpringTest &#123; </div><div class="line">    @Test </div><div class="line">    public void instanceSpring()&#123; </div><div class="line">        AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(&quot;beans.xml&quot;); </div><div class="line">        System.out.println(&quot;------------------&quot;); </div><div class="line">        PersonService personService = (PersonServiceBean)ctx.getBean(&quot;personService&quot;); </div><div class="line">        ctx.close(); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>运行测试程序，控制台打印信息如下所示：<br>PersonServiceBean is initialized!<br>Get the database connection and initialize other beans!<br>-—————–<br>close the database connection!  </p>
+<p>修改配置文件信息如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;cn.itcast.service.impl.PersonServiceBean&quot; scope=&quot;prototype&quot; init-method=&quot;init&quot; destroy-method=&quot;destroy&quot;/&gt;</div></pre></td></tr></table></figure></p>
+<p>再次运行测试程序，控制台打印信息如下所示：<br>-—————–<br>PersonServiceBean is initialized!<br>Get the database connection and initialize other beans! </p>
+<p>修改配置文件信息如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;personService&quot; class=&quot;cn.itcast.service.impl.PersonServiceBean&quot; lazy-init=&quot;true&quot; init-method=&quot;init&quot; destroy-method=&quot;destroy&quot;/&gt;</div></pre></td></tr></table></figure></p>
+<p>此时再次运行测试程序，控制台打印信息如下所示：<br>-—————–<br>PersonServiceBean is initialized!<br>Get the database connection and initialize other beans!<br>close the database connection!  </p>
 
       
     </div>
@@ -628,7 +839,68 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/Bean注入：Autowired和Resource/" data-id="cj6cy7nhp0088ktblv8bmemal" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/Spring/基础/Spring  Bean的scope作用域/" data-id="cj6rbmiy8008hlhblfqagxbjw" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-前端技术相关/forever/使用forever后台运行node.js" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/">使用forever后台运行node.js</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/" class="article-date"><time datetime="2017-08-13T02:09:45.000Z" itemprop="datePublished">2017-08-13</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/前端技术相关/">前端技术相关</a> / <a class="article-category-link" href="/categories/前端技术相关/forever/">forever</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>forever能做更多的事情，比如分别记录输出和错误日志，宕机重启，热部署。比如可以在js中作为api使用</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">npm install forever -g</div></pre></td></tr></table></figure>
+<h2 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service forever start</div></pre></td></tr></table></figure>
+<h2 id="使用forever启动js文件"><a href="#使用forever启动js文件" class="headerlink" title="使用forever启动js文件"></a>使用forever启动js文件</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever start app.js</div></pre></td></tr></table></figure>
+<h2 id="停止js文件"><a href="#停止js文件" class="headerlink" title="停止js文件"></a>停止js文件</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever stop app.js</div></pre></td></tr></table></figure>
+<h2 id="启动js文件并输出日志文件"><a href="#启动js文件并输出日志文件" class="headerlink" title="启动js文件并输出日志文件"></a>启动js文件并输出日志文件</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever start -l forever.log -o out.log -e err.log app.js</div></pre></td></tr></table></figure>
+<h2 id="重启js文件"><a href="#重启js文件" class="headerlink" title="重启js文件"></a>重启js文件</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever restart app.js</div></pre></td></tr></table></figure>
+<h2 id="查看正在运行的进程"><a href="#查看正在运行的进程" class="headerlink" title="查看正在运行的进程"></a>查看正在运行的进程</h2> <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">forever list</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/forever/使用forever后台运行node.js/" data-id="cj6rbmiyx009qlhblxxock41k" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -682,191 +954,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/forever/nohup node app.js &/" data-id="cj6cy7nhj007tktblyuoshepx" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/基础/java 垃圾回收机制" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/12/Java/基础/java 垃圾回收机制/">java 垃圾回收机制</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/08/12/Java/基础/java 垃圾回收机制/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="JVM体系结构简介"><a href="#JVM体系结构简介" class="headerlink" title="JVM体系结构简介"></a>JVM体系结构简介</h2><h4 id="JVM-Specification中的JVM整体架构"><a href="#JVM-Specification中的JVM整体架构" class="headerlink" title="JVM Specification中的JVM整体架构"></a>JVM Specification中的JVM整体架构</h4><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/7F3773507E124A918989B46388D81BAE/7802" alt="image"><br>主要包括两个子系统和两个组件，<strong>Class Loader(类装载)子系统</strong>，<strong>Execution Engine(执行引擎)子系统</strong>，<strong>Runtime Data Area(运行时数据区)组件</strong>，<strong>Native Interface(本地接口)组件</strong>。 </p>
-<ul>
-<li>Class loader 子系统的作用 ：根 据给定的全限定名类名(如 java.lang.Object)来装载class文件的内容到 Runtime data area 中的method area(方法区域)。Java 程序员可以extends java.lang.ClassLoader 类来写自己的Class loader。</li>
-<li>Execution engine 子系统的作用 ：执 行 classes中的指令。任何 JVM specification实现(JDK)的核心是Execution engine， 换句话说：Sun 的JDK 和IBM的JDK好坏主要取决于他们各自实现的Execution  engine的好坏。每个运行中的线程都有一个 Execution engine的实例。 </li>
-<li>Native interface 组件 ：与native libraries 交互，是其它编程语言交互的接口。 </li>
-<li>Runtime data area 组件：这个组件就是 JVM中的内存。</li>
-</ul>
-<p>Runtime data area 的整体架构图：<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/6AA4AD5DE0324A3C8BEE06B56345725F/7804" alt="image"><br><strong>Runtime data area 主要包括五个部分：Heap (堆), Method Area(方法区域), Java Stack(java 的栈), Program Counter(程序计数器), Native method stack(本地方法栈)。Heap 和Method Area 是被所有线程的共享使用的；而Java stack, Program counter 和 Native method stack 是以线程为粒度的，每个线程独自拥有。</strong>   </p>
-<ul>
-<li><p><strong>Heap（堆内存）</strong><br>Java程序在运行时创建的所有类实例或数组都放在同一个堆中。而一个Java虚拟实例中只存在一个堆空间，因此所有线程都将共享这个堆。每一个 java程序独占一个JVM实例，因而每个 java程序都有它自己的堆空间，它们不会彼此干扰。但是同一java程序的多个线程都共享着同一个堆空间，就得考虑多线程访问对象（堆数据）的同步问 题。（这里可能出现的异常 java.lang.OutOfMemoryError: Java heap space）  </p>
-</li>
-<li><p><strong>Method area（方法区）</strong><br>在Java 虚拟机中，被装载的 class的信息存储在 Method area的内存中。当虚拟机装载某个类型时，它使用类装载器定位相应的 class文件，然后读入这个class文件内容并把它传输到虚拟机中。紧接着虚拟机提取其中的类型信息，并将这些信息存储到方法区。该类型中的类（静 态）变量同样也存储在方法区中。与Heap 一样，method area 是多线程共享的，因此要考虑多线程访问的同步问题。比如，假设同时两个线程都企图访问一个名为 Lava的类，而这个类还没有内装载入虚拟机，那么，这时应该只有一个线程去装载它，而另一个线程则只能等待。 （这里可能出现的异常 java.lang.OutOfMemoryError: PermGen full）  </p>
-</li>
-<li><p><strong>Java stack（java 栈）</strong><br>Java stack 以帧为单位保存线程的运行状态。虚拟机只会直接对 Java stack执行两种操作：以帧为单位的压栈或出栈。每当线程调用一个方法的时候，就对当前状态作为一个帧保存到 java stack 中(压栈)；当一个方法调用返回时，从java stack 弹出一个帧(出栈)。栈的大小是有一定的限制，这个可能出现StackOverFlow 问题，例如递归的层数太深。  </p>
-</li>
-<li><p><strong>Program counter（程序计数器）</strong><br>每个运行中的Java程序，每一个线程都有它自己的PC寄存器，也是该线程启动时创建的。PC寄存器的内容总是指向下一条将被执行指令的地址，这里的地址可以是一个本地指针，也可以是在方法区中相对应于该方法起始指令的偏移量。  </p>
-</li>
-<li><p><strong>Native method stack（本地方法栈）</strong><br>对于一个运行中的Java程序而言，它还能会用到一些跟本地方法相关的数据区。当某个线程调用一个本地方法时，它就进入了一个全新的并且不再受虚拟机限 制的世界。本地方法可以通过本地方法接口来访问虚拟机的运行时数据区，不止如此，它还可以做任何它想做的事情。比如，可以调用寄存器，或在操作系统中分配 内存等。总之，本地方法具有和JVM 相同的能力和权限。  (这里出现 JVM无法控制的内存溢出问题 native heap OutOfMemory ) 。  </p>
-</li>
-</ul>
-<h4 id="Sun-JVM-中对-JVM-Specification-的实现（内存部分）"><a href="#Sun-JVM-中对-JVM-Specification-的实现（内存部分）" class="headerlink" title="Sun JVM 中对 JVM Specification 的实现（内存部分）"></a>Sun JVM 中对 JVM Specification 的实现（内存部分）</h4><p>JVM Specification只是抽象的说明了 JVM 实例按照子系统、内存区、数据类型以及指令这几个术语来描述的，  但是规范并非是要强制规定 Java 虚拟机实现内部的体系结构，更多的是为了严格地定义这些实现的外部特征。  Sun JVM 实现中：Runtime data area(JVM  内存)  五个部分中的 Java Stack , Program Counter, Native method stack 三部分和规范中的描述基本一致；但对 Heap  和  Method Area 进行了自己独特的实现。这个实现和 Sun JVM  的Garbage collector（垃圾回收）机制有关。     </p>
-<h5 id="垃圾分代回收算法（Generational-Collecting）"><a href="#垃圾分代回收算法（Generational-Collecting）" class="headerlink" title="垃圾分代回收算法（Generational Collecting）"></a>垃圾分代回收算法（Generational Collecting）</h5><p>基于对对象生命周期分析后得出的垃圾回收算法。把对象分为年青代、年老代、持久代，对不同生命周期的对象使用不同的算法（上述方式中的一个）进行回收。现在的垃圾回收器（从J2SE1.2开始）都是使用此算法的。<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/51FF00BC6F604060B8EE5826F063E7FF/7803" alt="image">    </p>
-<p>如上图所示，为Java 堆中的各代分布。   </p>
-<ol>
-<li>Young（年轻代）JVM specification 中的  Heap的一部分。年轻代分三个区。一个Eden区，两个 Survivor区。大部分对象在Eden区中生成。当Eden区满时，还存活的对象将被复制到 Survivor区（两个中的一个），当这个 Survivor区满时，此区的存活对象将被复制到另外一个 Survivor区，当这个 Survivor去也满了的时候，从第一个Survivor区复制过来的并且此时还存活的对象，将被复制到年老区(Tenured)。需要注 意，Survivor的两个区是对称的，没先后关系，所以同一个区中可能同时存在从Eden复制过来的对象，和从前一个 Survivor复制过来的对象，而复制到年老区的只有从第一个 Survivor 区过来的对象。而且，Survivor 区总有一个是空的。  </li>
-<li>Tenured（年老代）JVM specification中的  Heap的一部分。年老代存放从年轻代存活的对象。一般来说年老代存放的都是生命期较长的对象。</li>
-<li>Perm（持久代）  JVM specification 中的  Method area 用于存放静态文件，如 Java 类、方法等。持久代对垃圾回收没有显著影响，但是有些应用可能动态生成或者调用一些 class，例如 Hibernate 等，在这种时候需要设置一个比较大的持久代空间来存放这些运行过程中新增的类。持久代大小通过-XX:MaxPermSize=进行设置。</li>
-</ol>
-<h2 id="内存分布"><a href="#内存分布" class="headerlink" title="内存分布"></a>内存分布</h2><p>JVM的内存分代管理结构：<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/605518F2B1504903B1A126803190723C/7805" alt="image"><br>下面是一些需要关注的常用的JVM内存配置参数，我们来看看它们是如何影响上图中的比例的。        </p>
-<h3 id="Heap-Size"><a href="#Heap-Size" class="headerlink" title="Heap Size"></a>Heap Size</h3><p><strong>-Xmx —最大Heap Size</strong>，即上图的Total size（包括Eden+form+to，Tenured，不包含Perm，见上图），限制了年轻代和年老代的可分配最大值；<br><strong>-Xms —初始化分配的Heap Size</strong><br>生产环境中ms一般设置成跟mx相等，因为若ms不等于mx那么在某些场景下JVM可能需要对Heap Size进行频繁的扩展和收缩，增加处理时间；</p>
-<h3 id="New-Young-Generation-Size"><a href="#New-Young-Generation-Size" class="headerlink" title="New/Young Generation Size"></a>New/Young Generation Size</h3><p><strong>-Xmn —最大年轻代大小</strong>，即上图中的Eden+S0+S1+Virtual<br><strong>-XX:NewSize —初始化年轻代大小</strong>，即上图中的Eden+S0+S1，在只设置了-Xmn不设置-XX:NewSize的情况下，NewSize等于mn。<br>生产环境中一般只需设置-Xmn或者设置mn和NewSize相等，理由和HeapSize的设置一样，避免容量震荡消耗资源；</p>
-<h3 id="Old-Generation-Size-（Tenured）"><a href="#Old-Generation-Size-（Tenured）" class="headerlink" title="Old Generation Size （Tenured）"></a>Old Generation Size （Tenured）</h3><p>-XX:NewRatio — Old Size/New Size，通过年老代和年轻代的比例和Heap Size就可以算出年老代的大小。一般默认为8，若Heap Size为1024m，则 NewSize=HeapSize/(NewRatio+1)=114m，OldSize=HeapSize-NewSize=910m；<br>注意：-Xmn的优先级比-XX:NewRatio高，若-Xmn已指定，则OldSize=HeapSize-NewSize，无需再按比例计算。生产环境中一般只需指定-Xmn就足够了。</p>
-<h3 id="Eden和S0、S1"><a href="#Eden和S0、S1" class="headerlink" title="Eden和S0、S1"></a>Eden和S0、S1</h3><p>-XX:SurvivorRatio — Eden/S0，即 Eden区和S0的比例，默认为8，若NewSize为114m，则S0=NewSize/(SurvivorRatio+2)=11.4m;<br>S0==S1，S0、S1的职能是一模一样的，又叫做From space和To space，在每一次minor gc后角色会交换。<br>注意：-XX类型的选项在不同的JDK版本或实现中定义可能有所区别，在近日的实践中发现，在Linux jdk_1_5_0_10_x86版本中，SurvivorRatio=(YoungSize/S0)，而Linux jdk_1_5_0_20_x64版本中，SurvivorRatio=(Eden/S0)，所以，我们在实际的工程实践中还是应该用jmap -heap输出的jvm内存结构信息为准，不要想当然。</p>
-<h3 id="Permanent-Generation-Size"><a href="#Permanent-Generation-Size" class="headerlink" title="Permanent Generation Size"></a>Permanent Generation Size</h3><p><strong>-XX:MaxPermSize</strong> —最大持久代大小，默认为64m；<br><strong>-XX:PermSize</strong> —初始化持久代大小，默认为16m；<br>生产环境中一般设置MaxPermSize和PermSize相等，理由和HeapSize的设置一样，避免容量震荡消耗资源；<br>当应用引用的类比较多或者应用了一些动态类生产技术时应该加大该区的值，一般256m对服务器程序都很足够了。  </p>
-<h3 id="Thread-Stack-Size"><a href="#Thread-Stack-Size" class="headerlink" title="Thread Stack Size"></a>Thread Stack Size</h3><p><strong>-Xss</strong> —线程堆栈大小，一般用于存放方法入口参数和返回值，以及原子类型的本地变量（即方法内部变量）；<br>一般可设置为128k.</p>
-<h3 id="Direct-Memory-Size"><a href="#Direct-Memory-Size" class="headerlink" title="Direct Memory Size"></a>Direct Memory Size</h3><p>-XX:MaxDirectMemorySize —direct byte buffer用到的本地内存，默认跟mx相等，所以生产环境中一般不设置mx大于物理内存的一半。</p>
-<h2 id="GC过程"><a href="#GC过程" class="headerlink" title="GC过程"></a>GC过程</h2><p>在讲述GC过程前我先解释一下JVM的两个控制参数：</p>
-<ul>
-<li>-XX:TargetSurvivorRatio — Survivor Space最大使用率，若存放对象的总大小超过该值，将引起对象向Old区迁移；</li>
-<li>-XX:MaxTenuringThreshold — Young区对象的最大任期阀值，即可经历minor gc的次数，超过该次数的对象直接迁移到Old区；</li>
-</ul>
-<h3 id="Heap在初始状态"><a href="#Heap在初始状态" class="headerlink" title="Heap在初始状态"></a>Heap在初始状态</h3><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/D697D9F32C4B49B695E55BA6C17F05BA/7806" alt="image">    </p>
-<h3 id="在Eden存放新对象"><a href="#在Eden存放新对象" class="headerlink" title="在Eden存放新对象"></a>在Eden存放新对象</h3><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/661FF2FC15A54B968D78771794964F82/7807" alt="image">    </p>
-<h3 id="Eden空间不足分配新对象，进行第一次minor-gc"><a href="#Eden空间不足分配新对象，进行第一次minor-gc" class="headerlink" title="Eden空间不足分配新对象，进行第一次minor gc"></a>Eden空间不足分配新对象，进行第一次minor gc</h3><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/3055967862EE440593549C52A86D1BFA/7808" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/DCC7EA8095674A87A8B731179AD2C055/7810" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/360E2E4E55074C43A2CEC0BF1E984735/7809" alt="image">    </p>
-<h3 id="Eden区再次被写满，进行第二次minor-gc"><a href="#Eden区再次被写满，进行第二次minor-gc" class="headerlink" title="Eden区再次被写满，进行第二次minor gc"></a>Eden区再次被写满，进行第二次minor gc</h3><p><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/D82167248EE1422F9E2E168A2E0BED2C/7811" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/02BD5695A74249788A952C94A2BB6C5B/7813" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/ECFFAB95FB884318BFBC4810FA24C7DE/7812" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/43B37C943BB94ACD98390B311FB7EEE0/7814" alt="image">   </p>
-<h3 id="Eden再次被写满，进行第3次minor-gc"><a href="#Eden再次被写满，进行第3次minor-gc" class="headerlink" title="Eden再次被写满，进行第3次minor gc"></a>Eden再次被写满，进行第3次minor gc</h3><p>第3次gc，发生了对象从from space提升到old区的迁移，然后也发生了from space到to space的copy<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/9C0C8EDA8702471AA5FDA2B245A38442/7816" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/074D37A977464B0A9666B29BEF481E9D/7815" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/4E881AF6D6A94548A6E537AF0C0DEC7F/7817" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/A30D42C7170E468E8C789FAA797ED51F/7819" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/B37B2D99E29543F98F46BFCA716CB9D8/7818" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/61FA00EA2A28452A98CB66A1348D1771/7820" alt="image">   </p>
-<p>以下是Survivor space空间不足但对象的minor gc次数未到达MaxTenuringThreshold时的gc情况：<br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/C0BD54B605034553BE7F6CA3877DCD6D/7821" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/E3EBAC9AB610412AA408431B7A448D20/7822" alt="image"><br><img src="http://note.youdao.com/yws/public/resource/5d693f69f15f8d79b4d63b55d6072e6d/xmlnote/4A2675338FF843A295210D7DC59557B3/7823" alt="image">   </p>
-<h2 id="GC实战"><a href="#GC实战" class="headerlink" title="GC实战"></a>GC实战</h2><p>在进行GC Tuning时有两个很强大的利器：   </p>
-<ul>
-<li>jstat：用于查看某java进程的gc情况；</li>
-<li>jmap：查看java进程堆栈分配和使用情况，以及dump出当前堆栈内容（可以用Eclipse MAT进行进一步分析） </li>
-</ul>
-<p>以上两个利器都是jdk自带，且无需java进程添加任何额外的debug信息输出参数的，直接就可以对任意java进程进行跟踪了。</p>
-<p>UseParNewGC表示对新生代采用并行gc；<br>ParallelGCThreads表示并行的线程数为8，一般是cpu的核个数，当核个数大于8时可能不是很适用；<br>UseConcMarkSweepGC表示对full gc采用CMS gc；</p>
-<p>另外还有几个跟GC有关的有用参数，这里没有用到：<br>-XX:+DisableExplicitGC 表示禁止显式gc，System.gc()<br>-XX:+UseCMSCompactAtFullCollection 适用于CMS gc，表示在进行gc的同时清理内存碎片，但会加长gc的总时间<br>-XX:CMSInitiatingOccupancyFraction=80 适用于CMS gc，表示在年老代达到80%使用率时马上进行回收</p>
-<p>另外下面是在JVM Crash时获heap信息的一些配置参数：<br>-XX:ErrorFile=./xxx.log   JVM Crash时记录heap信息<br>-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./yyy.log JVM OOM时记录heap信息<br>拿到heap文件后可以用Eclipse MAT进行分析，找出引起内存泄漏的class。</p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/java 垃圾回收机制/" data-id="cj6cy7nfc002wktbl8qf3pcej" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/基础/==与equals的区别" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/12/Java/基础/==与equals的区别/">==与equals的区别</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/08/12/Java/基础/==与equals的区别/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h2><p><strong>==:对于基本类型来说，比较的是两个对象的值是否想等；对于引用类型来说，比较的是两个引用对象是否指向同一个对象（即两个对象的引用地址是否想等）<br>equals:该方法不能作用于基本类型的对象，比较的是两个引用对象的地址是否想等<br>注意：由于String，Integer，Byte等类重写了equals方法，所以相当于比较两个对象的值是否想等</strong></p>
-<hr>
-<p>在Java中游8种基本数据类型：</p>
-<p>　　浮点型：float(4 byte), double(8 byte)</p>
-<p>　　整型：byte(1 byte), short(2 byte), int(4 byte) , long(8 byte)</p>
-<p>　　字符型: char(2 byte)</p>
-<p>　　布尔型: boolean(JVM规范没有明确规定其所占的空间大小，仅规定其只能够取字面值”true”和”false”)</p>
-<p>　　对于这8种基本数据类型的变量，变量直接存储的是“值”，因此在用关系操作符==来进行比较时，比较的就是 “值” 本身。要注意浮点型和整型都是有符号类型的，而char是无符号类型的（char类型取值范围为0~2^16-1).
-　　</p>
-<ol>
-<li><strong>String类型的比较</strong><br>String类型比较不同对象内容是否相同，应该用equals，因为==用于比较引用类型和比较基本数据类型时具有不同的功能。</li>
-</ol>
-<p>分析如下：</p>
-<p>例子一：对象不同，内容相同，”==”返回false，equals返回true<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">String s1 = <span class="keyword">new</span> String(<span class="string">"java"</span>);</div><div class="line">String s2 = <span class="keyword">new</span> String(<span class="string">"java"</span>);</div><div class="line"></div><div class="line">System.out.println(s1==s2);            <span class="comment">//false</span></div><div class="line">System.out.println(s1.equals(s2));    <span class="comment">//true</span></div></pre></td></tr></table></figure></p>
-<p>例子二：同一对象，”==”和equals结果相同<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">String s1 = new String(&quot;java&quot;);</div><div class="line">String s2 = s1;</div><div class="line"></div><div class="line">System.out.println(s1==s2);            //true</div><div class="line">System.out.println(s1.equals(s2));    //true</div></pre></td></tr></table></figure></p>
-<p>例子三：String作为一个“基本类型”来使用</p>
-<p>如果值不相同，对象就不相同，所以”==” 和equals结果一样<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">String s1 = &quot;java&quot;;</div><div class="line">String s2 = &quot;java&quot;;</div><div class="line"></div><div class="line">System.out.println(s1==s2);            //true</div><div class="line">System.out.println(s1.equals(s2));    //true</div></pre></td></tr></table></figure></p>
-<p>如果String缓冲池内不存在与其指定值相同的String对象，那么此时虚拟机将为此创建新的String对象，并存放在String缓冲池内。</p>
-<p>如果String缓冲池内存在与其指定值相同的String对象，那么此时虚拟机将不为此创建新的String对象，而直接返回已存在的String对象的引用。</p>
-<p>　　</p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/==与equals的区别/" data-id="cj6cy7nf5002mktblzowgjsu5" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/08/13/前端技术相关/forever/nohup node app.js &/" data-id="cj6rbmiyy009slhbl7mvnvan6" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -901,7 +989,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">63</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">11</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
   </div>
 
 
@@ -914,7 +1002,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">53</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">56</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
   </div>
 
 
@@ -925,7 +1013,11 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/15/Spring/Security/配置十三：session管理/">配置十三：session管理</a>
+          <a href="/2017/08/16/Java/基础/java动态代理/">java动态代理</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/16/Java/基础/重载与重写/">重载与重写</a>
         </li>
       
         <li>
@@ -933,15 +1025,11 @@
         </li>
       
         <li>
-          <a href="/2017/08/15/Spring/Security/配置四：认证过程/">配置四：认证过程</a>
+          <a href="/2017/08/15/Spring/Security/配置十二：Remember-Me功能/">配置十二：Remember-Me功能</a>
         </li>
       
         <li>
-          <a href="/2017/08/15/Spring/Security/配置十：退出登录/">配置十：退出登录</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置十六：基于表达式的权限控制/">配置十六：基于表达式的权限控制</a>
+          <a href="/2017/08/15/Spring/Security/配置十五：权限鉴定结构/">配置十五：权限鉴定结构</a>
         </li>
       
     </ul>

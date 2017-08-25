@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-Spring/Spring Task/自带用法" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/Spring Task/Task Cron" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/Spring Task/自带用法/">自带用法</a>
+      <a class="article-title" href="/2017/07/19/Spring/Spring Task/Task Cron/">Task Cron</a>
     </h1>
   
 
@@ -95,7 +95,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/Spring Task/自带用法/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/Spring Task/Task Cron/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
@@ -110,7 +110,90 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="applicationContext-task-xml"><a href="#applicationContext-task-xml" class="headerlink" title="applicationContext-task.xml"></a>applicationContext-task.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</div><div class="line">&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;</div><div class="line">	xmlns:task=&quot;http://www.springframework.org/schema/task&quot;</div><div class="line">	xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans  </div><div class="line">    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd  </div><div class="line">    http://www.springframework.org/schema/context   </div><div class="line">    http://www.springframework.org/schema/context/spring-context-4.1.xsd </div><div class="line">    http://www.springframework.org/schema/task </div><div class="line">    http://www.springframework.org/schema/task/spring-task-4.1.xsd</div><div class="line">    &quot;&gt;</div><div class="line">    </div><div class="line">    &lt;task:annotation-driven /&gt;</div><div class="line">    &lt;!-- 处理物流订单的定时任务 --&gt;</div><div class="line">    &lt;task:scheduler id=&quot;orderScheduler&quot; pool-size=&quot;10&quot; /&gt;</div><div class="line">    &lt;task:scheduled-tasks scheduler=&quot;orderScheduler&quot;&gt;</div><div class="line">       &lt;!-- 处理立即支付类型的在订单过期时间前还没有支付的订单 --&gt;</div><div class="line">       &lt;task:scheduled ref=&quot;logisticsOrderService&quot; method=&quot;remoteUpdateHsbStatus&quot; cron=&quot;0 0/5 * * * ?&quot; /&gt;</div><div class="line">       &lt;!-- 处理物流订单的支付订单的支付状态 --&gt;</div><div class="line">        &lt;task:scheduled ref=&quot;logisticsPaymentService&quot; method=&quot;processLogisticsPayment&quot; cron=&quot;0 0/5 * * * ?&quot; /&gt; </div><div class="line">       &lt;!-- 物流订单结算 --&gt;</div><div class="line">        &lt;task:scheduled ref=&quot;logisticsOrderTaskService&quot; method=&quot;doSettleLogisticsOrderTask&quot; cron=&quot;0 0 5 * * ?&quot;/&gt;</div><div class="line">    	&lt;!-- 处理与zpt同步失败的物流订单 --&gt;</div><div class="line">    	&lt;task:scheduled ref=&quot;logisticsOrderTaskService&quot; method=&quot;disposeSynFailOrderTask&quot; cron=&quot;0 0/5 * * * ?&quot;/&gt;</div><div class="line">    &lt;/task:scheduled-tasks&gt;</div><div class="line">    </div><div class="line">&lt;/beans&gt;</div></pre></td></tr></table></figure>
+        <h2 id="Cron语法"><a href="#Cron语法" class="headerlink" title="Cron语法"></a>Cron语法</h2><p>Cron表达式是一个字符串，字符串以5或6个空格隔开，分开共6或7个域，每一个域代表一个含义,Cron有如下两种语法<br>语法： </p>
+<ul>
+<li>Seconds Minutes Hours DayofMonth Month DayofWeek Year</li>
+<li>Seconds Minutes Hours DayofMonth Month DayofWeek </li>
+</ul>
+<p>每一个域可出现的字符如下：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>允许值</th>
+<th>允许的特殊字符</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>秒</td>
+<td>0-59</td>
+<td>, - * /</td>
+</tr>
+<tr>
+<td>分</td>
+<td>0-59</td>
+<td>, - * /</td>
+</tr>
+<tr>
+<td>小时</td>
+<td>0-23</td>
+<td>, - * /</td>
+</tr>
+<tr>
+<td>日期</td>
+<td>1-31</td>
+<td>, - * ? / L W C</td>
+</tr>
+<tr>
+<td>月份</td>
+<td>1-12 或者 JAN-DEC</td>
+<td>, - * /</td>
+</tr>
+<tr>
+<td>星期</td>
+<td>1-7 或者 SUN-SAT</td>
+<td>, - * ? / L C #</td>
+</tr>
+<tr>
+<td>年（可选）</td>
+<td>留空, 1970-2099</td>
+<td>, - * /</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Seconds</strong>:可出现,-  *  / 四个字符，有效范围为0-59的整数    </li>
+<li><strong>Minutes</strong>:可出现,-  *  / 四个字符，有效范围为0-59的整数    </li>
+<li><strong>Hours</strong>:可出现,-  *  / 四个字符，有效范围为0-23的整数    </li>
+<li><strong>DayofMonth</strong>:可出现,-  *  / ? L W C八个字符，有效范围为0-31的整数   </li>
+<li><strong>Month</strong>:可出现,-  *  / 四个字符，有效范围为1-12的整数或JAN-DEc    </li>
+<li><strong>DayofWeek</strong>:可出现,-  *  / ? L C #四个字符，有效范围为1-7的整数或SUN-SAT两个范围。1表示星期天，2表示星期一， 依次类推    </li>
+<li><strong>Year</strong>:可出现,-  *  / 四个字符，有效范围为1970-2099年  </li>
+</ul>
+<p>每一个域都使用数字，但还可以出现如下特殊字符，它们的含义是：</p>
+<ul>
+<li><p>*：表示匹配该域的任意值，假如在Minutes域使用*,即表示每分钟都会触发事件。    </p>
+</li>
+<li><p>?:只能用在DayofMonth和DayofWeek两个域。它也匹配域的任意值，但实际不会。因为DayofMonth和DayofWeek会相互影响。例如想在每月的20日触发调度，不管20日到底是星期几，则只能使用如下写法： 13  13 15 20 <em> ?,其中最后一位只能用？，而不能使用</em>，如果使用*表示不管星期几都会触发，实际上并不是这样。    </p>
+</li>
+<li><p>-:表示范围，例如在Minutes域使用5-20，表示从5分到20分钟每分钟触发一次    </p>
+</li>
+<li><p>/：表示起始时间开始触发，然后每隔固定时间触发一次，例如在Minutes域使用5/20,则意味着5分钟触发一次，而25，45等分别触发一次.    </p>
+</li>
+<li><p>,:表示列出枚举值值。例如：在Minutes域使用5,20，则意味着在5和20分每分钟触发一次。   </p>
+</li>
+<li><p>L:表示最后，只能出现在DayofWeek和DayofMonth域，如果在DayofWeek域使用5L,意味着在最后的一个星期四触发。    </p>
+</li>
+<li><p>W:表示有效工作日(周一到周五),只能出现在DayofMonth域，系统将在离指定日期的最近的有效工作日触发事件。例如：在DayofMonth使用5W，如果5日是星期六，则将在最近的工作日：星期五，即4日触发。如果5日是星期天，则在6日触发；如果5日在星期一到星期五中的一天，则就在5日触发。另外一点，W的最近寻找不会跨过月份    </p>
+</li>
+<li><p>LW:这两个字符可以连用，表示在某个月最后一个工作日，即最后一个星期五。</p>
+</li>
+<li><p>#:用于确定每个月第几个星期几，只能出现在DayofMonth域。例如在4#2，表示某月的第二个星期三。</p>
+<p>​</p>
+</li>
+</ul>
+<h2 id="事例"><a href="#事例" class="headerlink" title="事例"></a>事例</h2><p>一个cron表达式有至少6个（也可能7个）有空格分隔的时间元素。<br>按顺序依次为<br>秒（0~59）<br>分钟（0~59）<br>小时（0~23）<br>天（月）（0~31，但是你需要考虑你月的天数）<br>月（0~11）<br>天（星期）（1~7 1=SUN 或 SUN，MON，TUE，WED，THU，FRI，SAT）<br>7.年份（1970－2099）<br>其中每个元素可以是一个值(如6),一个连续区间(9-12),一个间隔时间(8-18/4)(/表示每隔4小时),一个列表(1,3,5),通配符。由于”月份中的日期”和”星期中的日期”这两个元素互斥的,必须要对其中一个设置?.<br>“0 0 10,14,16 <em> </em> ?” 每天上午10点，下午2点，4点<br>“0 0/30 9-17 <em> </em> ?”   朝九晚五工作时间内每半小时<br>“0 0 12 ? <em> WED” 表示每个星期三中午12点<br>“0 0 12 </em> <em> ?” 每天中午12点触发<br>“0 15 10 ? </em> <em>“ 每天上午10:15触发<br>“0 15 10 </em> <em> ?” 每天上午10:15触发<br>“0 15 10 </em> <em> ? </em>“ 每天上午10:15触发<br>“0 15 10 <em> </em> ? 2005” 2005年的每天上午10:15触发<br>“0 <em> 14 </em> <em> ?” 在每天下午2点到下午2:59期间的每1分钟触发<br>“0 0/5 14 </em> <em> ?” 在每天下午2点到下午2:55期间的每5分钟触发<br>“0 0/5 14,18 </em> <em> ?” 在每天下午2点到2:55期间和下午6点到6:55期间的每5分钟触发<br>“0 0-5 14 </em> <em> ?” 在每天下午2点到下午2:05期间的每1分钟触发<br>“0 10,44 14 ? 3 WED” 每年三月的星期三的下午2:10和2:44触发<br>“0 15 10 ? </em> MON-FRI” 周一至周五的上午10:15触发<br>“0 15 10 15 <em> ?” 每月15日上午10:15触发<br>“0 15 10 L </em> ?” 每月最后一日的上午10:15触发<br>“0 15 10 ? <em> 6L” 每月的最后一个星期五上午10:15触发<br>“0 15 10 ? </em> 6L 2002-2005” 2002年至2005年的每月的最后一个星期五上午10:15触发<br>“0 15 10 ? <em> 6#3” 每月的第三个星期五上午10:15触发<br>“0 0  2  1 </em>  ? <em>“  表示在每月的1日的凌晨2点调度任务<br>“0 15 10 ? </em>  MON-FRI” 表示周一到周五每天上午10：15执行作业<br>“0 15 10 ? 6L 2002-2006” 表示200-2006年的每个月的最后一个星期五上午10:15执行作业   </p>
 
       
     </div>
@@ -121,7 +204,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Task/自带用法/" data-id="cj6cy7nhp0086ktblgkj8egl5" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Task/Task Cron/" data-id="cj6rbmiy30083lhblmb1gnwnf" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -135,13 +218,13 @@
 
 
   
-    <article id="post-GitHub/安装gogs本地git服务器" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/Spring Task/使用Quartz" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/GitHub/安装gogs本地git服务器/">安装gogs本地git服务器</a>
+      <a class="article-title" href="/2017/07/19/Spring/Spring Task/使用Quartz/">使用Quartz</a>
     </h1>
   
 
@@ -150,13 +233,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/GitHub/安装gogs本地git服务器/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/Spring Task/使用Quartz/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Github/">Github</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Task/">Task</a>
   </div>
 
 
@@ -165,13 +248,11 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="gogs首页"><a href="#gogs首页" class="headerlink" title="gogs首页"></a>gogs首页</h2><p><a href="https://gogs.io/" target="_blank" rel="external">https://gogs.io/</a></p>
-<h2 id="下载二进制包"><a href="#下载二进制包" class="headerlink" title="下载二进制包"></a>下载二进制包</h2><p><a href="https://gogs.io/docs/installation/install_from_binary.html" target="_blank" rel="external">https://gogs.io/docs/installation/install_from_binary.html</a><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入解压目录：</div><div class="line">执行命令 ./gogs web</div></pre></td></tr></table></figure></p>
-<p>目录运行地址：<br><a href="http://localhost:3000/" target="_blank" rel="external">http://localhost:3000/</a></p>
-<p>登录地址：<a href="http://localhost:3000/user/login" target="_blank" rel="external">http://localhost:3000/user/login</a></p>
-<p>帐号：<code>root</code>      密码：<code>clq</code></p>
-<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入go目录：/usr/local/Cellar/gogs</div><div class="line">执行命令./gogs web</div></pre></td></tr></table></figure>
-<h2 id="后台运行"><a href="#后台运行" class="headerlink" title="后台运行"></a>后台运行</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入go目录：/usr/local/Cellar/gogs</div><div class="line">执行命令 nohup ./gogs web &amp;</div></pre></td></tr></table></figure>
+        <h2 id="Maven"><a href="#Maven" class="headerlink" title="Maven"></a>Maven</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">&lt;!-- spring time task --&gt;</div><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;org.quartz-scheduler&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;quartz&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;1.8.4&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
+<h2 id="方法一"><a href="#方法一" class="headerlink" title="方法一:"></a>方法一:</h2><p>作业类继承自特定的基类：<code>org.springframework.scheduling.quartz.QuartzJobBean</code><br>作业类（定时任务类）<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">import org.quartz.JobExecutionContext;  </div><div class="line">import org.quartz.JobExecutionException;  </div><div class="line">import org.springframework.scheduling.quartz.QuartzJobBean;  </div><div class="line">public class Job1 extends QuartzJobBean &#123;  </div><div class="line">  </div><div class="line">private int timeout;  </div><div class="line">private static int i = 0;  </div><div class="line">//调度工厂实例化后，经过timeout时间开始执行调度  </div><div class="line">public void setTimeout(int timeout) &#123;  </div><div class="line">this.timeout = timeout;  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">/** </div><div class="line">* 要调度的具体任务 </div><div class="line">*/  </div><div class="line">@Override  </div><div class="line">protected void executeInternal(JobExecutionContext context)  </div><div class="line">    throws JobExecutionException &#123;  </div><div class="line">      System.out.println(&quot;定时任务执行中…&quot;);  </div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">&lt;bean name=&quot;exampleJob&quot; class=&quot;org.springframework.scheduling.quartz.JobDetailFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;jobClass&quot; value=&quot;example.ExampleJob&quot;/&gt;</div><div class="line">    &lt;property name=&quot;jobDataAsMap&quot;&gt;</div><div class="line">        &lt;map&gt;</div><div class="line">            &lt;entry key=&quot;timeout&quot; value=&quot;5&quot;/&gt;</div><div class="line">        &lt;/map&gt;</div><div class="line">    &lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;simpleTrigger&quot; class=&quot;org.springframework.scheduling.quartz.SimpleTriggerFactoryBean&quot;&gt;</div><div class="line">    &lt;!-- see the example of method invoking job above --&gt;</div><div class="line">    &lt;property name=&quot;jobDetail&quot; ref=&quot;exampleJob&quot;/&gt;</div><div class="line">    &lt;!-- 10 seconds --&gt;</div><div class="line">    &lt;property name=&quot;startDelay&quot; value=&quot;10000&quot;/&gt;</div><div class="line">    &lt;!-- repeat every 50 seconds --&gt;</div><div class="line">    &lt;property name=&quot;repeatInterval&quot; value=&quot;50000&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;cronTrigger&quot; class=&quot;org.springframework.scheduling.quartz.CronTriggerFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;jobDetail&quot; ref=&quot;exampleJob&quot;/&gt;</div><div class="line">    &lt;!-- run every morning at 6 AM --&gt;</div><div class="line">    &lt;property name=&quot;cronExpression&quot; value=&quot;0 0 6 * * ?&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean class=&quot;org.springframework.scheduling.quartz.SchedulerFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;triggers&quot;&gt;</div><div class="line">        &lt;list&gt;</div><div class="line">            &lt;ref bean=&quot;cronTrigger&quot;/&gt;</div><div class="line">            &lt;ref bean=&quot;simpleTrigger&quot;/&gt;</div><div class="line">        &lt;/list&gt;</div><div class="line">    &lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
+<h2 id="方法二"><a href="#方法二" class="headerlink" title="方法二"></a>方法二</h2><p>作业类不继承特定基类</p>
+<h3 id="配置文件-1"><a href="#配置文件-1" class="headerlink" title="配置文件"></a>配置文件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;exampleBusinessObject&quot; class=&quot;examples.ExampleBusinessObject&quot;/&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;jobDetail&quot; class=&quot;org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;targetObject&quot; ref=&quot;exampleBusinessObject&quot;/&gt;</div><div class="line">    &lt;property name=&quot;targetMethod&quot; value=&quot;doIt&quot;/&gt;</div><div class="line">    &lt;property name=&quot;concurrent&quot; value=&quot;false&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;simpleTrigger&quot; class=&quot;org.springframework.scheduling.quartz.SimpleTriggerFactoryBean&quot;&gt;</div><div class="line">    &lt;!-- see the example of method invoking job above --&gt;</div><div class="line">    &lt;property name=&quot;jobDetail&quot; ref=&quot;exampleBusinessObject&quot;/&gt;</div><div class="line">    &lt;!-- 10 seconds --&gt;</div><div class="line">    &lt;property name=&quot;startDelay&quot; value=&quot;10000&quot;/&gt;</div><div class="line">    &lt;!-- repeat every 50 seconds --&gt;</div><div class="line">    &lt;property name=&quot;repeatInterval&quot; value=&quot;50000&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;cronTrigger&quot; class=&quot;org.springframework.scheduling.quartz.CronTriggerFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;jobDetail&quot; ref=&quot;exampleBusinessObject&quot;/&gt;</div><div class="line">    &lt;!-- run every morning at 6 AM --&gt;</div><div class="line">    &lt;property name=&quot;cronExpression&quot; value=&quot;0 0 6 * * ?&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean class=&quot;org.springframework.scheduling.quartz.SchedulerFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;triggers&quot;&gt;</div><div class="line">        &lt;list&gt;</div><div class="line">            &lt;ref bean=&quot;cronTrigger&quot;/&gt;</div><div class="line">            &lt;ref bean=&quot;simpleTrigger&quot;/&gt;</div><div class="line">        &lt;/list&gt;</div><div class="line">    &lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -181,7 +262,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/GitHub/安装gogs本地git服务器/" data-id="cj6cy7nc40000ktbltu6e9pw1" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Task/使用Quartz/" data-id="cj6rbmiy40085lhbl99r0vyfw" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -195,13 +276,13 @@
 
 
   
-    <article id="post-Linux/activemq安装和配置" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Linux/redis安装和配置" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
+      <a class="article-title" href="/2017/07/19/Linux/redis安装和配置/">redis安装和配置</a>
     </h1>
   
 
@@ -210,7 +291,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Linux/activemq安装和配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Linux/redis安装和配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
@@ -225,21 +306,11 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><ol>
-<li>下载安装包</li>
-<li>将安装包放到/usr目录</li>
-<li><p>解压安装包</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo tar xvfz 包名</div></pre></td></tr></table></figure>
-</li>
-<li><p>进入bin目录</p>
-</li>
-<li>启动：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./activemq start</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<h2 id="查看安装目录"><a href="#查看安装目录" class="headerlink" title="查看安装目录"></a>查看安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">whereis activemq</div></pre></td></tr></table></figure>
-<h2 id="查看61616端口是否正常启动"><a href="#查看61616端口是否正常启动" class="headerlink" title="查看61616端口是否正常启动"></a>查看61616端口是否正常启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">netstat -an | grep 61616</div></pre></td></tr></table></figure>
-<h2 id="查看进程"><a href="#查看进程" class="headerlink" title="查看进程"></a>查看进程</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ps -ef | grep activemq</div></pre></td></tr></table></figure>
-<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入bin目录</div><div class="line">./activemq stop</div></pre></td></tr></table></figure>
+        <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$sudo apt-get update</div><div class="line">$sudo apt-get install redis-server</div></pre></td></tr></table></figure>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">默认端口启动：</div><div class="line">service redis start</div><div class="line">注：不指定端口时，脚本默认指定启动6379端口的redis</div><div class="line"></div><div class="line">指定端口启动：</div><div class="line">service redis -p 6379 start</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service redis stop</div></pre></td></tr></table></figure>
+<h2 id="进入redis后台"><a href="#进入redis后台" class="headerlink" title="进入redis后台"></a>进入redis后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ redis-cli</div><div class="line"></div><div class="line">输入ping，返回PONG则成功</div></pre></td></tr></table></figure>
+<h2 id="退出redis后台"><a href="#退出redis后台" class="headerlink" title="退出redis后台"></a>退出redis后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">exit</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -249,7 +320,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/activemq安装和配置/" data-id="cj6cy7ncd0003ktblg9enfdd4" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/redis安装和配置/" data-id="cj6rbmisf0007lhblbrtzhby2" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -263,13 +334,13 @@
 
 
   
-    <article id="post-Java/日记/spring配置log4j" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Linux/tomcat安装" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/日记/spring配置log4j/">spring配置log4j</a>
+      <a class="article-title" href="/2017/07/19/Linux/tomcat安装/">tomcat安装</a>
     </h1>
   
 
@@ -278,13 +349,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Java/日记/spring配置log4j/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Linux/tomcat安装/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/日记/">日记</a>
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
   </div>
 
 
@@ -293,17 +364,11 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="依赖包"><a href="#依赖包" class="headerlink" title="依赖包"></a>依赖包</h2><p>引入下面这个包即可，maven会自动加载依赖包<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;  </div><div class="line">    &lt;groupId&gt;org.slf4j&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;  </div><div class="line">    &lt;version&gt;1.7.2&lt;/version&gt;  </div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure></p>
-<p>实际上需要jar包</p>
-<ul>
-<li>slf4j-log4j12-1.7.2.jar</li>
-<li>slf4j-api-1.7.2.jar</li>
-<li>log4j-1.2.17.jar</li>
-<li>commons-logging-1.0.3.jar</li>
-</ul>
-<h2 id="web文件中的配置"><a href="#web文件中的配置" class="headerlink" title="web文件中的配置"></a>web文件中的配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;!--  设置log4j配置文件目录 --&gt;</div><div class="line">&lt;context-param&gt;  </div><div class="line">    &lt;param-name&gt;log4jConfigLocation&lt;/param-name&gt;  </div><div class="line">    &lt;param-value&gt;WEB-INF/log4j.properties&lt;/param-value&gt;  </div><div class="line">&lt;/context-param&gt;  </div><div class="line">  </div><div class="line">&lt;!-- 启动一个watchdog线程每3秒扫描一下log4j配置文件的变化  --&gt;</div><div class="line">&lt;!-- &lt;context-param&gt;  </div><div class="line">    &lt;param-name&gt;log4jRefreshInterval&lt;/param-name&gt;  </div><div class="line">    &lt;param-value&gt;3000&lt;/param-value&gt;</div><div class="line">&lt;/context-param&gt;  --&gt;</div><div class="line"></div><div class="line">&lt;!-- 设置监听器 --&gt;</div><div class="line">&lt;listener&gt;  </div><div class="line">    &lt;listener-class&gt;  </div><div class="line">        org.springframework.web.util.Log4jConfigListener  </div><div class="line">    &lt;/listener-class&gt;  </div><div class="line">&lt;/listener&gt;</div></pre></td></tr></table></figure>
-<p>默认会找默认会找src目录下的log4j.properties<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;context-param&gt;</div><div class="line">    &lt;param-name&gt;log4jConfigLocation&lt;/param-name&gt;</div><div class="line">    &lt;param-value&gt;classpath:log4j.properties&lt;/param-value&gt;</div><div class="line">&lt;/context-param&gt;</div></pre></td></tr></table></figure></p>
-<h2 id="log4j-properties"><a href="#log4j-properties" class="headerlink" title="log4j.properties"></a>log4j.properties</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div></pre></td><td class="code"><pre><div class="line"># +======================================================================+#</div><div class="line">log4j.rootLogger=$&#123;log4j.log.level&#125;,$&#123;log4j.log.target&#125;</div><div class="line">log4j.addivity.org.apache=true</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - Console</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender</div><div class="line">log4j.appender.CONSOLE.Threshold=$&#123;log4j.log.level&#125;</div><div class="line">log4j.appender.CONSOLE.Encoding=$&#123;log4j.log.encoding&#125;</div><div class="line">log4j.appender.CONSOLE.Target=System.out</div><div class="line">log4j.appender.CONSOLE.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.CONSOLE.layout.ConversionPattern=$&#123;log4j.log.layout.pattern&#125;</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - FILE</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.FILE=org.apache.log4j.RollingFileAppender</div><div class="line">log4j.appender.FILE.Threshold=$&#123;log4j.log.level&#125;</div><div class="line">log4j.appender.FILE.Encoding=$&#123;log4j.log.encoding&#125;</div><div class="line">log4j.appender.FILE.File=$&#123;log4j.log.dir&#125;/runtime.log</div><div class="line">log4j.appender.FILE.Append=true</div><div class="line">#规定最大到1024K，就生成新文件</div><div class="line">log4j.appender.FILE.MaxFileSize=2048KB</div><div class="line">#最多生成10个</div><div class="line">log4j.appender.FILE.MaxBackupIndex=10</div><div class="line">log4j.appender.FILE.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.FILE.layout.ConversionPattern=$&#123;log4j.log.layout.pattern&#125;</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - DATABASE</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.DATABASE=org.apache.log4j.jdbc.JDBCAppender</div><div class="line">log4j.appender.DATABASE.Threshold=ERROR</div><div class="line">log4j.appender.DATABASE.URL=jdbc:mysql://127.0.0.1:3306/spring</div><div class="line">log4j.appender.DATABASE.driver=com.mysql.jdbc.Driver</div><div class="line">log4j.appender.DATABASE.user=root</div><div class="line">log4j.appender.DATABASE.password=liuriqi</div><div class="line">log4j.appender.DATABASE.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.DATABASE.sql=INSERT INTO tv_log4j(message)VALUES(&apos;$&#123;log4j.log.layout.pattern&#125;&apos;)</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - EMAIL</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.EMAIL=org.apache.log4j.net.SMTPAppender</div><div class="line">log4j.appender.EMAIL.Threshold=FATAL</div><div class="line">log4j.appender.EMAIL.BufferSize=10</div><div class="line">log4j.appender.EMAIL.From=fromuser@gmail.com</div><div class="line">log4j.appender.EMAIL.SMTPHost=localhost</div><div class="line">log4j.appender.EMAIL.Subject=Log4J Message</div><div class="line">log4j.appender.EMAIL.To=touser@gmail.com</div><div class="line">log4j.appender.EMAIL.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.EMAIL.layout.ConversionPattern=$&#123;log4j.log.layout.pattern&#125;</div><div class="line"># +======================================================================+#</div><div class="line">上面配置相关的变量，我提取出来统一放到变量配置文件里边，如下：</div><div class="line"></div><div class="line"># +======================================================================+#</div><div class="line"># | log4j config</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.log.dir=logs/</div><div class="line">#log4j.log.level=ALL,TRACE,DEBUG,INFO,WARN,ERROR,FATAL,OFF</div><div class="line">log4j.log.level=DEBUG</div><div class="line">#log4j.log.target=CONSOLE,FILE,DATABASE,EMAIL,SOCKET</div><div class="line">log4j.log.target=CONSOLE,FILE</div><div class="line">log4j.log.encoding=UTF-8</div><div class="line">log4j.log.layout=org.apache.log4j.PatternLayout</div><div class="line">log4j.log.layout.pattern=[%d %r] [%-5p] [%t] [%l] [%m]%n</div><div class="line"># +======================================================================+#</div></pre></td></tr></table></figure>
+        <h2 id="安装命令"><a href="#安装命令" class="headerlink" title="安装命令"></a>安装命令</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install tomcat7</div></pre></td></tr></table></figure>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">1.用linux自带服务命令启动： service tomcat7 start</div><div class="line"></div><div class="line">2.用tomcat命令启动： cd /usr/share/tomcat7/bin</div><div class="line">./startup.sh</div><div class="line"></div><div class="line">3.以控制台方式启动:cd /usr/share/tomcat7/bin</div><div class="line">./catalina.sh</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">service tomcat7 stop</div><div class="line">或者</div><div class="line">cd /usr/share/tomcat7/bin</div><div class="line">./shutdown.sh</div></pre></td></tr></table></figure>
+<h2 id="查看tomcat启动情况"><a href="#查看tomcat启动情况" class="headerlink" title="查看tomcat启动情况"></a>查看tomcat启动情况</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ps -ef |grep tomcat7</div></pre></td></tr></table></figure>
+<h2 id="安装目录"><a href="#安装目录" class="headerlink" title="安装目录"></a>安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">/etc/tomcat7 - 全局配置</div><div class="line">/usr/share/tomcat7/ - 程序主目录</div><div class="line">/usr/share/tomcat7/conf/Catalina/localhost/ - 本机部署的 Catalina 配置</div><div class="line">/var/lib/tomcat7/ - 工作主目录</div><div class="line">/var/lib/tomcat7/webapps - （应用文件实际存放于此）</div><div class="line">/var/lib/tomcat7/work - 动态工作目录（动态编译的 .jsp 存放于此）</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -313,7 +378,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/日记/spring配置log4j/" data-id="cj6cy7nfj0034ktblwneaazhj" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/tomcat安装/" data-id="cj6rbmish0009lhblo8288dbe" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -372,7 +437,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/" data-id="cj6cy7nhs008gktblkjyfmv0u" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/" data-id="cj6rbmiy6008dlhbl0k4q1fob" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -428,7 +493,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/基础/spring官方文档/" data-id="cj6cy7nht008iktbl01z686a9" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/基础/spring官方文档/" data-id="cj6rbmiy7008elhblryaauqxg" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -442,13 +507,13 @@
 
 
   
-    <article id="post-Spring/SpringMVC/JsonView过滤返回对象的字段" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/JAXB/注解详解" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/JsonView过滤返回对象的字段/">JsonView过滤返回对象的字段</a>
+      <a class="article-title" href="/2017/07/19/Java/JAXB/注解详解/">注解详解</a>
     </h1>
   
 
@@ -457,13 +522,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/JsonView过滤返回对象的字段/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Java/JAXB/注解详解/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/JAXB/">JAXB</a>
   </div>
 
 
@@ -472,9 +537,73 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>It can sometimes be useful to filter contextually the object that will be serialized to the HTTP response body. In order to provide such capability, Spring MVC has built-in support for rendering with Jackson’s Serialization Views.<br>To use it with an @ResponseBody controller method or controller methods that return ResponseEntity, simply add the @JsonView annotation with a class argument specifying the view class or interface to be used:</p>
-<p>有时非常有用去过滤一个即将序列化到http response body的对象，为了提供这种功能，SpringMVC使用Jackson’s Serialization Views实现该功能.<br>为了在注解了@ResponseBody的方法和返回ResponseEntity的方法中使用它，简单地在方法上加上@JsonView，并特别注明返回视图类或者接口<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line">@RestController</div><div class="line">public class UserController &#123;</div><div class="line"></div><div class="line">    @RequestMapping(path = &quot;/user&quot;, method = RequestMethod.GET)</div><div class="line">    @JsonView(User.WithoutPasswordView.class)</div><div class="line">    public User getUser() &#123;</div><div class="line">        return new User(&quot;eric&quot;, &quot;7!jd#h23&quot;);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">public class User &#123;</div><div class="line"></div><div class="line">    public interface WithoutPasswordView &#123;&#125;;</div><div class="line">    public interface WithPasswordView extends WithoutPasswordView &#123;&#125;;</div><div class="line"></div><div class="line">    private String username;</div><div class="line">    private String password;</div><div class="line"></div><div class="line">    public User() &#123;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public User(String username, String password) &#123;</div><div class="line">        this.username = username;</div><div class="line">        this.password = password;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @JsonView(WithoutPasswordView.class)</div><div class="line">    public String getUsername() &#123;</div><div class="line">        return this.username;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @JsonView(WithPasswordView.class)</div><div class="line">    public String getPassword() &#123;</div><div class="line">        return this.password;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>Note that despite @JsonView allowing for more than one class to be specified, the use on a controller method is only supported with exactly one class argument. Consider the use of a composite interface if you need to enable multiple views.<br>For controllers relying on view resolution, simply add the serialization view class to the model:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@Controller</div><div class="line">public class UserController extends AbstractController &#123;</div><div class="line"></div><div class="line">    @RequestMapping(path = &quot;/user&quot;, method = RequestMethod.GET)</div><div class="line">    public String getUser(Model model) &#123;</div><div class="line">        model.addAttribute(&quot;user&quot;, new User(&quot;eric&quot;, &quot;7!jd#h23&quot;));</div><div class="line">        model.addAttribute(JsonView.class.getName(), User.WithoutPasswordView.class);</div><div class="line">        return &quot;userView&quot;;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+        <p>JAXB（即Java Architecturefor XML Binding）是一个业界的标准，即是一项可以根据XML Schema产生Java类的技术。该过程中，JAXB也提供了将XML实例文档反向生成Java对象树的方法，并能将Java对象树的内容重新写到XML实例文档。  </p>
+<h2 id="注解介绍"><a href="#注解介绍" class="headerlink" title="注解介绍"></a>注解介绍</h2><h3 id="Jaxb中处理java和xml之间转换的常用注解有："><a href="#Jaxb中处理java和xml之间转换的常用注解有：" class="headerlink" title="Jaxb中处理java和xml之间转换的常用注解有："></a>Jaxb中处理java和xml之间转换的常用注解有：</h3><ul>
+<li>@XmlType</li>
+<li>@XmlElement</li>
+<li>@XmlRootElement</li>
+<li>@XmlAttribute</li>
+<li>@XmlAccessorType</li>
+<li>@XmlAccessorOrder</li>
+<li>@XmlTransient</li>
+<li>@XmlJavaTypeAdapter</li>
+<li>@XmlSchema</li>
+<li>@XmlElementWrapper</li>
+<li>@XmlElements</li>
+</ul>
+<h2 id="常用annotation使用说明"><a href="#常用annotation使用说明" class="headerlink" title="常用annotation使用说明"></a>常用annotation使用说明</h2><h3 id="XmlType"><a href="#XmlType" class="headerlink" title="@XmlType"></a>@XmlType</h3><p>该注解用在class类上，常与@XmlRootElement，@XmlAccessorType一起使用。它有三个属性：name、propOrder、namespace，经常使用的只有前两个属性。如：</p>
+<ul>
+<li>propOrder        指定映射XML时的节点顺序</li>
+<li>factoryClass     指定UnMarshal时生成映射类实例所需的工厂类，默认为这个类本身</li>
+<li>factoryMethod  指定工厂类的工厂方法</li>
+<li>name               定义XML Schema中type的名称</li>
+<li>namespace      指定Schema中的命名空间</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@XmlType(name = &quot;basicStruct&quot;, propOrder = &#123;&quot;intValue&quot;,&quot;stringArray&quot;,&quot;stringValue&quot; )  </div><div class="line">Public class myType&#123;…&#125;</div></pre></td></tr></table></figure>
+<p>在使用@XmlType的propOrder属性时，必须列出JavaBean对象中的所有属性</p>
+<h3 id="XmlElement"><a href="#XmlElement" class="headerlink" title="@XmlElement"></a>@XmlElement</h3><p>参数：</p>
+<ul>
+<li>defaultValue  指定节点默认值</li>
+<li>name             指定节点名称</li>
+<li>namespace    指定节点命名空间</li>
+<li>required    是否必须（默认为false）</li>
+<li>nillable    该字段是否包含nillable=”true” 属性（默认为false）</li>
+<li>type     定义该字段或属性的关联类型</li>
+</ul>
+<p>该注解用在java类的属性上，用于将属性映射为xml的子节点。可通过在后面配置name属性值来改变java属性在xml文件中的名称。如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@XmlElement(name=&quot;Address&quot;)　　  </div><div class="line">private String yourAddress;</div></pre></td></tr></table></figure></p>
+<p>此处配置后，在xml文件中的节点为&lt; Address&gt;&lt;/ Address&gt;，而不是&lt; yourAddress/&gt;。</p>
+<h3 id="XmlRootElement"><a href="#XmlRootElement" class="headerlink" title="@XmlRootElement"></a>@XmlRootElement</h3><p>类级别的注解，对应的是xml文件中的根节点。常与 @XmlType 和 @XmlAccessorType一起使用。<br>参数：</p>
+<ul>
+<li>name   定义这个根节点的名称</li>
+<li>namespace    定义这个根节点命名空间</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@XmlType  </div><div class="line">@XmlAccessorType(XmlAccessType.FIELD)  </div><div class="line">@XmlRootElement  </div><div class="line">public class Address &#123;&#125;</div></pre></td></tr></table></figure>
+<h3 id="XmlAttribute"><a href="#XmlAttribute" class="headerlink" title="@XmlAttribute"></a>@XmlAttribute</h3><p>用于把java对象的属性映射为xml的属性,并可通过name属性为生成的xml属性指定别名。<br>参数：  </p>
+<ul>
+<li>name   指定属性名称</li>
+<li>namespace    指定属性命名空间</li>
+<li>required  是否必须（默认为false）</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@XmlAttribute(name=&quot;Country&quot;)  </div><div class="line">private String state;</div></pre></td></tr></table></figure>
+<h3 id="XmlAccessorType"><a href="#XmlAccessorType" class="headerlink" title="@XmlAccessorType"></a>@XmlAccessorType</h3><p>@XmlAccessorType用于指定由java对象生成xml文件时对java对象属性的访问方式。常与@XmlRootElement、@XmlType一起使用。它的属性值是XmlAccessType的4个枚举值，分别为：</p>
+<ul>
+<li>XmlAccessType.FIELD：java对象中的所有成员变量；</li>
+<li>XmlAccessType.PROPERTY：java对象中所有通过getter/setter方式访问的成员变量；</li>
+<li>XmlAccessType.PUBLIC_MEMBER：java对象中所有的public访问权限的成员变量和通过getter/setter方式访问的成员变量；</li>
+<li>XmlAccessType.NONE：java对象的所有属性都不映射为xml的元素。</li>
+</ul>
+<p>注意：@XmlAccessorType的默认访问级别是XmlAccessType.PUBLIC_MEMBER。因此，<strong>如果java对象中的private成员变量设置了public权限的getter/setter方法，就不要在private变量上使用@XmlElement和@XmlAttribute注解，否则在由java对象生成xml时会报同一个属性在java类里存在两次的错误</strong>。同理，如果@XmlAccessorType的访问权限为XmlAccessType.NONE，如果在java的成员变量上使用了@XmlElement或@XmlAttribute注解，这些成员变量依然可以映射到xml文件。</p>
+<h3 id="XmlAccessorOrder"><a href="#XmlAccessorOrder" class="headerlink" title="@XmlAccessorOrder"></a>@XmlAccessorOrder</h3><p>用于对java对象生成的xml元素进行排序。它有两个属性值：</p>
+<ul>
+<li>AccessorOrder.ALPHABETICAL：对生成的xml元素按字母顺序排序；</li>
+<li>XmlAccessOrder.UNDEFINED：不排序。</li>
+</ul>
+<h3 id="XmlTransient"><a href="#XmlTransient" class="headerlink" title="@XmlTransient"></a>@XmlTransient</h3><p>用于标示在由java对象映射xml时，忽略此属性。即，在生成的xml文件中不出现此元素。</p>
+<h3 id="XmlJavaTypeAdapter"><a href="#XmlJavaTypeAdapter" class="headerlink" title="@XmlJavaTypeAdapter"></a>@XmlJavaTypeAdapter</h3><p>@XmlJavaTypeAdapter常用在转换比较复杂的对象时，如map类型或者格式化日期等。使用此注解时，需要自己写一个adapter类继承XmlAdapter抽象类，并实现里面的方法。  </p>
+<p>@XmlJavaTypeAdapter(value=xxx.class),value为自己定义的adapter类XmlAdapter如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public abstract class XmlAdapter&lt;ValueType,BoundType&gt; &#123;  </div><div class="line">    // Do-nothing constructor for the derived classes.  </div><div class="line">    protected XmlAdapter() &#123;&#125;  </div><div class="line">    // Convert a value type to a bound type.  </div><div class="line">    public abstract BoundType unmarshal(ValueType v);  </div><div class="line">    // Convert a bound type to a value type.  </div><div class="line">    public abstract ValueType marshal(BoundType v);  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="XmlSchema"><a href="#XmlSchema" class="headerlink" title="@XmlSchema"></a>@XmlSchema</h3><p>配置整个包的namespace，这个注解需放在package-info.java文件中。</p>
+<h3 id="XmlElementWrapper"><a href="#XmlElementWrapper" class="headerlink" title="@XmlElementWrapper"></a>@XmlElementWrapper</h3><p>为数组元素或集合元素定义一个父节点。</p>
+<h3 id="XmlElements"><a href="#XmlElements" class="headerlink" title="@XmlElements"></a>@XmlElements</h3><p>相当于java的泛型,XmlElement传的是什么对象，obj就是什么对象，obj对象可以是XmlElements中定义的对象中的任意一个<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">@XmlElements(</div><div class="line">    value=&#123;</div><div class="line">        @XmlElement(name=&quot;student&quot;, type=Student.class),</div><div class="line">        @XmlElement(name=&quot;teacher&quot;, type=Object.class)</div><div class="line">    &#125;</div><div class="line">)</div><div class="line">protected Object obj;</div></pre></td></tr></table></figure></p>
 
       
     </div>
@@ -485,120 +614,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/JsonView过滤返回对象的字段/" data-id="cj6cy7nhu008lktblk2tmulgm" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/JsonView嵌套（继承）过滤" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/JsonView嵌套（继承）过滤/">JsonView嵌套（继承）过滤</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/JsonView嵌套（继承）过滤/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="通过接口继承的方式嵌套过滤"><a href="#通过接口继承的方式嵌套过滤" class="headerlink" title="通过接口继承的方式嵌套过滤"></a>通过接口继承的方式嵌套过滤</h2><h3 id="需要返回到前端的实体"><a href="#需要返回到前端的实体" class="headerlink" title="需要返回到前端的实体"></a>需要返回到前端的实体</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">public class OrderInfo &#123;</div><div class="line">	</div><div class="line">	public interface OrderInfoView extends ExpressOrderShopView , SellerAddressListView, </div><div class="line">	ExpressCouponCodeListView, ExpressOrderDistributionSiteView &#123;&#125;;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private Shop shop;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private List&lt;AddressBook&gt; addresses;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private List&lt;CouponCode&gt; coupons;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private List&lt;DistributionSite&gt; distributionSites;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="子对象"><a href="#子对象" class="headerlink" title="子对象"></a>子对象</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">public class Shop implements Serializable &#123;</div><div class="line">    public interface ExpressOrderShopView &#123;&#125;;</div><div class="line"></div><div class="line">    private Integer id;</div><div class="line">    </div><div class="line">    @NotNull</div><div class="line">    @Size( min = 1, max = 50 )</div><div class="line">    @JsonView(ExpressOrderShopView.class)</div><div class="line">    private String name;</div><div class="line"></div><div class="line">    @NotNull</div><div class="line">    @Size( min = 1, max = 255 )</div><div class="line">    @JsonView(ExpressOrderShopView.class)</div><div class="line">    private String address;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="controller"><a href="#controller" class="headerlink" title="controller"></a>controller</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/getOrderInfo&quot;, method = RequestMethod.GET)</div><div class="line">@ResponseStatus(HttpStatus.OK)</div><div class="line">@ResponseBody</div><div class="line">@JsonView(OrderInfo.OrderInfoView.class)</div><div class="line">public OrderInfo getOrderInfo(@RequestParam(&quot;mobile&quot;)   String mobile) throws Exception &#123;</div><div class="line">	if(null == mobile) &#123;</div><div class="line">		throw new ParamException(&quot;mobile不能为空&quot;);</div><div class="line">	&#125;</div><div class="line">	return expressOrderService.getOrderInfo(mobile);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/JsonView嵌套（继承）过滤/" data-id="cj6cy7nhu008nktblyvem1hvn" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/ControllerAdvice" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/ControllerAdvice/">ControllerAdvice</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/ControllerAdvice/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>@ControllerAdvice是一个组件注解，它使得其实现类能够被classpath扫描自动发现。若应用是通过MVC命令空间或MVC Java编程方式配置，那么该特性默认是自动开启的。 </p>
-<p>注解@ControllerAdvice的类可以拥有@ExceptionHandler、@InitBinder或@ModelAttribute注解的方法，并且这些方法会被应用至控制器类层次??的所有@RequestMapping方法上。   </p>
-<p>你也可以通过@ControllerAdvice的属性来指定其只对一个子集的控制器生效：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">// Target all Controllers annotated with @RestController</div><div class="line">@ControllerAdvice(annotations = RestController.class)</div><div class="line">public class AnnotationAdvice &#123;&#125;</div><div class="line"></div><div class="line">// Target all Controllers within specific packages</div><div class="line">@ControllerAdvice(&quot;org.example.controllers&quot;)</div><div class="line">public class BasePackageAdvice &#123;&#125;</div><div class="line"></div><div class="line">// Target all Controllers assignable to specific classes</div><div class="line">@ControllerAdvice(assignableTypes = &#123;ControllerInterface.class, AbstractController.class&#125;)</div><div class="line">public class AssignableTypesAdvice &#123;&#125;</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/ControllerAdvice/" data-id="cj6cy7nhv008qktblxvq2j7p7" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JAXB/注解详解/" data-id="cj6rbmivs0035lhbllbv097dr" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -685,7 +701,121 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/NotNull,NotBlank,NotEmtity的区别/" data-id="cj6cy7nhw008sktbltz1yetmm" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/NotNull,NotBlank,NotEmtity的区别/" data-id="cj6rbmiy9008jlhblktkd03jj" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/SpringMVC/ControllerAdvice" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/ControllerAdvice/">ControllerAdvice</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/SpringMVC/ControllerAdvice/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>@ControllerAdvice是一个组件注解，它使得其实现类能够被classpath扫描自动发现。若应用是通过MVC命令空间或MVC Java编程方式配置，那么该特性默认是自动开启的。 </p>
+<p>注解@ControllerAdvice的类可以拥有@ExceptionHandler、@InitBinder或@ModelAttribute注解的方法，并且这些方法会被应用至控制器类层次??的所有@RequestMapping方法上。   </p>
+<p>你也可以通过@ControllerAdvice的属性来指定其只对一个子集的控制器生效：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">// Target all Controllers annotated with @RestController</div><div class="line">@ControllerAdvice(annotations = RestController.class)</div><div class="line">public class AnnotationAdvice &#123;&#125;</div><div class="line"></div><div class="line">// Target all Controllers within specific packages</div><div class="line">@ControllerAdvice(&quot;org.example.controllers&quot;)</div><div class="line">public class BasePackageAdvice &#123;&#125;</div><div class="line"></div><div class="line">// Target all Controllers assignable to specific classes</div><div class="line">@ControllerAdvice(assignableTypes = &#123;ControllerInterface.class, AbstractController.class&#125;)</div><div class="line">public class AssignableTypesAdvice &#123;&#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/ControllerAdvice/" data-id="cj6rbmiya008mlhblayp0m99d" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/SpringMVC/JsonView过滤返回对象的字段" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/JsonView过滤返回对象的字段/">JsonView过滤返回对象的字段</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/SpringMVC/JsonView过滤返回对象的字段/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>It can sometimes be useful to filter contextually the object that will be serialized to the HTTP response body. In order to provide such capability, Spring MVC has built-in support for rendering with Jackson’s Serialization Views.<br>To use it with an @ResponseBody controller method or controller methods that return ResponseEntity, simply add the @JsonView annotation with a class argument specifying the view class or interface to be used:</p>
+<p>有时非常有用去过滤一个即将序列化到http response body的对象，为了提供这种功能，SpringMVC使用Jackson’s Serialization Views实现该功能.<br>为了在注解了@ResponseBody的方法和返回ResponseEntity的方法中使用它，简单地在方法上加上@JsonView，并特别注明返回视图类或者接口<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line">@RestController</div><div class="line">public class UserController &#123;</div><div class="line"></div><div class="line">    @RequestMapping(path = &quot;/user&quot;, method = RequestMethod.GET)</div><div class="line">    @JsonView(User.WithoutPasswordView.class)</div><div class="line">    public User getUser() &#123;</div><div class="line">        return new User(&quot;eric&quot;, &quot;7!jd#h23&quot;);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">public class User &#123;</div><div class="line"></div><div class="line">    public interface WithoutPasswordView &#123;&#125;;</div><div class="line">    public interface WithPasswordView extends WithoutPasswordView &#123;&#125;;</div><div class="line"></div><div class="line">    private String username;</div><div class="line">    private String password;</div><div class="line"></div><div class="line">    public User() &#123;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public User(String username, String password) &#123;</div><div class="line">        this.username = username;</div><div class="line">        this.password = password;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @JsonView(WithoutPasswordView.class)</div><div class="line">    public String getUsername() &#123;</div><div class="line">        return this.username;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @JsonView(WithPasswordView.class)</div><div class="line">    public String getPassword() &#123;</div><div class="line">        return this.password;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>Note that despite @JsonView allowing for more than one class to be specified, the use on a controller method is only supported with exactly one class argument. Consider the use of a composite interface if you need to enable multiple views.<br>For controllers relying on view resolution, simply add the serialization view class to the model:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@Controller</div><div class="line">public class UserController extends AbstractController &#123;</div><div class="line"></div><div class="line">    @RequestMapping(path = &quot;/user&quot;, method = RequestMethod.GET)</div><div class="line">    public String getUser(Model model) &#123;</div><div class="line">        model.addAttribute(&quot;user&quot;, new User(&quot;eric&quot;, &quot;7!jd#h23&quot;));</div><div class="line">        model.addAttribute(JsonView.class.getName(), User.WithoutPasswordView.class);</div><div class="line">        return &quot;userView&quot;;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/JsonView过滤返回对象的字段/" data-id="cj6rbmiyb008olhbl1xrnyfqq" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -720,7 +850,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">8</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">63</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">11</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
   </div>
 
 
@@ -733,7 +863,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">53</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">56</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
   </div>
 
 
@@ -744,7 +874,11 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/15/Spring/Security/配置十三：session管理/">配置十三：session管理</a>
+          <a href="/2017/08/16/Java/基础/java动态代理/">java动态代理</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/16/Java/基础/重载与重写/">重载与重写</a>
         </li>
       
         <li>
@@ -752,15 +886,11 @@
         </li>
       
         <li>
-          <a href="/2017/08/15/Spring/Security/配置四：认证过程/">配置四：认证过程</a>
+          <a href="/2017/08/15/Spring/Security/配置十二：Remember-Me功能/">配置十二：Remember-Me功能</a>
         </li>
       
         <li>
-          <a href="/2017/08/15/Spring/Security/配置十：退出登录/">配置十：退出登录</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置十六：基于表达式的权限控制/">配置十六：基于表达式的权限控制</a>
+          <a href="/2017/08/15/Spring/Security/配置十五：权限鉴定结构/">配置十五：权限鉴定结构</a>
         </li>
       
     </ul>
