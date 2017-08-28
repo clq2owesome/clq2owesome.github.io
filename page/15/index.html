@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-Spring/SpringMVC/异步请求" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/SpringMVC/拦截器配置" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/异步请求/">异步请求</a>
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/拦截器配置/">拦截器配置</a>
     </h1>
   
 
@@ -95,7 +95,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/异步请求/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/SpringMVC/拦截器配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
@@ -110,50 +110,71 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Spring MVC 3.2开始引入了基于Servlet 3的异步请求处理。相比以前，控制器方法已经不一定需要返回一个值，而是可以返回一个java.util.concurrent.Callable的对象，并通过Spring MVC所管理的线程来产生返回值。与此同时，Servlet容器的主线程则可以退出并释放其资源了，同时也允许容器去处理其他的请求。通过一个TaskExecutor，Spring MVC可以在另外的线程中调用Callable。当Callable返回时，请求再携带Callable返回的值，再次被分配到Servlet容器中恢复处理流程。以下代码给出了一个这样的控制器方法作为例子：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(method=RequestMethod.POST)</div><div class="line">public Callable&lt;String&gt; processUpload(final MultipartFile file) &#123;</div><div class="line"></div><div class="line">    return new Callable&lt;String&gt;() &#123;</div><div class="line">        public String call() throws Exception &#123;</div><div class="line">            // ...</div><div class="line">            return &quot;someView&quot;;</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>另一个选择，是让控制器方法返回一个DeferredResult的实例。这种场景下，返回值可以由任何一个线程产生，也包括那些不是由Spring MVC管理的线程。举个例子，返回值可能是为了响应某些外部事件所产生的，比如一条JMS的消息，一个计划任务，等等。以下代码给出了一个这样的控制器作为例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/quotes&quot;)</div><div class="line">@ResponseBody</div><div class="line">public DeferredResult&lt;String&gt; quotes() &#123;</div><div class="line">    DeferredResult&lt;String&gt; deferredResult = new DeferredResult&lt;String&gt;();</div><div class="line">    // Save the deferredResult somewhere..</div><div class="line">    return deferredResult;</div><div class="line">&#125;</div><div class="line"></div><div class="line">// In some other thread...</div><div class="line">deferredResult.setResult(data);</div></pre></td></tr></table></figure></p>
-<p>如果对Servlet 3.0的异步请求处理特性没有了解，理解这个特性可能会有点困难。因此，阅读一下前者的文档将会很有帮助。以下给出了这个机制运作背后的一些原理：</p>
-<ul>
-<li>一个servlet请求ServletRequest可以通过调用request.startAsync()方法而进入异步模式。这样做的主要结果就是该servlet以及所有的过滤器都可以结束，但其响应（response）会留待异步处理结束后再返回</li>
-<li>调用request.startAsync()方法会返回一个AsyncContext对象，可用它对异步处理进行进一步的控制和操作。比如说它也提供了一个与转向（forward）很相似的dispatch方法，只不过它允许应用恢复Servlet容器的请求处理进程</li>
-<li>ServletRequest提供了获取当前DispatherType的方式，后者可以用来区别当前处理的是原始请求、异步分发请求、转向，或是其他类型的请求分发类型。  </li>
-</ul>
-<p>有了上面的知识，下面可以来看一下Callable的异步请求被处理时所依次发生的事件：    </p>
-<ul>
-<li>控制器先返回一个Callable对象</li>
-<li>Spring MVC开始进行异步处理，并把该Callable对象提交给另一个独立线程的执行器TaskExecutor处理</li>
-<li>DispatcherServlet和所有过滤器都退出Servlet容器线程，但此时方法的响应对象仍未返回</li>
-<li>Callable对象最终产生一个返回结果，此时Spring MVC会重新把请求分派回Servlet容器，恢复处理</li>
-<li>DispatcherServlet再次被调用，恢复对Callable异步处理所返回结果的处理  </li>
-</ul>
-<p>对DeferredResult异步请求的处理顺序也非常类似，区别仅在于应用可以通过任何线程来计算返回一个结果：    </p>
-<ul>
-<li>控制器先返回一个DeferredResult对象，并把它存取在内存（队列或列表等）中以便存取</li>
-<li>Spring MVC开始进行异步处理</li>
-<li>DispatcherServlet和所有过滤器都退出Servlet容器线程，但此时方法的响应对象仍未返回</li>
-<li>由处理该请求的线程对 DeferredResult进行设值，然后Spring MVC会重新把请求分派回Servlet容器，恢复处理</li>
-<li>DispatcherServlet再次被调用，恢复对该异步返回结果的处理    </li>
-</ul>
-<p>关于引入异步请求处理的背景和原因，以及什么时候使用它、为什么使用异步请求处理等问题，你可以从<a href="https://spring.io/blog/2012/05/07/spring-mvc-3-2-preview-introducing-servlet-3-async-support" target="_blank" rel="external">这个系列的博客</a>中了解更多信息。</p>
-<h2 id="异步请求的异常处理"><a href="#异步请求的异常处理" class="headerlink" title="异步请求的异常处理"></a>异步请求的异常处理</h2><p>若控制器返回的Callable在执行过程中抛出了异常，又会发生什么事情？简单来说，这与一般的控制器方法抛出异常是一样的。它会被正常的异常处理流程捕获处理。更具体地说呢，当Callable抛出异常时，Spring MVC会把一个Exception对象分派给Servlet容器进行处理，而不是正常返回方法的返回值，然后容器恢复对此异步请求异常的处理。若方法返回的是一个DeferredResult对象，你可以选择调Exception实例的setResult方法还是setErrorResult方法。</p>
-<h2 id="拦截异步请求"><a href="#拦截异步请求" class="headerlink" title="拦截异步请求"></a>拦截异步请求</h2><p>处理器拦截器HandlerInterceptor可以实现AsyncHandlerInterceptor接口拦截异步请求，因为在异步请求开始时，被调用的回调方法是该接口的afterConcurrentHandlingStarted方法，而非一般的postHandle和afterCompletion方法。  </p>
-<p>如果需要与异步请求处理的生命流程有更深入的集成，比如需要处理timeout的事件等，则HandlerInterceptor需要注册一个CallableProcessingInterceptor或DeferredResultProcessingInterceptor拦截器。具体的细节可以参考AsyncHandlerInterceptor类的Java文档。  </p>
-<p>DeferredResult类还提供了onTimeout(Runnable)和onCompletion(Runnable)等方法，具体的细节可以参考DeferredResult类的Java文档。</p>
-<p>Callable需要请求过期(timeout)和完成后的拦截时，可以把它包装在一个WebAsyncTask实例中，后者提供了相关的支持。</p>
-<h2 id="HTTP-streaming"><a href="#HTTP-streaming" class="headerlink" title="HTTP streaming"></a>HTTP streaming</h2><p>如前所述，控制器可以使用DeferredResult或Callable对象来异步地计算其返回值，这可以用于实现一些有用的技术，比如 long polling技术，让服务器可以尽可能快地向客户端推送事件。<br>如果你想在一个HTTP响应中同时推送多个事件，怎么办？这样的技术已经存在，与”Long Polling”相关，叫”HTTP Streaming”。Spring MVC支持这项技术，你可以通过让方法返回一个ResponseBodyEmitter类型对象来实现，该对象可被用于发送多个对象。通常我们所使用的@ResponseBody只能返回一个对象，它是通过HttpMessageConverter写到响应体中的。<br>下面是一个实现该技术的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/events&quot;)</div><div class="line">public ResponseBodyEmitter handle() &#123;</div><div class="line">    ResponseBodyEmitter emitter = new ResponseBodyEmitter();</div><div class="line">    // Save the emitter somewhere..</div><div class="line">    return emitter;</div><div class="line">&#125;</div><div class="line"></div><div class="line">// In some other thread</div><div class="line">emitter.send(&quot;Hello once&quot;);</div><div class="line"></div><div class="line">// and again later on</div><div class="line">emitter.send(&quot;Hello again&quot;);</div><div class="line"></div><div class="line">// and done at some point</div><div class="line">emitter.complete();</div></pre></td></tr></table></figure></p>
-<p>ResponseBodyEmitter也可以被放到ResponseEntity体里面使用，这可以对响应状态和响应头做一些定制。<br>Note that ResponseBodyEmitter can also be used as the body in a ResponseEntity in order to customize the status and headers of the response.</p>
-<h2 id="使用“服务器端事件推送”的HTTP-Streaming"><a href="#使用“服务器端事件推送”的HTTP-Streaming" class="headerlink" title="使用“服务器端事件推送”的HTTP Streaming"></a>使用“服务器端事件推送”的HTTP Streaming</h2><p>SseEmitter是ResponseBodyEmitter的一个子类，提供了对服务器端事件推送的技术的支持。服务器端事件推送其实只是一种HTTP Streaming的类似实现，只不过它服务器端所推送的事件遵循了W3C Server-Sent Events规范中定义的事件格式。    </p>
-<p>“服务器端事件推送”技术正如其名，是用于由服务器端向客户端进行的事件推送。这在Spring MVC中很容易做到，只需要方法返回一个SseEmitter类型的对象即可。    </p>
-<p>需要注意的是，Internet Explorer并不支持这项服务器端事件推送的技术。另外，对于更大型的web应用及更精致的消息传输场景——比如在线游戏、在线协作、金融应用等——来说，使用Spring的WebSocket（包含SockJS风格的实时WebSocket）更成熟一些，因为它支持的浏览器范围非常广（包括IE），并且，对于一个以消息为中心的架构中，它为服务器端-客户端间的事件发布-订阅模型的交互提供了更高层级的消息模式（messaging patterns）的支持。</p>
-<h2 id="直接写回输出流OutputStream的HTTP-Streaming"><a href="#直接写回输出流OutputStream的HTTP-Streaming" class="headerlink" title="直接写回输出流OutputStream的HTTP Streaming"></a>直接写回输出流OutputStream的HTTP Streaming</h2><p>ResponseBodyEmitter也允许通过HttpMessageConverter向响应体中支持写事件对象。这可能是最常见的情形，比如写返回的JSON数据的时候。但有时，跳过消息转换的阶段，直接把数据写回响应的输出流OutputStream可能更有效，比如文件下载这样的场景。这可以通过返回一个StreamingResponseBody类型的对象来实现。<br>以下是一个实现的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/download&quot;)</div><div class="line">public StreamingResponseBody handle() &#123;</div><div class="line">    return new StreamingResponseBody() &#123;</div><div class="line">        @Override</div><div class="line">        public void writeTo(OutputStream outputStream) throws IOException &#123;</div><div class="line">            // write...</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>ResponseBodyEmitter也可以被放到ResponseEntity体里面使用，这可以对响应状态和响应头做一些定制。</p>
-<h2 id="异步请求处理的相关配置"><a href="#异步请求处理的相关配置" class="headerlink" title="异步请求处理的相关配置"></a>异步请求处理的相关配置</h2><h3 id="Servlet容器配置"><a href="#Servlet容器配置" class="headerlink" title="Servlet容器配置"></a>Servlet容器配置</h3><p>对于那些使用web.xml配置文件的应用，请确保web.xml的版本更新到3.0：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">web-app</span> <span class="attr">xmlns</span>=<span class="string">"http://java.sun.com/xml/ns/javaee"</span></span></div><div class="line">         <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance http://java.sun.com/xml/ns/javaee</span></div><div class="line">                    http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"</div><div class="line">         <span class="attr">version</span>=<span class="string">"3.0"</span>&gt;</div><div class="line"></div><div class="line">    ...</div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></div></pre></td></tr></table></figure></p>
-<p>异步请求必须在web.xml将DispatcherServlet下的子元素<async-supported>true</async-supported>设置为true。此外，所有可能参与异步请求处理的过滤器Filter都必须配置为支持ASYNC类型的请求分派。在Spring框架中为过滤器启用支持ASYNC类型的请求分派应是安全的，因为这些过滤器一般都继承了基类OncePerRequestFilter，后者在运行时会检查该过滤器是否需要参与到异步分派的请求处理中。<br>以下是一个例子，展示了web.xml的配置：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">web-app</span> <span class="attr">xmlns</span>=<span class="string">"http://java.sun.com/xml/ns/javaee"</span></span></div><div class="line">        <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></div><div class="line">        <span class="attr">xsi:schemaLocation</span>=<span class="string">"</span></div><div class="line">            http://java.sun.com/xml/ns/javaee</div><div class="line">            http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"</div><div class="line">    <span class="attr">version</span>=<span class="string">"3.0"</span>&gt;</div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">filter</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>Spring OpenEntityManagerInViewFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">filter-class</span>&gt;</span>org.springframework.~.OpenEntityManagerInViewFilter<span class="tag">&lt;/<span class="name">filter-class</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">async-supported</span>&gt;</span>true<span class="tag">&lt;/<span class="name">async-supported</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">filter</span>&gt;</span></div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">filter-mapping</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>Spring OpenEntityManagerInViewFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/*<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">dispatcher</span>&gt;</span>REQUEST<span class="tag">&lt;/<span class="name">dispatcher</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">dispatcher</span>&gt;</span>ASYNC<span class="tag">&lt;/<span class="name">dispatcher</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">filter-mapping</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></div></pre></td></tr></table></figure></p>
-<p>如果应用使用的是Servlet 3规范基于Java编程的配置方式，比如通过WebApplicationInitializer，那么你也需要设置”asyncSupported”标志和ASYNC分派类型的支持，就像你在web.xml中所配置的一样。你可以考虑直接继承AbstractDispatcherServletInitializer或AbstractAnnotationConfigDispatcherServletInitializer来简化配置，它们都自动地为你设置了这些配置项，并使得注册Filter过滤器实例变得非常简单。</p>
-<h2 id="Spring-MVC配置"><a href="#Spring-MVC配置" class="headerlink" title="Spring MVC配置"></a>Spring MVC配置</h2><p>MVC Java编程配置和MVC命名空间配置方式都提供了配置异步请求处理支持的选择。WebMvcConfigurer提供了configureAsyncSupport方法，而<mvc:annotation-driven>有一个子元素<async-support>，它们都用以为此提供支持。  </async-support></mvc:annotation-driven></p>
-<p>这些配置允许你覆写异步请求默认的超时时间，在未显式设置时，它们的值与所依赖的Servlet容器是相关的（比如，Tomcat设置的超时时间是10秒）。你也可以配置用于执行控制器返回值Callable的执行器AsyncTaskExecutor。Spring强烈推荐你配置这个选项，因为Spring MVC默认使用的是普通的执行器SimpleAsyncTaskExecutor。MVC Java编程配置及MVC命名空间配置的方式都允许你注册自己的CallableProcessingInterceptor和DeferredResultProcessingInterceptor拦截器实例。    </p>
-<p>若你需要为特定的DeferredResult覆写默认的超时时间，你可以选用合适的构造方法来实现。类似，对于Callable返回，你可以把它包装在一个WebAsyncTask对象中，并使用合适的构造方法定义超时时间。WebAsyncTask类的构造方法同时也能接受一个任务执行器AsyncTaskExecutor类型的参数。</p>
+        <h2 id="配置拦截器"><a href="#配置拦截器" class="headerlink" title="配置拦截器"></a>配置拦截器</h2><h3 id="继承HandlerInterceptorAdapter抽象类"><a href="#继承HandlerInterceptorAdapter抽象类" class="headerlink" title="继承HandlerInterceptorAdapter抽象类"></a>继承HandlerInterceptorAdapter抽象类</h3><p>下面是一个统计接口执行时间的拦截器<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line">import javax.servlet.http.HttpServletRequest;</div><div class="line">import javax.servlet.http.HttpServletResponse;</div><div class="line"></div><div class="line">import org.slf4j.Logger;</div><div class="line">import org.slf4j.LoggerFactory;</div><div class="line">import org.springframework.web.servlet.ModelAndView;</div><div class="line">import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 统计接口执行时间拦截器</div><div class="line"> * @author   chenliqiang, 2017年4月12日 下午5:00:53 &lt;br/&gt;</div><div class="line"> * @version  </div><div class="line"> * @see 	 </div><div class="line"> */</div><div class="line">public class ExecuteTimeInterceptor extends HandlerInterceptorAdapter &#123;</div><div class="line"></div><div class="line">	private static final Logger logger = LoggerFactory.getLogger(ExecuteTimeInterceptor.class);</div><div class="line"></div><div class="line">	//before the actual handler will be executed</div><div class="line">	@Override</div><div class="line">	public boolean preHandle(HttpServletRequest request,</div><div class="line">		HttpServletResponse response, Object handler) throws Exception &#123;</div><div class="line"></div><div class="line">		long startTime = System.currentTimeMillis();</div><div class="line">		request.setAttribute(&quot;startTime&quot;, startTime);</div><div class="line">		</div><div class="line">		return true;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	//after the handler is executed</div><div class="line">	@Override</div><div class="line">	public void postHandle(</div><div class="line">		HttpServletRequest request, HttpServletResponse response,</div><div class="line">		Object handler, ModelAndView modelAndView)</div><div class="line">		throws Exception &#123;</div><div class="line"></div><div class="line">		long startTime = (Long)request.getAttribute(&quot;startTime&quot;);</div><div class="line">		long endTime = System.currentTimeMillis();</div><div class="line">		long executeTime = endTime - startTime;</div><div class="line">		</div><div class="line">		//modified the exisitng modelAndView</div><div class="line">		//modelAndView.addObject(&quot;executeTime&quot;, executeTime);</div><div class="line"></div><div class="line">		//log it</div><div class="line">		if(logger.isInfoEnabled())&#123;</div><div class="line">		   logger.info(&quot;[&quot; + handler + &quot;] executeTime : &quot; + executeTime + &quot;ms&quot;);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="spring-mvc-xml配置"><a href="#spring-mvc-xml配置" class="headerlink" title="spring-mvc.xml配置"></a>spring-mvc.xml配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;</div><div class="line">	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;</div><div class="line">	xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot;</div><div class="line">	xsi:schemaLocation=&quot;http://www.springframework.org/schema/mvc</div><div class="line">	http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd</div><div class="line">	http://www.springframework.org/schema/beans</div><div class="line">	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd</div><div class="line">	http://www.springframework.org/schema/context</div><div class="line">	http://www.springframework.org/schema/context/spring-context-3.2.xsd&quot;&gt;</div><div class="line">	</div><div class="line">	&lt;mvc:annotation-driven /&gt;</div><div class="line"></div><div class="line">	&lt;mvc:interceptors&gt;</div><div class="line">		&lt;ref bean=&quot;executeTimeInterceptor&quot; /&gt;   &lt;!-- 全局配置，拦截所有请求  --&gt;</div><div class="line">		</div><div class="line">		&lt;!--  定义拦截特定的请求  --&gt;</div><div class="line">		&lt;!-- 按需添加需要拦截的请求  --&gt;</div><div class="line">		&lt;!-- &lt;mvc:interceptor&gt; </div><div class="line">			&lt;mvc:mapping path=&quot;/announcement/*&quot; /&gt; </div><div class="line">			&lt;mvc:mapping path=&quot;/product/*&quot; /&gt; </div><div class="line">			&lt;ref bean=&quot;executeTimeInterceptor&quot; /&gt; </div><div class="line">		&lt;/mvc:interceptor&gt;  --&gt;</div><div class="line">	&lt;/mvc:interceptors&gt;</div><div class="line">	</div><div class="line">	&lt;!--  定义拦截器  --&gt;</div><div class="line">	&lt;bean id=&quot;executeTimeInterceptor&quot; class=&quot;com.highsunbuy.interceptor.ExecuteTimeInterceptor&quot; /&gt;</div><div class="line"></div><div class="line">&lt;/beans&gt;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/拦截器配置/" data-id="cj6vztsef009hoabl4hkjpa67" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/SpringMVC/包扫描" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/包扫描/">包扫描</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/SpringMVC/包扫描/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="lt-context-component-scan-base-package-“”-gt-浅析"><a href="#lt-context-component-scan-base-package-“”-gt-浅析" class="headerlink" title="&lt; context:component-scan base-package = “” /&gt;浅析"></a>&lt; context:component-scan base-package = “” /&gt;浅析</h2><p>component-scan 默认扫描的注解类型是 @Component，不过，在 @Component 语义基础上细化后的 @Repository, @Service 和 @Controller 也同样可以获得 component-scan 的青睐<br>有了<code>&lt;context:component-scan&gt;</code>，另一个<code>&lt;context:annotation-config/&gt;</code>标签根本可以移除掉，因为已经被包含进去了 </p>
+<p>另外<context:annotation-config>还提供了两个子标签</context:annotation-config></p>
+<ol>
+<li><context:include-filter> //指定扫描的路径</context:include-filter></li>
+<li><context:exclude-filter> //排除扫描的路径</context:exclude-filter></li>
+</ol>
+<p><context:component-scan>有一个use-default-filters属性，属性默认为true,表示会扫描指定包下的全部的标有@Component的类，并注册成bean.也就是@Component的子注解@Service,@Reposity等。       </context:component-scan></p>
+<p>这种扫描的粒度有点太大，如果你只想扫描指定包下面的Controller或其他内容则设置use-default-filters属性为false，表示不再按照scan指定的包扫描，而是按照<context:include-filter>指定的包扫描，示例：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">context:component-scan</span> <span class="attr">base-package</span>=<span class="string">"com.tan"</span> <span class="attr">use-default-filters</span>=<span class="string">"false"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">"com.tan.*"</span>/&gt;</span>//注意后面要写.*</div><div class="line"><span class="tag">&lt;/<span class="name">context:component-scan</span>&gt;</span></div><div class="line">//当没有设置use-default-filters属性或者属性为true时，表示基于base-packge包下指定扫描的具体路径</div><div class="line"><span class="tag">&lt;<span class="name">context:component-scan</span> <span class="attr">base-package</span>=<span class="string">"com.tan"</span> &gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">".controller.*"</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">".service.*"</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">".dao.*"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">context:component-scan</span>&gt;</span></div></pre></td></tr></table></figure></context:include-filter></p>
+<p>效果相当于：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">context:component-scan</span> <span class="attr">base-package</span>=<span class="string">"com.tan"</span> &gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:exclude-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">".model.*"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">context:component-scan</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>注意：本人尝试时无论哪种情况<context:include-filter>和<context:exclude-filter>都不能同时存在</context:exclude-filter></context:include-filter></p>
 
       
     </div>
@@ -164,7 +185,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/异步请求/" data-id="cj6rbmiyr009glhbl91vdtb9u" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/包扫描/" data-id="cj6vztseg009joablitlahqzz" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -283,7 +304,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/定义@RequestMapping注解的处理方法/" data-id="cj6rbmiys009ilhblxpqjrzhh" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/定义@RequestMapping注解的处理方法/" data-id="cj6vztsei009moablkm6t2z3a" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -297,13 +318,13 @@
 
 
   
-    <article id="post-Spring/SpringMVC/自定义校验" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/SpringMVC/异步请求" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/自定义校验/">自定义校验</a>
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/异步请求/">异步请求</a>
     </h1>
   
 
@@ -312,7 +333,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/自定义校验/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/SpringMVC/异步请求/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
@@ -327,8 +348,50 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="在类中根据不同的请求定义不同的校验接口"><a href="#在类中根据不同的请求定义不同的校验接口" class="headerlink" title="在类中根据不同的请求定义不同的校验接口"></a>在类中根据不同的请求定义不同的校验接口</h2> <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpressOrder</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line"></div><div class="line">   <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</div><div class="line"></div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PdaPut</span> </span>&#123;&#125;</div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PCScanPut</span> </span>&#123;&#125;</div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PdaPriceQuery</span> </span>&#123;&#125;</div><div class="line"> </div><div class="line">   <span class="meta">@NotNull</span>(groups = &#123;PdaPut.class, PdaPriceQuery.class, PdaBarcode.class&#125;)</div><div class="line">   <span class="keyword">private</span> Integer id;</div><div class="line">   </div><div class="line">   <span class="meta">@NotNull</span>(groups = &#123;PdaPut.class, PdaPriceQuery.class&#125;)</div><div class="line">   <span class="keyword">private</span> Integer serviceTypeId;</div><div class="line">   </div><div class="line">   <span class="comment">//getter and setter</span></div></pre></td></tr></table></figure>
-<p>在mvc中使用不同的校验<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/updateBarcode&quot;, method = RequestMethod.PUT)</div><div class="line">public @ResponseBody ExpressOrder updateBarcode(</div><div class="line">        @Validated(&#123;ExpressOrder.PdaBarcode.class&#125;)</div><div class="line">        @RequestBody ExpressOrder expressOrder) throws Exception &#123;</div><div class="line">	</div><div class="line">    return expressOrderService.updateBarcode(expressOrder);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+        <p>Spring MVC 3.2开始引入了基于Servlet 3的异步请求处理。相比以前，控制器方法已经不一定需要返回一个值，而是可以返回一个java.util.concurrent.Callable的对象，并通过Spring MVC所管理的线程来产生返回值。与此同时，Servlet容器的主线程则可以退出并释放其资源了，同时也允许容器去处理其他的请求。通过一个TaskExecutor，Spring MVC可以在另外的线程中调用Callable。当Callable返回时，请求再携带Callable返回的值，再次被分配到Servlet容器中恢复处理流程。以下代码给出了一个这样的控制器方法作为例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(method=RequestMethod.POST)</div><div class="line">public Callable&lt;String&gt; processUpload(final MultipartFile file) &#123;</div><div class="line"></div><div class="line">    return new Callable&lt;String&gt;() &#123;</div><div class="line">        public String call() throws Exception &#123;</div><div class="line">            // ...</div><div class="line">            return &quot;someView&quot;;</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>另一个选择，是让控制器方法返回一个DeferredResult的实例。这种场景下，返回值可以由任何一个线程产生，也包括那些不是由Spring MVC管理的线程。举个例子，返回值可能是为了响应某些外部事件所产生的，比如一条JMS的消息，一个计划任务，等等。以下代码给出了一个这样的控制器作为例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/quotes&quot;)</div><div class="line">@ResponseBody</div><div class="line">public DeferredResult&lt;String&gt; quotes() &#123;</div><div class="line">    DeferredResult&lt;String&gt; deferredResult = new DeferredResult&lt;String&gt;();</div><div class="line">    // Save the deferredResult somewhere..</div><div class="line">    return deferredResult;</div><div class="line">&#125;</div><div class="line"></div><div class="line">// In some other thread...</div><div class="line">deferredResult.setResult(data);</div></pre></td></tr></table></figure></p>
+<p>如果对Servlet 3.0的异步请求处理特性没有了解，理解这个特性可能会有点困难。因此，阅读一下前者的文档将会很有帮助。以下给出了这个机制运作背后的一些原理：</p>
+<ul>
+<li>一个servlet请求ServletRequest可以通过调用request.startAsync()方法而进入异步模式。这样做的主要结果就是该servlet以及所有的过滤器都可以结束，但其响应（response）会留待异步处理结束后再返回</li>
+<li>调用request.startAsync()方法会返回一个AsyncContext对象，可用它对异步处理进行进一步的控制和操作。比如说它也提供了一个与转向（forward）很相似的dispatch方法，只不过它允许应用恢复Servlet容器的请求处理进程</li>
+<li>ServletRequest提供了获取当前DispatherType的方式，后者可以用来区别当前处理的是原始请求、异步分发请求、转向，或是其他类型的请求分发类型。  </li>
+</ul>
+<p>有了上面的知识，下面可以来看一下Callable的异步请求被处理时所依次发生的事件：    </p>
+<ul>
+<li>控制器先返回一个Callable对象</li>
+<li>Spring MVC开始进行异步处理，并把该Callable对象提交给另一个独立线程的执行器TaskExecutor处理</li>
+<li>DispatcherServlet和所有过滤器都退出Servlet容器线程，但此时方法的响应对象仍未返回</li>
+<li>Callable对象最终产生一个返回结果，此时Spring MVC会重新把请求分派回Servlet容器，恢复处理</li>
+<li>DispatcherServlet再次被调用，恢复对Callable异步处理所返回结果的处理  </li>
+</ul>
+<p>对DeferredResult异步请求的处理顺序也非常类似，区别仅在于应用可以通过任何线程来计算返回一个结果：    </p>
+<ul>
+<li>控制器先返回一个DeferredResult对象，并把它存取在内存（队列或列表等）中以便存取</li>
+<li>Spring MVC开始进行异步处理</li>
+<li>DispatcherServlet和所有过滤器都退出Servlet容器线程，但此时方法的响应对象仍未返回</li>
+<li>由处理该请求的线程对 DeferredResult进行设值，然后Spring MVC会重新把请求分派回Servlet容器，恢复处理</li>
+<li>DispatcherServlet再次被调用，恢复对该异步返回结果的处理    </li>
+</ul>
+<p>关于引入异步请求处理的背景和原因，以及什么时候使用它、为什么使用异步请求处理等问题，你可以从<a href="https://spring.io/blog/2012/05/07/spring-mvc-3-2-preview-introducing-servlet-3-async-support" target="_blank" rel="external">这个系列的博客</a>中了解更多信息。</p>
+<h2 id="异步请求的异常处理"><a href="#异步请求的异常处理" class="headerlink" title="异步请求的异常处理"></a>异步请求的异常处理</h2><p>若控制器返回的Callable在执行过程中抛出了异常，又会发生什么事情？简单来说，这与一般的控制器方法抛出异常是一样的。它会被正常的异常处理流程捕获处理。更具体地说呢，当Callable抛出异常时，Spring MVC会把一个Exception对象分派给Servlet容器进行处理，而不是正常返回方法的返回值，然后容器恢复对此异步请求异常的处理。若方法返回的是一个DeferredResult对象，你可以选择调Exception实例的setResult方法还是setErrorResult方法。</p>
+<h2 id="拦截异步请求"><a href="#拦截异步请求" class="headerlink" title="拦截异步请求"></a>拦截异步请求</h2><p>处理器拦截器HandlerInterceptor可以实现AsyncHandlerInterceptor接口拦截异步请求，因为在异步请求开始时，被调用的回调方法是该接口的afterConcurrentHandlingStarted方法，而非一般的postHandle和afterCompletion方法。  </p>
+<p>如果需要与异步请求处理的生命流程有更深入的集成，比如需要处理timeout的事件等，则HandlerInterceptor需要注册一个CallableProcessingInterceptor或DeferredResultProcessingInterceptor拦截器。具体的细节可以参考AsyncHandlerInterceptor类的Java文档。  </p>
+<p>DeferredResult类还提供了onTimeout(Runnable)和onCompletion(Runnable)等方法，具体的细节可以参考DeferredResult类的Java文档。</p>
+<p>Callable需要请求过期(timeout)和完成后的拦截时，可以把它包装在一个WebAsyncTask实例中，后者提供了相关的支持。</p>
+<h2 id="HTTP-streaming"><a href="#HTTP-streaming" class="headerlink" title="HTTP streaming"></a>HTTP streaming</h2><p>如前所述，控制器可以使用DeferredResult或Callable对象来异步地计算其返回值，这可以用于实现一些有用的技术，比如 long polling技术，让服务器可以尽可能快地向客户端推送事件。<br>如果你想在一个HTTP响应中同时推送多个事件，怎么办？这样的技术已经存在，与”Long Polling”相关，叫”HTTP Streaming”。Spring MVC支持这项技术，你可以通过让方法返回一个ResponseBodyEmitter类型对象来实现，该对象可被用于发送多个对象。通常我们所使用的@ResponseBody只能返回一个对象，它是通过HttpMessageConverter写到响应体中的。<br>下面是一个实现该技术的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/events&quot;)</div><div class="line">public ResponseBodyEmitter handle() &#123;</div><div class="line">    ResponseBodyEmitter emitter = new ResponseBodyEmitter();</div><div class="line">    // Save the emitter somewhere..</div><div class="line">    return emitter;</div><div class="line">&#125;</div><div class="line"></div><div class="line">// In some other thread</div><div class="line">emitter.send(&quot;Hello once&quot;);</div><div class="line"></div><div class="line">// and again later on</div><div class="line">emitter.send(&quot;Hello again&quot;);</div><div class="line"></div><div class="line">// and done at some point</div><div class="line">emitter.complete();</div></pre></td></tr></table></figure></p>
+<p>ResponseBodyEmitter也可以被放到ResponseEntity体里面使用，这可以对响应状态和响应头做一些定制。<br>Note that ResponseBodyEmitter can also be used as the body in a ResponseEntity in order to customize the status and headers of the response.</p>
+<h2 id="使用“服务器端事件推送”的HTTP-Streaming"><a href="#使用“服务器端事件推送”的HTTP-Streaming" class="headerlink" title="使用“服务器端事件推送”的HTTP Streaming"></a>使用“服务器端事件推送”的HTTP Streaming</h2><p>SseEmitter是ResponseBodyEmitter的一个子类，提供了对服务器端事件推送的技术的支持。服务器端事件推送其实只是一种HTTP Streaming的类似实现，只不过它服务器端所推送的事件遵循了W3C Server-Sent Events规范中定义的事件格式。    </p>
+<p>“服务器端事件推送”技术正如其名，是用于由服务器端向客户端进行的事件推送。这在Spring MVC中很容易做到，只需要方法返回一个SseEmitter类型的对象即可。    </p>
+<p>需要注意的是，Internet Explorer并不支持这项服务器端事件推送的技术。另外，对于更大型的web应用及更精致的消息传输场景——比如在线游戏、在线协作、金融应用等——来说，使用Spring的WebSocket（包含SockJS风格的实时WebSocket）更成熟一些，因为它支持的浏览器范围非常广（包括IE），并且，对于一个以消息为中心的架构中，它为服务器端-客户端间的事件发布-订阅模型的交互提供了更高层级的消息模式（messaging patterns）的支持。</p>
+<h2 id="直接写回输出流OutputStream的HTTP-Streaming"><a href="#直接写回输出流OutputStream的HTTP-Streaming" class="headerlink" title="直接写回输出流OutputStream的HTTP Streaming"></a>直接写回输出流OutputStream的HTTP Streaming</h2><p>ResponseBodyEmitter也允许通过HttpMessageConverter向响应体中支持写事件对象。这可能是最常见的情形，比如写返回的JSON数据的时候。但有时，跳过消息转换的阶段，直接把数据写回响应的输出流OutputStream可能更有效，比如文件下载这样的场景。这可以通过返回一个StreamingResponseBody类型的对象来实现。<br>以下是一个实现的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/download&quot;)</div><div class="line">public StreamingResponseBody handle() &#123;</div><div class="line">    return new StreamingResponseBody() &#123;</div><div class="line">        @Override</div><div class="line">        public void writeTo(OutputStream outputStream) throws IOException &#123;</div><div class="line">            // write...</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>ResponseBodyEmitter也可以被放到ResponseEntity体里面使用，这可以对响应状态和响应头做一些定制。</p>
+<h2 id="异步请求处理的相关配置"><a href="#异步请求处理的相关配置" class="headerlink" title="异步请求处理的相关配置"></a>异步请求处理的相关配置</h2><h3 id="Servlet容器配置"><a href="#Servlet容器配置" class="headerlink" title="Servlet容器配置"></a>Servlet容器配置</h3><p>对于那些使用web.xml配置文件的应用，请确保web.xml的版本更新到3.0：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">web-app</span> <span class="attr">xmlns</span>=<span class="string">"http://java.sun.com/xml/ns/javaee"</span></span></div><div class="line">         <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance http://java.sun.com/xml/ns/javaee</span></div><div class="line">                    http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"</div><div class="line">         <span class="attr">version</span>=<span class="string">"3.0"</span>&gt;</div><div class="line"></div><div class="line">    ...</div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>异步请求必须在web.xml将DispatcherServlet下的子元素<async-supported>true</async-supported>设置为true。此外，所有可能参与异步请求处理的过滤器Filter都必须配置为支持ASYNC类型的请求分派。在Spring框架中为过滤器启用支持ASYNC类型的请求分派应是安全的，因为这些过滤器一般都继承了基类OncePerRequestFilter，后者在运行时会检查该过滤器是否需要参与到异步分派的请求处理中。<br>以下是一个例子，展示了web.xml的配置：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">web-app</span> <span class="attr">xmlns</span>=<span class="string">"http://java.sun.com/xml/ns/javaee"</span></span></div><div class="line">        <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></div><div class="line">        <span class="attr">xsi:schemaLocation</span>=<span class="string">"</span></div><div class="line">            http://java.sun.com/xml/ns/javaee</div><div class="line">            http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"</div><div class="line">    <span class="attr">version</span>=<span class="string">"3.0"</span>&gt;</div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">filter</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>Spring OpenEntityManagerInViewFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">filter-class</span>&gt;</span>org.springframework.~.OpenEntityManagerInViewFilter<span class="tag">&lt;/<span class="name">filter-class</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">async-supported</span>&gt;</span>true<span class="tag">&lt;/<span class="name">async-supported</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">filter</span>&gt;</span></div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">filter-mapping</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>Spring OpenEntityManagerInViewFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/*<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">dispatcher</span>&gt;</span>REQUEST<span class="tag">&lt;/<span class="name">dispatcher</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">dispatcher</span>&gt;</span>ASYNC<span class="tag">&lt;/<span class="name">dispatcher</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">filter-mapping</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>如果应用使用的是Servlet 3规范基于Java编程的配置方式，比如通过WebApplicationInitializer，那么你也需要设置”asyncSupported”标志和ASYNC分派类型的支持，就像你在web.xml中所配置的一样。你可以考虑直接继承AbstractDispatcherServletInitializer或AbstractAnnotationConfigDispatcherServletInitializer来简化配置，它们都自动地为你设置了这些配置项，并使得注册Filter过滤器实例变得非常简单。</p>
+<h2 id="Spring-MVC配置"><a href="#Spring-MVC配置" class="headerlink" title="Spring MVC配置"></a>Spring MVC配置</h2><p>MVC Java编程配置和MVC命名空间配置方式都提供了配置异步请求处理支持的选择。WebMvcConfigurer提供了configureAsyncSupport方法，而<mvc:annotation-driven>有一个子元素<async-support>，它们都用以为此提供支持。  </async-support></mvc:annotation-driven></p>
+<p>这些配置允许你覆写异步请求默认的超时时间，在未显式设置时，它们的值与所依赖的Servlet容器是相关的（比如，Tomcat设置的超时时间是10秒）。你也可以配置用于执行控制器返回值Callable的执行器AsyncTaskExecutor。Spring强烈推荐你配置这个选项，因为Spring MVC默认使用的是普通的执行器SimpleAsyncTaskExecutor。MVC Java编程配置及MVC命名空间配置的方式都允许你注册自己的CallableProcessingInterceptor和DeferredResultProcessingInterceptor拦截器实例。    </p>
+<p>若你需要为特定的DeferredResult覆写默认的超时时间，你可以选用合适的构造方法来实现。类似，对于Callable返回，你可以把它包装在一个WebAsyncTask对象中，并使用合适的构造方法定义超时时间。WebAsyncTask类的构造方法同时也能接受一个任务执行器AsyncTaskExecutor类型的参数。</p>
 
       
     </div>
@@ -339,7 +402,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/自定义校验/" data-id="cj6rbmiyu009llhblfekb91hn" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/异步请求/" data-id="cj6vztsek009ooablmj2ryybv" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -405,7 +468,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/统一处理异常/" data-id="cj6rbmiyv009nlhblh4xmqkah" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/统一处理异常/" data-id="cj6vztsel009roablj9hwfj8k" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -460,7 +523,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JAXB/xml于javabean相互转换/" data-id="cj6rbmivt0037lhbltajmi2lb" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JAXB/xml于javabean相互转换/" data-id="cj6vztsbp003goablhu08sbf5" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -474,13 +537,13 @@
 
 
   
-    <article id="post-Java/数据类型/BigDecimal" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/SpringMVC/自定义校验" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/数据类型/BigDecimal/">BigDecimal</a>
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/自定义校验/">自定义校验</a>
     </h1>
   
 
@@ -489,13 +552,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Java/数据类型/BigDecimal/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/SpringMVC/自定义校验/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/数据类型/">数据类型</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
   </div>
 
 
@@ -504,15 +567,9 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h4 id="在使用BigDecimal类来进行计算的时候，主要分为以下步骤："><a href="#在使用BigDecimal类来进行计算的时候，主要分为以下步骤：" class="headerlink" title="在使用BigDecimal类来进行计算的时候，主要分为以下步骤："></a>在使用BigDecimal类来进行计算的时候，主要分为以下步骤：</h4><ol>
-<li>用float或者double或者String变量构建BigDecimal对象。使用float或者double构造对象时，最好先转成String，以免发生错误</li>
-<li>通过调用BigDecimal的加，减，乘，除等相应的方法进行算术运算。</li>
-<li><p>把BigDecimal对象转换成float，double，int等类型。</p>
-<p>一般来说，可以使用BigDecimal的构造方法或者静态方法的valueOf()方法把基本类型的变量构建成BigDecimal对象。</p>
-</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">BigDecimal b1 = new BigDecimal(Double.toString(0.48));</div><div class="line">BigDecimal b2 = BigDecimal.valueOf(0.48);</div></pre></td></tr></table></figure>
-<h3 id="常用方法"><a href="#常用方法" class="headerlink" title="常用方法"></a>常用方法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public BigDecimal add(BigDecimal value);                        //加法</div><div class="line">public BigDecimal subtract(BigDecimal value);                   //减法 </div><div class="line">public BigDecimal multiply(BigDecimal value);                   //乘法</div><div class="line">public BigDecimal divide(BigDecimal value);                     //除法</div><div class="line"></div><div class="line">public int compareTo(BigDecimal val)        //比较大小</div><div class="line">结果是-1:小于  0:等于 1:大于</div></pre></td></tr></table></figure>
+        <h2 id="在类中根据不同的请求定义不同的校验接口"><a href="#在类中根据不同的请求定义不同的校验接口" class="headerlink" title="在类中根据不同的请求定义不同的校验接口"></a>在类中根据不同的请求定义不同的校验接口</h2> <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExpressOrder</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line"></div><div class="line">   <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</div><div class="line"></div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PdaPut</span> </span>&#123;&#125;</div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PCScanPut</span> </span>&#123;&#125;</div><div class="line">   <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PdaPriceQuery</span> </span>&#123;&#125;</div><div class="line"> </div><div class="line">   <span class="meta">@NotNull</span>(groups = &#123;PdaPut.class, PdaPriceQuery.class, PdaBarcode.class&#125;)</div><div class="line">   <span class="keyword">private</span> Integer id;</div><div class="line">   </div><div class="line">   <span class="meta">@NotNull</span>(groups = &#123;PdaPut.class, PdaPriceQuery.class&#125;)</div><div class="line">   <span class="keyword">private</span> Integer serviceTypeId;</div><div class="line">   </div><div class="line">   <span class="comment">//getter and setter</span></div></pre></td></tr></table></figure>
+<p>在mvc中使用不同的校验<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/updateBarcode&quot;, method = RequestMethod.PUT)</div><div class="line">public @ResponseBody ExpressOrder updateBarcode(</div><div class="line">        @Validated(&#123;ExpressOrder.PdaBarcode.class&#125;)</div><div class="line">        @RequestBody ExpressOrder expressOrder) throws Exception &#123;</div><div class="line">	</div><div class="line">    return expressOrderService.updateBarcode(expressOrder);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+
       
     </div>
 
@@ -522,7 +579,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/数据类型/BigDecimal/" data-id="cj6rbmivv003alhbljeg3ms79" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/自定义校验/" data-id="cj6vztsep009woablozbuxmb3" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -536,13 +593,13 @@
 
 
   
-    <article id="post-Java/日记/spring配置log4j" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/基础/Spring获取ApplicationContext，并获取所有Bean" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/日记/spring配置log4j/">spring配置log4j</a>
+      <a class="article-title" href="/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/">Spring获取ApplicationContext，并获取所有Bean</a>
     </h1>
   
 
@@ -551,13 +608,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Java/日记/spring配置log4j/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/日记/">日记</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/基础/">基础</a>
   </div>
 
 
@@ -566,304 +623,132 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="依赖包"><a href="#依赖包" class="headerlink" title="依赖包"></a>依赖包</h2><p>引入下面这个包即可，maven会自动加载依赖包<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;  </div><div class="line">    &lt;groupId&gt;org.slf4j&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;  </div><div class="line">    &lt;version&gt;1.7.2&lt;/version&gt;  </div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure></p>
-<p>实际上需要jar包</p>
+        <h2 id="方法一（推荐）"><a href="#方法一（推荐）" class="headerlink" title="方法一（推荐）"></a>方法一（推荐）</h2><h3 id="实现接口ApplicationContextAware"><a href="#实现接口ApplicationContextAware" class="headerlink" title="实现接口ApplicationContextAware"></a>实现接口ApplicationContextAware</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line">package com.lhc.utils;</div><div class="line"></div><div class="line">import java.util.Map;</div><div class="line"></div><div class="line">import org.springframework.beans.BeansException;</div><div class="line">import org.springframework.context.ApplicationContext;</div><div class="line">import org.springframework.context.ApplicationContextAware;</div><div class="line"></div><div class="line">public class SpringContextHolder implements ApplicationContextAware &#123;</div><div class="line">	private static ApplicationContext applicationContext = null;  </div><div class="line">	  @Override  </div><div class="line">	  public  void setApplicationContext(ApplicationContext applicationContext)  throws BeansException &#123;  </div><div class="line">		    if(SpringContextHolder.applicationContext == null) &#123;  </div><div class="line">		    	SpringContextHolder.applicationContext  = applicationContext;  </div><div class="line">		    &#125;  </div><div class="line">	  &#125;  </div><div class="line"></div><div class="line">	public static ApplicationContext getApplicationContext() &#123;</div><div class="line">		checkApplicationContext();</div><div class="line">		return applicationContext;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public static &lt;T&gt; T getBean(String name) &#123;</div><div class="line">		checkApplicationContext();</div><div class="line">		return (T) applicationContext.getBean(name);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public static &lt;T&gt; T getBean(String beanName, Class&lt;T&gt; type) &#123;</div><div class="line">		checkApplicationContext();</div><div class="line">		return applicationContext.getBean(beanName, type);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public static &lt;T&gt; T getBean(Class&lt;T&gt; clazz) &#123;</div><div class="line">		checkApplicationContext();</div><div class="line"></div><div class="line">		Map&lt;String, T&gt; beanMaps = applicationContext.getBeansOfType(clazz);</div><div class="line">		if ((beanMaps != null) &amp;&amp; (!beanMaps.isEmpty())) &#123;</div><div class="line">			return beanMaps.values().iterator().next();</div><div class="line">		&#125;</div><div class="line">		return null;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	private static void checkApplicationContext() &#123;</div><div class="line">		if (applicationContext == null) &#123;</div><div class="line">			throw new IllegalStateException(&quot;applicaitonContext未注入,请在applicationContext.xml中定义SpringContextHolder&quot;);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="配置文件中配置"><a href="#配置文件中配置" class="headerlink" title="配置文件中配置"></a>配置文件中配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;!--  bean管理工具 --&gt;</div><div class="line">&lt;bean id=&quot;springContextHolder&quot; class=&quot;com.lhc.utils.SpringContextHolder&quot;/&gt;</div><div class="line">&lt;!--  bean管理工具 --&gt;</div></pre></td></tr></table></figure>
+<h2 id="方法二"><a href="#方法二" class="headerlink" title="方法二"></a>方法二</h2><h3 id="继承自抽象类ApplicationObjectSupport"><a href="#继承自抽象类ApplicationObjectSupport" class="headerlink" title="继承自抽象类ApplicationObjectSupport"></a>继承自抽象类ApplicationObjectSupport</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line">import javax.faces.application.Application;  </div><div class="line">import org.springframework.beans.BeansException;  </div><div class="line">import org.springframework.context.ApplicationContext;  </div><div class="line">import org.springframework.context.ApplicationContextAware;  </div><div class="line">import org.springframework.context.support.ApplicationObjectSupport;  </div><div class="line">import org.springframework.web.context.support.WebApplicationObjectSupport;  </div><div class="line">/** </div><div class="line"> * 获取spring信息的工具类 </div><div class="line"> * @author Administrator </div><div class="line"> * </div><div class="line"> */  </div><div class="line">public final class SpringContextHolder extends ApplicationObjectSupport &#123;  </div><div class="line">  private static ApplicationContext applicationContext = null;  </div><div class="line">  @Override  </div><div class="line">  protected void initApplicationContext(ApplicationContext context)  </div><div class="line">  throws BeansException &#123;  </div><div class="line">    super.initApplicationContext(context);  </div><div class="line">    if(ToolSpring.applicationContext == null)&#123;  </div><div class="line">      ToolSpring.applicationContext = context;  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println(&quot;========ApplicationContext配置成功,在普通类可以通过调用ToolSpring.getAppContext()获取applicationContext对象,applic      ationContext=&quot;+applicationContext+&quot;========&quot;);  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">    &#125;  </div><div class="line">  &#125;  </div><div class="line">  public static ApplicationContext getAppContext() &#123;  </div><div class="line">    return applicationContext;  </div><div class="line">  &#125;  </div><div class="line">  public static Object getBean(String name)&#123;  </div><div class="line">    return getAppContext().getBean(name);  </div><div class="line">  &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="配置文件中配置-1"><a href="#配置文件中配置-1" class="headerlink" title="配置文件中配置"></a>配置文件中配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;!--  bean管理工具 --&gt;</div><div class="line">&lt;bean id=&quot;springContextHolder&quot; class=&quot;com.lhc.utils.SpringContextHolder&quot;/&gt;</div><div class="line">&lt;!--  bean管理工具 --&gt;</div></pre></td></tr></table></figure>
+<h2 id="方法三"><a href="#方法三" class="headerlink" title="方法三"></a>方法三</h2><h3 id="继承自抽象类WebApplicationObjectSupport"><a href="#继承自抽象类WebApplicationObjectSupport" class="headerlink" title="继承自抽象类WebApplicationObjectSupport"></a>继承自抽象类WebApplicationObjectSupport</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">import javax.faces.application.Application;  </div><div class="line">import org.springframework.beans.BeansException;  </div><div class="line">import org.springframework.context.ApplicationContext;  </div><div class="line">import org.springframework.context.support.ApplicationObjectSupport;  </div><div class="line">import org.springframework.web.context.support.WebApplicationObjectSupport;  </div><div class="line">/** </div><div class="line"> * 获取spring信息的工具类 </div><div class="line"> * @author Administrator </div><div class="line"> * </div><div class="line"> */  </div><div class="line">public final class SpringContextHolder extends WebApplicationObjectSupport&#123;  </div><div class="line">  private static ApplicationContext applicationContext = null;  </div><div class="line">  @Override  </div><div class="line">  protected void initApplicationContext(ApplicationContext context) &#123;  </div><div class="line">    super.initApplicationContext(context);  </div><div class="line">    if(applicationContext == null)&#123;  </div><div class="line">      applicationContext = context;  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println(&quot;========ApplicationContext配置成功,在普通类可以通过调用ToolSpring.getAppContext()获取applicationContext对象,applicationContext=&quot;+applicationContext+&quot;========&quot;);  </div><div class="line">      System.out.println(&quot;---------------------------------------------------------------------&quot;);  </div><div class="line">      System.out.println();  </div><div class="line">      System.out.println();  </div><div class="line">    &#125;  </div><div class="line">  &#125;  </div><div class="line">  public static ApplicationContext getAppContext() &#123;  </div><div class="line">    return applicationContext;  </div><div class="line">  &#125;  </div><div class="line">  public static Object getBean(String name)&#123;  </div><div class="line">    return applicationContext.getBean(name);  </div><div class="line">  &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="配置文件中配置-2"><a href="#配置文件中配置-2" class="headerlink" title="配置文件中配置"></a>配置文件中配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;!--  bean管理工具 --&gt;</div><div class="line">&lt;bean id=&quot;springContextHolder&quot; class=&quot;com.lhc.utils.SpringContextHolder&quot;/&gt;</div><div class="line">&lt;!--  bean管理工具 --&gt;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/基础/Spring获取ApplicationContext，并获取所有Bean/" data-id="cj6vztser009yoabls4ci20q2" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Java/JAXB/注解详解" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/JAXB/注解详解/">注解详解</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Java/JAXB/注解详解/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/JAXB/">JAXB</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>JAXB（即Java Architecturefor XML Binding）是一个业界的标准，即是一项可以根据XML Schema产生Java类的技术。该过程中，JAXB也提供了将XML实例文档反向生成Java对象树的方法，并能将Java对象树的内容重新写到XML实例文档。  </p>
+<h2 id="注解介绍"><a href="#注解介绍" class="headerlink" title="注解介绍"></a>注解介绍</h2><h3 id="Jaxb中处理java和xml之间转换的常用注解有："><a href="#Jaxb中处理java和xml之间转换的常用注解有：" class="headerlink" title="Jaxb中处理java和xml之间转换的常用注解有："></a>Jaxb中处理java和xml之间转换的常用注解有：</h3><ul>
+<li>@XmlType</li>
+<li>@XmlElement</li>
+<li>@XmlRootElement</li>
+<li>@XmlAttribute</li>
+<li>@XmlAccessorType</li>
+<li>@XmlAccessorOrder</li>
+<li>@XmlTransient</li>
+<li>@XmlJavaTypeAdapter</li>
+<li>@XmlSchema</li>
+<li>@XmlElementWrapper</li>
+<li>@XmlElements</li>
+</ul>
+<h2 id="常用annotation使用说明"><a href="#常用annotation使用说明" class="headerlink" title="常用annotation使用说明"></a>常用annotation使用说明</h2><h3 id="XmlType"><a href="#XmlType" class="headerlink" title="@XmlType"></a>@XmlType</h3><p>该注解用在class类上，常与@XmlRootElement，@XmlAccessorType一起使用。它有三个属性：name、propOrder、namespace，经常使用的只有前两个属性。如：</p>
 <ul>
-<li>slf4j-log4j12-1.7.2.jar</li>
-<li>slf4j-api-1.7.2.jar</li>
-<li>log4j-1.2.17.jar</li>
-<li>commons-logging-1.0.3.jar</li>
+<li>propOrder        指定映射XML时的节点顺序</li>
+<li>factoryClass     指定UnMarshal时生成映射类实例所需的工厂类，默认为这个类本身</li>
+<li>factoryMethod  指定工厂类的工厂方法</li>
+<li>name               定义XML Schema中type的名称</li>
+<li>namespace      指定Schema中的命名空间</li>
 </ul>
-<h2 id="web文件中的配置"><a href="#web文件中的配置" class="headerlink" title="web文件中的配置"></a>web文件中的配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;!--  设置log4j配置文件目录 --&gt;</div><div class="line">&lt;context-param&gt;  </div><div class="line">    &lt;param-name&gt;log4jConfigLocation&lt;/param-name&gt;  </div><div class="line">    &lt;param-value&gt;WEB-INF/log4j.properties&lt;/param-value&gt;  </div><div class="line">&lt;/context-param&gt;  </div><div class="line">  </div><div class="line">&lt;!-- 启动一个watchdog线程每3秒扫描一下log4j配置文件的变化  --&gt;</div><div class="line">&lt;!-- &lt;context-param&gt;  </div><div class="line">    &lt;param-name&gt;log4jRefreshInterval&lt;/param-name&gt;  </div><div class="line">    &lt;param-value&gt;3000&lt;/param-value&gt;</div><div class="line">&lt;/context-param&gt;  --&gt;</div><div class="line"></div><div class="line">&lt;!-- 设置监听器 --&gt;</div><div class="line">&lt;listener&gt;  </div><div class="line">    &lt;listener-class&gt;  </div><div class="line">        org.springframework.web.util.Log4jConfigListener  </div><div class="line">    &lt;/listener-class&gt;  </div><div class="line">&lt;/listener&gt;</div></pre></td></tr></table></figure>
-<p>默认会找默认会找src目录下的log4j.properties<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;context-param&gt;</div><div class="line">    &lt;param-name&gt;log4jConfigLocation&lt;/param-name&gt;</div><div class="line">    &lt;param-value&gt;classpath:log4j.properties&lt;/param-value&gt;</div><div class="line">&lt;/context-param&gt;</div></pre></td></tr></table></figure></p>
-<h2 id="log4j-properties"><a href="#log4j-properties" class="headerlink" title="log4j.properties"></a>log4j.properties</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div></pre></td><td class="code"><pre><div class="line"># +======================================================================+#</div><div class="line">log4j.rootLogger=$&#123;log4j.log.level&#125;,$&#123;log4j.log.target&#125;</div><div class="line">log4j.addivity.org.apache=true</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - Console</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender</div><div class="line">log4j.appender.CONSOLE.Threshold=$&#123;log4j.log.level&#125;</div><div class="line">log4j.appender.CONSOLE.Encoding=$&#123;log4j.log.encoding&#125;</div><div class="line">log4j.appender.CONSOLE.Target=System.out</div><div class="line">log4j.appender.CONSOLE.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.CONSOLE.layout.ConversionPattern=$&#123;log4j.log.layout.pattern&#125;</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - FILE</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.FILE=org.apache.log4j.RollingFileAppender</div><div class="line">log4j.appender.FILE.Threshold=$&#123;log4j.log.level&#125;</div><div class="line">log4j.appender.FILE.Encoding=$&#123;log4j.log.encoding&#125;</div><div class="line">log4j.appender.FILE.File=$&#123;log4j.log.dir&#125;/runtime.log</div><div class="line">log4j.appender.FILE.Append=true</div><div class="line">#规定最大到1024K，就生成新文件</div><div class="line">log4j.appender.FILE.MaxFileSize=2048KB</div><div class="line">#最多生成10个</div><div class="line">log4j.appender.FILE.MaxBackupIndex=10</div><div class="line">log4j.appender.FILE.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.FILE.layout.ConversionPattern=$&#123;log4j.log.layout.pattern&#125;</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - DATABASE</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.DATABASE=org.apache.log4j.jdbc.JDBCAppender</div><div class="line">log4j.appender.DATABASE.Threshold=ERROR</div><div class="line">log4j.appender.DATABASE.URL=jdbc:mysql://127.0.0.1:3306/spring</div><div class="line">log4j.appender.DATABASE.driver=com.mysql.jdbc.Driver</div><div class="line">log4j.appender.DATABASE.user=root</div><div class="line">log4j.appender.DATABASE.password=liuriqi</div><div class="line">log4j.appender.DATABASE.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.DATABASE.sql=INSERT INTO tv_log4j(message)VALUES(&apos;$&#123;log4j.log.layout.pattern&#125;&apos;)</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - EMAIL</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.EMAIL=org.apache.log4j.net.SMTPAppender</div><div class="line">log4j.appender.EMAIL.Threshold=FATAL</div><div class="line">log4j.appender.EMAIL.BufferSize=10</div><div class="line">log4j.appender.EMAIL.From=fromuser@gmail.com</div><div class="line">log4j.appender.EMAIL.SMTPHost=localhost</div><div class="line">log4j.appender.EMAIL.Subject=Log4J Message</div><div class="line">log4j.appender.EMAIL.To=touser@gmail.com</div><div class="line">log4j.appender.EMAIL.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.EMAIL.layout.ConversionPattern=$&#123;log4j.log.layout.pattern&#125;</div><div class="line"># +======================================================================+#</div><div class="line">上面配置相关的变量，我提取出来统一放到变量配置文件里边，如下：</div><div class="line"></div><div class="line"># +======================================================================+#</div><div class="line"># | log4j config</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.log.dir=logs/</div><div class="line">#log4j.log.level=ALL,TRACE,DEBUG,INFO,WARN,ERROR,FATAL,OFF</div><div class="line">log4j.log.level=DEBUG</div><div class="line">#log4j.log.target=CONSOLE,FILE,DATABASE,EMAIL,SOCKET</div><div class="line">log4j.log.target=CONSOLE,FILE</div><div class="line">log4j.log.encoding=UTF-8</div><div class="line">log4j.log.layout=org.apache.log4j.PatternLayout</div><div class="line">log4j.log.layout.pattern=[%d %r] [%-5p] [%t] [%l] [%m]%n</div><div class="line"># +======================================================================+#</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/日记/spring配置log4j/" data-id="cj6rbmivw003clhblh2761dho" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/线程/Condition" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/线程/Condition/">Condition</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/线程/Condition/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/线程/">线程</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>在java.util.concurrent包中，有两个很特殊的工具类，Condition和ReentrantLock,使用过的人都知道，ReentrantLock（重入锁）是jdk的concurrent包提供的一种独占锁的实现。它继承自Dong Lea的 AbstractQueuedSynchronizer（同步器），确切的说是ReentrantLock的一个内部类继承了AbstractQueuedSynchronizer，ReentrantLock只不过是代理了该类的一些方法，可能有人会问为什么要使用内部类在包装一层？ 我想是安全的关系，因为AbstractQueuedSynchronizer中有很多方法，还实现了共享锁，Condition(稍候再细说)等功能，如果直接使ReentrantLock继承它，则很容易出现AbstractQueuedSynchronizer中的API被误用的情况。  </p>
-<p>言归正传，今天，我们讨论下Condition工具类的实现。 </p>
-<p>ReentrantLock和Condition的使用方式通常是这样的：<br><img src="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/9749D9729D1742A69032416B12BBF1AC/8325" alt="image"></p>
-<p>运行后，结果如下：<br><img src="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/5429FA3A6FE94A48812924FEF460AE68/8327" alt="image"><br>Condition的执行方式，是当在线程1中调用await方法后，线程1将释放锁，并且将自己沉睡，等待唤醒，<br>线程2获取到锁后，开始做事，完毕后，调用Condition的signal方法，唤醒线程1，线程1恢复执行。<br>以上说明Condition是一个多线程间协调通信的工具类，使得某个，或者某些线程一起等待某个条件（Condition）,只有当该条件具备( signal 或者 signalAll方法被带调用)时 ，这些等待线程才会被唤醒，从而重新争夺锁。  </p>
-<p>那，它是怎么实现的呢？<br>首先还是要明白，reentrantLock.newCondition() 返回的是Condition的一个实现，该类在AbstractQueuedSynchronizer中被实现，叫做newCondition()<br><img src="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/AD627C2D54E84A408B9BC338CFE15977/8326" alt="image">   </p>
-<p>它可以访问AbstractQueuedSynchronizer中的方法和其余内部类（ AbstractQueuedSynchronizer是个抽象类，至于他怎么能访问，这里有个很奇妙的点，后面我专门用demo说明 ）<br>现在，我们一起来看下Condition类的实现，还是从上面的demo入手，<br>为了方便书写，我将AbstractQueuedSynchronizer缩写为AQS<br>当await被调用时，代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">public final void await() throws InterruptedException &#123;</div><div class="line">	if (Thread.interrupted())</div><div class="line">		throw new InterruptedException();</div><div class="line">		Node node = addConditionWaiter(); //将当前线程包装下后，</div><div class="line">		//添加到Condition自己维护的一个链表中。</div><div class="line">		int savedState = fullyRelease(node);//释放当前线程占有的锁，从demo中看到，</div><div class="line">		//调用await前，当前线程是占有锁的</div><div class="line">		</div><div class="line">		int interruptMode = 0;</div><div class="line">		while (!isOnSyncQueue(node)) &#123;//释放完毕后，遍历AQS的队列，看当前节点是否在队列中，</div><div class="line">			//不在 说明它还没有竞争锁的资格，所以继续将自己沉睡。</div><div class="line">			//直到它被加入到队列中，聪明的你可能猜到了，</div><div class="line">			//没有错，在singal的时候加入不就可以了？</div><div class="line">			LockSupport.park(this);</div><div class="line">			if ((interruptMode = checkInterruptWhileWaiting(node)) != 0) break;</div><div class="line">		&#125;</div><div class="line">		//被唤醒后，重新开始正式竞争锁，同样，如果竞争不到还是会将自己沉睡，等待唤醒重新开始竞争。</div><div class="line">		if (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</div><div class="line">			interruptMode = REINTERRUPT;</div><div class="line">			</div><div class="line">		if (node.nextWaiter != null)</div><div class="line">			unlinkCancelledWaiters();</div><div class="line">			</div><div class="line">		if (interruptMode != 0)</div><div class="line">			reportInterruptAfterWait(interruptMode);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>回到上面的demo，锁被释放后，线程1开始沉睡，这个时候线程因为线程1沉睡时，会唤醒AQS队列中的头结点，所所以线程2会开始竞争锁，并获取到，等待3秒后，线程2会调用signal方法，“发出”signal信号，signal方法如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">public final void signal() &#123;</div><div class="line">	if (!isHeldExclusively()) throw new IllegalMonitorStateException();</div><div class="line">	Node first = firstWaiter; //firstWaiter为condition自己维护的一个链表的头结点，</div><div class="line">	//取出第一个节点后开始唤醒操作</div><div class="line">	if (first != null) doSignal(first);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>说明下，其实Condition内部维护了等待队列的头结点和尾节点，该队列的作用是存放等待signal信号的线程，该线程被封装为Node节点后存放于此。  </p>
-<p><img src="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/21A3D2F0FE164DD8AEB7B71E5865C28A/8328" alt="image"><br>关键的就在于此，我们知道AQS自己维护的队列是当前等待资源的队列，AQS会在资源被释放后，依次唤醒队列中从前到后的所有节点，使他们对应的线程恢复执行。直到队列为空。</p>
-<p>而Condition自己也维护了一个队列，该队列的作用是维护一个等待signal信号的队列，两个队列的作用是不同，事实上，每个线程也仅仅会同时存在以上两个队列中的一个，流程是这样的</p>
-<ol>
-<li>线程1调用reentrantLock.lock时，线程被加入到AQS的等待队列中。</li>
-<li>线程1调用await方法被调用时，该线程从AQS中移除，对应操作是锁的释放。</li>
-<li>接着马上被加入到Condition的等待队列中，以为着该线程需要signal信号。</li>
-<li>线程2，因为线程1释放锁的关系，被唤醒，并判断可以获取锁，于是线程2获取锁，并被加入到AQS的等待队列中。</li>
-<li>线程2调用signal方法，这个时候Condition的等待队列中只有线程1一个节点，于是它被取出来，并被加入到AQS的等待队列中。  注意，这个时候，线程1 并没有被唤醒。</li>
-<li>signal方法执行完毕，线程2调用reentrantLock.unLock()方法，释放锁。这个时候因为AQS中只有线程1，于是，AQS释放锁后按从头到尾的顺序唤醒线程时，线程1被唤醒，于是线程1回复执行。</li>
-<li>直到释放所整个过程执行完毕。 </li>
-</ol>
-<p>可以看到，整个协作过程是靠结点在AQS的等待队列和Condition的等待队列中来回移动实现的，Condition作为一个条件类，很好的自己维护了一个等待信号的队列，并在适时的时候将结点加入到AQS的等待队列中来实现的唤醒操作。    </p>
-<p>看到这里，signal方法的代码应该不难理解了。</p>
-<p>取出头结点，然后doSignal<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">private void doSignal(Node first) &#123;</div><div class="line">	do &#123;</div><div class="line">		if ( (firstWaiter = first.nextWaiter) == null) //修改头结点，完成旧头结点的移出工作</div><div class="line">			lastWaiter = null;</div><div class="line">			first.nextWaiter = null;</div><div class="line">	&#125; while (!transferForSignal(first) &amp;&amp;//将老的头结点，加入到AQS的等待队列中</div><div class="line">			(first = firstWaiter) != null);</div><div class="line">&#125;</div><div class="line">	</div><div class="line">final boolean transferForSignal(Node node) &#123;</div><div class="line">	/*</div><div class="line">	 * If cannot change waitStatus, the node has been cancelled.</div><div class="line">	 */</div><div class="line">	if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))</div><div class="line">	return false;</div><div class="line"></div><div class="line">	/*</div><div class="line">	 * Splice onto queue and try to set waitStatus of predecessor to</div><div class="line">	 * indicate that thread is (probably) waiting. If cancelled or</div><div class="line">	 * attempt to set waitStatus fails, wake up to resync (in which</div><div class="line">	 * case the waitStatus can be transiently and harmlessly wrong).</div><div class="line">	 */</div><div class="line">	Node p = enq(node);</div><div class="line">	int ws = p.waitStatus;</div><div class="line">	//如果该结点的状态为cancel 或者修改waitStatus失败，则直接唤醒。</div><div class="line">	if (ws &gt; 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))</div><div class="line">	LockSupport.unpark(node.thread);</div><div class="line">	return true;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>可以看到，正常情况 ws &gt; 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL) 这个判断是不会为true的，所以，不会在这个时候唤醒该线程。<br>只有到发送signal信号的线程调用reentrantLock.unlock()后因为它已经被加到AQS的等待队列中，所以才会被唤醒。</p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/线程/Condition/" data-id="cj6rbmivx003flhblq3rchdj6" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/线程/ExecutorService线程池" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/线程/ExecutorService线程池/">ExecutorService线程池</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/线程/ExecutorService线程池/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/线程/">线程</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="new-Thread的弊端"><a href="#new-Thread的弊端" class="headerlink" title="new Thread的弊端"></a>new Thread的弊端</h2><p>执行一个异步任务你还只是如下new Thread吗？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">new Thread(new Runnable() &#123;</div><div class="line"></div><div class="line">@Override</div><div class="line">public void run() &#123;</div><div class="line">// TODO Auto-generated method stub</div><div class="line">&#125;</div><div class="line">&#125;).start();</div></pre></td></tr></table></figure></p>
-<p>那你就out太多了，new Thread的弊端如下：</p>
-<ol>
-<li>每次new Thread新建对象性能差。</li>
-<li>线程缺乏统一管理，可能无限制新建线程，相互之间竞争，及可能占用过多系统资源导致死机或oom。</li>
-<li>缺乏更多功能，如定时执行、定期执行、线程中断。</li>
-</ol>
-<p>相比new Thread，Java提供的四种线程池的好处在于：</p>
-<ol>
-<li>重用存在的线程，减少对象创建、消亡的开销，性能佳。</li>
-<li>可有效控制最大并发线程数，提高系统资源的使用率，同时避免过多资源竞争，避免堵塞。</li>
-<li>提供定时执行、定期执行、单线程、并发数控制等功能。</li>
-</ol>
-<h2 id="几种不同的ExecutorService线程池对象"><a href="#几种不同的ExecutorService线程池对象" class="headerlink" title="几种不同的ExecutorService线程池对象"></a>几种不同的ExecutorService线程池对象</h2><h3 id="newCachedThreadPool"><a href="#newCachedThreadPool" class="headerlink" title="newCachedThreadPool"></a>newCachedThreadPool</h3><ul>
-<li>不定长可缓存线程池，空闲线程缓存60秒，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程，最大值为Integer.MAX_VALUE,也可以说是无限容量</li>
-<li>缓存型池子，先查看池中有没有以前建立的线程，如果有，就重用,如果没有，就建一个新的线程加入池中</li>
-<li>缓存型池子通常用于执行一些生存期很短的异步型任务</li>
-<li>能重用的线程，必须是timeout IDLE内的池中线程，缺省timeout是60s,超过这个IDLE时长，线程实例将被终止及移出池。<br>注意，放入CachedThreadPool的线程不必担心其结束，超过TIMEOUT不活动，其会自动被终止。</li>
-</ul>
-<h4 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h4><p>创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程。示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">ExecutorService cachedThreadPool = Executors.newCachedThreadPool();</div><div class="line">for (int i = 0; i &lt; 10; i++) &#123;</div><div class="line">	final int index = i;</div><div class="line">	try &#123;</div><div class="line">		Thread.sleep(index * 1000);</div><div class="line">	&#125; catch (InterruptedException e) &#123;</div><div class="line">		e.printStackTrace();</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	cachedThreadPool.execute(new Runnable() &#123;</div><div class="line"></div><div class="line">		@Override</div><div class="line">		public void run() &#123;</div><div class="line">			System.out.println(index);</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>线程池为无限大，当执行第二个任务时第一个任务已经完成，会复用执行第一个任务的线程，而不用每次新建线程。</p>
-<h3 id="newFixedThreadPool"><a href="#newFixedThreadPool" class="headerlink" title="newFixedThreadPool"></a>newFixedThreadPool</h3><ul>
-<li>一个定长线程池，空闲线程无缓存，可控制线程最大并发数，超出的线程会在队列中等待。</li>
-<li>newFixedThreadPool与cacheThreadPool差不多，也是能重用，但不能随时建新的线程</li>
-<li>其独特之处:任意时间点，最多只能有固定数目的活动线程存在，此时如果有新的线程要建立，只能放在另外的队列中等待，直到当前的线程中某个线程终止直接被移出池子</li>
-<li>和cacheThreadPool不同，FixedThreadPool没有IDLE机制（可能也有，但既然文档没提，肯定非常长，类似依赖上层的TCP或UDP IDLE机制之类的），所以FixedThreadPool多数针对一些很稳定很固定的正规并发线程，多用于服务器</li>
-<li>从方法的源代码看，cache池和fixed 池调用的是同一个底层池，只不过参数不同:<br>fixed池线程数固定，并且是0秒IDLE（无IDLE）<br>cache池线程数支持0-Integer.MAX_VALUE(显然完全没考虑主机的资源承受能力），60秒IDLE</li>
-</ul>
-<h4 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a>示例</h4><p>创建一个定长线程池，可控制线程最大并发数，超出的线程会在队列中等待。示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">ExecutorService fixedThreadPool = Executors.newFixedThreadPool(3);</div><div class="line">for (int i = 0; i &lt; 10; i++) &#123;</div><div class="line">	final int index = i;</div><div class="line">	fixedThreadPool.execute(new Runnable() &#123;</div><div class="line">	</div><div class="line">		@Override</div><div class="line">		public void run() &#123;</div><div class="line">			try &#123;</div><div class="line">				System.out.println(index);</div><div class="line">				Thread.sleep(2000);</div><div class="line">			&#125; catch (InterruptedException e) &#123;</div><div class="line">				// TODO Auto-generated catch block</div><div class="line">				e.printStackTrace();</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>因为线程池大小为3，每个任务输出index后sleep 2秒，所以每两秒打印3个数字。<br>定长线程池的大小最好根据系统资源进行设置。如Runtime.getRuntime().availableProcessors()。</p>
-<h3 id="ScheduledThreadPool"><a href="#ScheduledThreadPool" class="headerlink" title="ScheduledThreadPool"></a>ScheduledThreadPool</h3><ul>
-<li>一个定长线程池，空闲线程无缓存，支持定时及周期性任务执行</li>
-<li>调度型线程池</li>
-<li>这个池子里的线程可以按schedule依次delay执行，或周期执行</li>
-</ul>
-<h4 id="示例-2"><a href="#示例-2" class="headerlink" title="示例"></a>示例</h4><p>创建一个定长线程池，支持定时及周期性任务执行。延迟执行示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(5);</div><div class="line">scheduledThreadPool.schedule(new Runnable() &#123;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void run() &#123;</div><div class="line">		System.out.println(&quot;delay 3 seconds&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;, 3, TimeUnit.SECONDS);</div></pre></td></tr></table></figure></p>
-<p>表示延迟3秒执行。</p>
-<p>定期执行示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">scheduledThreadPool.scheduleAtFixedRate(new Runnable() &#123;</div><div class="line">	</div><div class="line">	@Override</div><div class="line">	public void run() &#123;</div><div class="line">		System.out.println(&quot;delay 1 seconds, and excute every 3 seconds&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;, 1, 3, TimeUnit.SECONDS);</div></pre></td></tr></table></figure></p>
-<h3 id="SingleThreadExecutor"><a href="#SingleThreadExecutor" class="headerlink" title="SingleThreadExecutor"></a>SingleThreadExecutor</h3><ul>
-<li>一个单线程化的线程池，空闲线程无缓存，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。</li>
-<li>单例线程，任意时间池中只能有一个线程</li>
-<li>用的是和cache池和fixed池相同的底层池，但线程数目是1-1,0秒IDLE（无IDLE）</li>
-</ul>
-<h4 id="示例-3"><a href="#示例-3" class="headerlink" title="示例"></a>示例</h4><p>创建一个单线程化的线程池，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();</div><div class="line">for (int i = 0; i &lt; 10; i++) &#123;</div><div class="line">	final int index = i;</div><div class="line">	singleThreadExecutor.execute(new Runnable() &#123;</div><div class="line"></div><div class="line">		@Override</div><div class="line">		public void run() &#123;</div><div class="line">			try &#123;</div><div class="line">				System.out.println(index);</div><div class="line">				Thread.sleep(2000);</div><div class="line">			&#125; catch (InterruptedException e) &#123;</div><div class="line">				// TODO Auto-generated catch block</div><div class="line">				e.printStackTrace();</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>结果依次输出，相当于顺序执行各个任务。</p>
-<h2 id="ExecutorService-建立多线程的步骤"><a href="#ExecutorService-建立多线程的步骤" class="headerlink" title="ExecutorService 建立多线程的步骤"></a>ExecutorService 建立多线程的步骤</h2><ol>
-<li><p>定义线程类</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">class Handler implements Runnable&#123;&#125;</div></pre></td></tr></table></figure>
-</li>
-<li><p>建立ExecutorService线程池</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">ExecutorService executorService = Executors.newCachedThreadPool();</div><div class="line">或者</div><div class="line">int cpuNums = Runtime.getRuntime().availableProcessors();</div><div class="line">//获取当前系统的CPU 数目</div><div class="line">ExecutorService executorService=Executors.newFixedThreadPool(cpuNums * POOL_SIZE);</div><div class="line">//ExecutorService通常根据系统资源情况灵活定义线程池大小</div></pre></td></tr></table></figure>
-</li>
-<li><p>调用线程池操作</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">循环操作，成为daemon,把新实例放入Executor池中</div><div class="line">while(true)&#123;</div><div class="line">    executorService.execute(new Handler(socket));</div><div class="line">    // class Handler implements Runnable&#123;</div><div class="line">    或者</div><div class="line">    executorService.execute(createTask(i));</div><div class="line">    //private static Runnable createTask(final int taskID)</div><div class="line">&#125;</div><div class="line">execute(Runnable对象)方法</div><div class="line">其实就是对Runnable对象调用start()方法</div><div class="line">（当然还有一些其他后台动作，比如队列，优先级，IDLE timeout，active激活等）</div></pre></td></tr></table></figure>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/线程/ExecutorService线程池/" data-id="cj6rbmivy003hlhbl5tydeiui" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/线程/ReentrantLock（重入锁）" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/线程/ReentrantLock（重入锁）/">ReentrantLock（重入锁）</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/线程/ReentrantLock（重入锁）/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/线程/">线程</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>在java.util.concurrent.locks包中有很多Lock的实现类，常用的有ReentrantLock、ReadWriteLock（实现类ReentrantReadWriteLock），其实现都依赖java.util.concurrent.AbstractQueuedSynchronizer类，实现思路都大同小异，因此我们以ReentrantLock作为讲解切入点。</p>
-</blockquote>
-<h2 id="ReentrantLock的调用过程"><a href="#ReentrantLock的调用过程" class="headerlink" title="ReentrantLock的调用过程"></a>ReentrantLock的调用过程</h2><p>经过观察ReentrantLock把所有Lock接口的操作都委派到一个Sync类上，该类继承了<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">static abstract class Sync extends AbstractQueuedSynchronizer</div></pre></td></tr></table></figure></p>
-<p>Sync又有两个子类:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">final static class NonfairSync extends Sync </div><div class="line">final static class FairSync extends Sync</div></pre></td></tr></table></figure></p>
-<p>显然是为了支持公平锁和非公平锁而定义，默认情况下为非公平锁。<br><img src="http://note.youdao.com/yws/public/resource/5e345c5f7c1e63bc34b61c8c7e3ad5f6/xmlnote/7383088F7C0A4B83A63AAB33D02602FB/8300" alt="image"><br>这些讨厌的Template模式导致很难直观的看到整个调用过程，其实通过上面调用过程及AbstractQueuedSynchronizer的注释可以发现，AbstractQueuedSynchronizer中抽象了绝大多数Lock的功能，而只把tryAcquire方法延迟到子类中实现。tryAcquire方法的语义在于用具体子类判断请求线程是否可以获得锁，无论成功与否AbstractQueuedSynchronizer都将处理后面的流程。</p>
-<h2 id="锁实现（加锁）"><a href="#锁实现（加锁）" class="headerlink" title="锁实现（加锁）"></a>锁实现（加锁）</h2><p>简单说来，AbstractQueuedSynchronizer会把所有的请求线程构成一个CLH队列，当一个线程执行完毕（lock.unlock()）时会激活自己的后继节点，但正在执行的线程并不在队列中，而那些等待执行的线程全部处于阻塞状态，经过调用线程的显式阻塞是通过调用LockSupport.park()完成，而LockSupport.park()则调用sun.misc.Unsafe.park()本地方法，再进一步，HotSpot在Linux中中通过调用pthread_mutex_lock函数把线程交给系统内核进行阻塞。</p>
-<p>该队列如图：<br><img src="http://note.youdao.com/yws/public/resource/5e345c5f7c1e63bc34b61c8c7e3ad5f6/xmlnote/B58A792F22774B9F9670930F25CCF4FA/8301" alt="image"><br>与synchronized相同的是，这也是一个虚拟队列，不存在队列实例，仅存在节点之间的前后关系。令人疑惑的是为什么采用CLH队列呢？原生的CLH队列是用于自旋锁，但Doug Lea把其改造为阻塞锁。<br>当有线程竞争锁时，该线程会首先尝试获得锁，这对于那些已经在队列中排队的线程来说显得不公平，这也是非公平锁的由来，与synchronized实现类似，这样会极大提高吞吐量。</p>
-<p>如果已经存在Running线程，则新的竞争线程会被追加到队尾，具体是采用基于CAS的Lock-Free算法，因为线程并发对Tail调用CAS可能会导致其他线程CAS失败，解决办法是循环CAS直至成功。AbstractQueuedSynchronizer的实现非常精巧，令人叹为观止，不入细节难以完全领会其精髓，下面详细说明实现过程：</p>
-<h3 id="Sync-nonfairTryAcquire"><a href="#Sync-nonfairTryAcquire" class="headerlink" title="Sync.nonfairTryAcquire"></a>Sync.nonfairTryAcquire</h3><p>nonfairTryAcquire方法将是lock方法间接调用的第一个方法，每次请求锁时都会首先调用该方法。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">final boolean nonfairTryAcquire(int acquires) &#123;  </div><div class="line">	final Thread current = Thread.currentThread();  </div><div class="line">	int c = getState();  </div><div class="line">	if (c == 0) &#123;  </div><div class="line">		if (compareAndSetState(0, acquires)) &#123;  </div><div class="line">			setExclusiveOwnerThread(current);  </div><div class="line">			return true;  </div><div class="line">		&#125;  </div><div class="line">	&#125;  </div><div class="line">	else if (current == getExclusiveOwnerThread()) &#123;  </div><div class="line">		int nextc = c + acquires;  </div><div class="line">		if (nextc &lt; 0) // overflow  </div><div class="line">			throw new Error(&quot;Maximum lock count exceeded&quot;);  </div><div class="line">			</div><div class="line">		setState(nextc);  </div><div class="line">		return true;  </div><div class="line">	&#125;  </div><div class="line">	eturn false;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>该方法会首先判断当前状态，如果c ==  0说明没有线程正在竞争该锁，如果不c !=0 说明有线程正拥有了该锁。<br>如果发现c == 0，则通过CAS设置该状态值为acquires,acquires的初始调用值为1，每次线程重入该锁都会+1，每次unlock都会-1，但为0时释放锁。如果CAS设置成功，则可以预计其他任何线程调用CAS都不会再成功，也就认为当前线程得到了该锁，也作为Running线程，很显然这个Running线程并未进入等待队列。<br>如果c !=0 但发现自己已经拥有锁，只是简单地++acquires，并修改status值，但因为没有竞争，所以通过setStatus修改，而非CAS，也就是说这段代码实现了偏向锁的功能，并且实现的非常漂亮。</p>
-<h3 id="AbstractQueuedSynchronizer-addWaiter"><a href="#AbstractQueuedSynchronizer-addWaiter" class="headerlink" title="AbstractQueuedSynchronizer.addWaiter"></a>AbstractQueuedSynchronizer.addWaiter</h3><p>addWaiter方法负责把当前无法获得锁的线程包装为一个Node添加到队尾：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">private Node addWaiter(Node mode) &#123;  </div><div class="line">	Node node = new Node(Thread.currentThread(), mode);  </div><div class="line">	// Try the fast path of enq; backup to full enq on failure  </div><div class="line">	Node pred = tail;  </div><div class="line">	if (pred != null) &#123;  </div><div class="line">		node.prev = pred;  </div><div class="line">		if (compareAndSetTail(pred, node)) &#123;  </div><div class="line">			pred.next = node;  </div><div class="line">			return node;  </div><div class="line">		&#125;  </div><div class="line">	&#125;  </div><div class="line">	enq(node);  </div><div class="line">	return node;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>其中参数mode是独占锁还是共享锁，默认为null，独占锁。追加到队尾的动作分两步：</p>
-<ol>
-<li>如果当前队尾已经存在(tail!=null)，则使用CAS把当前线程更新为Tail</li>
-<li>如果当前Tail为null或则线程调用CAS设置队尾失败，则通过enq方法继续设置Tail</li>
-</ol>
-<p>下面是enq方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">private Node enq(final Node node) &#123;  </div><div class="line">	for (;;) &#123;  </div><div class="line">		Node t = tail;  </div><div class="line">		if (t == null) &#123; // Must initialize  </div><div class="line">			Node h = new Node(); // Dummy header  </div><div class="line">			h.next = node;  </div><div class="line">			node.prev = h;  </div><div class="line">			if (compareAndSetHead(h)) &#123;  </div><div class="line">				tail = node;  </div><div class="line">				return h;  </div><div class="line">			&#125;  </div><div class="line">		&#125;  </div><div class="line">		else &#123;  </div><div class="line">			node.prev = t;  </div><div class="line">			if (compareAndSetTail(t, node)) &#123;  </div><div class="line">				t.next = node;  </div><div class="line">				return t;  </div><div class="line">			&#125;  </div><div class="line">		&#125;  </div><div class="line">	&#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>该方法就是循环调用CAS，即使有高并发的场景，无限循环将会最终成功把当前线程追加到队尾（或设置队头）。总而言之，addWaiter的目的就是通过CAS把当前现在追加到队尾，并返回包装后的Node实例。</p>
-<p>把线程要包装为Node对象的主要原因，除了用Node构造供虚拟队列外，还用Node包装了各种线程状态，这些状态被精心设计为一些数字值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@XmlType(name = &quot;basicStruct&quot;, propOrder = &#123;&quot;intValue&quot;,&quot;stringArray&quot;,&quot;stringValue&quot; )  </div><div class="line">Public class myType&#123;…&#125;</div></pre></td></tr></table></figure>
+<p>在使用@XmlType的propOrder属性时，必须列出JavaBean对象中的所有属性</p>
+<h3 id="XmlElement"><a href="#XmlElement" class="headerlink" title="@XmlElement"></a>@XmlElement</h3><p>参数：</p>
 <ul>
-<li>SIGNAL(-1) ：线程的后继线程正/已被阻塞，当该线程release或cancel时要重新这个后继线程(unpark)</li>
-<li>CANCELLED(1)：因为超时或中断，该线程已经被取消</li>
-<li>CONDITION(-2)：表明该线程被处于条件队列，就是因为调用了Condition.await而被阻塞</li>
-<li>PROPAGATE(-3)：传播共享锁</li>
-<li>0：0代表无状态</li>
+<li>defaultValue  指定节点默认值</li>
+<li>name             指定节点名称</li>
+<li>namespace    指定节点命名空间</li>
+<li>required    是否必须（默认为false）</li>
+<li>nillable    该字段是否包含nillable=”true” 属性（默认为false）</li>
+<li>type     定义该字段或属性的关联类型</li>
 </ul>
-<h3 id="AbstractQueuedSynchronizer-acquireQueued"><a href="#AbstractQueuedSynchronizer-acquireQueued" class="headerlink" title="AbstractQueuedSynchronizer.acquireQueued"></a>AbstractQueuedSynchronizer.acquireQueued</h3><p>acquireQueued的主要作用是把已经追加到队列的线程节点（addWaiter方法返回值）进行阻塞，但阻塞前又通过tryAccquire重试是否能获得锁，如果重试成功能则无需阻塞，直接返回<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">final boolean acquireQueued(final Node node, int arg) &#123;  </div><div class="line">	try &#123;  </div><div class="line">		boolean interrupted = false;  </div><div class="line">		for (;;) &#123;  </div><div class="line">			final Node p = node.predecessor();  </div><div class="line">			if (p == head &amp;&amp; tryAcquire(arg)) &#123;  </div><div class="line">				setHead(node);  </div><div class="line">				p.next = null; // help GC  </div><div class="line">				return interrupted;  </div><div class="line">			&#125;  </div><div class="line">			if (shouldParkAfterFailedAcquire(p, node) &amp;&amp; parkAndCheckInterrupt())  </div><div class="line">				interrupted = true;  </div><div class="line">		&#125;  </div><div class="line">	&#125; catch (RuntimeException ex) &#123;  </div><div class="line">		cancelAcquire(node);  </div><div class="line">		throw ex;  </div><div class="line">	&#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>仔细看看这个方法是个无限循环，感觉如果p == head &amp;&amp; tryAcquire(arg)条件不满足循环将永远无法结束，当然不会出现死循环，奥秘在于第12行的parkAndCheckInterrupt会把当前线程挂起，从而阻塞住线程的调用栈。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">private final boolean parkAndCheckInterrupt() &#123;  </div><div class="line">	LockSupport.park(this);  </div><div class="line">	return Thread.interrupted();  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>如前面所述，LockSupport.park最终把线程交给系统（Linux）内核进行阻塞。当然也不是马上把请求不到锁的线程进行阻塞，还要检查该线程的状态，比如如果该线程处于Cancel状态则没有必要，具体的检查在shouldParkAfterFailedAcquire中：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) &#123;  </div><div class="line">	int ws = pred.waitStatus;  </div><div class="line">	if (ws == Node.SIGNAL)  </div><div class="line">        	/* </div><div class="line">        	 * This node has already set status asking a release </div><div class="line">        	 * to signal it, so it can safely park </div><div class="line">        	 */  </div><div class="line">        	return true;  </div><div class="line">		</div><div class="line">	if (ws &gt; 0) &#123;  </div><div class="line">	       /* </div><div class="line">		* Predecessor was cancelled. Skip over predecessors and </div><div class="line">		* indicate retry. </div><div class="line">		*/  </div><div class="line">		 do &#123;  </div><div class="line">			node.prev = pred = pred.prev;  </div><div class="line">		 &#125; while (pred.waitStatus &gt; 0);  </div><div class="line">			pred.next = node;  </div><div class="line">	 &#125; else &#123;  </div><div class="line">		/* </div><div class="line">		 * waitStatus must be 0 or PROPAGATE. Indicate that we </div><div class="line">		 * need a signal, but don&apos;t park yet. Caller will need to </div><div class="line">		 * retry to make sure it cannot acquire before parking.  </div><div class="line">		 */  </div><div class="line">		compareAndSetWaitStatus(pred, ws, Node.SIGNAL);  </div><div class="line">	 &#125;   </div><div class="line">	 return false;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>检查原则在于：</p>
+<p>该注解用在java类的属性上，用于将属性映射为xml的子节点。可通过在后面配置name属性值来改变java属性在xml文件中的名称。如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@XmlElement(name=&quot;Address&quot;)　　  </div><div class="line">private String yourAddress;</div></pre></td></tr></table></figure></p>
+<p>此处配置后，在xml文件中的节点为&lt; Address&gt;&lt;/ Address&gt;，而不是&lt; yourAddress/&gt;。</p>
+<h3 id="XmlRootElement"><a href="#XmlRootElement" class="headerlink" title="@XmlRootElement"></a>@XmlRootElement</h3><p>类级别的注解，对应的是xml文件中的根节点。常与 @XmlType 和 @XmlAccessorType一起使用。<br>参数：</p>
 <ul>
-<li>规则1：如果前继的节点状态为SIGNAL，表明当前节点需要unpark，则返回成功，此时acquireQueued方法的第12行（parkAndCheckInterrupt）将导致线程阻塞</li>
-<li>规则2：如果前继节点状态为CANCELLED(ws&gt;0)，说明前置节点已经被放弃，则回溯到一个非取消的前继节点，返回false，acquireQueued方法的无限循环将递归调用该方法，直至规则1返回true，导致线程阻塞</li>
-<li>规则3：如果前继节点状态为非SIGNAL、非CANCELLED，则设置前继的状态为SIGNAL，返回false后进入acquireQueued的无限循环，与规则2同</li>
+<li>name   定义这个根节点的名称</li>
+<li>namespace    定义这个根节点命名空间</li>
 </ul>
-<p>总体看来，shouldParkAfterFailedAcquire就是靠前继节点判断当前线程是否应该被阻塞，如果前继节点处于CANCELLED状态，则顺便删除这些节点重新构造队列。<br>至此，锁住线程的逻辑已经完成，下面讨论解锁的过程。</p>
-<h2 id="解锁"><a href="#解锁" class="headerlink" title="解锁"></a>解锁</h2><p>请求锁不成功的线程会被挂起在acquireQueued方法的第12行，12行以后的代码必须等线程被解锁锁才能执行，假如被阻塞的线程得到解锁，则执行第13行，即设置interrupted = true，之后又进入无限循环。    </p>
-<p>从无限循环的代码可以看出，并不是得到解锁的线程一定能获得锁，必须在第6行中调用tryAccquire重新竞争，因为锁是非公平的，有可能被新加入的线程获得，从而导致刚被唤醒的线程再次被阻塞，这个细节充分体现了“非公平”的精髓。通过之后将要介绍的解锁机制会看到，第一个被解锁的线程就是Head，因此p == head的判断基本都会成功。 </p>
-<p>至此可以看到，把tryAcquire方法延迟到子类中实现的做法非常精妙并具有极强的可扩展性，令人叹为观止！当然精妙的不是这个Templae设计模式，而是Doug Lea对锁结构的精心布局。</p>
-<p>解锁代码相对简单，主要体现在AbstractQueuedSynchronizer.release和Sync.tryRelease方法中：<br>class AbstractQueuedSynchronizer<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">public final boolean release(int arg) &#123;  </div><div class="line">	if (tryRelease(arg)) &#123;  </div><div class="line">		Node h = head;  </div><div class="line">		if (h != null &amp;&amp; h.waitStatus != 0)  </div><div class="line">			unparkSuccessor(h);</div><div class="line">			  </div><div class="line">		return true;  </div><div class="line">	&#125;  </div><div class="line">	return false;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>class Sync<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">protected final boolean tryRelease(int releases) &#123;  </div><div class="line">	int c = getState() - releases;  </div><div class="line">	if (Thread.currentThread() != getExclusiveOwnerThread())  </div><div class="line">		throw new IllegalMonitorStateException();</div><div class="line">		  </div><div class="line">	boolean free = false;  </div><div class="line">	if (c == 0) &#123;  </div><div class="line">		free = true;  </div><div class="line">		setExclusiveOwnerThread(null);  </div><div class="line">	&#125;  </div><div class="line">	setState(c);  </div><div class="line">	return free;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>tryRelease与tryAcquire语义相同，把如何释放的逻辑延迟到子类中。tryRelease语义很明确：如果线程多次锁定，则进行多次释放，直至status==0则真正释放锁，所谓释放锁即设置status为0，因为无竞争所以没有使用CAS。  </p>
-<p>release的语义在于：如果可以释放锁，则唤醒队列第一个线程（Head），具体唤醒代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">private void unparkSuccessor(Node node) &#123;  </div><div class="line">	/* </div><div class="line">	 * If status is negative (i.e., possibly needing signal) try </div><div class="line">	 * to clear in anticipation of signalling. It is OK if this </div><div class="line">	 * fails or if status is changed by waiting thread. </div><div class="line">	 */  </div><div class="line">	int ws = node.waitStatus;  </div><div class="line">	if (ws &lt; 0) compareAndSetWaitStatus(node, ws, 0);   </div><div class="line">	   </div><div class="line">		/* </div><div class="line">		 * Thread to unpark is held in successor, which is normally </div><div class="line">		 * just the next node.  But if cancelled or apparently null, </div><div class="line">		 * traverse backwards from tail to find the actual </div><div class="line">		 * non-cancelled successor. </div><div class="line">		 */  </div><div class="line">		 Node s = node.next;  </div><div class="line">		if (s == null || s.waitStatus &gt; 0) &#123;  </div><div class="line">			s = null;  </div><div class="line">			for (Node t = tail; t != null &amp;&amp; t != node; t = t.prev)  </div><div class="line">				if (t.waitStatus &lt;= 0)  </div><div class="line">					s = t;  </div><div class="line">		&#125;  </div><div class="line">		if (s != null)  </div><div class="line">			LockSupport.unpark(s.thread);  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>这段代码的意思在于找出第一个可以unpark的线程，一般说来head.next == head，Head就是第一个线程，但Head.next可能被取消或被置为null，因此比较稳妥的办法是从后往前找第一个可用线程。貌似回溯会导致性能降低，其实这个发生的几率很小，所以不会有性能影响。之后便是通知系统内核继续该线程，在Linux下是通过pthread_mutex_unlock完成。之后，被解锁的线程进入上面所说的重新竞争状态。</p>
-<h2 id="Lock-VS-Synchronized"><a href="#Lock-VS-Synchronized" class="headerlink" title="Lock VS Synchronized"></a>Lock VS Synchronized</h2><p>AbstractQueuedSynchronizer通过构造一个基于阻塞的CLH队列容纳所有的阻塞线程，而对该队列的操作均通过Lock-Free（CAS）操作，但对已经获得锁的线程而言，ReentrantLock实现了偏向锁的功能。<br>synchronized的底层也是一个基于CAS操作的等待队列，但JVM实现的更精细，把等待队列分为ContentionList和EntryList，目的是为了降低线程的出列速度；当然也实现了偏向锁，从数据结构来说二者设计没有本质区别。但synchronized还实现了自旋锁，并针对不同的系统和硬件体系进行了优化，而Lock则完全依靠系统阻塞挂起等待线程。  </p>
-<p>当然Lock比synchronized更适合在应用层扩展，可以继承AbstractQueuedSynchronizer定义各种实现，比如实现读写锁（ReadWriteLock），公平或不公平锁；同时，Lock对应的Condition也比wait/notify要方便的多、灵活的多。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@XmlType  </div><div class="line">@XmlAccessorType(XmlAccessType.FIELD)  </div><div class="line">@XmlRootElement  </div><div class="line">public class Address &#123;&#125;</div></pre></td></tr></table></figure>
+<h3 id="XmlAttribute"><a href="#XmlAttribute" class="headerlink" title="@XmlAttribute"></a>@XmlAttribute</h3><p>用于把java对象的属性映射为xml的属性,并可通过name属性为生成的xml属性指定别名。<br>参数：  </p>
+<ul>
+<li>name   指定属性名称</li>
+<li>namespace    指定属性命名空间</li>
+<li>required  是否必须（默认为false）</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@XmlAttribute(name=&quot;Country&quot;)  </div><div class="line">private String state;</div></pre></td></tr></table></figure>
+<h3 id="XmlAccessorType"><a href="#XmlAccessorType" class="headerlink" title="@XmlAccessorType"></a>@XmlAccessorType</h3><p>@XmlAccessorType用于指定由java对象生成xml文件时对java对象属性的访问方式。常与@XmlRootElement、@XmlType一起使用。它的属性值是XmlAccessType的4个枚举值，分别为：</p>
+<ul>
+<li>XmlAccessType.FIELD：java对象中的所有成员变量；</li>
+<li>XmlAccessType.PROPERTY：java对象中所有通过getter/setter方式访问的成员变量；</li>
+<li>XmlAccessType.PUBLIC_MEMBER：java对象中所有的public访问权限的成员变量和通过getter/setter方式访问的成员变量；</li>
+<li>XmlAccessType.NONE：java对象的所有属性都不映射为xml的元素。</li>
+</ul>
+<p>注意：@XmlAccessorType的默认访问级别是XmlAccessType.PUBLIC_MEMBER。因此，<strong>如果java对象中的private成员变量设置了public权限的getter/setter方法，就不要在private变量上使用@XmlElement和@XmlAttribute注解，否则在由java对象生成xml时会报同一个属性在java类里存在两次的错误</strong>。同理，如果@XmlAccessorType的访问权限为XmlAccessType.NONE，如果在java的成员变量上使用了@XmlElement或@XmlAttribute注解，这些成员变量依然可以映射到xml文件。</p>
+<h3 id="XmlAccessorOrder"><a href="#XmlAccessorOrder" class="headerlink" title="@XmlAccessorOrder"></a>@XmlAccessorOrder</h3><p>用于对java对象生成的xml元素进行排序。它有两个属性值：</p>
+<ul>
+<li>AccessorOrder.ALPHABETICAL：对生成的xml元素按字母顺序排序；</li>
+<li>XmlAccessOrder.UNDEFINED：不排序。</li>
+</ul>
+<h3 id="XmlTransient"><a href="#XmlTransient" class="headerlink" title="@XmlTransient"></a>@XmlTransient</h3><p>用于标示在由java对象映射xml时，忽略此属性。即，在生成的xml文件中不出现此元素。</p>
+<h3 id="XmlJavaTypeAdapter"><a href="#XmlJavaTypeAdapter" class="headerlink" title="@XmlJavaTypeAdapter"></a>@XmlJavaTypeAdapter</h3><p>@XmlJavaTypeAdapter常用在转换比较复杂的对象时，如map类型或者格式化日期等。使用此注解时，需要自己写一个adapter类继承XmlAdapter抽象类，并实现里面的方法。  </p>
+<p>@XmlJavaTypeAdapter(value=xxx.class),value为自己定义的adapter类XmlAdapter如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public abstract class XmlAdapter&lt;ValueType,BoundType&gt; &#123;  </div><div class="line">    // Do-nothing constructor for the derived classes.  </div><div class="line">    protected XmlAdapter() &#123;&#125;  </div><div class="line">    // Convert a value type to a bound type.  </div><div class="line">    public abstract BoundType unmarshal(ValueType v);  </div><div class="line">    // Convert a bound type to a value type.  </div><div class="line">    public abstract ValueType marshal(BoundType v);  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="XmlSchema"><a href="#XmlSchema" class="headerlink" title="@XmlSchema"></a>@XmlSchema</h3><p>配置整个包的namespace，这个注解需放在package-info.java文件中。</p>
+<h3 id="XmlElementWrapper"><a href="#XmlElementWrapper" class="headerlink" title="@XmlElementWrapper"></a>@XmlElementWrapper</h3><p>为数组元素或集合元素定义一个父节点。</p>
+<h3 id="XmlElements"><a href="#XmlElements" class="headerlink" title="@XmlElements"></a>@XmlElements</h3><p>相当于java的泛型,XmlElement传的是什么对象，obj就是什么对象，obj对象可以是XmlElements中定义的对象中的任意一个<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">@XmlElements(</div><div class="line">    value=&#123;</div><div class="line">        @XmlElement(name=&quot;student&quot;, type=Student.class),</div><div class="line">        @XmlElement(name=&quot;teacher&quot;, type=Object.class)</div><div class="line">    &#125;</div><div class="line">)</div><div class="line">protected Object obj;</div></pre></td></tr></table></figure></p>
 
       
     </div>
@@ -874,7 +759,63 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/线程/ReentrantLock（重入锁）/" data-id="cj6rbmivz003klhblmmom7l3o" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JAXB/注解详解/" data-id="cj6vztsbq003ioabl654n64yp" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/基础/spring官方文档" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/基础/spring官方文档/">spring官方文档</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/基础/spring官方文档/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/基础/">基础</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="总的文档："><a href="#总的文档：" class="headerlink" title="总的文档："></a>总的文档：</h2><p><a href="https://spring.io/docs/reference" target="_blank" rel="external">https://spring.io/docs/reference</a></p>
+<h2 id="spring-framework-reference"><a href="#spring-framework-reference" class="headerlink" title="spring-framework-reference"></a>spring-framework-reference</h2><p><a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/" target="_blank" rel="external">http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/</a></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/基础/spring官方文档/" data-id="cj6vztseu00a3oabl4t8zwgex" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -891,7 +832,7 @@
 
 
   <div id="page-nav">
-    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/14/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/13/">13</a></li><li><a class="page-number" href="/page/14/">14</a></li><li class="active"><span class="page-number">15</span></li><li><a class="page-number" href="/page/16/">16</a></li><li><a class="page-number" href="/page/17/">17</a></li><li><a class="page-number" href="/page/18/">18</a></li><li><a class="page-next" rel="next" href="/page/16/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
+    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/14/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/13/">13</a></li><li><a class="page-number" href="/page/14/">14</a></li><li class="active"><span class="page-number">15</span></li><li><a class="page-number" href="/page/16/">16</a></li><li><a class="page-number" href="/page/17/">17</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/19/">19</a></li><li><a class="page-next" rel="next" href="/page/16/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
   </div>
 
 
@@ -909,7 +850,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">63</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">11</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">67</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">15</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
   </div>
 
 
@@ -922,7 +863,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">56</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">60</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
   </div>
 
 
@@ -933,23 +874,23 @@
     <ul class="sidebar-module-list">
       
         <li>
+          <a href="/2017/08/28/Java/基础/java三大特性/">java三大特性</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/28/Java/基础/Filter过滤器/">Filter过滤器</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/27/Java/基础/泛型/">泛型</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/27/Java/基础/面向对象7大原则/">面向对象7大原则</a>
+        </li>
+      
+        <li>
           <a href="/2017/08/16/Java/基础/java动态代理/">java动态代理</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/16/Java/基础/重载与重写/">重载与重写</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置七：缓存UserDetails/">配置七：缓存UserDetails</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置十二：Remember-Me功能/">配置十二：Remember-Me功能</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置十五：权限鉴定结构/">配置十五：权限鉴定结构</a>
         </li>
       
     </ul>

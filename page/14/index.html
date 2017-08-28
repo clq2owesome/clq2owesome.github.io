@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-Spring/SpringMVC/JsonView嵌套（继承）过滤" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/SpringMVC/JsonView过滤返回对象的字段" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/JsonView嵌套（继承）过滤/">JsonView嵌套（继承）过滤</a>
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/JsonView过滤返回对象的字段/">JsonView过滤返回对象的字段</a>
     </h1>
   
 
@@ -95,7 +95,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/JsonView嵌套（继承）过滤/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/SpringMVC/JsonView过滤返回对象的字段/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
@@ -110,9 +110,10 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="通过接口继承的方式嵌套过滤"><a href="#通过接口继承的方式嵌套过滤" class="headerlink" title="通过接口继承的方式嵌套过滤"></a>通过接口继承的方式嵌套过滤</h2><h3 id="需要返回到前端的实体"><a href="#需要返回到前端的实体" class="headerlink" title="需要返回到前端的实体"></a>需要返回到前端的实体</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">public class OrderInfo &#123;</div><div class="line">	</div><div class="line">	public interface OrderInfoView extends ExpressOrderShopView , SellerAddressListView, </div><div class="line">	ExpressCouponCodeListView, ExpressOrderDistributionSiteView &#123;&#125;;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private Shop shop;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private List&lt;AddressBook&gt; addresses;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private List&lt;CouponCode&gt; coupons;</div><div class="line">	</div><div class="line">	@JsonView(OrderInfoView.class)</div><div class="line">	private List&lt;DistributionSite&gt; distributionSites;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="子对象"><a href="#子对象" class="headerlink" title="子对象"></a>子对象</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">public class Shop implements Serializable &#123;</div><div class="line">    public interface ExpressOrderShopView &#123;&#125;;</div><div class="line"></div><div class="line">    private Integer id;</div><div class="line">    </div><div class="line">    @NotNull</div><div class="line">    @Size( min = 1, max = 50 )</div><div class="line">    @JsonView(ExpressOrderShopView.class)</div><div class="line">    private String name;</div><div class="line"></div><div class="line">    @NotNull</div><div class="line">    @Size( min = 1, max = 255 )</div><div class="line">    @JsonView(ExpressOrderShopView.class)</div><div class="line">    private String address;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="controller"><a href="#controller" class="headerlink" title="controller"></a>controller</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/getOrderInfo&quot;, method = RequestMethod.GET)</div><div class="line">@ResponseStatus(HttpStatus.OK)</div><div class="line">@ResponseBody</div><div class="line">@JsonView(OrderInfo.OrderInfoView.class)</div><div class="line">public OrderInfo getOrderInfo(@RequestParam(&quot;mobile&quot;)   String mobile) throws Exception &#123;</div><div class="line">	if(null == mobile) &#123;</div><div class="line">		throw new ParamException(&quot;mobile不能为空&quot;);</div><div class="line">	&#125;</div><div class="line">	return expressOrderService.getOrderInfo(mobile);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+        <p>It can sometimes be useful to filter contextually the object that will be serialized to the HTTP response body. In order to provide such capability, Spring MVC has built-in support for rendering with Jackson’s Serialization Views.<br>To use it with an @ResponseBody controller method or controller methods that return ResponseEntity, simply add the @JsonView annotation with a class argument specifying the view class or interface to be used:</p>
+<p>有时非常有用去过滤一个即将序列化到http response body的对象，为了提供这种功能，SpringMVC使用Jackson’s Serialization Views实现该功能.<br>为了在注解了@ResponseBody的方法和返回ResponseEntity的方法中使用它，简单地在方法上加上@JsonView，并特别注明返回视图类或者接口<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line">@RestController</div><div class="line">public class UserController &#123;</div><div class="line"></div><div class="line">    @RequestMapping(path = &quot;/user&quot;, method = RequestMethod.GET)</div><div class="line">    @JsonView(User.WithoutPasswordView.class)</div><div class="line">    public User getUser() &#123;</div><div class="line">        return new User(&quot;eric&quot;, &quot;7!jd#h23&quot;);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">public class User &#123;</div><div class="line"></div><div class="line">    public interface WithoutPasswordView &#123;&#125;;</div><div class="line">    public interface WithPasswordView extends WithoutPasswordView &#123;&#125;;</div><div class="line"></div><div class="line">    private String username;</div><div class="line">    private String password;</div><div class="line"></div><div class="line">    public User() &#123;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public User(String username, String password) &#123;</div><div class="line">        this.username = username;</div><div class="line">        this.password = password;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @JsonView(WithoutPasswordView.class)</div><div class="line">    public String getUsername() &#123;</div><div class="line">        return this.username;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @JsonView(WithPasswordView.class)</div><div class="line">    public String getPassword() &#123;</div><div class="line">        return this.password;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>Note that despite @JsonView allowing for more than one class to be specified, the use on a controller method is only supported with exactly one class argument. Consider the use of a composite interface if you need to enable multiple views.<br>For controllers relying on view resolution, simply add the serialization view class to the model:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@Controller</div><div class="line">public class UserController extends AbstractController &#123;</div><div class="line"></div><div class="line">    @RequestMapping(path = &quot;/user&quot;, method = RequestMethod.GET)</div><div class="line">    public String getUser(Model model) &#123;</div><div class="line">        model.addAttribute(&quot;user&quot;, new User(&quot;eric&quot;, &quot;7!jd#h23&quot;));</div><div class="line">        model.addAttribute(JsonView.class.getName(), User.WithoutPasswordView.class);</div><div class="line">        return &quot;userView&quot;;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+
       
     </div>
 
@@ -122,7 +123,229 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/JsonView嵌套（继承）过滤/" data-id="cj6rbmiyc008rlhbl3xe85z19" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/JsonView过滤返回对象的字段/" data-id="cj6vztse1008soablz2z7wws3" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/SpringMVC/ControllerAdvice" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/ControllerAdvice/">ControllerAdvice</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/SpringMVC/ControllerAdvice/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>@ControllerAdvice是一个组件注解，它使得其实现类能够被classpath扫描自动发现。若应用是通过MVC命令空间或MVC Java编程方式配置，那么该特性默认是自动开启的。 </p>
+<p>注解@ControllerAdvice的类可以拥有@ExceptionHandler、@InitBinder或@ModelAttribute注解的方法，并且这些方法会被应用至控制器类层次??的所有@RequestMapping方法上。   </p>
+<p>你也可以通过@ControllerAdvice的属性来指定其只对一个子集的控制器生效：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">// Target all Controllers annotated with @RestController</div><div class="line">@ControllerAdvice(annotations = RestController.class)</div><div class="line">public class AnnotationAdvice &#123;&#125;</div><div class="line"></div><div class="line">// Target all Controllers within specific packages</div><div class="line">@ControllerAdvice(&quot;org.example.controllers&quot;)</div><div class="line">public class BasePackageAdvice &#123;&#125;</div><div class="line"></div><div class="line">// Target all Controllers assignable to specific classes</div><div class="line">@ControllerAdvice(assignableTypes = &#123;ControllerInterface.class, AbstractController.class&#125;)</div><div class="line">public class AssignableTypesAdvice &#123;&#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/ControllerAdvice/" data-id="cj6vztse1008uoabl4pihza8t" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/SpringMVC/NotNull,NotBlank,NotEmtity的区别" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/NotNull,NotBlank,NotEmtity的区别/">NotNull,NotBlank,NotEmtity的区别</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/SpringMVC/NotNull,NotBlank,NotEmtity的区别/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="NotNull"><a href="#NotNull" class="headerlink" title="@NotNull"></a>@NotNull</h2><p>The CharSequence, Collection, Map or Array object is not null, but can be empty</p>
+<h2 id="NotEmpty"><a href="#NotEmpty" class="headerlink" title="@NotEmpty"></a>@NotEmpty</h2><p>The CharSequence, Collection, Map or Array object is not null and size &gt; 0.</p>
+<h2 id="NotBlank"><a href="#NotBlank" class="headerlink" title="@NotBlank"></a>@NotBlank</h2><p>The string is not null and the trimmed length is greater than zero.</p>
+<h3 id="汇总"><a href="#汇总" class="headerlink" title="汇总"></a>汇总</h3><table>
+<thead>
+<tr>
+<th>注解</th>
+<th>适用范围</th>
+<th>解释</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>@NotNull</td>
+<td>集合，字符</td>
+<td>不能为null，但是可以为空</td>
+<td><code>null:false</code> <br> <code>&quot; &quot;:true</code> <br><code>&quot;&quot;:true</code></td>
+</tr>
+<tr>
+<td>@NotEmpty</td>
+<td>集合，字符</td>
+<td>不能为null且长度（size，length）必须要大于0</td>
+<td><code>null:false</code> <br><code>&quot;&quot;:false</code><br> <code>&quot;  &quot;:true</code></td>
+</tr>
+<tr>
+<td>@NotBlank</td>
+<td>字符</td>
+<td>不能为null且调用trim()方法后的长度（length）必须大于0</td>
+<td><code>null:false</code> <br><code>&quot;&quot;:false</code><br> <code>&quot;   &quot;:false</code> <br> <code>&quot;sds&quot;:true</code></td>
+</tr>
+</tbody>
+</table>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/NotNull,NotBlank,NotEmtity的区别/" data-id="cj6vztse5008xoabl7ams9u0c" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/SpringMVC/annotation-driven配置的含义" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/annotation-driven配置的含义/">annotation-driven配置的含义</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/SpringMVC/annotation-driven配置的含义/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>要启用XML命名空间，请在你的DispatcherServlet上下文中（如果没有定义任何DispatcherServlet上下文，那么就在根上下文中）添加一个<code>mvc:annotation-driven</code>元素：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></div><div class="line">    <span class="attr">xmlns:mvc</span>=<span class="string">"http://www.springframework.org/schema/mvc"</span></div><div class="line">    <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></div><div class="line">    <span class="attr">xsi:schemaLocation</span>=<span class="string">"</span></div><div class="line">        http://www.springframework.org/schema/beans</div><div class="line">        http://www.springframework.org/schema/beans/spring-beans.xsd</div><div class="line">        http://www.springframework.org/schema/mvc</div><div class="line">        http://www.springframework.org/schema/mvc/spring-mvc.xsd"&gt;</div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">mvc:annotation-driven</span>/&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>上面的简单的声明代码，就已经默认注册了一个<code>RequestMappingHandlerMapping</code>、一个<code>RequestMappingHandlerAdapter</code>，以及一个<code>ExceptionHandlerExceptionResolver</code>，以支持对使用了<code>@RequestMapping</code>、<code>@ExceptionHandler</code>及其他注解的控制器方法的请求处理。    </p>
+<p>同时，上面的代码还启用了以下的特性：  </p>
+<ol>
+<li>Spring 3风格的类型转换支持。这是使用一个配置的转换服务ConversionService实例，以及the JavaBeans PropertyEditors used for Data Binding.</li>
+<li>使用@NumberFormat对数字字段进行格式化，类型转换由ConversionService实现</li>
+<li>使用@DateTimeFormat注解对Date、Calendar、Long及Joda Time类型的字段进行格式化</li>
+<li>使用@Valid注解对@Controller输入进行验证——前提是classpath路径下比如提供符合JSR-303规范的验证器</li>
+<li>HTTP消息转换HttpMessageConverter的支持，对注解了@RequestMapping或@ExceptionHandler方法的@RequestBody方法参数或@ResponseBody返回值生效</li>
+</ol>
+<p>下面给出了一份由mvc:annotation-driven注册可用的HTTP消息转换器的完整列表：</p>
+<ol>
+<li>转换字节数组的ByteArrayHttpMessageConverter</li>
+<li>转换字符串的StringHttpMessageConverter</li>
+<li>ResourceHttpMessageConverter：org.springframework.core.io.Resource与所有媒体类型之间的互相转换</li>
+<li>SourceHttpMessageConverter：从（到）javax.xml.transform.Source的转换</li>
+<li>FormHttpMessageConverter：数据与MultiValueMap<string, string="">之间的互相转换</string,></li>
+<li>Jaxb2RootElementHttpMessageConverter：Java对象与XML之间的互相转换——该转换器在classpath路径下有JAXB2依赖并且没有Jackson 2 XML扩展时被注册</li>
+<li>MappingJackson2HttpMessageConverter：从（到）JSON的转换——该转换器在classpath下有Jackson 2依赖时被注册</li>
+<li>MappingJackson2XmlHttpMessageConverter：从（到）XML的转换——该转换器在classpath下有Jackson 2 XML扩展时被注册</li>
+<li>AtomFeedHttpMessageConverter：Atom源的转换——该转换器在classpath路径下有Rome时被注册</li>
+<li>RssChannelHttpMessageConverter：RSS源的转换——该转换器在classpath路径下有Rome时被注册</li>
+</ol>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/annotation-driven配置的含义/" data-id="cj6vztse7008zoablcjgxfvmu" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -223,7 +446,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/RequestMapping详解/" data-id="cj6rbmiyd008tlhblm5fsvd9s" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/RequestMapping详解/" data-id="cj6vztse80092oabll553sa4q" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -289,7 +512,63 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/Resource和Autowired/" data-id="cj6rbmiyg008wlhblfqcbrqtz" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/Resource和Autowired/" data-id="cj6vztse80094oabll11njnlb" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/SpringMVC/使用BindingResult处理校验异常" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/使用BindingResult处理校验异常/">使用BindingResult处理校验异常</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/SpringMVC/使用BindingResult处理校验异常/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>BindingResult一般会跟在@Valid或@Validated后面，一个BindingResult只对应一个@Valid或@Validated，任何无法通过的验证都会被自动报告为错误并添加到BindingResult对象中去，你可以在方法参数中声明它并获取这些错误，同时这些错误也能在Spring MVC的HTML视图中被渲染。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public Map&lt;String, Object&gt; create(@Valid @RequestBody  Banner banner, BindingResult bindingResult)  throws BussinessException, IOException &#123;</div><div class="line">	logger.info(&quot;BannerController.create start&quot;);</div><div class="line">	if(bindingResult.hasErrors())&#123;</div><div class="line">        	String msg=&quot;&quot;;</div><div class="line">            List&lt;FieldError&gt; allErrors = bindingResult.getFieldErrors();</div><div class="line">            for(FieldError fe : allErrors) &#123;</div><div class="line">        		msg = fe.getField() + &quot;:&quot; + fe.getDefaultMessage();</div><div class="line">            &#125;</div><div class="line">            throw new BussinessException(msg);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/使用BindingResult处理校验异常/" data-id="cj6vztseb0097oablzak6654s" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -410,7 +689,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/jackjson注解/" data-id="cj6rbmiyi008ylhblkk2r8fgc" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/jackjson注解/" data-id="cj6vztsec0099oabl18237t9h" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -424,13 +703,13 @@
 
 
   
-    <article id="post-Spring/SpringMVC/annotation-driven配置的含义" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/SpringMVC/允许跨域请求配置" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/annotation-driven配置的含义/">annotation-driven配置的含义</a>
+      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/允许跨域请求配置/">允许跨域请求配置</a>
     </h1>
   
 
@@ -439,7 +718,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/annotation-driven配置的含义/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/SpringMVC/允许跨域请求配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
@@ -454,30 +733,11 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>要启用XML命名空间，请在你的DispatcherServlet上下文中（如果没有定义任何DispatcherServlet上下文，那么就在根上下文中）添加一个<code>mvc:annotation-driven</code>元素：</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></div><div class="line">    <span class="attr">xmlns:mvc</span>=<span class="string">"http://www.springframework.org/schema/mvc"</span></div><div class="line">    <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></div><div class="line">    <span class="attr">xsi:schemaLocation</span>=<span class="string">"</span></div><div class="line">        http://www.springframework.org/schema/beans</div><div class="line">        http://www.springframework.org/schema/beans/spring-beans.xsd</div><div class="line">        http://www.springframework.org/schema/mvc</div><div class="line">        http://www.springframework.org/schema/mvc/spring-mvc.xsd"&gt;</div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">mvc:annotation-driven</span>/&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></div></pre></td></tr></table></figure>
-<p>上面的简单的声明代码，就已经默认注册了一个<code>RequestMappingHandlerMapping</code>、一个<code>RequestMappingHandlerAdapter</code>，以及一个<code>ExceptionHandlerExceptionResolver</code>，以支持对使用了<code>@RequestMapping</code>、<code>@ExceptionHandler</code>及其他注解的控制器方法的请求处理。    </p>
-<p>同时，上面的代码还启用了以下的特性：  </p>
-<ol>
-<li>Spring 3风格的类型转换支持。这是使用一个配置的转换服务ConversionService实例，以及the JavaBeans PropertyEditors used for Data Binding.</li>
-<li>使用@NumberFormat对数字字段进行格式化，类型转换由ConversionService实现</li>
-<li>使用@DateTimeFormat注解对Date、Calendar、Long及Joda Time类型的字段进行格式化</li>
-<li>使用@Valid注解对@Controller输入进行验证——前提是classpath路径下比如提供符合JSR-303规范的验证器</li>
-<li>HTTP消息转换HttpMessageConverter的支持，对注解了@RequestMapping或@ExceptionHandler方法的@RequestBody方法参数或@ResponseBody返回值生效</li>
-</ol>
-<p>下面给出了一份由mvc:annotation-driven注册可用的HTTP消息转换器的完整列表：</p>
-<ol>
-<li>转换字节数组的ByteArrayHttpMessageConverter</li>
-<li>转换字符串的StringHttpMessageConverter</li>
-<li>ResourceHttpMessageConverter：org.springframework.core.io.Resource与所有媒体类型之间的互相转换</li>
-<li>SourceHttpMessageConverter：从（到）javax.xml.transform.Source的转换</li>
-<li>FormHttpMessageConverter：数据与MultiValueMap<string, string="">之间的互相转换</string,></li>
-<li>Jaxb2RootElementHttpMessageConverter：Java对象与XML之间的互相转换——该转换器在classpath路径下有JAXB2依赖并且没有Jackson 2 XML扩展时被注册</li>
-<li>MappingJackson2HttpMessageConverter：从（到）JSON的转换——该转换器在classpath下有Jackson 2依赖时被注册</li>
-<li>MappingJackson2XmlHttpMessageConverter：从（到）XML的转换——该转换器在classpath下有Jackson 2 XML扩展时被注册</li>
-<li>AtomFeedHttpMessageConverter：Atom源的转换——该转换器在classpath路径下有Rome时被注册</li>
-<li>RssChannelHttpMessageConverter：RSS源的转换——该转换器在classpath路径下有Rome时被注册</li>
-</ol>
+        <p>==注意：加入了spring security后，配置不起作用了==</p>
+<h2 id="方式一：springMVC-servlet-xml配置"><a href="#方式一：springMVC-servlet-xml配置" class="headerlink" title="方式一：springMVC-servlet.xml配置"></a>方式一：springMVC-servlet.xml配置</h2><p>在spingMVC的配置文件中,这里的配置必需是4.2版本<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">xsi:schemaLocation=&quot;http://www.springframework.org/schema/mvc </div><div class="line">	http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd&quot;</div></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">&lt;!-- API 接口跨域配置 --&gt;  </div><div class="line">&lt;mvc:cors&gt;  </div><div class="line">    &lt;mvc:mapping path=&quot;/**&quot;  </div><div class="line">         allowed-origins=&quot;*&quot;  </div><div class="line">         allowed-methods=&quot;POST, GET, OPTIONS, DELETE, PUT&quot;  </div><div class="line">         allowed-headers=&quot;Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, Access-Control-Allow-Origin&quot;  </div><div class="line">         allow-credentials=&quot;true&quot; /&gt;</div><div class="line">         </div><div class="line">    &lt;!-- 配置特定的域名 --&gt;</div><div class="line">    &lt;mvc:mapping path=&quot;/resources/**&quot;</div><div class="line">		allowed-origins=&quot;http://domain1.com&quot; /&gt;</div><div class="line">&lt;/mvc:cors&gt;</div></pre></td></tr></table></figure>
+<h2 id="方式二：注解配置（未测试）"><a href="#方式二：注解配置（未测试）" class="headerlink" title="方式二：注解配置（未测试）"></a>方式二：注解配置（未测试）</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@Configuration</div><div class="line">@EnableWebMvc</div><div class="line">public class WebConfig extends WebMvcConfigurerAdapter &#123;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void addCorsMappings(CorsRegistry registry) &#123;</div><div class="line">		registry.addMapping(&quot;/**&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="自定义配置"><a href="#自定义配置" class="headerlink" title="自定义配置"></a>自定义配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">@Configuration</div><div class="line">@EnableWebMvc</div><div class="line">public class WebConfig extends WebMvcConfigurerAdapter &#123;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void addCorsMappings(CorsRegistry registry) &#123;</div><div class="line">		registry.addMapping(&quot;/api/**&quot;)</div><div class="line">			.allowedOrigins(&quot;http://domain2.com&quot;)</div><div class="line">			.allowedMethods(&quot;PUT&quot;, &quot;DELETE&quot;)</div><div class="line">			.allowedHeaders(&quot;header1&quot;, &quot;header2&quot;, &quot;header3&quot;)</div><div class="line">			.exposedHeaders(&quot;header1&quot;, &quot;header2&quot;)</div><div class="line">			.allowCredentials(false).maxAge(3600);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 
       
     </div>
@@ -488,7 +748,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/annotation-driven配置的含义/" data-id="cj6rbmiyj0091lhbl57su8tk8" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/允许跨域请求配置/" data-id="cj6vztsed009coablmplckc99" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -674,241 +934,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/validation bean校验/" data-id="cj6rbmiyk0093lhbl2xod5tlb" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/使用BindingResult处理校验异常" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/使用BindingResult处理校验异常/">使用BindingResult处理校验异常</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/使用BindingResult处理校验异常/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>BindingResult一般会跟在@Valid或@Validated后面，一个BindingResult只对应一个@Valid或@Validated，任何无法通过的验证都会被自动报告为错误并添加到BindingResult对象中去，你可以在方法参数中声明它并获取这些错误，同时这些错误也能在Spring MVC的HTML视图中被渲染。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public Map&lt;String, Object&gt; create(@Valid @RequestBody  Banner banner, BindingResult bindingResult)  throws BussinessException, IOException &#123;</div><div class="line">	logger.info(&quot;BannerController.create start&quot;);</div><div class="line">	if(bindingResult.hasErrors())&#123;</div><div class="line">        	String msg=&quot;&quot;;</div><div class="line">            List&lt;FieldError&gt; allErrors = bindingResult.getFieldErrors();</div><div class="line">            for(FieldError fe : allErrors) &#123;</div><div class="line">        		msg = fe.getField() + &quot;:&quot; + fe.getDefaultMessage();</div><div class="line">            &#125;</div><div class="line">            throw new BussinessException(msg);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/使用BindingResult处理校验异常/" data-id="cj6rbmiym0096lhbl62bxdo5u" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/允许跨域请求配置" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/允许跨域请求配置/">允许跨域请求配置</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/允许跨域请求配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>==注意：加入了spring security后，配置不起作用了==</p>
-<h2 id="方式一：springMVC-servlet-xml配置"><a href="#方式一：springMVC-servlet-xml配置" class="headerlink" title="方式一：springMVC-servlet.xml配置"></a>方式一：springMVC-servlet.xml配置</h2><p>在spingMVC的配置文件中,这里的配置必需是4.2版本<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">xsi:schemaLocation=&quot;http://www.springframework.org/schema/mvc </div><div class="line">	http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd&quot;</div></pre></td></tr></table></figure></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">&lt;!-- API 接口跨域配置 --&gt;  </div><div class="line">&lt;mvc:cors&gt;  </div><div class="line">    &lt;mvc:mapping path=&quot;/**&quot;  </div><div class="line">         allowed-origins=&quot;*&quot;  </div><div class="line">         allowed-methods=&quot;POST, GET, OPTIONS, DELETE, PUT&quot;  </div><div class="line">         allowed-headers=&quot;Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, Access-Control-Allow-Origin&quot;  </div><div class="line">         allow-credentials=&quot;true&quot; /&gt;</div><div class="line">         </div><div class="line">    &lt;!-- 配置特定的域名 --&gt;</div><div class="line">    &lt;mvc:mapping path=&quot;/resources/**&quot;</div><div class="line">		allowed-origins=&quot;http://domain1.com&quot; /&gt;</div><div class="line">&lt;/mvc:cors&gt;</div></pre></td></tr></table></figure>
-<h2 id="方式二：注解配置（未测试）"><a href="#方式二：注解配置（未测试）" class="headerlink" title="方式二：注解配置（未测试）"></a>方式二：注解配置（未测试）</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@Configuration</div><div class="line">@EnableWebMvc</div><div class="line">public class WebConfig extends WebMvcConfigurerAdapter &#123;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void addCorsMappings(CorsRegistry registry) &#123;</div><div class="line">		registry.addMapping(&quot;/**&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="自定义配置"><a href="#自定义配置" class="headerlink" title="自定义配置"></a>自定义配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">@Configuration</div><div class="line">@EnableWebMvc</div><div class="line">public class WebConfig extends WebMvcConfigurerAdapter &#123;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void addCorsMappings(CorsRegistry registry) &#123;</div><div class="line">		registry.addMapping(&quot;/api/**&quot;)</div><div class="line">			.allowedOrigins(&quot;http://domain2.com&quot;)</div><div class="line">			.allowedMethods(&quot;PUT&quot;, &quot;DELETE&quot;)</div><div class="line">			.allowedHeaders(&quot;header1&quot;, &quot;header2&quot;, &quot;header3&quot;)</div><div class="line">			.exposedHeaders(&quot;header1&quot;, &quot;header2&quot;)</div><div class="line">			.allowCredentials(false).maxAge(3600);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/允许跨域请求配置/" data-id="cj6rbmiyo0098lhbl85sexo6r" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/包扫描" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/包扫描/">包扫描</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/包扫描/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="lt-context-component-scan-base-package-“”-gt-浅析"><a href="#lt-context-component-scan-base-package-“”-gt-浅析" class="headerlink" title="&lt; context:component-scan base-package = “” /&gt;浅析"></a>&lt; context:component-scan base-package = “” /&gt;浅析</h2><p>component-scan 默认扫描的注解类型是 @Component，不过，在 @Component 语义基础上细化后的 @Repository, @Service 和 @Controller 也同样可以获得 component-scan 的青睐<br>有了<code>&lt;context:component-scan&gt;</code>，另一个<code>&lt;context:annotation-config/&gt;</code>标签根本可以移除掉，因为已经被包含进去了 </p>
-<p>另外<context:annotation-config>还提供了两个子标签</context:annotation-config></p>
-<ol>
-<li><context:include-filter> //指定扫描的路径</context:include-filter></li>
-<li><context:exclude-filter> //排除扫描的路径</context:exclude-filter></li>
-</ol>
-<p><context:component-scan>有一个use-default-filters属性，属性默认为true,表示会扫描指定包下的全部的标有@Component的类，并注册成bean.也就是@Component的子注解@Service,@Reposity等。       </context:component-scan></p>
-<p>这种扫描的粒度有点太大，如果你只想扫描指定包下面的Controller或其他内容则设置use-default-filters属性为false，表示不再按照scan指定的包扫描，而是按照<context:include-filter>指定的包扫描，示例：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">context:component-scan</span> <span class="attr">base-package</span>=<span class="string">"com.tan"</span> <span class="attr">use-default-filters</span>=<span class="string">"false"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">"com.tan.*"</span>/&gt;</span>//注意后面要写.*</div><div class="line"><span class="tag">&lt;/<span class="name">context:component-scan</span>&gt;</span></div><div class="line">//当没有设置use-default-filters属性或者属性为true时，表示基于base-packge包下指定扫描的具体路径</div><div class="line"><span class="tag">&lt;<span class="name">context:component-scan</span> <span class="attr">base-package</span>=<span class="string">"com.tan"</span> &gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">".controller.*"</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">".service.*"</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">".dao.*"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">context:component-scan</span>&gt;</span></div></pre></td></tr></table></figure></context:include-filter></p>
-<p>效果相当于：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">context:component-scan</span> <span class="attr">base-package</span>=<span class="string">"com.tan"</span> &gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">context:exclude-filter</span> <span class="attr">type</span>=<span class="string">"regex"</span> <span class="attr">expression</span>=<span class="string">".model.*"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">context:component-scan</span>&gt;</span></div></pre></td></tr></table></figure></p>
-<p>注意：本人尝试时无论哪种情况<context:include-filter>和<context:exclude-filter>都不能同时存在</context:exclude-filter></context:include-filter></p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/包扫描/" data-id="cj6rbmiyp009blhbl959nz7qi" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/拦截器配置" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/拦截器配置/">拦截器配置</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/拦截器配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="配置拦截器"><a href="#配置拦截器" class="headerlink" title="配置拦截器"></a>配置拦截器</h2><h3 id="继承HandlerInterceptorAdapter抽象类"><a href="#继承HandlerInterceptorAdapter抽象类" class="headerlink" title="继承HandlerInterceptorAdapter抽象类"></a>继承HandlerInterceptorAdapter抽象类</h3><p>下面是一个统计接口执行时间的拦截器<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line">import javax.servlet.http.HttpServletRequest;</div><div class="line">import javax.servlet.http.HttpServletResponse;</div><div class="line"></div><div class="line">import org.slf4j.Logger;</div><div class="line">import org.slf4j.LoggerFactory;</div><div class="line">import org.springframework.web.servlet.ModelAndView;</div><div class="line">import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 统计接口执行时间拦截器</div><div class="line"> * @author   chenliqiang, 2017年4月12日 下午5:00:53 &lt;br/&gt;</div><div class="line"> * @version  </div><div class="line"> * @see 	 </div><div class="line"> */</div><div class="line">public class ExecuteTimeInterceptor extends HandlerInterceptorAdapter &#123;</div><div class="line"></div><div class="line">	private static final Logger logger = LoggerFactory.getLogger(ExecuteTimeInterceptor.class);</div><div class="line"></div><div class="line">	//before the actual handler will be executed</div><div class="line">	@Override</div><div class="line">	public boolean preHandle(HttpServletRequest request,</div><div class="line">		HttpServletResponse response, Object handler) throws Exception &#123;</div><div class="line"></div><div class="line">		long startTime = System.currentTimeMillis();</div><div class="line">		request.setAttribute(&quot;startTime&quot;, startTime);</div><div class="line">		</div><div class="line">		return true;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	//after the handler is executed</div><div class="line">	@Override</div><div class="line">	public void postHandle(</div><div class="line">		HttpServletRequest request, HttpServletResponse response,</div><div class="line">		Object handler, ModelAndView modelAndView)</div><div class="line">		throws Exception &#123;</div><div class="line"></div><div class="line">		long startTime = (Long)request.getAttribute(&quot;startTime&quot;);</div><div class="line">		long endTime = System.currentTimeMillis();</div><div class="line">		long executeTime = endTime - startTime;</div><div class="line">		</div><div class="line">		//modified the exisitng modelAndView</div><div class="line">		//modelAndView.addObject(&quot;executeTime&quot;, executeTime);</div><div class="line"></div><div class="line">		//log it</div><div class="line">		if(logger.isInfoEnabled())&#123;</div><div class="line">		   logger.info(&quot;[&quot; + handler + &quot;] executeTime : &quot; + executeTime + &quot;ms&quot;);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h2 id="spring-mvc-xml配置"><a href="#spring-mvc-xml配置" class="headerlink" title="spring-mvc.xml配置"></a>spring-mvc.xml配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;</div><div class="line">	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;</div><div class="line">	xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot;</div><div class="line">	xsi:schemaLocation=&quot;http://www.springframework.org/schema/mvc</div><div class="line">	http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd</div><div class="line">	http://www.springframework.org/schema/beans</div><div class="line">	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd</div><div class="line">	http://www.springframework.org/schema/context</div><div class="line">	http://www.springframework.org/schema/context/spring-context-3.2.xsd&quot;&gt;</div><div class="line">	</div><div class="line">	&lt;mvc:annotation-driven /&gt;</div><div class="line"></div><div class="line">	&lt;mvc:interceptors&gt;</div><div class="line">		&lt;ref bean=&quot;executeTimeInterceptor&quot; /&gt;   &lt;!-- 全局配置，拦截所有请求  --&gt;</div><div class="line">		</div><div class="line">		&lt;!--  定义拦截特定的请求  --&gt;</div><div class="line">		&lt;!-- 按需添加需要拦截的请求  --&gt;</div><div class="line">		&lt;!-- &lt;mvc:interceptor&gt; </div><div class="line">			&lt;mvc:mapping path=&quot;/announcement/*&quot; /&gt; </div><div class="line">			&lt;mvc:mapping path=&quot;/product/*&quot; /&gt; </div><div class="line">			&lt;ref bean=&quot;executeTimeInterceptor&quot; /&gt; </div><div class="line">		&lt;/mvc:interceptor&gt;  --&gt;</div><div class="line">	&lt;/mvc:interceptors&gt;</div><div class="line">	</div><div class="line">	&lt;!--  定义拦截器  --&gt;</div><div class="line">	&lt;bean id=&quot;executeTimeInterceptor&quot; class=&quot;com.highsunbuy.interceptor.ExecuteTimeInterceptor&quot; /&gt;</div><div class="line"></div><div class="line">&lt;/beans&gt;</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/拦截器配置/" data-id="cj6rbmiyq009dlhblheea9bfw" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/validation bean校验/" data-id="cj6vztsee009eoabl1m7vvg7r" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -925,7 +951,7 @@
 
 
   <div id="page-nav">
-    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/13/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/12/">12</a></li><li><a class="page-number" href="/page/13/">13</a></li><li class="active"><span class="page-number">14</span></li><li><a class="page-number" href="/page/15/">15</a></li><li><a class="page-number" href="/page/16/">16</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/18/">18</a></li><li><a class="page-next" rel="next" href="/page/15/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
+    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/13/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/12/">12</a></li><li><a class="page-number" href="/page/13/">13</a></li><li class="active"><span class="page-number">14</span></li><li><a class="page-number" href="/page/15/">15</a></li><li><a class="page-number" href="/page/16/">16</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/19/">19</a></li><li><a class="page-next" rel="next" href="/page/15/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
   </div>
 
 
@@ -943,7 +969,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">63</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">11</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">67</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">15</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
   </div>
 
 
@@ -956,7 +982,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">56</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">60</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
   </div>
 
 
@@ -967,23 +993,23 @@
     <ul class="sidebar-module-list">
       
         <li>
+          <a href="/2017/08/28/Java/基础/java三大特性/">java三大特性</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/28/Java/基础/Filter过滤器/">Filter过滤器</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/27/Java/基础/泛型/">泛型</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/27/Java/基础/面向对象7大原则/">面向对象7大原则</a>
+        </li>
+      
+        <li>
           <a href="/2017/08/16/Java/基础/java动态代理/">java动态代理</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/16/Java/基础/重载与重写/">重载与重写</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置七：缓存UserDetails/">配置七：缓存UserDetails</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置十二：Remember-Me功能/">配置十二：Remember-Me功能</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置十五：权限鉴定结构/">配置十五：权限鉴定结构</a>
         </li>
       
     </ul>

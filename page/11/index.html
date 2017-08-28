@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-Java/JavaMail/发送邮件（Spring集成）" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/JPA/JPA高级查询" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/JavaMail/发送邮件（Spring集成）/">发送邮件（Spring集成）</a>
+      <a class="article-title" href="/2017/07/19/Spring/JPA/JPA高级查询/">JPA高级查询</a>
     </h1>
   
 
@@ -95,13 +95,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Java/JavaMail/发送邮件（Spring集成）/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/JPA/JPA高级查询/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/JavaMail/">JavaMail</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
   </div>
 
 
@@ -110,11 +110,161 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">insurance.mail.host=smtp.exmail.qq.com  </div><div class="line">insurance.mail.password=密码</div><div class="line">insurance.mail.smtp.auth=true  </div><div class="line">insurance.mail.smtp.timeout=25000  </div><div class="line">insurance.mail.username=账号  </div><div class="line">insurance.mail.to=chudanhuoyun1@gzpicc.com.cn  </div><div class="line">insurance.mail.copyto=piccjw@foxmail.com</div></pre></td></tr></table></figure>
-<h2 id="spring中配置Bean"><a href="#spring中配置Bean" class="headerlink" title="spring中配置Bean"></a>spring中配置Bean</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;insuranceMailSender&quot; class=&quot;org.springframework.mail.javamail.JavaMailSenderImpl&quot;  &gt;</div><div class="line">    &lt;property name=&quot;host&quot; value=&quot;$&#123;insurance.mail.host&#125;&quot; /&gt;</div><div class="line">    &lt;property name=&quot;port&quot; value=&quot;25&quot; /&gt;</div><div class="line">    &lt;property name=&quot;protocol&quot; value=&quot;smtp&quot; /&gt;</div><div class="line">    &lt;property name=&quot;defaultEncoding&quot; value=&quot;GBK&quot; /&gt;</div><div class="line">    &lt;property name=&quot;username&quot; value=&quot;$&#123;insurance.mail.username&#125;&quot; /&gt;</div><div class="line">    &lt;property name=&quot;password&quot; value=&quot;$&#123;insurance.mail.password&#125;&quot; /&gt;</div><div class="line">	&lt;property name=&quot;javaMailProperties&quot;&gt;</div><div class="line">		&lt;props&gt;</div><div class="line">			&lt;prop key=&quot;mail.smtp.auth&quot;&gt;$&#123;insurance.mail.smtp.auth&#125;&lt;/prop&gt;</div><div class="line">			&lt;prop key=&quot;mail.smtp.timeout&quot;&gt;$&#123;insurance.mail.smtp.timeout&#125;&lt;/prop&gt;</div><div class="line">		&lt;/props&gt;</div><div class="line">	&lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<h2 id="发送ServiceImpl（EmailServiceImpl）"><a href="#发送ServiceImpl（EmailServiceImpl）" class="headerlink" title="发送ServiceImpl（EmailServiceImpl）"></a>发送ServiceImpl（EmailServiceImpl）</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div></pre></td><td class="code"><pre><div class="line">@Service</div><div class="line">public class EmailServiceImpl implements EmailService &#123;</div><div class="line"></div><div class="line">	/** Logger */</div><div class="line">	private final Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);</div><div class="line">    @Autowired</div><div class="line">    @Qualifier(&quot;mailSender&quot;)</div><div class="line">	private JavaMailSenderImpl mailSender;	</div><div class="line">	@Value(&quot;$&#123;mail.username&#125;&quot;)</div><div class="line">    private  String from;</div><div class="line">	</div><div class="line">	@Autowired</div><div class="line">	@Qualifier(&quot;insuranceMailSender&quot;)</div><div class="line">	private JavaMailSenderImpl insuranceMailSender;</div><div class="line">	@Value(&quot;$&#123;insurance.mail.username&#125;&quot;)</div><div class="line">	private String insuranceFrom;</div><div class="line">	</div><div class="line">	@Override</div><div class="line">	public void sendEmail(String to, String subject, String body,File attachedFile) throws BussinessException &#123;</div><div class="line">		try &#123;</div><div class="line">			logger.info(&quot;to:&quot;+to);</div><div class="line">			logger.info(&quot;subject:&quot;+subject);</div><div class="line">			logger.info(&quot;attachedFile:&quot;+attachedFile);</div><div class="line">			MimeMessage message=mailSender.createMimeMessage();</div><div class="line">			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message, true);</div><div class="line">			mimeMessageHelper.setFrom(from);</div><div class="line">			logger.info(&quot;from:&quot;+from);</div><div class="line">			mimeMessageHelper.setSubject(subject);</div><div class="line">			mimeMessageHelper.setTo(to);</div><div class="line">			mimeMessageHelper.setText(body);</div><div class="line">			mimeMessageHelper.addAttachment(attachedFile.getName(), attachedFile);</div><div class="line">			mailSender.send(message);</div><div class="line">		&#125; catch (MessagingException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			logger.error(e.getMessage());</div><div class="line">			throw new BussinessException(e.getMessage());</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	@Override</div><div class="line">	public void sendEmail(String to, String cc, String subject, String body) throws BussinessException &#123;</div><div class="line">		try &#123;</div><div class="line">			logger.info(&quot;to:&quot;+to);</div><div class="line">			logger.info(&quot;insuranceFrom:&quot;+insuranceFrom);</div><div class="line">			logger.info(&quot;subject:&quot;+subject);</div><div class="line">			logger.info(&quot;body:&quot;+body);</div><div class="line">			MimeMessage message=insuranceMailSender.createMimeMessage();</div><div class="line">			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message, true);</div><div class="line">			mimeMessageHelper.setFrom(insuranceFrom);//发件人</div><div class="line">			mimeMessageHelper.setSubject(subject);//邮件主题</div><div class="line">			mimeMessageHelper.setTo(to);// 收件人</div><div class="line">			mimeMessageHelper.setCc(cc);// 抄送人</div><div class="line">			mimeMessageHelper.setText(body); //邮件内容</div><div class="line">			insuranceMailSender.send(message);</div><div class="line">		&#125; catch (MessagingException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			logger.error(e.getMessage());</div><div class="line">			throw new BussinessException(e.getMessage());</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="发送Service（EmailService"><a href="#发送Service（EmailService" class="headerlink" title="发送Service（EmailService)"></a>发送Service（EmailService)</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 发邮件</div><div class="line"> * @author clq</div><div class="line"> *</div><div class="line"> */</div><div class="line">public interface EmailService &#123;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * @author clq</div><div class="line">	 * @param to</div><div class="line">	 * @param subject</div><div class="line">	 * @param body</div><div class="line">	 * @param attachment 附件</div><div class="line">	 * @throws BussinessException</div><div class="line">	 */</div><div class="line">	public void sendEmail(String to,String subject,String body,File attachedFile) throws BussinessException;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * @param to</div><div class="line">	 * @param subject</div><div class="line">	 * @param body</div><div class="line">	 * @throws BussinessException&lt;br&gt;</div><div class="line">	 * @author chenliqiang, 2016年11月26日.&lt;br&gt;</div><div class="line">	 */</div><div class="line">	void sendEmail(String to, String cc, String subject, String body) throws BussinessException;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="Jar包"><a href="#Jar包" class="headerlink" title="Jar包"></a>Jar包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;javax.mail&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;mail&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;1.4.7&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
+        <h2 id="jpa几个重要的接口"><a href="#jpa几个重要的接口" class="headerlink" title="jpa几个重要的接口"></a>jpa几个重要的接口</h2><ul>
+<li><strong>Repository</strong>：最顶层的接口，是一个空的接口，目的是为了统一所有Repository的类型，且能让组件扫描的时候自动识别。</li>
+<li><strong>CrudRepository</strong> ：是Repository的子接口，提供CRUD的功能</li>
+<li><strong>PagingAndSortingRepository</strong>：是CrudRepository的子接口，添加分页和排序的功能</li>
+<li><strong>JpaRepository</strong>：是PagingAndSortingRepository的子接口，增加了一些实用的功能，比如：批量操作等。</li>
+<li><strong>JpaSpecificationExecutor</strong>：用来做负责查询的接口</li>
+<li><strong>Specification</strong>：是Spring Data JPA提供的一个查询规范，要做复杂的查询，只需围绕这个规范来设置查询条件即可</li>
+</ul>
+<h2 id="JpaRepository"><a href="#JpaRepository" class="headerlink" title="JpaRepository"></a>JpaRepository</h2><h3 id="基本功能"><a href="#基本功能" class="headerlink" title="基本功能"></a>基本功能</h3><p>JpaRepository的基本功能示范<br>具体的看代码演示<br>其中：Pageable接口的实现类是PageRequest，Page接口的实现类是PageImpl。<br>示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Page&lt;UserModel&gt; p =  ur.findAll(new PageRequest(0,2,new Sort(new Order(Direction. DESC,&quot;uuid&quot;))));</div><div class="line">System. out.println(&quot;list=&quot;+p.getContent());</div></pre></td></tr></table></figure></p>
+<h3 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h3><p>直接在接口中定义查询方法，如果是符合规范的，可以不用写实现，目前支持的关键字写法如下：</p>
+<table>
+<thead>
+<tr>
+<th>关键字</th>
+<th>事例</th>
+<th>对应的sql语句</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>And</td>
+<td>findByLastnameAndFirstname</td>
+<td>where x.lastname = ?1 and x.firstname = ?2</td>
+</tr>
+<tr>
+<td>Or</td>
+<td>findByLastnameOrFirstname</td>
+<td>where x.lastname = ?1 or x.firstname = ?2</td>
+</tr>
+<tr>
+<td>Between</td>
+<td>findByStartDateBetween</td>
+<td>where x.startDate between 1? and ?2</td>
+</tr>
+<tr>
+<td>LessThan</td>
+<td>findByAgeLessThan</td>
+<td>where x.age &lt; ?1</td>
+</tr>
+<tr>
+<td>GreaterThan</td>
+<td>findByAgeGreaterThan</td>
+<td>where x.age &gt; ?1</td>
+</tr>
+<tr>
+<td>After</td>
+<td>findByStartDateAfter</td>
+<td>where x.startDate &gt; ?1</td>
+</tr>
+<tr>
+<td>Before</td>
+<td>findByStartDateBefore</td>
+<td>where x.startDate &lt; ?1</td>
+</tr>
+<tr>
+<td>IsNull</td>
+<td>findByAgeIsNull</td>
+<td>where x.age is null</td>
+</tr>
+<tr>
+<td>Like</td>
+<td>findByFirstnameLike</td>
+<td>where x.firstname like ?1</td>
+</tr>
+<tr>
+<td>Containing</td>
+<td>findByFirstnameContaining</td>
+<td>where  x.firstname like + “%” + ?1 +”%”</td>
+</tr>
+<tr>
+<td>OrderBy</td>
+<td>findByAgeOrderByLastnameDesc</td>
+<td>where  x.age = ?1 order by x.lastname desc</td>
+</tr>
+<tr>
+<td>Not</td>
+<td>findByLastnameNot</td>
+<td>where  x.age &lt;&gt; ?1</td>
+</tr>
+<tr>
+<td>In</td>
+<td>findByAgeIn(Collection<age> ages)</age></td>
+<td>where  x.age in ?1</td>
+</tr>
+<tr>
+<td>NotIn</td>
+<td>findByAgeNotIn(Collection<age> ages)</age></td>
+<td>where  x.age not in ?1</td>
+</tr>
+</tbody>
+</table>
+<p>Spring Data JPA框架在进行方法名解析时，会先把方法名多余的前缀截取掉，比如 find、findBy、read、readBy、get、getBy，然后对剩下部分进行解析。<br>假如创建如下的查询：findByUserDepUuid()，框架在解析该方法时，首先剔除 findBy，然后对剩下的属性进行解析，假设查询实体为Doc</p>
+<ol>
+<li>先判断 userDepUuid （根据 POJO 规范，首字母变为小写）是否为查询实体的一个属性，如果是，则表示根据该属性进行查询；如果没有该属性，继续第二步；</li>
+<li>从右往左截取第一个大写字母开头的字符串此处为Uuid），然后检查剩下的字符串是否为查询实体的一个属性，如果是，则表示根据该属性进行查询；如果没有该属性，则重复第二步，继续从右往左截取；最后假设user为查询实体的一个属性；</li>
+<li>接着处理剩下部分（DepUuid），先判断 user 所对应的类型是否有depUuid属性，如果有，则表示该方法最终是根据 “ Doc.user.depUuid” 的取值进行查询；否则继续按照步骤 2 的规则从右往左截取，最终表示根据 “Doc.user.dep.uuid” 的值进行查询。</li>
+<li>可能会存在一种特殊情况，比如 Doc包含一个 user 的属性，也有一个 userDep 属性，此时会存在混淆。可以明确在属性之间加上 “_” 以显式表达意图，比如 “findByUser_DepUuid()” 或者 “findByUserDep_uuid()”<br>特殊的参数： 还可以直接在方法的参数上加入分页或排序的参数，比如：<br>Page<usermodel> findByName(String name, Pageable pageable);<br>List<usermodel> findByName(String name, Sort sort);</usermodel></usermodel></li>
+</ol>
+<p>也可以使用JPA的NamedQueries，方法如下：</p>
+<ol>
+<li><p>在实体类上使用@NamedQuery，示例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@NamedQuery(name = &quot;UserModel.findByAge&quot;,query = &quot;select o from UserModel o where o.age &gt;= ?1&quot;)</div></pre></td></tr></table></figure>
+</li>
+<li><p>在自己实现的DAO的Repository接口里面定义一个同名的方法，示例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public List&lt;UserModel&gt; findByAge(int age);</div></pre></td></tr></table></figure>
+</li>
+<li><p>然后就可以使用了，Spring会先找是否有同名的NamedQuery，如果有，那么就不会按照接口定义的方法来解析。</p>
+</li>
+</ol>
+<h3 id="使用-Query"><a href="#使用-Query" class="headerlink" title="使用@Query"></a>使用@Query</h3><p>可以在自定义的查询方法上使用@Query来指定该方法要执行的查询语句，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@Query(&quot;select o from UserModel o where o.uuid=?1&quot;)</div><div class="line">public List&lt;UserModel&gt; findByUuidOrAge(int uuid);</div></pre></td></tr></table></figure></p>
+<p>注意：</p>
+<ol>
+<li>方法的参数个数必须和@Query里面需要的参数个数一致</li>
+<li>如果是like，后面的参数需要前面或者后面加“%”   </li>
+</ol>
+<p>比如下面都对<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@Query(&quot;select o from UserModel o where o.name like ?1%&quot;)</div><div class="line">public List&lt;UserModel&gt; findByUuidOrAge(String name);</div></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@Query(&quot;select o from UserModel o where o.name like %?1&quot;)</div><div class="line">public List&lt;UserModel&gt; findByUuidOrAge(String name);</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@Query(&quot;select o from UserModel o where o.name like %?1%&quot;)</div><div class="line">public List&lt;UserModel&gt; findByUuidOrAge(String name);</div></pre></td></tr></table></figure>
+<p>当然，这样在传递参数值的时候就可以不加‘%’了，当然加了也不会错 </p>
+<p>还可以使用@Query来指定本地查询，只要设置nativeQuery为true，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@Query(value=&quot;select * from tbl_user where name like %?1&quot; ,nativeQuery=true)</div><div class="line">public List&lt;UserModel&gt; findByUuidOrAge(String name);</div></pre></td></tr></table></figure></p>
+<p>注意：当前版本的本地查询不支持翻页和动态的排序</p>
+<p>使用命名化参数，使用@Param即可，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@Query(value=&quot;select o from UserModel o where o.name like %:nn&quot;)</div><div class="line">public List&lt;UserModel&gt; findByUuidOrAge(@Param(&quot;nn&quot;) String name);</div></pre></td></tr></table></figure></p>
+<p>同样支持更新类的Query语句，添加@Modifying即可，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@Modifying</div><div class="line">@Query(value=&quot;update UserModel o set o.name=:newName where o.name like %:nn&quot;)</div><div class="line">public int findByUuidOrAge(@Param(&quot;nn&quot;) String name,@Param(&quot;newName&quot;) String newName);</div></pre></td></tr></table></figure></p>
+<p>注意：</p>
+<ol>
+<li>方法的返回值应该是int，表示更新语句所影响的行数</li>
+<li>在调用的地方必须加事务，没有事务不能正常执行</li>
+</ol>
+<h3 id="JpaRepository的查询顺序"><a href="#JpaRepository的查询顺序" class="headerlink" title="JpaRepository的查询顺序"></a>JpaRepository的查询顺序</h3><p>Spring Data JPA 在为接口创建代理对象时，如果发现同时存在多种上述情况可用，它该优先采用哪种策略呢？</p>
+<p><jpa:repositories> 提供了 query-lookup-strategy 属性，用以指定查找的顺序。它有如下三个取值：</jpa:repositories></p>
+<ol>
+<li><strong>create-if-not-found</strong>：如果方法通过@Query指定了查询语句，则使用该语句实现查询；如果没有，则查找是否定义了符合条件的命名查询，如果找到，则使用该命名查询；如果两者都没有找到，则通过解析方法名字来创建查询。这是 query-lookup-strategy 属性的默认值</li>
+<li><strong>create</strong>：通过解析方法名字来创建查询。即使有符合的命名查询，或者方法通过 @Query指定的查询语句，都将会被忽略</li>
+<li><strong>use-declared-query</strong>：如果方法通过@Query指定了查询语句，则使用该语句实现查询；如果没有，则查找是否定义了符合条件的命名查询，如果找到，则使用该命名查询；如果两者都没有找到，则抛出异常</li>
+</ol>
+<h3 id="客户化扩展JpaRepository"><a href="#客户化扩展JpaRepository" class="headerlink" title="客户化扩展JpaRepository"></a>客户化扩展JpaRepository</h3><p>如果你不想暴露那么多的方法，可以自己订制自己的Repository，还可以在自己的Repository里面添加自己使用的公共方法<br>当然更灵活的是自己写一个实现类，来实现自己需要的方法    </p>
+<ol>
+<li>写一个与接口同名的类，加上后缀为Impl，这个在前面xml里面配置过，可以自动被扫描到。这个类不需要实现任何接口。</li>
+<li>在接口中加入自己需要的方法，比如：<br>public Page<object[]> getByCondition(UserQueryModel u);</object[]></li>
+<li>在实现类中，去实现这个方法就好了，会被自动找到</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">public class UserRepositoryImpl &#123;  </div><div class="line">	@PersistenceContext  </div><div class="line">	private EntityManager em;   </div><div class="line">	  </div><div class="line">	public Page&lt;Object[]&gt; getByCondition(UserQueryModel u)&#123;  </div><div class="line">		String hql = &quot;select o.uuid,o.name from UserModel o where 1=1 and o.uuid=:uuid&quot;;  </div><div class="line">		Query q = em.createQuery(hql);  </div><div class="line">		q.setParameter(&quot;uuid&quot;, u.getUuid());          </div><div class="line">		q.setFirstResult(0);  </div><div class="line">		q.setMaxResults(1);       </div><div class="line">		Page&lt;Object[]&gt; page = new PageImpl&lt;Object[]&gt;(q.getResultList(),new PageRequest(0,1),3);   </div><div class="line">		return page;  </div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="Specifications"><a href="#Specifications" class="headerlink" title="Specifications"></a>Specifications</h2><p>Spring Data JPA支持JPA2.0的Criteria查询，相应的接口是==JpaSpecificationExecutor==。<br>Criteria 查询：是一种类型安全和更面向对象的查询</p>
+<p>这个接口基本是围绕着Specification接口来定义的， Specification接口中只定义了如下一个方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Predicate toPredicate(Root&lt;T&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb);</div></pre></td></tr></table></figure></p>
+<p>要理解这个方法，以及正确的使用它，就需要对JPA2.0的Criteria查询有一个足够的熟悉和理解，因为这个方法的参数和返回值都是JPA标准里面定义的对象。</p>
+<h3 id="Criteria查询基本概念"><a href="#Criteria查询基本概念" class="headerlink" title="Criteria查询基本概念"></a>Criteria查询基本概念</h3><p>Criteria 查询是以元模型的概念为基础的，元模型是为具体持久化单元的受管实体定义的，这些实体可以是实体类，嵌入类或者映射的父类。<br>CriteriaQuery接口：代表一个specific的顶层查询对象，它包含着查询的各个部分，比如：select 、from、where、group by、order by等<br>注意：CriteriaQuery对象只对实体类型或嵌入式类型的Criteria查询起作用</p>
+<p>Root接口：代表Criteria查询的根对象，Criteria查询的查询根定义了实体类型，能为将来导航获得想要的结果，它与SQL查询中的FROM子句类似<br>1：Root实例是类型化的，且定义了查询的FROM子句中能够出现的类型。<br>2：查询根实例能通过传入一个实体类型给 AbstractQuery.from方法获得。<br>3：Criteria查询，可以有多个查询根。<br>4：AbstractQuery是CriteriaQuery 接口的父类，它提供得到查询根的方法。</p>
+<p>CriteriaBuilder接口：用来构建CritiaQuery的构建器对象<br>Predicate：一个简单或复杂的谓词类型，其实就相当于条件或者是条件组合。    </p>
+<p>基本对象的构建<br>1：通过EntityManager的getCriteriaBuilder或EntityManagerFactory的getCriteriaBuilder方法可以得到CriteriaBuilder对象<br>2：通过调用CriteriaBuilder的createQuery或createTupleQuery方法可以获得CriteriaQuery的实例<br>3：通过调用CriteriaQuery的from方法可以获得Root实例    </p>
+<p>过滤条件<br>1：过滤条件会被应用到SQL语句的FROM子句中。在criteria 查询中，查询条件通过Predicate或Expression实例应用到CriteriaQuery对象上。<br>2：这些条件使用 CriteriaQuery .where 方法应用到CriteriaQuery 对象上<br>3：CriteriaBuilder也作为Predicate实例的工厂，通过调用CriteriaBuilder 的条件方法（ equal，notEqual， gt， ge，lt， le，between，like等）创建Predicate对象。<br>4：复合的Predicate 语句可以使用CriteriaBuilder的and, or, and, not 方法构建。</p>
+<p>构建简单的Predicate示例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Predicate p1=cb.like(root.get(“name”).as(String.class), “%”+uqm.getName()+“%”);</div><div class="line">Predicate p2=cb.equal(root.get(&quot;uuid&quot;).as(Integer.class), uqm.getUuid());</div><div class="line">Predicate p3=cb.gt(root.get(&quot;age&quot;).as(Integer.class), uqm.getAge());</div></pre></td></tr></table></figure></p>
+<p>构建组合的Predicate示例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Predicate p = cb.and(p3,cb.or(p1,p2));</div></pre></td></tr></table></figure></p>
+<p>当然也可以形如前面动态拼接查询语句的方式，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">Specification&lt;UserModel&gt; spec = new Specification&lt;UserModel&gt;() &#123;  </div><div class="line">	public Predicate toPredicate(Root&lt;UserModel&gt; root,  CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb)&#123;  </div><div class="line">	List&lt;Predicate&gt; list = new ArrayList&lt;Predicate&gt;();  </div><div class="line">	          </div><div class="line">	if(um.getName()!=null &amp;&amp; um.getName().trim().length()&gt;0)&#123;  </div><div class="line">		list.add(cb.like(root.get(&quot;name&quot;).as(String.class), &quot;%&quot;+um.getName()+&quot;%&quot;));  </div><div class="line">	&#125;  </div><div class="line">	</div><div class="line">	if(um.getUuid()&gt;0)&#123;  </div><div class="line">		list.add(cb.equal(root.get(&quot;uuid&quot;).as(Integer.class), um.getUuid()));  </div><div class="line">	&#125;  </div><div class="line">		Predicate[] p = new Predicate[list.size()];  </div><div class="line">		return cb.and(list.toArray(p));  </div><div class="line">	&#125;  </div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>也可以使用CriteriaQuery来得到最后的Predicate，示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">Specification&lt;UserModel&gt; spec = new Specification&lt;UserModel&gt;() &#123;  </div><div class="line">	public Predicate toPredicate(Root&lt;UserModel&gt; root,  CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;  </div><div class="line">		Predicate p1 = cb.like(root.get(&quot;name&quot;).as(String.class), &quot;%&quot;+um.getName()+&quot;%&quot;);  </div><div class="line">		Predicate p2 = cb.equal(root.get(&quot;uuid&quot;).as(Integer.class), um.getUuid());  </div><div class="line">		Predicate p3 = cb.gt(root.get(&quot;age&quot;).as(Integer.class), um.getAge());  </div><div class="line">		//把Predicate应用到CriteriaQuery中去,因为还可以给CriteriaQuery添加其他的功能，比如排序、分组啥的  </div><div class="line">		query.where(cb.and(p3,cb.or(p1,p2)));  </div><div class="line">		//添加排序的功能  </div><div class="line">		query.orderBy(cb.desc(root.get(&quot;uuid&quot;).as(Integer.class)));  </div><div class="line">	     </div><div class="line">		return query.getRestriction();  </div><div class="line">	&#125;  </div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+
       
     </div>
 
@@ -124,7 +274,126 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JavaMail/发送邮件（Spring集成）/" data-id="cj6rbmiuy001zlhblqp31cb68" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/JPA高级查询/" data-id="cj6vztsd8006qoabliqwk4sym" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/JPA/Specification实例" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/JPA/Specification实例/">Specification实例</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/JPA/Specification实例/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="事例一"><a href="#事例一" class="headerlink" title="事例一"></a>事例一</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">Specification&lt;UserModel&gt; spec = new Specification&lt;UserModel&gt;() &#123;  </div><div class="line">    public Predicate toPredicate(Root&lt;UserModel&gt; root,  </div><div class="line">            CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;  </div><div class="line">        List&lt;Predicate&gt; list = new ArrayList&lt;Predicate&gt;();  </div><div class="line">              </div><div class="line">        if(um.getName()!=null &amp;&amp; um.getName().trim().length()&gt;0)&#123;  </div><div class="line">            list.add(cb.like(root.get(&quot;name&quot;).as(String.class), &quot;%&quot;+um.getName()+&quot;%&quot;));  </div><div class="line">        &#125;  </div><div class="line">        if(um.getUuid()&gt;0)&#123;  </div><div class="line">            list.add(cb.equal(root.get(&quot;uuid&quot;).as(Integer.class), um.getUuid()));  </div><div class="line">        &#125;  </div><div class="line">        Predicate[] p = new Predicate[list.size()];  </div><div class="line">        return cb.and(list.toArray(p));  </div><div class="line">    &#125;  </div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<h2 id="事例二"><a href="#事例二" class="headerlink" title="事例二"></a>事例二</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">Specification&lt;UserModel&gt; spec = new Specification&lt;UserModel&gt;() &#123;  </div><div class="line">    public Predicate toPredicate(Root&lt;UserModel&gt; root,  </div><div class="line">            CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;  </div><div class="line">        Predicate p1 = cb.like(root.get(&quot;name&quot;).as(String.class), &quot;%&quot;+um.getName()+&quot;%&quot;);  </div><div class="line">        Predicate p2 = cb.equal(root.get(&quot;uuid&quot;).as(Integer.class), um.getUuid());  </div><div class="line">        Predicate p3 = cb.gt(root.get(&quot;age&quot;).as(Integer.class), um.getAge());  </div><div class="line">        //把Predicate应用到CriteriaQuery中去,因为还可以给CriteriaQuery添加其他的功能，比如排序、分组啥的  </div><div class="line">        query.where(cb.and(p3,cb.or(p1,p2)));  </div><div class="line">        //添加排序的功能  </div><div class="line">        query.orderBy(cb.desc(root.get(&quot;uuid&quot;).as(Integer.class)));  </div><div class="line">          </div><div class="line">        return query.getRestriction();  </div><div class="line">    &#125;  </div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<h2 id="事例三"><a href="#事例三" class="headerlink" title="事例三"></a>事例三</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">public Predicate toPredicate(Root&lt;ExpressOrderEntity&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;</div><div class="line">    </div><div class="line">    List&lt;Predicate&gt; conditions = new ArrayList&lt;Predicate&gt;();</div><div class="line">    </div><div class="line">    //改为由店铺获取，为了子帐号和主帐号可以互相看到对方的订单</div><div class="line">    Predicate p1 = cb.equal(root.get(ExpressOrderEntity_.shop), shopEntity);</div><div class="line">    conditions.add(p1);</div><div class="line"></div><div class="line">    if (searchType != ExpressOrderConstants.APP_SEARCH_ALL) &#123;</div><div class="line">        In&lt;Byte&gt; in = cb.in(root.get(ExpressOrderEntity_.status));</div><div class="line">        Byte[] status = getOrderStatus(searchType);</div><div class="line">        for (Byte b : status) &#123;</div><div class="line">            in.value(b);</div><div class="line">        &#125;</div><div class="line">        conditions.add(in);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    //根据id降序排序</div><div class="line">    Order idOrder = cb.desc(root.get(ExpressOrderEntity_.id));</div><div class="line"></div><div class="line">    return query.where(conditions.toArray(new Predicate[conditions.size()])).orderBy(idOrder).getRestriction();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="实例四"><a href="#实例四" class="headerlink" title="实例四"></a>实例四</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">public Predicate toPredicate(Root&lt;AppBannerEntity&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;</div><div class="line">	Predicate enabled = cb.equal(root.get(AppBannerEntity_.isEnabled), true);</div><div class="line">	Join&lt;AppBannerEntity, AppBannerTypeEntity&gt; typeJoin = root.join(AppBannerEntity_.appBannerType);</div><div class="line">	Predicate bannerPd = typeJoin.get(AppBannerTypeEntity_.type).in(types);</div><div class="line">	Predicate notExpired = cb.greaterThan(root.get(AppBannerEntity_.expireTime), new Date());</div><div class="line">	return cb.and(enabled, bannerPd, notExpired);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="实例五：多对多关联查询"><a href="#实例五：多对多关联查询" class="headerlink" title="实例五：多对多关联查询"></a>实例五：多对多关联查询</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">List&lt;BusinessCircleEntity&gt; entities = businessCircleJpaRepository.findAll(new Specification&lt;BusinessCircleEntity&gt;() &#123;</div><div class="line">			</div><div class="line">    @Override</div><div class="line">    public Predicate toPredicate(Root&lt;BusinessCircleEntity&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;</div><div class="line">    	List&lt;Predicate&gt; conditions = new ArrayList&lt;Predicate&gt;();</div><div class="line">    	Join&lt;BusinessCircleEntity, MarketEntity&gt; market=root.joinList(BusinessCircleEntity_.listOfMarket.getName());</div><div class="line">    	Join&lt;MarketEntity, ProductCategoryEntity&gt; productCategory = market.joinList(MarketEntity_.listOfProductCategory.getName());</div><div class="line">    	</div><div class="line">    	Predicate p1 = cb.equal(productCategory.get(ProductCategoryEntity_.id), categoryId); </div><div class="line">    	conditions.add(p1);</div><div class="line">    	</div><div class="line">    	Predicate p2 = cb.equal(root.get(BusinessCircleEntity_.city), cityEntity); </div><div class="line">    	conditions.add(p2);</div><div class="line">    	</div><div class="line">    	return query.where(conditions.toArray(new Predicate[conditions.size()])).getRestriction();</div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<h2 id="实例六：多对多关联查询"><a href="#实例六：多对多关联查询" class="headerlink" title="实例六：多对多关联查询"></a>实例六：多对多关联查询</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">List&lt;MarketEntity&gt; entities = marketJpaRepository.findList(new Specification&lt;MarketEntity&gt;() &#123;</div><div class="line">			</div><div class="line">	@Override</div><div class="line">	public Predicate toPredicate(Root&lt;MarketEntity&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) &#123;</div><div class="line">		List&lt;Predicate&gt; conditions = new ArrayList&lt;Predicate&gt;();</div><div class="line">		Join&lt;MarketEntity, ProductCategoryEntity&gt; productCategory = root.joinList(MarketEntity_.listOfProductCategory.getName());</div><div class="line">		Join&lt;MarketEntity, BusinessCircleEntity&gt; businessCircle = root.join(MarketEntity_.businessCircle);</div><div class="line">		</div><div class="line">		Predicate p1 = cb.equal(productCategory.get(ProductCategoryEntity_.id), categoryId); </div><div class="line">		conditions.add(p1);</div><div class="line">		</div><div class="line">		Predicate p2 = cb.equal(businessCircle.get(BusinessCircleEntity_.city), cityEntity); </div><div class="line">		conditions.add(p2);</div><div class="line">		</div><div class="line">		return query.where(conditions.toArray(new Predicate[conditions.size()])).getRestriction();</div><div class="line">	&#125;</div><div class="line">&#125;, start, limit);</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/Specification实例/" data-id="cj6vztsd9006soabl8y28s3tv" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring/JPA/对应关系映射配置" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Spring/JPA/对应关系映射配置/">对应关系映射配置</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Spring/JPA/对应关系映射配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="ManyToMany"><a href="#ManyToMany" class="headerlink" title="ManyToMany"></a>ManyToMany</h2><p>主控方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@ManyToMany(targetEntity=SysRoleEntity.class, fetch=FetchType.LAZY)</div><div class="line">@JoinTable(name=&quot;sys_admin_role&quot;, </div><div class="line">  joinColumns=@JoinColumn(name=&quot;admin_id&quot;, referencedColumnName=&quot;id&quot;),</div><div class="line">  inverseJoinColumns=@JoinColumn(name=&quot;role_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line"> ) </div><div class="line">private List&lt;SysRoleEntity&gt; listOfSysRole;</div></pre></td></tr></table></figure></p>
+<p>被动方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@ManyToMany(mappedBy=&quot;listOfSysRole&quot;, targetEntity=SysAdminEntity.class)</div><div class="line">private List&lt;SysAdminEntity&gt; listOfSysAdmin;</div></pre></td></tr></table></figure></p>
+<h2 id="ManyToOne-And-OneToMany"><a href="#ManyToOne-And-OneToMany" class="headerlink" title="ManyToOne And OneToMany"></a>ManyToOne And OneToMany</h2><p>主控方配置：一般是多的一方为主控<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@ManyToOne</div><div class="line">@JoinColumn(name=&quot;role_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line">private SysRoleEntity sysRole;</div></pre></td></tr></table></figure></p>
+<p>被动方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@OneToMany(mappedBy=&quot;sysRole&quot;, targetEntity=SysAuthorityEntity.class)</div><div class="line">private List&lt;SysAuthorityEntity&gt; listOfsysAuthority;</div></pre></td></tr></table></figure></p>
+<h2 id="OneToOne"><a href="#OneToOne" class="headerlink" title="OneToOne"></a>OneToOne</h2><p>主控方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@OneToOne(fetch=FetchType.LAZY)</div><div class="line">@JoinColumn(name=&quot;code_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line">private CodeEntity codeEntity;</div></pre></td></tr></table></figure></p>
+<p>被动方配置:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@OneToOne(mappedBy=&quot;codeEntity&quot;, targetEntity=OddsEntity.class, fetch=FetchType.LAZY)</div><div class="line">private OddsEntity oddsEntity;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/对应关系映射配置/" data-id="cj6vztsda006voabllgmoujvn" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -178,7 +447,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JavaMail/简单发送事例/" data-id="cj6rbmiuz0020lhbl56k2io82" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JavaMail/简单发送事例/" data-id="cj6vztsau0024oabldr6biint" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -192,13 +461,13 @@
 
 
   
-    <article id="post-Java/JavaMail/接收邮件（Spring集成）" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Maven/Maven把自己的包部署到远程仓库" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/JavaMail/接收邮件（Spring集成）/">接收邮件（Spring集成）</a>
+      <a class="article-title" href="/2017/07/19/Maven/Maven把自己的包部署到远程仓库/">Maven把自己的包部署到远程仓库</a>
     </h1>
   
 
@@ -207,13 +476,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Java/JavaMail/接收邮件（Spring集成）/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Maven/Maven把自己的包部署到远程仓库/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/JavaMail/">JavaMail</a>
+    <a class="article-category-link" href="/categories/Maven/">Maven</a>
   </div>
 
 
@@ -222,11 +491,8 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">#mailReceiver.host=pop.exmail.qq.com  </div><div class="line">#mailReceiver.port=995  </div><div class="line">#mailReceiver.protocol=pop3  </div><div class="line">#mail.pop3.auth=true  </div><div class="line">#mail.pop3.ssl.enable=true  </div><div class="line">mailReceiver.host=imap.exmail.qq.com  </div><div class="line">mailReceiver.port=993  </div><div class="line">mailReceiver.protocol=imap  </div><div class="line">mail.imap.auth=true  </div><div class="line">mail.imap.ssl.enable=true  </div><div class="line">mailReceiver.username=insurance@ghb.ehighsun.com  </div><div class="line">mailReceiver.password=GHB000861highsun</div></pre></td></tr></table></figure>
-<h2 id="Spring中配置bean"><a href="#Spring中配置bean" class="headerlink" title="Spring中配置bean"></a>Spring中配置bean</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;!--  javamail receiver   --&gt;</div><div class="line">&lt;bean id=&quot;javaMailReceiver&quot; class=&quot;com.highsunbuy.insurance.mail.service.impl.JavaMailReceiver&quot;  &gt;</div><div class="line">    &lt;property name=&quot;host&quot; value=&quot;$&#123;mailReceiver.host&#125;&quot; /&gt;</div><div class="line">    &lt;property name=&quot;port&quot; value=&quot;$&#123;mailReceiver.port&#125;&quot; /&gt;</div><div class="line">    &lt;property name=&quot;protocol&quot; value=&quot;$&#123;mailReceiver.protocol&#125;&quot; /&gt;</div><div class="line">    &lt;!-- &lt;property name=&quot;defaultEncoding&quot; value=&quot;UTF-8&quot; /&gt; --&gt;</div><div class="line">    &lt;property name=&quot;username&quot; value=&quot;$&#123;mailReceiver.username&#125;&quot; /&gt;</div><div class="line">    &lt;property name=&quot;password&quot; value=&quot;$&#123;mailReceiver.password&#125;&quot; /&gt;</div><div class="line">	&lt;property name=&quot;javaMailProperties&quot;&gt;</div><div class="line">		&lt;props&gt;</div><div class="line">			&lt;!-- &lt;prop key=&quot;mail.pop3.host&quot;&gt;pop.qq.com&lt;/prop&gt;</div><div class="line">			&lt;prop key=&quot;mail.store.protocol&quot;&gt;pop3&lt;/prop&gt; --&gt;</div><div class="line">			&lt;prop key=&quot;mail.imap.auth&quot;&gt;$&#123;mail.imap.auth&#125;&lt;/prop&gt;</div><div class="line">			&lt;prop key=&quot;mail.imap.ssl.enable&quot;&gt;$&#123;mail.imap.ssl.enable&#125;&lt;/prop&gt;</div><div class="line">		&lt;/props&gt;</div><div class="line">	&lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line">&lt;!--  javamail receiver   --&gt;</div></pre></td></tr></table></figure>
-<h2 id="JavaMailReceiver"><a href="#JavaMailReceiver" class="headerlink" title="JavaMailReceiver"></a>JavaMailReceiver</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div><div class="line">171</div><div class="line">172</div><div class="line">173</div><div class="line">174</div><div class="line">175</div><div class="line">176</div><div class="line">177</div><div class="line">178</div><div class="line">179</div><div class="line">180</div><div class="line">181</div><div class="line">182</div><div class="line">183</div><div class="line">184</div><div class="line">185</div><div class="line">186</div><div class="line">187</div><div class="line">188</div><div class="line">189</div><div class="line">190</div><div class="line">191</div><div class="line">192</div><div class="line">193</div><div class="line">194</div><div class="line">195</div><div class="line">196</div><div class="line">197</div><div class="line">198</div><div class="line">199</div><div class="line">200</div><div class="line">201</div><div class="line">202</div><div class="line">203</div><div class="line">204</div><div class="line">205</div><div class="line">206</div><div class="line">207</div><div class="line">208</div><div class="line">209</div><div class="line">210</div><div class="line">211</div><div class="line">212</div><div class="line">213</div><div class="line">214</div><div class="line">215</div><div class="line">216</div><div class="line">217</div><div class="line">218</div><div class="line">219</div><div class="line">220</div><div class="line">221</div><div class="line">222</div><div class="line">223</div><div class="line">224</div><div class="line">225</div><div class="line">226</div><div class="line">227</div><div class="line">228</div><div class="line">229</div><div class="line">230</div><div class="line">231</div><div class="line">232</div><div class="line">233</div><div class="line">234</div><div class="line">235</div><div class="line">236</div><div class="line">237</div><div class="line">238</div><div class="line">239</div><div class="line">240</div><div class="line">241</div><div class="line">242</div><div class="line">243</div><div class="line">244</div><div class="line">245</div><div class="line">246</div><div class="line">247</div><div class="line">248</div><div class="line">249</div><div class="line">250</div><div class="line">251</div><div class="line">252</div><div class="line">253</div><div class="line">254</div><div class="line">255</div><div class="line">256</div><div class="line">257</div><div class="line">258</div><div class="line">259</div><div class="line">260</div><div class="line">261</div><div class="line">262</div><div class="line">263</div><div class="line">264</div><div class="line">265</div><div class="line">266</div><div class="line">267</div><div class="line">268</div><div class="line">269</div><div class="line">270</div><div class="line">271</div><div class="line">272</div><div class="line">273</div><div class="line">274</div><div class="line">275</div><div class="line">276</div><div class="line">277</div><div class="line">278</div><div class="line">279</div><div class="line">280</div><div class="line">281</div><div class="line">282</div><div class="line">283</div><div class="line">284</div><div class="line">285</div><div class="line">286</div><div class="line">287</div><div class="line">288</div><div class="line">289</div><div class="line">290</div><div class="line">291</div><div class="line">292</div><div class="line">293</div><div class="line">294</div><div class="line">295</div><div class="line">296</div><div class="line">297</div><div class="line">298</div><div class="line">299</div><div class="line">300</div><div class="line">301</div><div class="line">302</div><div class="line">303</div><div class="line">304</div><div class="line">305</div><div class="line">306</div><div class="line">307</div><div class="line">308</div><div class="line">309</div><div class="line">310</div><div class="line">311</div><div class="line">312</div><div class="line">313</div><div class="line">314</div><div class="line">315</div><div class="line">316</div><div class="line">317</div><div class="line">318</div><div class="line">319</div><div class="line">320</div><div class="line">321</div><div class="line">322</div><div class="line">323</div><div class="line">324</div><div class="line">325</div><div class="line">326</div><div class="line">327</div><div class="line">328</div><div class="line">329</div><div class="line">330</div><div class="line">331</div><div class="line">332</div><div class="line">333</div><div class="line">334</div><div class="line">335</div><div class="line">336</div><div class="line">337</div><div class="line">338</div><div class="line">339</div><div class="line">340</div><div class="line">341</div><div class="line">342</div><div class="line">343</div><div class="line">344</div><div class="line">345</div><div class="line">346</div><div class="line">347</div><div class="line">348</div><div class="line">349</div><div class="line">350</div><div class="line">351</div><div class="line">352</div><div class="line">353</div><div class="line">354</div><div class="line">355</div><div class="line">356</div><div class="line">357</div><div class="line">358</div><div class="line">359</div><div class="line">360</div><div class="line">361</div><div class="line">362</div><div class="line">363</div><div class="line">364</div><div class="line">365</div><div class="line">366</div><div class="line">367</div><div class="line">368</div><div class="line">369</div><div class="line">370</div><div class="line">371</div><div class="line">372</div><div class="line">373</div><div class="line">374</div><div class="line">375</div><div class="line">376</div><div class="line">377</div><div class="line">378</div><div class="line">379</div><div class="line">380</div><div class="line">381</div><div class="line">382</div><div class="line">383</div><div class="line">384</div><div class="line">385</div><div class="line">386</div><div class="line">387</div><div class="line">388</div><div class="line">389</div><div class="line">390</div><div class="line">391</div><div class="line">392</div><div class="line">393</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Copyright (c) 2016 clqGroup. All rights reserved.</div><div class="line"> * </div><div class="line"> * Modified log:</div><div class="line"> * ----------------------------------</div><div class="line"> * 2016年10月17日 Ver.1.0 chenliqiang Created.</div><div class="line"> */</div><div class="line">package com.highsunbuy.insurance.mail.service.impl;</div><div class="line"></div><div class="line">import java.io.IOException;</div><div class="line">import java.io.UnsupportedEncodingException;</div><div class="line">import java.text.SimpleDateFormat;</div><div class="line">import java.util.ArrayList;</div><div class="line">import java.util.Date;</div><div class="line">import java.util.List;</div><div class="line">import java.util.Properties;</div><div class="line"></div><div class="line">import javax.mail.Flags;</div><div class="line">import javax.mail.Folder;</div><div class="line">import javax.mail.Message;</div><div class="line">import javax.mail.MessagingException;</div><div class="line">import javax.mail.Multipart;</div><div class="line">import javax.mail.Part;</div><div class="line">import javax.mail.Session;</div><div class="line">import javax.mail.Store;</div><div class="line">import javax.mail.URLName;</div><div class="line">import javax.mail.internet.InternetAddress;</div><div class="line">import javax.mail.internet.MimeMessage;</div><div class="line">import javax.mail.internet.MimeUtility;</div><div class="line"></div><div class="line">import org.slf4j.Logger;</div><div class="line">import org.slf4j.LoggerFactory;</div><div class="line"></div><div class="line">import com.sun.mail.imap.IMAPFolder;</div><div class="line">import com.sun.mail.pop3.POP3Folder;</div><div class="line"></div><div class="line">/**</div><div class="line"> * @author chenliqiang.</div><div class="line"> * @Date 2016年10月17日</div><div class="line"> * @Version 1.0</div><div class="line"> */</div><div class="line">public class JavaMailReceiver &#123;</div><div class="line">	</div><div class="line">	/** Logger */</div><div class="line">	private final Logger logger = LoggerFactory.getLogger(JavaMailReceiver.class);</div><div class="line">	</div><div class="line">	private Properties javaMailProperties = new Properties();</div><div class="line"></div><div class="line">	//private Session session;</div><div class="line"></div><div class="line">	private String protocol;</div><div class="line"></div><div class="line">	private String host;</div><div class="line"></div><div class="line">	private int port;</div><div class="line"></div><div class="line">	private String username;</div><div class="line"></div><div class="line">	private String password;</div><div class="line">	</div><div class="line">	</div><div class="line"></div><div class="line">	public Properties getJavaMailProperties() &#123;</div><div class="line">		return javaMailProperties;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void setJavaMailProperties(Properties javaMailProperties) &#123;</div><div class="line">		this.javaMailProperties = javaMailProperties;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/*public Session getSession() &#123;</div><div class="line">		return session;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void setSession(Session session) &#123;</div><div class="line">		this.session = session;</div><div class="line">	&#125;*/</div><div class="line"></div><div class="line">	public String getProtocol() &#123;</div><div class="line">		return protocol;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void setProtocol(String protocol) &#123;</div><div class="line">		this.protocol = protocol;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public String getHost() &#123;</div><div class="line">		return host;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void setHost(String host) &#123;</div><div class="line">		this.host = host;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public int getPort() &#123;</div><div class="line">		return port;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void setPort(int port) &#123;</div><div class="line">		this.port = port;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public String getUsername() &#123;</div><div class="line">		return username;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void setUsername(String username) &#123;</div><div class="line">		this.username = username;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public String getPassword() &#123;</div><div class="line">		return password;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void setPassword(String password) &#123;</div><div class="line">		this.password = password;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	public Store connectStore() throws MessagingException &#123;</div><div class="line">        Session session = Session.getDefaultInstance(javaMailProperties, null);   </div><div class="line">        URLName urln = new URLName(getProtocol(), getHost(), getPort(), null,   </div><div class="line">                getUsername(), getPassword());  </div><div class="line">        //session.setDebug(true);</div><div class="line">        Store store = session.getStore(urln);   </div><div class="line">        store.connect();  </div><div class="line">        return store;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	public void closeStore(Store store) throws MessagingException &#123;</div><div class="line">		if(null != store) &#123;</div><div class="line">			store.close();</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	private Properties getPop3Prop() &#123;</div><div class="line">		Properties props = System.getProperties();   </div><div class="line">        //props.put(&quot;mail.pop3.host&quot;, getHost());   </div><div class="line">        //props.put(&quot;mail.store.protocol&quot;, getProtocol()); // 默认使用pop3收取邮件 </div><div class="line">        props.put(&quot;mail.pop3.ssl.enable&quot;, &quot;true&quot;);</div><div class="line">        props.put(&quot;mail.pop3.auth&quot;, &quot;true&quot;); </div><div class="line">        return props;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	private Properties getImapProp() &#123;</div><div class="line">		Properties props = System.getProperties();</div><div class="line">		props.put(&quot;mail.imap.ssl.enable&quot;, &quot;true&quot;);</div><div class="line">        props.put(&quot;mail.imap.auth&quot;, &quot;true&quot;); </div><div class="line">        return props;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	/**</div><div class="line">	 * 读取所有未读的邮件</div><div class="line">	 * @param store</div><div class="line">	 * @return</div><div class="line">	 * @throws MessagingException&lt;br&gt;</div><div class="line">	 * @author chenliqiang, 2016年11月30日.&lt;br&gt;</div><div class="line">	 */</div><div class="line">	public List&lt;Message&gt; receiveEmail(Store store) throws MessagingException &#123;</div><div class="line">		List&lt;Message&gt; messageList = new ArrayList&lt;Message&gt;();</div><div class="line">		Folder folder = store.getFolder(&quot;INBOX&quot;);   </div><div class="line">        folder.open(Folder.READ_WRITE);   </div><div class="line">        </div><div class="line">        if (folder instanceof POP3Folder) &#123; </div><div class="line">        		logger.info(&quot;POP3Folder: &quot;);</div><div class="line">	        	POP3Folder inbox = (POP3Folder) folder; </div><div class="line">	        	Message[] messages = inbox.getMessages(); </div><div class="line">	        	for (int i = 0; i &lt; messages.length; i++) &#123; </div><div class="line">		        	MimeMessage mimeMessage = (MimeMessage) messages[i]; </div><div class="line">		        	String uid = inbox.getUID(mimeMessage); </div><div class="line">		        	logger.info(&quot;uid: &quot; + uid);</div><div class="line">	        	&#125; </div><div class="line">	        	</div><div class="line">        &#125; else if (folder instanceof IMAPFolder) &#123; //只有imap协议的才能标示邮件是否已读</div><div class="line">        		logger.info(&quot;IMAPFolder: &quot;);</div><div class="line">			IMAPFolder inbox = (IMAPFolder) folder; </div><div class="line">			Message[] messages = inbox.getMessages(); </div><div class="line">			for (int i = 0; i &lt; messages.length; i++) &#123; </div><div class="line">				MimeMessage mimeMessage = (MimeMessage) messages[i]; </div><div class="line">				//String uid = Long.toString(inbox.getUID(mimeMessage)); </div><div class="line">				//logger.info(&quot;uid: &quot; + uid);</div><div class="line">				Flags flags = mimeMessage.getFlags();      </div><div class="line">                if (!flags.contains(Flags.Flag.SEEN))  &#123;//未读邮件</div><div class="line">                		logger.info(&quot;未读邮件：&quot;+mimeMessage.getSubject());</div><div class="line">                		messageList.add(messages[i]);</div><div class="line">                &#125;</div><div class="line">			&#125;</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        return messageList;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	  </div><div class="line">	/**</div><div class="line">	 * 获得邮件的收件人，抄送，和密送的地址和姓名&lt;br&gt;</div><div class="line">	 * 根据所传递的参数的不同 &quot;to&quot;----收件人 &quot;cc&quot;---抄送人地址 &quot;bcc&quot;---密送人地址</div><div class="line">	 * @param message</div><div class="line">	 * @param type</div><div class="line">	 * @return</div><div class="line">	 * @throws Exception&lt;br&gt;</div><div class="line">	 * @author chenliqiang, 2016年10月17日.&lt;br&gt;</div><div class="line">	 * @throws UnsupportedEncodingException </div><div class="line">	 */</div><div class="line">    public String getMailAddress(Message message, String type) throws MessagingException, UnsupportedEncodingException &#123;   </div><div class="line">    	if(null == message) &#123;</div><div class="line">    		throw new MessagingException(&quot;message is not null&quot;);</div><div class="line">    	&#125;</div><div class="line">    	MimeMessage mimeMessage = (MimeMessage) message;</div><div class="line">        String mailaddr = &quot;&quot;;    </div><div class="line">        String addtype = type.toUpperCase();    </div><div class="line">        InternetAddress[] address = null;    </div><div class="line">        if (addtype.equals(&quot;TO&quot;) || addtype.equals(&quot;CC&quot;)|| addtype.equals(&quot;BCC&quot;)) &#123;    </div><div class="line">            if (addtype.equals(&quot;TO&quot;)) &#123;    </div><div class="line">                address = (InternetAddress[]) mimeMessage.getRecipients(Message.RecipientType.TO);    </div><div class="line">            &#125; else if (addtype.equals(&quot;CC&quot;)) &#123;    </div><div class="line">                address = (InternetAddress[]) mimeMessage.getRecipients(Message.RecipientType.CC);    </div><div class="line">            &#125; else &#123;    </div><div class="line">                address = (InternetAddress[]) mimeMessage.getRecipients(Message.RecipientType.BCC);    </div><div class="line">            &#125;    </div><div class="line">            if (address != null) &#123;    </div><div class="line">                for (int i = 0; i &lt; address.length; i++) &#123;    </div><div class="line">                    String email = address[i].getAddress();    </div><div class="line">                    if (email == null)    </div><div class="line">                        email = &quot;&quot;;    </div><div class="line">                    else &#123;    </div><div class="line">                        email = MimeUtility.decodeText(email);    </div><div class="line">                    &#125;    </div><div class="line">                    String personal = address[i].getPersonal();    </div><div class="line">                    if (personal == null)    </div><div class="line">                        personal = &quot;&quot;;    </div><div class="line">                    else &#123;    </div><div class="line">                        personal = MimeUtility.decodeText(personal);    </div><div class="line">                    &#125;    </div><div class="line">                    String compositeto = personal + &quot;&lt;&quot; + email + &quot;&gt;&quot;;    </div><div class="line">                    mailaddr += &quot;,&quot; + compositeto;    </div><div class="line">                &#125;    </div><div class="line">                mailaddr = mailaddr.substring(1);    </div><div class="line">            &#125;    </div><div class="line">        &#125; else &#123;    </div><div class="line">            throw new MessagingException(&quot;Error emailaddr type!&quot;);    </div><div class="line">        &#125;    </div><div class="line">        return mailaddr;    </div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    /**</div><div class="line">     * 获取邮件主题</div><div class="line">     * @param message</div><div class="line">     * @return</div><div class="line">     * @throws MessagingException</div><div class="line">     * @throws UnsupportedEncodingException&lt;br&gt;</div><div class="line">     * @author chenliqiang, 2016年10月17日.&lt;br&gt;</div><div class="line">     */</div><div class="line">    public String getSubject(Message message) throws MessagingException, UnsupportedEncodingException &#123;    </div><div class="line">    	MimeMessage mimeMessage = (MimeMessage) message;</div><div class="line"></div><div class="line">    	String subject = MimeUtility.decodeText(mimeMessage.getSubject());    </div><div class="line">        if (subject == null)  subject = &quot;&quot;;</div><div class="line">   </div><div class="line">        return subject;    </div><div class="line">    &#125;   </div><div class="line">    </div><div class="line">    /**</div><div class="line">     * 获取发送时间</div><div class="line">     * @param message</div><div class="line">     * @param dateformat</div><div class="line">     * @return</div><div class="line">     * @throws MessagingException&lt;br&gt;</div><div class="line">     * @author chenliqiang, 2016年10月17日.&lt;br&gt;</div><div class="line">     */</div><div class="line">    public String getSentDate(Message message, String dateformat) throws MessagingException &#123;  </div><div class="line">    	MimeMessage mimeMessage = (MimeMessage) message;</div><div class="line">        Date sentdate = mimeMessage.getSentDate();    </div><div class="line">        SimpleDateFormat format = new SimpleDateFormat(dateformat);    </div><div class="line">        return format.format(sentdate);    </div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    /**</div><div class="line">     * 获取发送时间</div><div class="line">     * @param message</div><div class="line">     * @return</div><div class="line">     * @throws MessagingException&lt;br&gt;</div><div class="line">     * @author chenliqiang, 2016年10月17日.&lt;br&gt;</div><div class="line">     */</div><div class="line">    public String getSentDate(Message message) throws MessagingException &#123;  </div><div class="line">    	MimeMessage mimeMessage = (MimeMessage) message;</div><div class="line">        Date sentdate = mimeMessage.getSentDate();    </div><div class="line">        String dateformat = &quot;yyyy-MM-dd HH:mm:ss&quot;;</div><div class="line">        SimpleDateFormat format = new SimpleDateFormat(dateformat);    </div><div class="line">        return format.format(sentdate);    </div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    /**</div><div class="line">     * 解析邮件，把得到的邮件内容保存到一个StringBuffer对象中，解析邮件&lt;br&gt;</div><div class="line">     * 主要是根据MimeType类型的不同执行不同的操作，一步一步的解析</div><div class="line">     * @param part</div><div class="line">     * @throws MessagingException</div><div class="line">     * @throws IOException&lt;br&gt;</div><div class="line">     * @author chenliqiang, 2016年10月17日.&lt;br&gt;</div><div class="line">     */</div><div class="line">    private void getContent(Part part, StringBuffer bodytext) throws MessagingException, IOException &#123;  </div><div class="line">        String contenttype = part.getContentType();    </div><div class="line">        int nameindex = contenttype.indexOf(&quot;name&quot;);    </div><div class="line">        boolean conname = false;    </div><div class="line">        if (nameindex != -1)    </div><div class="line">            conname = true;    </div><div class="line">        //System.out.println(&quot;CONTENTTYPE: &quot; + contenttype);    </div><div class="line">        if (part.isMimeType(&quot;text/plain&quot;) &amp;&amp; !conname) &#123;    </div><div class="line">            bodytext.append((String) part.getContent());    </div><div class="line">        &#125; else if (part.isMimeType(&quot;text/html&quot;) &amp;&amp; !conname) &#123;    </div><div class="line">            bodytext.append((String) part.getContent());    </div><div class="line">        &#125; else if (part.isMimeType(&quot;multipart/*&quot;)) &#123;    </div><div class="line">            Multipart multipart = (Multipart) part.getContent();    </div><div class="line">            int counts = multipart.getCount();    </div><div class="line">            for (int i = 0; i &lt; counts; i++) &#123;    </div><div class="line">                getContent(multipart.getBodyPart(i), bodytext);    </div><div class="line">            &#125;    </div><div class="line">        &#125; else if (part.isMimeType(&quot;message/rfc822&quot;)) &#123;    </div><div class="line">            getContent((Part) part.getContent(), bodytext);    </div><div class="line">        &#125; else &#123;&#125;    </div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    /**</div><div class="line">     * 获得邮件正文内容</div><div class="line">     * @param message</div><div class="line">     * @return</div><div class="line">     * @throws MessagingException</div><div class="line">     * @throws IOException&lt;br&gt;</div><div class="line">     * @author chenliqiang, 2016年10月17日.&lt;br&gt;</div><div class="line">     */</div><div class="line">    public String getBodyText(Message message) throws MessagingException, IOException &#123;   </div><div class="line">    	Part part = (Part) message;</div><div class="line">    	StringBuffer bodytext = new StringBuffer();</div><div class="line">    	getContent(part, bodytext);</div><div class="line">        return bodytext.toString();    </div><div class="line">    &#125;  </div><div class="line">    </div><div class="line">    </div><div class="line">    /**</div><div class="line">     * 获取message－id</div><div class="line">     * @param message</div><div class="line">     * @return</div><div class="line">     * @throws MessagingException&lt;br&gt;</div><div class="line">     * @author chenliqiang, 2016年10月17日.&lt;br&gt;</div><div class="line">     */</div><div class="line">    public String getMessageId(Message message) throws MessagingException  &#123;  </div><div class="line">    	MimeMessage mimeMessage = (MimeMessage) message;</div><div class="line">        return mimeMessage.getMessageID();    </div><div class="line">    &#125; </div><div class="line">    </div><div class="line">    /**</div><div class="line">     * 获得发件人的地址和姓名</div><div class="line">     * @param message</div><div class="line">     * @return</div><div class="line">     * @throws MessagingException&lt;br&gt;</div><div class="line">     * @author chenliqiang, 2016年10月17日.&lt;br&gt;</div><div class="line">     */</div><div class="line">    public String getFrom(Message message) throws MessagingException &#123;    </div><div class="line">    	MimeMessage mimeMessage = (MimeMessage) message;</div><div class="line">        InternetAddress address[] = (InternetAddress[]) mimeMessage.getFrom();    </div><div class="line">        String from = address[0].getAddress();    </div><div class="line">        if (from == null)    </div><div class="line">            from = &quot;&quot;;    </div><div class="line">        String personal = address[0].getPersonal();    </div><div class="line">        if (personal == null)    </div><div class="line">            personal = &quot;&quot;;    </div><div class="line">        String fromaddr = personal + &quot;&lt;&quot; + from + &quot;&gt;&quot;;    </div><div class="line">        return fromaddr;    </div><div class="line">    &#125;</div><div class="line">      </div><div class="line">    /**</div><div class="line">     * 判断此邮件是否已读，如果未读返回返回false,反之返回true</div><div class="line">     * @param Message</div><div class="line">     * @return</div><div class="line">     * @throws MessagingException&lt;br&gt;</div><div class="line">     * @author chenliqiang, 2016年10月17日.&lt;br&gt;</div><div class="line">     */</div><div class="line">    public boolean isNew(Message Message) throws MessagingException &#123;    </div><div class="line">    		MimeMessage mimeMessage = (MimeMessage) Message;</div><div class="line">        boolean isnew = false;    </div><div class="line">        Flags flags = ((Message) mimeMessage).getFlags();    </div><div class="line">        Flags.Flag[] flag = flags.getSystemFlags();    </div><div class="line">        System.out.println(&quot;flags&apos;s length: &quot; + flag.length);    </div><div class="line">        for (int i = 0; i &lt; flag.length; i++) &#123;    </div><div class="line">            if (flag[i] == Flags.Flag.SEEN) &#123;    </div><div class="line">                isnew = true;    </div><div class="line">                System.out.println(&quot;seen Message.......&quot;);    </div><div class="line">                break;    </div><div class="line">            &#125;    </div><div class="line">        &#125;    </div><div class="line">        return isnew;    </div><div class="line">    &#125;</div><div class="line"></div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">public void receiveAndUpdate() throws MessagingException, UnsupportedEncodingException &#123;</div><div class="line">	Store store = javaMailReceiver.connectStore();</div><div class="line">	List&lt;Message&gt; messageList = javaMailReceiver.receiveEmail(store);</div><div class="line">	for(Message m : messageList) &#123;</div><div class="line">		//逻辑处理</div><div class="line">		m.setFlag(Flags.Flag.SEEN, true);//设置邮件为已读</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	javaMailReceiver.closeStore(store);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="Jar包"><a href="#Jar包" class="headerlink" title="Jar包"></a>Jar包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;javax.mail&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;mail&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;1.4.7&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
+        <h3 id="1-配置项目的POM文件"><a href="#1-配置项目的POM文件" class="headerlink" title="1.配置项目的POM文件"></a>1.配置项目的POM文件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;dependencyManagement&gt;</div><div class="line">    &lt;/dependencies&gt;</div><div class="line">        &lt;/dependency&gt;</div><div class="line"></div><div class="line">                ......</div><div class="line"></div><div class="line">        &lt;/dependency&gt;</div><div class="line">    &lt;/dependencies&gt;</div><div class="line">&lt;/dependencyManagement&gt;</div><div class="line">    &lt;repository&gt;</div><div class="line">        &lt;id&gt;nexus-snapshots&lt;/id&gt;</div><div class="line">        &lt;url&gt;http://192.168.1.232:8080/content/repositories/releases&lt;/url&gt;</div><div class="line">    &lt;/repository&gt;</div><div class="line">    &lt;snapshotRepository&gt;</div><div class="line">        &lt;id&gt;nexus-releases&lt;/id&gt;</div><div class="line">        &lt;url&gt;http://192.168.1.232:8080/content/repositories/snapshots&lt;/url&gt;</div><div class="line">    &lt;/snapshotRepository&gt;</div><div class="line">&lt;/distributionManagement&gt;</div></pre></td></tr></table></figure>
+<h3 id="2-运行maven命令"><a href="#2-运行maven命令" class="headerlink" title="2.运行maven命令"></a>2.运行maven命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn clean deploy</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -236,7 +502,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JavaMail/接收邮件（Spring集成）/" data-id="cj6rbmiv00021lhbl7u2j2d1n" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/Maven把自己的包部署到远程仓库/" data-id="cj6vzts8x000goablmtk0elv3" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -250,13 +516,13 @@
 
 
   
-    <article id="post-Linux/vi命令" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/Security/获取所有登录用户" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Linux/vi命令/">vi命令</a>
+      <a class="article-title" href="/2017/07/19/Spring/Security/获取所有登录用户/">获取所有登录用户</a>
     </h1>
   
 
@@ -265,13 +531,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Linux/vi命令/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/Security/获取所有登录用户/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Security/">Security</a>
   </div>
 
 
@@ -280,10 +546,9 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="vi命令"><a href="#vi命令" class="headerlink" title="vi命令"></a>vi命令</h2><p>vi命令是UNIX操作系统和类UNIX操作系统中最通用的全屏幕纯文本编辑器。</p>
-<p>Linux中的vi编辑器叫vim，它是vi的增强版（vi Improved），与vi编辑器完全兼容，而且实现了很多增强功能。 vi编辑器支持编辑模式和命令模式，编辑模式下可以完成文本的编辑功能，命令模式下可以完成对文件的操作命令，要正确使用vi编辑器就必须熟练掌握着两种模式的切换。默认情况下，打开vi编辑器后自动进入命令模式。从编辑模式切换到命令模式使用“esc”键，从命令模式切换到编辑模式使用“A”、“a”、“O”、“o”、“I”、“i”键。      </p>
-<p>vi编辑器提供了丰富的内置命令，有些内置命令使用键盘组合键即可完成，有些内置命令则需要以冒号“：”开头输入。常用内置命令如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">Ctrl+u：向文件首翻半屏；  </div><div class="line">Ctrl+d：向文件尾翻半屏；  </div><div class="line">Ctrl+f：向文件尾翻一屏；</div><div class="line">Ctrl+b：向文件首翻一屏；</div><div class="line">Esc：从编辑模式切换到命令模式；</div><div class="line">ZZ：命令模式下保存当前文件所做的修改后退出vi；</div><div class="line">:行号：光标跳转到指定行的行首；</div><div class="line">:$：光标跳转到最后一行的行首；</div><div class="line">x或X：删除一个字符，x删除光标后的，而X删除光标前的；</div><div class="line">D：删除从当前光标到光标所在行尾的全部字符；</div><div class="line">dd：删除光标行正行内容；</div><div class="line">ndd：删除当前行及其后n-1行； nyy：将当前行及其下n行的内容保存到寄存器？中，其中？为一个字母，n为一个数字；</div><div class="line">p：粘贴文本操作，用于将缓存区的内容粘贴到当前光标所在位置的下方；</div><div class="line">P：粘贴文本操作，用于将缓存区的内容粘贴到当前光标所在位置的上方；</div><div class="line">/字符串：文本查找操作，用于从当前光标所在位置开始向文件尾部查找指定字符串的内容，查找的字符串会被加亮显示； </div><div class="line">？name：文本查找操作，用于从当前光标所在位置开始向文件头部查找指定字符串的内容，查找的字符串会被加亮显示； </div><div class="line">a，bs/F/T：替换文本操作，用于在第a行到第b行之间，将F字符串换成T字符串。其中，“s/”表示进行替换操作；</div><div class="line">a：在当前字符后添加文本；</div><div class="line">A：在行末添加文本；</div><div class="line">i：在当前字符前插入文本；</div><div class="line">I：在行首插入文本；</div><div class="line">o：在当前行后面插入一空行；</div><div class="line">O：在当前行前面插入一空行；</div><div class="line">:wq：在命令模式下，执行存盘退出操作； </div><div class="line">:w：在命令模式下，执行存盘操作；</div><div class="line">:w！：在命令模式下，执行强制存盘操作； </div><div class="line">:q：在命令模式下，执行退出vi操作；</div><div class="line">:q！：在命令模式下，执行强制退出vi操作； </div><div class="line">:e文件名：在命令模式下，打开并编辑指定名称的文件；</div><div class="line">:n：在命令模式下，如果同时打开多个文件，则继续编辑下一个文件；</div><div class="line">:f：在命令模式下，用于显示当前的文件名、光标所在行的行号以及显示比例； </div><div class="line">:set number：在命令模式下，用于在最左端显示行号； </div><div class="line">:set nonumber：在命令模式下，用于在最左端不显示行号；</div></pre></td></tr></table></figure>
+        <h2 id="web-xml"><a href="#web-xml" class="headerlink" title="web.xml"></a>web.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;listener&gt;</div><div class="line">    &lt;listener-class&gt;</div><div class="line">      org.springframework.security.web.session.HttpSessionEventPublisher</div><div class="line">    &lt;/listener-class&gt;</div><div class="line">&lt;/listener&gt;</div></pre></td></tr></table></figure>
+<h2 id="security-xml"><a href="#security-xml" class="headerlink" title="security.xml"></a>security.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;http&gt;</div><div class="line">    &lt;session-management &gt;</div><div class="line">    	&lt;concurrency-control max-sessions=&quot;1&quot; session-registry-ref=&quot;sessionRegistry&quot;</div><div class="line">    	expired-url=&quot;/admin/none/session_expired.jsp&quot; /&gt; </div><div class="line">    &lt;/session-management&gt;</div><div class="line">&lt;/http&gt;</div><div class="line"></div><div class="line">&lt;beans:bean id=&quot;sessionRegistry&quot; class=&quot;org.springframework.security.core.session.SessionRegistryImpl&quot; /&gt;</div></pre></td></tr></table></figure>
+<h2 id="java中使用"><a href="#java中使用" class="headerlink" title="java中使用"></a>java中使用</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sessionRegistry.getAllPrincipals()</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -293,7 +558,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/vi命令/" data-id="cj6rbmiso000clhblxk14h5xd" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Security/获取所有登录用户/" data-id="cj6vztsdd0072oablf26i7ly5" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -351,121 +616,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/加密解密／编码解码/Base64编码三种方式/" data-id="cj6rbmiv30024lhblatyl6g8c" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Maven/Maven把自己的包部署到远程仓库" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/Maven把自己的包部署到远程仓库/">Maven把自己的包部署到远程仓库</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Maven/Maven把自己的包部署到远程仓库/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="1-配置项目的POM文件"><a href="#1-配置项目的POM文件" class="headerlink" title="1.配置项目的POM文件"></a>1.配置项目的POM文件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;dependencyManagement&gt;</div><div class="line">    &lt;/dependencies&gt;</div><div class="line">        &lt;/dependency&gt;</div><div class="line"></div><div class="line">                ......</div><div class="line"></div><div class="line">        &lt;/dependency&gt;</div><div class="line">    &lt;/dependencies&gt;</div><div class="line">&lt;/dependencyManagement&gt;</div><div class="line">    &lt;repository&gt;</div><div class="line">        &lt;id&gt;nexus-snapshots&lt;/id&gt;</div><div class="line">        &lt;url&gt;http://192.168.1.232:8080/content/repositories/releases&lt;/url&gt;</div><div class="line">    &lt;/repository&gt;</div><div class="line">    &lt;snapshotRepository&gt;</div><div class="line">        &lt;id&gt;nexus-releases&lt;/id&gt;</div><div class="line">        &lt;url&gt;http://192.168.1.232:8080/content/repositories/snapshots&lt;/url&gt;</div><div class="line">    &lt;/snapshotRepository&gt;</div><div class="line">&lt;/distributionManagement&gt;</div></pre></td></tr></table></figure>
-<h3 id="2-运行maven命令"><a href="#2-运行maven命令" class="headerlink" title="2.运行maven命令"></a>2.运行maven命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn clean deploy</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/Maven把自己的包部署到远程仓库/" data-id="cj6rbmisq000flhblia9pttz1" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/加密解密／编码解码/StandardPasswordEncoder" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/加密解密／编码解码/StandardPasswordEncoder/">StandardPasswordEncoder</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/加密解密／编码解码/StandardPasswordEncoder/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="Spring-Security-3-1-中功能强大的加密工具-PasswordEncoder"><a href="#Spring-Security-3-1-中功能强大的加密工具-PasswordEncoder" class="headerlink" title="Spring Security 3.1 中功能强大的加密工具 PasswordEncoder"></a>Spring Security 3.1 中功能强大的加密工具 PasswordEncoder</h2><p>Spring-Security 3.1.0 版本之后，Spring-security-crypto模块中的password包提供了更给力的加密密码的支持，这个包中也有PasswordEncoder接口，接口定义如下。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Public <span class="class"><span class="keyword">interface</span> <span class="title">PasswordEncoder</span></span>&#123;  </div><div class="line">  <span class="function">String <span class="title">encode</span><span class="params">(String rawPassword)</span></span>;  </div><div class="line">  <span class="function">Boolean <span class="title">matches</span><span class="params">(String rawPassword,String encodedPassword)</span></span>;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>定义了两个方法，encode方法是对方法加密，而match方法是用来验证密码和加密后密码是否一致的，如果一致则返回true。和authentication.encoding包中的PasswordEncoder接口相比，简化了许多。  </p>
-<p>StandardPasswordEncoder类，是PasswordEncoder接口的(唯一)一个实现类，是本文所述加密方法的核心。它采用SHA-256算法，迭代1024次，使用一个密钥(site-wide secret)以及8位随机盐对原密码进行加密。    </p>
-<p>随机盐确保相同的密码使用多次时，产生的哈希都不同； 密钥应该与密码区别开来存放，加密时使用一个密钥即可；对hash算法迭代执行1024次增强了安全性，使暴力破解变得更困难些。    </p>
-<p>和上一个版本的PasswordEncoder比较，好处显而易见：盐值不用用户提供，每次随机生成；多重加密————迭代SHA算法+密钥+随机盐来对密码加密，大大增加密码破解难度。 </p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> com.lhc.utils;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.springframework.security.crypto.password.PasswordEncoder;</div><div class="line"><span class="keyword">import</span> org.springframework.security.crypto.password.StandardPasswordEncoder;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> *  密码处理工具</div><div class="line"> * <span class="doctag">@author</span> chenliqiang</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EncryptUtil</span> </span>&#123;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String SITE_WIDE_SECRET = <span class="string">"clq"</span>;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> PasswordEncoder encoder = <span class="keyword">new</span> StandardPasswordEncoder(SITE_WIDE_SECRET);</div><div class="line"></div><div class="line">	<span class="comment">/**</span></div><div class="line">	 * 加密</div><div class="line">	 * <span class="doctag">@param</span> rawPassword</div><div class="line">	 * <span class="doctag">@return</span></div><div class="line">	 */</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">encrypt</span><span class="params">(String rawPassword)</span> </span>&#123;</div><div class="line">		<span class="keyword">return</span> encoder.encode(rawPassword);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">/**</span></div><div class="line">	 *  校验密码是否匹配</div><div class="line">	 * <span class="doctag">@param</span> rawPassword 原始密码</div><div class="line">	 * <span class="doctag">@param</span> password 加密后的密码</div><div class="line">	 * <span class="doctag">@return</span></div><div class="line">	 */</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">match</span><span class="params">(String rawPassword, String password)</span> </span>&#123;</div><div class="line">		<span class="keyword">return</span> encoder.matches(rawPassword, password);</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">		String s = <span class="string">"每次结果都不一样伐?"</span>;</div><div class="line">		String s1 = EncryptUtil.encrypt(s);</div><div class="line">		String s2 = EncryptUtil.encrypt(s);</div><div class="line">        System.out.println(s1);  </div><div class="line">        System.out.println(s2);  </div><div class="line">        System.out.println(match(s, s2));  </div><div class="line">        <span class="comment">//但是把每次结果拿出来进行match，你会发现可以得到true。  </span></div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/加密解密／编码解码/StandardPasswordEncoder/" data-id="cj6rbmiv70027lhblecwxa6lp" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/加密解密／编码解码/Base64编码三种方式/" data-id="cj6vztsaz0027oabl5xpnpzm9" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -524,7 +675,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/dependency下的scope含义/" data-id="cj6rbmisr000hlhblkc5pnqkv" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/dependency下的scope含义/" data-id="cj6vzts8z000ioabl64lafj2i" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -589,7 +740,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/maven 引入外部jar包的几种方式/" data-id="cj6rbmisu000klhblqflci9n6" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/maven 引入外部jar包的几种方式/" data-id="cj6vzts90000loablzqdl75ma" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -603,13 +754,13 @@
 
 
   
-    <article id="post-Maven/pom.xml结构之build" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/加密解密／编码解码/StandardPasswordEncoder" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Maven/pom.xml结构之build/">pom.xml结构之build</a>
+      <a class="article-title" href="/2017/07/19/Java/加密解密／编码解码/StandardPasswordEncoder/">StandardPasswordEncoder</a>
     </h1>
   
 
@@ -618,13 +769,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Maven/pom.xml结构之build/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Java/加密解密／编码解码/StandardPasswordEncoder/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Maven/">Maven</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a>
   </div>
 
 
@@ -633,95 +784,12 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="在Maven的pom-xml文件中，Build相关配置包含两个部分，一个是，另一个是，这里我们只介绍"><a href="#在Maven的pom-xml文件中，Build相关配置包含两个部分，一个是，另一个是，这里我们只介绍" class="headerlink" title="在Maven的pom.xml文件中，Build相关配置包含两个部分，一个是，另一个是，这里我们只介绍"></a>在Maven的pom.xml文件中，Build相关配置包含两个部分，一个是<build>，另一个是<reporting>，这里我们只介绍<build></build></reporting></build></h2><ol>
-<li>在Maven的pom.xml文件中，存在如下两种<build>：<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">"http://maven.apache.org/POM/4.0.0"</span>  </span></div><div class="line">  <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span>  </div><div class="line">  <span class="attr">xsi:schemaLocation</span>=<span class="string">"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"</span>&gt;  </div><div class="line">  ...  </div><div class="line">  <span class="comment">&lt;!-- "Project Build" contains elements of the BaseBuild set and the Build set--&gt;</span>  </div><div class="line">  <span class="tag">&lt;<span class="name">build</span>&gt;</span>...<span class="tag">&lt;/<span class="name">build</span>&gt;</span>  </div><div class="line">   </div><div class="line">  <span class="tag">&lt;<span class="name">profiles</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">profile</span>&gt;</span>  </div><div class="line">      <span class="comment">&lt;!-- "Profile Build" contains elements of the BaseBuild set only --&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">build</span>&gt;</span>...<span class="tag">&lt;/<span class="name">build</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;/<span class="name">profile</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;/<span class="name">profiles</span>&gt;</span>  </div><div class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></div></pre></td></tr></table></figure>
-</build></li>
-</ol>
-<p>说明：<br>一种<build>被称为Project Build，即是<project>的直接子元素。另一种<build>被称为Profile Build，即是<profile>的直接子元素。</profile></build></project></build></p>
-<p>Profile Build包含了基本的build元素，而Project Build还包含两个特殊的元素，即各种&lt;…Directory&gt;和<extensions>。</extensions></p>
-<ol>
-<li>Profile Build和Project Build共用的基本build元素</li>
-</ol>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;<span class="name">defaultGoal</span>&gt;</span>install<span class="tag">&lt;/<span class="name">defaultGoal</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;<span class="name">directory</span>&gt;</span>$&#123;basedir&#125;/target<span class="tag">&lt;/<span class="name">directory</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;<span class="name">finalName</span>&gt;</span>$&#123;artifactId&#125;-$&#123;version&#125;<span class="tag">&lt;/<span class="name">finalName</span>&gt;</span>  </div><div class="line">  ...  </div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure>
-<p>说明：</p>
-<ul>
-<li>defaultGoal，执行构建时默认的goal或phase，如jar:jar或者package等</li>
-<li>directory，构建的结果所在的路径，默认为${basedir}/target目录</li>
-<li>finalName，构建的最终结果的名字，该名字可能在其他plugin中被改变</li>
-</ul>
-<p>2) <resources><br>资源往往不是代码，无需编译，而是一些properties或XML配置文件，构建过程中会往往会将资源文件从源路径复制到指定的目标路径。</resources></p>
-<p><resources>给出各个资源在Maven项目中的具体路径。示例如下：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span>  </div><div class="line">  ...  </div><div class="line">  <span class="tag">&lt;<span class="name">filters</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">filter</span>&gt;</span>filters/filter1.properties<span class="tag">&lt;/<span class="name">filter</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;/<span class="name">filters</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;<span class="name">resources</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">resource</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">targetPath</span>&gt;</span>META-INF/plexus<span class="tag">&lt;/<span class="name">targetPath</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">filtering</span>&gt;</span>false<span class="tag">&lt;/<span class="name">filtering</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">directory</span>&gt;</span>$&#123;basedir&#125;/src/main/plexus<span class="tag">&lt;/<span class="name">directory</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">includes</span>&gt;</span>  </div><div class="line">        <span class="tag">&lt;<span class="name">include</span>&gt;</span>configuration.xml<span class="tag">&lt;/<span class="name">include</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;/<span class="name">includes</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">excludes</span>&gt;</span>  </div><div class="line">        <span class="tag">&lt;<span class="name">exclude</span>&gt;</span>**/*.properties<span class="tag">&lt;/<span class="name">exclude</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;/<span class="name">excludes</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;/<span class="name">resource</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;/<span class="name">resources</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;<span class="name">testResources</span>&gt;</span>  </div><div class="line">    ...  </div><div class="line">  <span class="tag">&lt;/<span class="name">testResources</span>&gt;</span>  </div><div class="line">  ...  </div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure></resources></p>
-<p>说明：  </p>
-<ul>
-<li>resources，build过程中涉及的资源文件  </li>
-<li><ul>
-<li>targetPath，资源文件的目标路径</li>
-</ul>
-</li>
-<li><ul>
-<li>filtering，构建过程中是否对资源进行过滤，默认false</li>
-</ul>
-</li>
-<li><ul>
-<li>directory，资源文件的路径，默认位于${basedir}/src/main/resources/目录下</li>
-</ul>
-</li>
-<li><ul>
-<li>includes，一组文件名的匹配模式，被匹配的资源文件将被构建过程处理</li>
-</ul>
-</li>
-<li><ul>
-<li>excludes，一组文件名的匹配模式，被匹配的资源文件将被构建过程忽略。同时被includes和excludes匹配的资源文件，将被忽略。</li>
-</ul>
-</li>
-<li>filters，给出对资源文件进行过滤的属性文件的路径，默认位于${basedir}/src/main/filters/目录下。属性文件中定义若干键值对。在构建过程中，对于资源文件中出现的变量（键），将使用属性文件中该键对应的值替换。</li>
-<li>testResources，test过程中涉及的资源文件，默认位于${basedir}/src/test/resources/目录下。这里的资源文件不会被构建到目标构件中</li>
-</ul>
-<p>3) <plugins><br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span>  </div><div class="line">  ...  </div><div class="line">  <span class="tag">&lt;<span class="name">plugins</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">plugin</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-jar-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.6<span class="tag">&lt;/<span class="name">version</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">extensions</span>&gt;</span>false<span class="tag">&lt;/<span class="name">extensions</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">inherited</span>&gt;</span>true<span class="tag">&lt;/<span class="name">inherited</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">configuration</span>&gt;</span>  </div><div class="line">        <span class="tag">&lt;<span class="name">classifier</span>&gt;</span>test<span class="tag">&lt;/<span class="name">classifier</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span>...<span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">executions</span>&gt;</span>...<span class="tag">&lt;/<span class="name">executions</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span>  </div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure></plugins></p>
-<p>说明：  </p>
-<ul>
-<li>groupId</li>
-<li>artifactId</li>
-<li>version</li>
-<li>extensions，是否加载该插件的扩展，默认false</li>
-<li>inherited，该插件的configuration中的配置是否可以被（继承该POM的其他Maven项目）继承，默认true</li>
-<li>configuration，该插件所需要的特殊配置，在父子项目之间可以覆盖或合并</li>
-<li>dependencies，该插件所特有的依赖类库</li>
-<li>executions，该插件的某个goal（一个插件中可能包含多个goal）的执行方式。一个execution有如下设置：</li>
-<li><ul>
-<li>id，唯一标识</li>
-</ul>
-</li>
-<li><ul>
-<li>goals，要执行的插件的goal（可以有多个），如<goal>run</goal></li>
-</ul>
-</li>
-<li><ul>
-<li>，插件的goal要嵌入到Maven的phase中执行，如verify</li>
-</ul>
-</li>
-<li><ul>
-<li>inherited，该execution是否可被子项目继承</li>
-</ul>
-</li>
-<li><ul>
-<li>configuration，该execution的其他配置参数</li>
-</ul>
-</li>
-</ul>
-<p>4) <pluginmanagement><br>在<build>中，<pluginmanagement>与<plugins>并列，两者之间的关系类似于<dependencymanagement>与<dependencies>之间的关系。<pluginmanagement>中也配置<plugin>，其配置参数与<plugins>中的<plugin>完全一致。只是，<pluginmanagement>往往出现在父项目中，其中配置的<plugin>往往通用于子项目。子项目中只要在<plugins>中以<plugin>声明该插件，该插件的具体配置参数则继承自父项目中<pluginmanagement>对该插件的配置，从而避免在子项目中进行重复配置。</pluginmanagement></plugin></plugins></plugin></pluginmanagement></plugin></plugins></plugin></pluginmanagement></dependencies></dependencymanagement></plugins></pluginmanagement></build></pluginmanagement></p>
-<ol>
-<li>Project Build特有的&lt;…Directory&gt;<br>往往配置在父项目中，供所有父子项目使用。示例如下：<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">sourceDirectory</span>&gt;</span>$&#123;basedir&#125;/src/main/java<span class="tag">&lt;/<span class="name">sourceDirectory</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">scriptSourceDirectory</span>&gt;</span>$&#123;basedir&#125;/src/main/scripts<span class="tag">&lt;/<span class="name">scriptSourceDirectory</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">testSourceDirectory</span>&gt;</span>$&#123;basedir&#125;/src/test/java<span class="tag">&lt;/<span class="name">testSourceDirectory</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">outputDirectory</span>&gt;</span>$&#123;basedir&#125;/target/classes<span class="tag">&lt;/<span class="name">outputDirectory</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">testOutputDirectory</span>&gt;</span>$&#123;basedir&#125;/target/test-classes<span class="tag">&lt;/<span class="name">testOutputDirectory</span>&gt;</span>  </div><div class="line">    ...  </div><div class="line">  <span class="tag">&lt;/<span class="name">build</span>&gt;</span>  </div><div class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></div></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>目录可以使用绝对路径，如示例所示。如果使用相对路径，则所有的相对路径都是在${basedir}目录下。</p>
-<ol>
-<li>Project Build特有的<extensions><br><extensions>是执行构建过程中可能用到的其他工具，在执行构建的过程中被加入到classpath中。</extensions></extensions></li>
-</ol>
-<p>也可以通过<extensions>激活构建插件，从而改变构建的过程。</extensions></p>
-<p>通常，通过<extensions>给出通用插件的一个具体实现，用于构建过程。</extensions></p>
-<p><extensions>的使用示例如下：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span>  </div><div class="line">  ...  </div><div class="line">  <span class="tag">&lt;<span class="name">extensions</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">extension</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.wagon<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>wagon-ftp<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>  </div><div class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0-alpha-3<span class="tag">&lt;/<span class="name">version</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;/<span class="name">extension</span>&gt;</span>  </div><div class="line">  <span class="tag">&lt;/<span class="name">extensions</span>&gt;</span>  </div><div class="line">  ...  </div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure></extensions></p>
-
+        <h2 id="Spring-Security-3-1-中功能强大的加密工具-PasswordEncoder"><a href="#Spring-Security-3-1-中功能强大的加密工具-PasswordEncoder" class="headerlink" title="Spring Security 3.1 中功能强大的加密工具 PasswordEncoder"></a>Spring Security 3.1 中功能强大的加密工具 PasswordEncoder</h2><p>Spring-Security 3.1.0 版本之后，Spring-security-crypto模块中的password包提供了更给力的加密密码的支持，这个包中也有PasswordEncoder接口，接口定义如下。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Public <span class="class"><span class="keyword">interface</span> <span class="title">PasswordEncoder</span></span>&#123;  </div><div class="line">  <span class="function">String <span class="title">encode</span><span class="params">(String rawPassword)</span></span>;  </div><div class="line">  <span class="function">Boolean <span class="title">matches</span><span class="params">(String rawPassword,String encodedPassword)</span></span>;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>定义了两个方法，encode方法是对方法加密，而match方法是用来验证密码和加密后密码是否一致的，如果一致则返回true。和authentication.encoding包中的PasswordEncoder接口相比，简化了许多。  </p>
+<p>StandardPasswordEncoder类，是PasswordEncoder接口的(唯一)一个实现类，是本文所述加密方法的核心。它采用SHA-256算法，迭代1024次，使用一个密钥(site-wide secret)以及8位随机盐对原密码进行加密。    </p>
+<p>随机盐确保相同的密码使用多次时，产生的哈希都不同； 密钥应该与密码区别开来存放，加密时使用一个密钥即可；对hash算法迭代执行1024次增强了安全性，使暴力破解变得更困难些。    </p>
+<p>和上一个版本的PasswordEncoder比较，好处显而易见：盐值不用用户提供，每次随机生成；多重加密————迭代SHA算法+密钥+随机盐来对密码加密，大大增加密码破解难度。 </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> com.lhc.utils;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.springframework.security.crypto.password.PasswordEncoder;</div><div class="line"><span class="keyword">import</span> org.springframework.security.crypto.password.StandardPasswordEncoder;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> *  密码处理工具</div><div class="line"> * <span class="doctag">@author</span> chenliqiang</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EncryptUtil</span> </span>&#123;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String SITE_WIDE_SECRET = <span class="string">"clq"</span>;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> PasswordEncoder encoder = <span class="keyword">new</span> StandardPasswordEncoder(SITE_WIDE_SECRET);</div><div class="line"></div><div class="line">	<span class="comment">/**</span></div><div class="line">	 * 加密</div><div class="line">	 * <span class="doctag">@param</span> rawPassword</div><div class="line">	 * <span class="doctag">@return</span></div><div class="line">	 */</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">encrypt</span><span class="params">(String rawPassword)</span> </span>&#123;</div><div class="line">		<span class="keyword">return</span> encoder.encode(rawPassword);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">/**</span></div><div class="line">	 *  校验密码是否匹配</div><div class="line">	 * <span class="doctag">@param</span> rawPassword 原始密码</div><div class="line">	 * <span class="doctag">@param</span> password 加密后的密码</div><div class="line">	 * <span class="doctag">@return</span></div><div class="line">	 */</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">match</span><span class="params">(String rawPassword, String password)</span> </span>&#123;</div><div class="line">		<span class="keyword">return</span> encoder.matches(rawPassword, password);</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">		String s = <span class="string">"每次结果都不一样伐?"</span>;</div><div class="line">		String s1 = EncryptUtil.encrypt(s);</div><div class="line">		String s2 = EncryptUtil.encrypt(s);</div><div class="line">        System.out.println(s1);  </div><div class="line">        System.out.println(s2);  </div><div class="line">        System.out.println(match(s, s2));  </div><div class="line">        <span class="comment">//但是把每次结果拿出来进行match，你会发现可以得到true。  </span></div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -731,7 +799,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Maven/pom.xml结构之build/" data-id="cj6rbmisw000mlhbl6m8e05ye" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/加密解密／编码解码/StandardPasswordEncoder/" data-id="cj6vztsb2002boablft0tpq5y" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -748,7 +816,7 @@
 
 
   <div id="page-nav">
-    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/10/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/9/">9</a></li><li><a class="page-number" href="/page/10/">10</a></li><li class="active"><span class="page-number">11</span></li><li><a class="page-number" href="/page/12/">12</a></li><li><a class="page-number" href="/page/13/">13</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/18/">18</a></li><li><a class="page-next" rel="next" href="/page/12/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
+    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/10/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/9/">9</a></li><li><a class="page-number" href="/page/10/">10</a></li><li class="active"><span class="page-number">11</span></li><li><a class="page-number" href="/page/12/">12</a></li><li><a class="page-number" href="/page/13/">13</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/19/">19</a></li><li><a class="page-next" rel="next" href="/page/12/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
   </div>
 
 
@@ -766,7 +834,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">63</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">11</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">67</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">15</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
   </div>
 
 
@@ -779,7 +847,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">56</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">60</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
   </div>
 
 
@@ -790,23 +858,23 @@
     <ul class="sidebar-module-list">
       
         <li>
+          <a href="/2017/08/28/Java/基础/java三大特性/">java三大特性</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/28/Java/基础/Filter过滤器/">Filter过滤器</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/27/Java/基础/泛型/">泛型</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/27/Java/基础/面向对象7大原则/">面向对象7大原则</a>
+        </li>
+      
+        <li>
           <a href="/2017/08/16/Java/基础/java动态代理/">java动态代理</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/16/Java/基础/重载与重写/">重载与重写</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置七：缓存UserDetails/">配置七：缓存UserDetails</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置十二：Remember-Me功能/">配置十二：Remember-Me功能</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置十五：权限鉴定结构/">配置十五：权限鉴定结构</a>
         </li>
       
     </ul>

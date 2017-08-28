@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-数据库相关/mysql/锁机制" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-数据库相关/mysql/乐观锁和悲观锁" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/锁机制/">锁机制</a>
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/">乐观锁和悲观锁</a>
     </h1>
   
 
@@ -95,7 +95,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/锁机制/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
 </div>
 
     
@@ -110,21 +110,23 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>MySQL有三种锁的级别：</p>
-<ul>
-<li>页级</li>
-<li>表级</li>
-<li>行级。</li>
-</ul>
-<p>MyISAM和MEMORY存储引擎采用的是表级锁（table-level locking）； </p>
-<p>BDB存储引擎采用的是页面锁（page-level locking），但也支持表级锁；</p>
-<p>InnoDB存储引擎既支持行级锁（row-level locking），也支持表级锁，但默认情况下是采用行级锁。</p>
-<p>MySQL这3种锁的特性可大致归纳如下：</p>
-<ul>
-<li>表级锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。</li>
-<li>行级锁：开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低,并发度也最高。</li>
-<li>页面锁：开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。</li>
-</ul>
+        <h3 id="锁（-locking-）"><a href="#锁（-locking-）" class="headerlink" title="锁（ locking ）"></a>锁（ locking ）</h3><p>业务逻辑的实现过程中，往往需要保证数据访问的排他性。如在金融系统的日终结算<br>处理中，我们希望针对某个 cut-off 时间点的数据进行处理，而不希望在结算进行过程中<br>（可能是几秒种，也可能是几个小时），数据再发生变化。此时，我们就需要通过一些机<br>制来保证这些数据在某个操作过程中不会被外界修改，这样的机制，在这里，也就是所谓<br>的 “ 锁 ” ，即给我们选定的目标数据上锁，使其无法被其他程序修改。</p>
+<p>Hibernate 支持两种锁机制：即通常所说的 “ 悲观锁（ Pessimistic Locking ） ”<br>和 “ 乐观锁（ Optimistic Locking ） ” 。</p>
+<h3 id="悲观锁（-Pessimistic-Locking-）"><a href="#悲观锁（-Pessimistic-Locking-）" class="headerlink" title="悲观锁（ Pessimistic Locking ）"></a>悲观锁（ Pessimistic Locking ）</h3><p>悲观锁，正如其名，它指的是对数据被外界（包括本系统当前的其他事务，以及来自<br>外部系统的事务处理）修改持保守态度，因此，在整个数据处理过程中，将数据处于锁定<br>状态。悲观锁的实现，往往依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能<br>真正保证数据访问的排他性，否则，即使在本系统中实现了加锁机制，也无法保证外部系<br>统不会修改数据）。</p>
+<p>一个典型的倚赖数据库的悲观锁调用：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">select * from account where name=”Erica” for update</div></pre></td></tr></table></figure></p>
+<p>这条 sql 语句锁定了 account 表中所有符合检索条件（ name=”Erica” ）的记录。<br>本次事务提交之前（事务提交时会释放事务过程中的锁），外界无法修改这些记录。<br>Hibernate 的悲观锁，也是基于数据库的锁机制实现。</p>
+<p>注意，只有在查询开始之前（也就是 Hiberate 生成 SQL 之前）设定加锁，才会<br>真正通过数据库的锁机制进行加锁处理，否则，数据已经通过不包含 for update<br>子句的 Select SQL 加载进来，所谓数据库加锁也就无从谈起。</p>
+<h3 id="乐观锁（-Optimistic-Locking-）"><a href="#乐观锁（-Optimistic-Locking-）" class="headerlink" title="乐观锁（ Optimistic Locking ）"></a>乐观锁（ Optimistic Locking ）</h3><p>相对悲观锁而言，乐观锁机制采取了更加宽松的加锁机制。悲观锁大多数情况下依<br>靠数据库的锁机制实现，以保证操作最大程度的独占性。但随之而来的就是数据库<br>性能的大量开销，特别是对长事务而言，这样的开销往往无法承受。<br>如一个金融系统，当某个操作员读取用户的数据，并在读出的用户数据的基础上进<br>行修改时（如更改用户帐户余额），如果采用悲观锁机制，也就意味着整个操作过<br>程中（从操作员读出数据、开始修改直至提交修改结果的全过程，甚至还包括操作<br>员中途去煮咖啡的时间），数据库记录始终处于加锁状态，可以想见，如果面对几<br>百上千个并发，这样的情况将导致怎样的后果。</p>
+<p>乐观锁机制在一定程度上解决了这个问题。乐观锁，大多是基于数据版本<br>（ Version ）记录机制实现。何谓数据版本？即为数据增加一个版本标识，在基于<br>数据库表的版本解决方案中，一般是通过为数据库表增加一个 “version” 字段来<br>实现。  </p>
+<p>读取出数据时，将此版本号一同读出，之后更新时，对此版本号加一。此时，将提<br>交数据的版本数据与数据库表对应记录的当前版本信息进行比对，如果提交的数据<br>版本号大于数据库表当前版本号，则予以更新，否则认为是过期数据。<br>对于上面修改用户帐户信息的例子而言，假设数据库中帐户信息表中有一个<br>version 字段，当前值为 1 ；而当前帐户余额字段（ balance ）为 $100 。     </p>
+<ol>
+<li>操作员 A 此时将其读出（ version=1 ），并从其帐户余额中扣除 $50<br>（ $100-$50 ）。</li>
+<li>在操作员 A 操作的过程中，操作员 B 也读入此用户信息（ version=1 ），并<br>从其帐户余额中扣除 $20 （ $100-$20 ）。</li>
+<li>操作员 A 完成了修改工作，将数据版本号加一（ version=2 ），连同帐户扣<br>除后余额（ balance=$50 ），提交至数据库更新，此时由于提交数据版本大<br>于数据库记录当前版本，数据被更新，数据库记录 version 更新为 2 。</li>
+<li>操作员 B 完成了操作，也将版本号加一（ version=2 ）试图向数据库提交数<br>据（ balance=$80 ），但此时比对数据库记录版本时发现，操作员 B 提交的<br>数据版本号为 2 ，数据库记录当前版本也为 2 ，不满足 “ 提交版本必须大于记<br>录当前版本才能执行更新 “ 的乐观锁策略，因此，操作员 B 的提交被驳回。<br>这样，就避免了操作员 B 用基于 version=1 的旧数据修改的结果覆盖操作<br>员 A 的操作结果的可能。 </li>
+</ol>
+<p>从上面的例子可以看出，乐观锁机制避免了长事务中的数据库加锁开销（操作员 A<br>和操作员 B 操作过程中，都没有对数据库数据加锁），大大提升了大并发量下的系<br>统整体性能表现。</p>
+<p>需要注意的是，乐观锁机制往往基于系统中的数据存储逻辑，因此也具备一定的局<br>限性，如在上例中，由于乐观锁机制是在我们的系统中实现，来自外部系统的用户<br>余额更新操作不受我们系统的控制，因此可能会造成脏数据被更新到数据库中。在<br>系统设计阶段，我们应该充分考虑到这些情况出现的可能性，并进行相应调整（如<br>将乐观锁策略在数据库存储过程中实现，对外只开放基于此存储过程的数据更新途<br>径，而不是将数据库表直接对外公开）。</p>
 
       
     </div>
@@ -135,7 +137,66 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/锁机制/" data-id="cj6rbmiz900ahlhblcx80yvu6" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/" data-id="cj6vztsf000aioablc5198w7h" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/分页时计算总页数的方法" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/">分页时计算总页数的方法</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>我们一般分页是这样来计算页码的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">int row=200; //记录总数     </div><div class="line">int page=5;//每页数量   </div><div class="line">int count = (row%5==0?row/page:row/page+1);</div></pre></td></tr></table></figure>
+<p>上面这种是用的最多的!</p>
+<p>那么下面我们来一种最简单的，不用任何判断！<br>看代码：    </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">int row=21;</div><div class="line">int pageCount=5;</div><div class="line">int sum=(row-1)/pageCount+1;//这样就计算好了页码数量，逢1进1</div><div class="line">System.out.println(sum);</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" data-id="cj6vztsf200aloabljjgvoi7d" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -198,7 +259,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/" data-id="cj6rbmiz900aklhbl8iabr439" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/" data-id="cj6vztsf400aqoablbbv0qo2a" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -212,13 +273,13 @@
 
 
   
-    <article id="post-数据库相关/mysql/分页时计算总页数的方法" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-数据库相关/mysql/存储过程" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/">分页时计算总页数的方法</a>
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/存储过程/">存储过程</a>
     </h1>
   
 
@@ -227,7 +288,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/07/29/数据库相关/mysql/存储过程/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
 </div>
 
     
@@ -242,11 +303,53 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>我们一般分页是这样来计算页码的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">int row=200; //记录总数     </div><div class="line">int page=5;//每页数量   </div><div class="line">int count = (row%5==0?row/page:row/page+1);</div></pre></td></tr></table></figure>
-<p>上面这种是用的最多的!</p>
-<p>那么下面我们来一种最简单的，不用任何判断！<br>看代码：    </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">int row=21;</div><div class="line">int pageCount=5;</div><div class="line">int sum=(row-1)/pageCount+1;//这样就计算好了页码数量，逢1进1</div><div class="line">System.out.println(sum);</div></pre></td></tr></table></figure>
+        <h3 id="那么存储过程与一般的SQL语句有什么区别呢"><a href="#那么存储过程与一般的SQL语句有什么区别呢" class="headerlink" title="那么存储过程与一般的SQL语句有什么区别呢?"></a>那么存储过程与一般的SQL语句有什么区别呢?</h3><h4 id="存储过程的优点："><a href="#存储过程的优点：" class="headerlink" title="存储过程的优点："></a>存储过程的优点：</h4><ol>
+<li>存储过程只在创造时进行编译，以后每次执行存储过程都不需再重新编译，而一般SQL语句每执行一次就编译一次,所以使用存储过程可提高数据库执行速度。</li>
+<li>当对数据库进行复杂操作时(如对多个表进行Update,Insert,Query,Delete时)，可将此复杂操作用存储过程封装起来与数据库提供的事务处理结合一起使用。</li>
+<li>存储过程可以重复使用,可减少数据库开发人员的工作量</li>
+<li>安全性高,可设定只有某此用户才具有对指定存储过程的使用权</li>
+</ol>
+<h4 id="存储过程的种类："><a href="#存储过程的种类：" class="headerlink" title="存储过程的种类："></a>存储过程的种类：</h4><ol>
+<li>系统存储过程：以sp_开头,用来进行系统的各项设定.取得信息.相关管理工作,<br>如 sp_help就是取得指定对象的相关信息</li>
+<li>扩展存储过程 以XP_开头,用来调用操作系统提供的功能<br>以下为引用的内容：<br>exec master..xp_cmdshell ‘ping 10.8.16.1’</li>
+<li>用户自定义的存储过程,这是我们所指的存储过程</li>
+</ol>
+<h4 id="常用格式"><a href="#常用格式" class="headerlink" title="常用格式"></a>常用格式</h4><p>以下为引用的内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">Create procedure procedue_name</div><div class="line">[@parameter data_type][output]</div><div class="line">[with]&#123;recompile|encryption&#125;</div><div class="line">as</div><div class="line">sql_statement</div></pre></td></tr></table></figure></p>
+<p>解释:<br>output：表示此参数是可传回的<br>with {recompile|encryption}<br>recompile:表示每次执行此存储过程时都重新编译一次<br>encryption:所创建的存储过程的内容会被加密   </p>
+<h3 id="存储过程的创建"><a href="#存储过程的创建" class="headerlink" title="存储过程的创建"></a>存储过程的创建</h3><p>实例1:查询表Book的内容的存储过程<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">create proc query_book</div><div class="line">as</div><div class="line">select * from book</div><div class="line">go</div><div class="line">exec query_book</div></pre></td></tr></table></figure></p>
+<p>实例2:加入一笔记录到表book,并查询此表中所有书籍的总金额<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">Create proc insert_book</div><div class="line">@param1 char(10),@param2 varchar(20),@param3 money,@param4 money output</div><div class="line">with encryption ---------加密</div><div class="line">as</div><div class="line">insert book(编号,书名，价格) Values(@param1,@param2,@param3)</div><div class="line">select @param4=sum(价格) from book</div><div class="line">go</div></pre></td></tr></table></figure></p>
+<h4 id="存储过程的3种传回值"><a href="#存储过程的3种传回值" class="headerlink" title="存储过程的3种传回值:"></a>存储过程的3种传回值:</h4><ol>
+<li>以Return传回整数</li>
+<li>以output格式传回参数</li>
+<li>Recordset</li>
+</ol>
+<h5 id="传回值的区别"><a href="#传回值的区别" class="headerlink" title="传回值的区别:"></a>传回值的区别:</h5><p>output和return都可在批次程式中用变量接收,而recordset则传回到执行批次的客户端中</p>
+<p>实例3：设有两个表为Product,Order,其表内容如下：<br>以下为引用的内容：<br>Product<br>| 产品编号 | 产品名称 | 客户订数 |<br>| —- | —- | —- |<br>| 001  | 钢笔   | 30   |<br>| 002  | 毛笔   | 50   |<br>| 003  | 铅笔   | 100  |</p>
+<p>order<br>| 产品编号 | 客户名  | 客户订金 |<br>| —- | —- | —- |<br>| 001  | 南山区  | $30  |<br>| 002  | 罗湖区  | $50  |<br>| 003  | 宝安区  | $4   |</p>
+<p>请实现按编号为连接条件,将两个表连接成一个临时表,该表只含编号.产品名.客户名.订金.总金额<br>总金额=订金*订数,临时表放在存储过程中<br>代码如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">Create proc temp_sale</div><div class="line">as</div><div class="line">select a.产品编号,a.产品名称,b.客户名,b.客户订金,a.客户订数* b.客户订金 as总金额</div><div class="line">into #temptable from Product a inner join order b on a.产品编号=b.产品编号</div><div class="line">if @@error=0</div><div class="line">print &apos;Good&apos;</div><div class="line">else</div><div class="line">print &apos;Fail&apos;</div><div class="line">go</div></pre></td></tr></table></figure></p>
+<h3 id="存储过程的调用"><a href="#存储过程的调用" class="headerlink" title="存储过程的调用"></a>存储过程的调用</h3><h4 id="调用带参数存储过程的几种方式"><a href="#调用带参数存储过程的几种方式" class="headerlink" title="调用带参数存储过程的几种方式"></a>调用带参数存储过程的几种方式</h4><ol>
+<li><p>这也是最简单的方法,两个输入参数，无返回值,用于Insert,Update,Delete操作较多。<br>以下为引用的内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">conn.Execute &quot;procname varvalue1,varvalue2&quot;</div></pre></td></tr></table></figure>
+</li>
+<li><p>如果要返回 Recordset 集:<br>以下为引用的内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">set rs = server.createobject(&quot;adodb.recordset&quot;)</div><div class="line">rs.Open &quot;Exec procname varvalue1, varvalue2&quot;,conn</div></pre></td></tr></table></figure>
+</li>
+<li><p>以上两种方法都不能有返回值，(Recordset除外)，如果要得到返回值，需要用Command的方法。</p>
+</li>
+</ol>
+<p>首先说明，返回值有两种。一种是在存储过程中直接return一个值，就象C和VB的函数返回值那样;另一种是可以返回多个值，存储这些值的变量名称需要在调用参数中先行指定。</p>
+<h3 id="触发器"><a href="#触发器" class="headerlink" title="触发器"></a>触发器</h3><h4 id="触发器的概念及作用"><a href="#触发器的概念及作用" class="headerlink" title="触发器的概念及作用"></a>触发器的概念及作用</h4><p>触发器是一种特殊类型的存储过程，它不同于我们前面介绍过的存储过程。触发器主要是通过事件进行触发而被执行的，而存储过程可以通过存储过程名字而被直接调用。当对某一表进行诸如Update、 Insert、 Delete 这些操作时，SQL Server 就会自动执行触发器所定义的SQL 语句，从而确保对数据的处理必须符合由这些SQL 语句所定义的规则。<br>触发器的主要作用就是其能够实现由主键和外键所不能保证的复杂的参照完整性和数据的一致性。除此之外，触发器还有其它许多不同的功能：</p>
+<ol>
+<li>强化约束(Enforce restriction)<br>触发器能够实现比CHECK 语句更为复杂的约束。</li>
+<li>跟踪变化Auditing changes<br>触发器可以侦测数据库内的操作，从而不允许数据库中未经许可的指定更新和变化。</li>
+<li>级联运行(Cascaded operation)。<br>触发器可以侦测数据库内的操作，并自动地级联影响整个数据库的各项内容。例如，某个表上的触发器中包含有对另外一个表的数据操作(如删除，更新，插入)而该操作又导致该表上触发器被触发。</li>
+<li>存储过程的调用(Stored procedure invocation)。    </li>
+</ol>
+<p>为了响应数据库更新，触发器可以调用一个或多个存储过程，甚至可以通过外部过程的调用而在DBMS( 数据库管理系统)本身之外进行操作。   </p>
+<p>由此可见，触发器可以解决高级形式的业务规则或复杂行为限制以及实现定制记录等一些方面的问题。例如，触发器能够找出某一表在数据修改前后状态发生的差异，并根据这种差异执行一定的处理。此外一个表的同一类型(Insert、 Update、 Delete)的多个触发器能够对同一种数据操作采取多种不同的处理。</p>
+<p>总体而言，触发器性能通常比较低。当运行触发器时，系统处理的大部分时间花费在参照其它表的这一处理上，因为这些表既不在内存中也不在数据库设备上，而删除表和插入表总是位于内存中。可见触发器所参照的其它表的位置决定了操作要花费的时间长短。    </p>
+<h4 id="触发器的种类"><a href="#触发器的种类" class="headerlink" title="触发器的种类"></a>触发器的种类</h4><p>SQL Server 2000 支持两种类型的触发器：AFTER 触发器和INSTEAD OF 触发器。其中AFTER 触发器即为SQL Server 2000 版本以前所介绍的触发器。该类型触发器要求只有执行某一操作(Insert Update Delete) 之后，触发器才被触发，且只能在表上定义。可以为针对表的同一操作定义多个触发器。对于AFTER 触发器，可以定义哪一个触发器被最先触发，哪一个被最后触发，通常使用系统过程sp_settriggerorder 来完成此任务。</p>
+<p>INSTEAD OF 触发器表示并不执行其所定义的操作(Insert、 Update、 Delete)，而仅是执行触发器本身。既可在表上定义INSTEAD OF 触发器，也可以在视图上定义INSTEAD OF 触发器，但对同一操作只能定义一个INSTEAD OF 触发器。</p>
 
       
     </div>
@@ -257,7 +360,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" data-id="cj6rbmiza00amlhbljk91ff1u" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/存储过程/" data-id="cj6vztsf600asoablasv64eop" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -271,13 +374,13 @@
 
 
   
-    <article id="post-数据库相关/mysql/not null 和 default" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-数据库相关/mysql/锁机制" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/not null 和 default/">not null 和 default</a>
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/锁机制/">锁机制</a>
     </h1>
   
 
@@ -286,7 +389,7 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/not null 和 default/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+  <a href="/2017/07/29/数据库相关/mysql/锁机制/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
 </div>
 
     
@@ -301,13 +404,21 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="没有设置default"><a href="#没有设置default" class="headerlink" title="没有设置default"></a>没有设置default</h3><ul>
-<li><p>当插入数据时，没有操作某一字段，并且该字段为null且没有defualt值时，mysql会自动出入null值；</p>
-</li>
-<li><p>当该字段为not null且没有defualt值时，会报错</p>
-</li>
+        <p>MySQL有三种锁的级别：</p>
+<ul>
+<li>页级</li>
+<li>表级</li>
+<li>行级。</li>
 </ul>
-<h3 id="有设置default"><a href="#有设置default" class="headerlink" title="有设置default"></a>有设置default</h3><p>若有设置default值并且插入数据时没有操作该字段，不管该字段是否设置not null 还是null，mysql统一设置default的值</p>
+<p>MyISAM和MEMORY存储引擎采用的是表级锁（table-level locking）； </p>
+<p>BDB存储引擎采用的是页面锁（page-level locking），但也支持表级锁；</p>
+<p>InnoDB存储引擎既支持行级锁（row-level locking），也支持表级锁，但默认情况下是采用行级锁。</p>
+<p>MySQL这3种锁的特性可大致归纳如下：</p>
+<ul>
+<li>表级锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。</li>
+<li>行级锁：开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低,并发度也最高。</li>
+<li>页面锁：开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。</li>
+</ul>
 
       
     </div>
@@ -318,7 +429,277 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/not null 和 default/" data-id="cj6rbmiz1009xlhbltxs6l4cg" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/锁机制/" data-id="cj6vztsf700avoabl10zyly24" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/数据库连接池介绍" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/数据库连接池介绍/">数据库连接池介绍</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/数据库连接池介绍/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="连接池的基本工作原理"><a href="#连接池的基本工作原理" class="headerlink" title="连接池的基本工作原理"></a>连接池的基本工作原理</h2><h3 id="基本概念及原理"><a href="#基本概念及原理" class="headerlink" title="基本概念及原理"></a>基本概念及原理</h3><p>由上面的分析可以看出，问题的根源就在于对数据库连接资源的低效管理。我们知道，对于共享资源，有一个很著名的设计模式：资源池 (Resource Pool)。该模式正是为了解决资源的频繁分配?释放所造成的问题。为解决上述问题，可以采用数据库连接池技术。数据库连接池的基本思想就是为数据库连接 建立一个“缓冲池”。预先在缓冲池中放入一定数量的连接，当需要建立数据库连接时，只需从“缓冲池”中取出一个，使用完毕之后再放回去。我们可以通过设定 连接池最大连接数来防止系统无尽的与数据库连接。更为重要的是我们可以通过连接池的管理机制监视数据库的连接的数量?使用情况，为系统开发?测试及性能调 整提供依据。    </p>
+<h3 id="服务器自带的连接池"><a href="#服务器自带的连接池" class="headerlink" title="服务器自带的连接池"></a>服务器自带的连接池</h3><p>JDBC的API中没有提供连接池的方法。一些大型的WEB应用服务器如BEA的WebLogic和IBM的WebSphere等提供了连接池的机制，但是必须有其第三方的专用类方法支持连接池的用法。    </p>
+<h2 id="连接池关键问题分析"><a href="#连接池关键问题分析" class="headerlink" title="连接池关键问题分析"></a>连接池关键问题分析</h2><h3 id="并发问题"><a href="#并发问题" class="headerlink" title="并发问题"></a>并发问题</h3><p>为了使连接管理服务具有最大的通用性，必须考虑多线程环境，即并发问题。这个问题相对比较好解决，因为Java语言自身提供了对并发管理的支 持，使用synchronized关键字即可确保线程是同步的。使用方法为直接在类方法前面加上synchronized关键字，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public synchronized Connection getConnection()</div></pre></td></tr></table></figure></p>
+<h3 id="多数据库服务器和多用户"><a href="#多数据库服务器和多用户" class="headerlink" title="多数据库服务器和多用户"></a>多数据库服务器和多用户</h3><p>对于大型的企业级应用，常常需要同时连接不同的数据库(如连接Oracle和Sybase)。如何连接不同的数据库呢?我们采用的策略是：设计 一个符合单例模式的连接池管理类，在连接池管理类的唯一实例被创建时读取一个资源文件，其中资源文件中存放着多个数据库的url地址()?用户名()?密 码()等信息。如 tx.url=172.21.15.123：5000/tx_it，tx.user=yang，tx.password=yang321。根据资源文件提 供的信息，创建多个连接池类的实例，每一个实例都是一个特定数据库的连接池。连接池管理类实例为每个连接池实例取一个名字，通过不同的名字来管理不同的连 接池。 </p>
+<p>对于同一个数据库有多个用户使用不同的名称和密码访问的情况，也可以通过资源文件处理，即在资源文件中设置多个具有相同url地址，但具有不同用户名和密码的数据库连接信息。  </p>
+<h3 id="事务处理"><a href="#事务处理" class="headerlink" title="事务处理"></a>事务处理</h3><p>我们知道，事务具有原子性，此时要求对数据库的操作符合“ALL-ALL-NOTHING”原则,即对于一组SQL语句要么全做，要么全不做。   </p>
+<p>在Java语言中，Connection类本身提供了对事务的支持，可以通过设置Connection的AutoCommit属性为 false,然后显式的调用commit或rollback方法来实现。但要高效的进行Connection复用，就必须提供相应的事务支持机制。可采用 每一个事务独占一个连接来实现，这种方法可以大大降低事务管理的复杂性。    </p>
+<h3 id="连接池的分配与释放"><a href="#连接池的分配与释放" class="headerlink" title="连接池的分配与释放"></a>连接池的分配与释放</h3><p>连接池的分配与释放，对系统的性能有很大的影响。合理的分配与释放，可以提高连接的复用度，从而降低建立新连接的开销，同时还可以加快用户的访问速度。  </p>
+<p>对于连接的管理可使用空闲池。即把已经创建但尚未分配出去的连接按创建时间存放到一个空闲池中。每当用户请求一个连接时，系统首先检查空闲池内 有没有空闲连接。如果有就把建立时间最长(通过容器的顺序存放实现)的那个连接分配给他(实际是先做连接是否有效的判断，如果可用就分配给用户，如不可用 就把这个连接从空闲池删掉，重新检测空闲池是否还有连接);如果没有则检查当前所开连接池是否达到连接池所允许的最大连接数(maxConn),如果没有 达到，就新建一个连接，如果已经达到，就等待一定的时间(timeout)。如果在等待的时间内有连接被释放出来就可以把这个连接分配给等待的用户，如果 等待时间超过预定时间timeout,则返回空值(null)。系统对已经分配出去正在使用的连接只做计数，当使用完后再返还给空闲池。对于空闲连接的状 态，可开辟专门的线程定时检测，这样会花费一定的系统开销，但可以保证较快的响应速度。也可采取不开辟专门线程，只是在分配前检测的方法。  </p>
+<h3 id="连接池的配置与维护"><a href="#连接池的配置与维护" class="headerlink" title="连接池的配置与维护"></a>连接池的配置与维护</h3><p>连接池中到底应该放置多少连接，才能使系统的性能最佳?系统可采取设置最小连接数(minConn)和最大连接数(maxConn)来控制连接 池中的连接。最小连接数是系统启动时连接池所创建的连接数。如果创建过多，则系统启动就慢，但创建后系统的响应速度会很快;如果创建过少，则系统启动的很 快，响应起来却慢。这样，可以在开发时，设置较小的最小连接数，开发起来会快，而在系统实际使用时设置较大的，因为这样对访问客户来说速度会快些。最大连 接数是连接池中允许连接的最大数目，具体设置多少，要看系统的访问量，可通过反复测试，找到最佳点。<br>​<br>如何确保连接池中的最小连接数呢?有动态和静态两种策略。动态即每隔一定时间就对连接池进行检测，如果发现连接数量小于最小连接数，则补充相应数量的新连接,以保证连接池的正常运转。静态是发现空闲连接不够时再去检查。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/数据库连接池介绍/" data-id="cj6vztsf800axoablvf28lh4i" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/事务的ACID特性和隔离级别" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/事务的ACID特性和隔离级别/">事务的ACID特性和隔离级别</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/事务的ACID特性和隔离级别/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>事务(Transaction)是并发控制的基本单位。所谓事务，它是一个操作序列，这些操作要么都执行，要么都不执行，它是一个不可分割的工作单位。例如，银行转帐工作：从一个帐号扣款并使另一个帐号增款，这两个操作要么都执行，要么都不执行。  </p>
+<h3 id="数据库事务必须具备ACID特性，ACID是Atomic（原子性）、Consistency（一致性）、Isolation（隔离性）和Durability（持久性）的英文缩写。"><a href="#数据库事务必须具备ACID特性，ACID是Atomic（原子性）、Consistency（一致性）、Isolation（隔离性）和Durability（持久性）的英文缩写。" class="headerlink" title="数据库事务必须具备ACID特性，ACID是Atomic（原子性）、Consistency（一致性）、Isolation（隔离性）和Durability（持久性）的英文缩写。"></a>数据库事务必须具备ACID特性，ACID是Atomic（原子性）、Consistency（一致性）、Isolation（隔离性）和Durability（持久性）的英文缩写。</h3><h4 id="原子性（Atomicity）"><a href="#原子性（Atomicity）" class="headerlink" title="原子性（Atomicity）"></a>原子性（Atomicity）</h4><p>一个事务(transaction)中的所有操作，要么全部完成，要么全部不完成，不会结束在中间某个环节。事务在执行过程中发生错误，会被回滚（Rollback）到事务开始前的状态，就像这个事务从来没有执行过一样。</p>
+<h4 id="一致性（Consistency）"><a href="#一致性（Consistency）" class="headerlink" title="一致性（Consistency）"></a>一致性（Consistency）</h4><p>事务的一致性指的是在一个事务执行之前和执行之后数据库都必须处于一致性状态。如果事务成功地完成，那么系统中所有变化将正确地应用，系统处于有效状态。如果在事务中出现错误，那么系统中的所有变化将自动地回滚，系统返回到原始状态。    </p>
+<h4 id="隔离性（Isolation）"><a href="#隔离性（Isolation）" class="headerlink" title="隔离性（Isolation）"></a>隔离性（Isolation）</h4><p>指的是在并发环境中，当不同的事务同时操纵相同的数据时，每个事务都有各自的完整数据空间。由并发事务所做的修改必须与任何其他并发事务所做的修改隔离。事务查看数据更新时，数据所处的状态要么是另一事务修改它之前的状态，要么是另一事务修改它之后的状态，事务不会查看到中间状态的数据。</p>
+<h4 id="持久性（Durability）"><a href="#持久性（Durability）" class="headerlink" title="持久性（Durability）"></a>持久性（Durability）</h4><p>指的是只要事务成功结束，它对数据库所做的更新就必须永久保存下来。即使发生系统崩溃，重新启动数据库系统后，数据库还能恢复到事务成功结束时的状态。</p>
+<p>事务的（ACID）特性是由关系数据库管理系统（RDBMS，数据库系统）来实现的。<strong>数据库管理系统采用日志来保证事务的原子性、一致性和持久性</strong>。日志记录了事务对数据库所做的更新，如果某个事务在执行过程中发生错误，就可以根据日志，撤销事务对数据库已做的更新，使数据库退回到执行事务前的初始状态。  </p>
+<p><strong>数据库管理系统采用锁机制来实现事务的隔离性</strong>。当多个事务同时更新数据库中相同的数据时，只允许持有锁的事务能更新该数据，其他事务必须等待，直到前一个事务释放了锁，其他事务才有机会更新该数据。  </p>
+<p>在关系型数据库中，事务的隔离性分为四个隔离级别，在解读这四个级别前先介绍几个关于读数据的概念。</p>
+<ol>
+<li><p>脏读（Dirty Reads）：所谓脏读就是对脏数据（Drity Data）的读取，而脏数据所指的就是未提交的数据。也就是说，一个事务正在对一条记录做修改，在这个事务完成并提交之前，这条数据是处于待定状态的（可能提交也可能回滚），这时，第二个事务来读取这条没有提交的数据，并据此做进一步的处理，就会产生未提交的数据依赖关系。这种现象被称为脏读。</p>
+</li>
+<li><p>不可重复读（Non-Repeatable Reads）：一个事务先后读取同一条记录，但两次读取的数据不同，我们称之为不可重复读。也就是说，这个事务在两次读取之间该数据被其它事务所修改。</p>
+</li>
+<li><p>幻读（Phantom Reads）：一个事务按相同的查询条件重新读取以前检索过的数据，却发现其他事务插入了满足其查询条件的新数据，这种现象就称为幻读。</p>
+</li>
+</ol>
+<h3 id="事务四个隔离级别对比"><a href="#事务四个隔离级别对比" class="headerlink" title="事务四个隔离级别对比"></a>事务四个隔离级别对比</h3><ol>
+<li><p>未提交读（Read Uncommitted）：SELECT语句以非锁定方式被执行，所以有可能读到脏数据，隔离级别最低。</p>
+</li>
+<li><p>提交读（Read Committed）：只能读取到已经提交的数据。即解决了脏读，但未解决不可重复读。</p>
+</li>
+<li><p>可重复读（Repeated Read）：在同一个事务内的查询都是事务开始时刻一致的，InnoDB的默认级别。在SQL标准中，该隔离级别消除了不可重复读，但是还存在幻读。</p>
+</li>
+<li><p>串行读（Serializable）：完全的串行化读，所有SELECT语句都被隐式的转换成SELECT … LOCK IN SHARE MODE，即读取使用表级共享锁，读写相互都会阻塞。隔离级别最高。</p>
+</li>
+</ol>
+<p>隔离级别对比表：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th>脏读</th>
+<th>可重复读</th>
+<th>幻读</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>未提交读</td>
+<td>✖️️</td>
+<td>✖️️</td>
+<td>✖️ ️️️</td>
+</tr>
+<tr>
+<td>提交读</td>
+<td>☑️</td>
+<td>✖️️</td>
+<td>️✖️️</td>
+</tr>
+<tr>
+<td>可重复读</td>
+<td>☑️</td>
+<td>☑️</td>
+<td>✖️</td>
+</tr>
+<tr>
+<td>串行读</td>
+<td>☑️</td>
+<td>☑️</td>
+<td>☑️  </td>
+</tr>
+</tbody>
+</table>
+<h4 id="事务隔离级别的设置"><a href="#事务隔离级别的设置" class="headerlink" title="事务隔离级别的设置"></a>事务隔离级别的设置</h4><p>服务启动选项–transaction-isolation或在配置文件中设置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">[mysqld]</div><div class="line">transaction-isolation = &#123;READ-UNCOMMITTED | READ-COMMITTED</div><div class="line"> | REPEATABLE-READ | SERIALIZABLE&#125;</div></pre></td></tr></table></figure></p>
+<p>2）服务启动后的设置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">SET [GLOBAL | SESSION] TRANSACTION ISOLATION LEVEL</div><div class="line">&#123; READ UNCOMMITTED | READ COMMITTED | REPEATABLE READ | SERIALIZABLE &#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/事务的ACID特性和隔离级别/" data-id="cj6vztsf300anoabl0v08k05m" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-数据库相关/mysql/启动和停止命令" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/启动和停止命令/">启动和停止命令</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/29/数据库相关/mysql/启动和停止命令/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><ol>
+<li><p>使用linux命令service 启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysqld start</div></pre></td></tr></table></figure>
+</li>
+<li><p>使用 mysqld 脚本启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/etc/inint.d/mysqld start</div></pre></td></tr></table></figure>
+</li>
+<li><p>使用 safe_mysqld 启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">safe_mysqld&amp;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="登录mysql后台"><a href="#登录mysql后台" class="headerlink" title="登录mysql后台"></a>登录mysql后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">格式： mysql -h主机地址 -u用户名 -p</div><div class="line"></div><div class="line">mysql -h110.110.110.110 -u root -p</div><div class="line"></div><div class="line">本地可以直接mysql –u root -p</div></pre></td></tr></table></figure>
+<h2 id="退出mysql后台"><a href="#退出mysql后台" class="headerlink" title="退出mysql后台"></a>退出mysql后台</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">quit</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><ol>
+<li><p>使用 service 启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysqld stop</div></pre></td></tr></table></figure>
+</li>
+<li><p>使用 mysqld 脚本启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/etc/inint.d/mysqld stop</div></pre></td></tr></table></figure>
+</li>
+<li><p>客户端退出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysqladmin shutdown</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="重启"><a href="#重启" class="headerlink" title="重启"></a>重启</h2><ol>
+<li><p>使用 service 启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysqld restart</div></pre></td></tr></table></figure>
+</li>
+<li><p>使用 mysqld 脚本启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/etc/inint.d/mysqld restart</div></pre></td></tr></table></figure>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/启动和停止命令/" data-id="cj6vztsez00agoablkojudq6p" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -448,7 +829,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql索引原理/" data-id="cj6rbmiz200a0lhblki1yrpon" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql索引原理/" data-id="cj6vztsey00adoablvof7p28p" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -624,361 +1005,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql存储引擎/" data-id="cj6rbmiz300a2lhblr3m5l91d" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-数据库相关/mysql/乐观锁和悲观锁" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/">乐观锁和悲观锁</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/" class="article-date"><time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="锁（-locking-）"><a href="#锁（-locking-）" class="headerlink" title="锁（ locking ）"></a>锁（ locking ）</h3><p>业务逻辑的实现过程中，往往需要保证数据访问的排他性。如在金融系统的日终结算<br>处理中，我们希望针对某个 cut-off 时间点的数据进行处理，而不希望在结算进行过程中<br>（可能是几秒种，也可能是几个小时），数据再发生变化。此时，我们就需要通过一些机<br>制来保证这些数据在某个操作过程中不会被外界修改，这样的机制，在这里，也就是所谓<br>的 “ 锁 ” ，即给我们选定的目标数据上锁，使其无法被其他程序修改。</p>
-<p>Hibernate 支持两种锁机制：即通常所说的 “ 悲观锁（ Pessimistic Locking ） ”<br>和 “ 乐观锁（ Optimistic Locking ） ” 。</p>
-<h3 id="悲观锁（-Pessimistic-Locking-）"><a href="#悲观锁（-Pessimistic-Locking-）" class="headerlink" title="悲观锁（ Pessimistic Locking ）"></a>悲观锁（ Pessimistic Locking ）</h3><p>悲观锁，正如其名，它指的是对数据被外界（包括本系统当前的其他事务，以及来自<br>外部系统的事务处理）修改持保守态度，因此，在整个数据处理过程中，将数据处于锁定<br>状态。悲观锁的实现，往往依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能<br>真正保证数据访问的排他性，否则，即使在本系统中实现了加锁机制，也无法保证外部系<br>统不会修改数据）。</p>
-<p>一个典型的倚赖数据库的悲观锁调用：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">select * from account where name=”Erica” for update</div></pre></td></tr></table></figure></p>
-<p>这条 sql 语句锁定了 account 表中所有符合检索条件（ name=”Erica” ）的记录。<br>本次事务提交之前（事务提交时会释放事务过程中的锁），外界无法修改这些记录。<br>Hibernate 的悲观锁，也是基于数据库的锁机制实现。</p>
-<p>注意，只有在查询开始之前（也就是 Hiberate 生成 SQL 之前）设定加锁，才会<br>真正通过数据库的锁机制进行加锁处理，否则，数据已经通过不包含 for update<br>子句的 Select SQL 加载进来，所谓数据库加锁也就无从谈起。</p>
-<h3 id="乐观锁（-Optimistic-Locking-）"><a href="#乐观锁（-Optimistic-Locking-）" class="headerlink" title="乐观锁（ Optimistic Locking ）"></a>乐观锁（ Optimistic Locking ）</h3><p>相对悲观锁而言，乐观锁机制采取了更加宽松的加锁机制。悲观锁大多数情况下依<br>靠数据库的锁机制实现，以保证操作最大程度的独占性。但随之而来的就是数据库<br>性能的大量开销，特别是对长事务而言，这样的开销往往无法承受。<br>如一个金融系统，当某个操作员读取用户的数据，并在读出的用户数据的基础上进<br>行修改时（如更改用户帐户余额），如果采用悲观锁机制，也就意味着整个操作过<br>程中（从操作员读出数据、开始修改直至提交修改结果的全过程，甚至还包括操作<br>员中途去煮咖啡的时间），数据库记录始终处于加锁状态，可以想见，如果面对几<br>百上千个并发，这样的情况将导致怎样的后果。</p>
-<p>乐观锁机制在一定程度上解决了这个问题。乐观锁，大多是基于数据版本<br>（ Version ）记录机制实现。何谓数据版本？即为数据增加一个版本标识，在基于<br>数据库表的版本解决方案中，一般是通过为数据库表增加一个 “version” 字段来<br>实现。  </p>
-<p>读取出数据时，将此版本号一同读出，之后更新时，对此版本号加一。此时，将提<br>交数据的版本数据与数据库表对应记录的当前版本信息进行比对，如果提交的数据<br>版本号大于数据库表当前版本号，则予以更新，否则认为是过期数据。<br>对于上面修改用户帐户信息的例子而言，假设数据库中帐户信息表中有一个<br>version 字段，当前值为 1 ；而当前帐户余额字段（ balance ）为 $100 。     </p>
-<ol>
-<li>操作员 A 此时将其读出（ version=1 ），并从其帐户余额中扣除 $50<br>（ $100-$50 ）。</li>
-<li>在操作员 A 操作的过程中，操作员 B 也读入此用户信息（ version=1 ），并<br>从其帐户余额中扣除 $20 （ $100-$20 ）。</li>
-<li>操作员 A 完成了修改工作，将数据版本号加一（ version=2 ），连同帐户扣<br>除后余额（ balance=$50 ），提交至数据库更新，此时由于提交数据版本大<br>于数据库记录当前版本，数据被更新，数据库记录 version 更新为 2 。</li>
-<li>操作员 B 完成了操作，也将版本号加一（ version=2 ）试图向数据库提交数<br>据（ balance=$80 ），但此时比对数据库记录版本时发现，操作员 B 提交的<br>数据版本号为 2 ，数据库记录当前版本也为 2 ，不满足 “ 提交版本必须大于记<br>录当前版本才能执行更新 “ 的乐观锁策略，因此，操作员 B 的提交被驳回。<br>这样，就避免了操作员 B 用基于 version=1 的旧数据修改的结果覆盖操作<br>员 A 的操作结果的可能。 </li>
-</ol>
-<p>从上面的例子可以看出，乐观锁机制避免了长事务中的数据库加锁开销（操作员 A<br>和操作员 B 操作过程中，都没有对数据库数据加锁），大大提升了大并发量下的系<br>统整体性能表现。</p>
-<p>需要注意的是，乐观锁机制往往基于系统中的数据存储逻辑，因此也具备一定的局<br>限性，如在上例中，由于乐观锁机制是在我们的系统中实现，来自外部系统的用户<br>余额更新操作不受我们系统的控制，因此可能会造成脏数据被更新到数据库中。在<br>系统设计阶段，我们应该充分考虑到这些情况出现的可能性，并进行相应调整（如<br>将乐观锁策略在数据库存储过程中实现，对外只开放基于此存储过程的数据更新途<br>径，而不是将数据库表直接对外公开）。</p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/乐观锁和悲观锁/" data-id="cj6rbmiz400a5lhbljfsezmdq" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/Spring Data Redis/配置" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/Spring Data Redis/配置/">配置</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/Spring Data Redis/配置/" class="article-date"><time datetime="2017-07-19T02:20:04.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-data-redis/">spring data redis</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="官方文档"><a href="#官方文档" class="headerlink" title="官方文档"></a>官方文档</h2><p><a href="http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/" target="_blank" rel="external">http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/</a></p>
-<h2 id="Maven依赖包"><a href="#Maven依赖包" class="headerlink" title="Maven依赖包"></a>Maven依赖包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;org.springframework.session&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;spring-session-data-redis&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;1.3.0.RELEASE&lt;/version&gt;</div><div class="line">    &lt;type&gt;pom&lt;/type&gt;</div><div class="line">&lt;/dependency&gt;</div><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;biz.paluch.redis&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;lettuce&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;3.5.0.Final&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;org.springframework&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;spring-web&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;4.3.4.RELEASE&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
-<h2 id="增加配置文件applicationContext-sdr-xml"><a href="#增加配置文件applicationContext-sdr-xml" class="headerlink" title="增加配置文件applicationContext-sdr.xml"></a>增加配置文件applicationContext-sdr.xml</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></div><div class="line">  <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></div><div class="line">  <span class="attr">xmlns:p</span>=<span class="string">"http://www.springframework.org/schema/p"</span></div><div class="line">  <span class="attr">xsi:schemaLocation</span>=<span class="string">"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"</span>&gt;</div><div class="line"></div><div class="line">  <span class="comment">&lt;!-- Spring data redis configuration  --&gt;</span></div><div class="line"></div><div class="line">  <span class="comment">&lt;!-- 方法1  --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"jedisConnectionFactory"</span> <span class="attr">class</span>=<span class="string">"org.springframework.data.redis.connection.jedis.JedisConnectionFactory"</span> </span></div><div class="line">  <span class="attr">p:host-name</span>=<span class="string">"127.0.0.1"</span> <span class="attr">p:port</span>=<span class="string">"6379"</span> /&gt;</div><div class="line">  </div><div class="line">  <span class="comment">&lt;!-- redis template definition --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"redisTemplate"</span> <span class="attr">class</span>=<span class="string">"org.springframework.data.redis.core.RedisTemplate"</span> </span></div><div class="line">  			 <span class="attr">p:connection-factory-ref</span>=<span class="string">"jedisConnectionFactory"</span>/&gt;</div><div class="line">  			 </div><div class="line">  <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"stringRedisTemplate"</span> <span class="attr">class</span>=<span class="string">"org.springframework.data.redis.core.StringRedisTemplate"</span> </span></div><div class="line">  			 <span class="attr">p:connection-factory-ref</span>=<span class="string">"jedisConnectionFactory"</span>/&gt;</div><div class="line">  </div><div class="line">  <span class="comment">&lt;!-- 方法2 --&gt;</span></div><div class="line">  <span class="comment">&lt;!-- &lt;bean id="lettuceConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory" </span></div><div class="line">  p:host-name="127.0.0.1" p:port="6379"/&gt; --&gt;</div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></div></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Spring Data Redis/配置/" data-id="cj6rbmixz007tlhblwr8sfy6z" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/JPA/JPA 2.0 锁机制" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/JPA/JPA 2.0 锁机制/">JPA 2.0 锁机制</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/JPA/JPA 2.0 锁机制/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>锁是处理数据库事务并发的一种技术，当两个或更多数据库事务并发地访问相同数据时，锁可以保证同一时间只有一个事务可以修改数据。  </p>
-<p>锁的方法通常有两种：<strong>乐观锁</strong>和<strong>悲观锁</strong>。</p>
-<p>乐观锁认为多个并发事务之间很少出现冲突，也就是说不会经常出现同一时间读取或修改相同数据，在乐观锁中，其目标是让并发事务自由地同时得到处理，而不是发现或预防冲突。两个事务在同一时刻可以访问相同的数据，但为了预防冲突，需要对数据执行一次检查，检查自上次读取数据以来发生的任何变化。<br>悲观锁认为事务会经常发生冲突，在悲观锁中，读取数据的事务会锁定数据，在前面的事务提交之前，其它事务都不能修改数据。</p>
-<h3 id="乐观锁的工作原理"><a href="#乐观锁的工作原理" class="headerlink" title="乐观锁的工作原理"></a>乐观锁的工作原理</h3><p>乐观锁基于的假设是实际中冲突很少发生，即使发生，抛出一个错误也比想办法避免它们更容易接受和简单。在乐观锁中，允许一个事务正确完成，但另一个事务需要抛出异常并回滚，并且必须被重新执行或者丢弃。<br>我们以Adam和Barbara为例，下面是一个使用乐观锁可能发生的情形：<br>1.Adam的事务读取数据 X<br>2.Barbara的事务读取数据 X<br>3.Adam的事务修改数据 X，并将其修改为 XA<br>4.Adam的事务写入数据 XA<br>5.Barbara的事务修改数据 X，并将其修改为 XB<br>6.Barbara的事务试图写入数据 XB，但是收到一个错误<br>7.Barbara需要读取数据 XA（或者重新开始一个新的事务）<br>8.Barbara的事务修改数据 XA，并将其修改为 XAB<br>9.Barbara的事务写入数据 XAB     </p>
-<p>如你所见，Barbara被强制要求检查Adam的修改，并且她可以选择继续修改Adam的结果并保存（合并修改）。最后的数据将同时包括Adam和Barbara的修改。<br>乐观锁完全由JPA控制。它需要在DB表中额外存储一个版本号列。它完全依靠于底层用来存储关系型数据的DB引擎来工作。</p>
-<h3 id="悲观锁的工作原理"><a href="#悲观锁的工作原理" class="headerlink" title="悲观锁的工作原理"></a>悲观锁的工作原理</h3><p>对于某些人来说，悲观锁更容易接受。当事务需要修改一个可能被其他事务同时修改的实体时，事务会发起一个命令将实体锁住。所有的锁会持续到事务结束后再自动释放。<br>使用悲观锁的情形可能如下所示：<br>1.Adam的事务读取数据 X<br>2.Adam的事务锁住 X<br>3.Barbara的事务希望读取数据 X，但是因为 X 已经被锁住，只好等待<br>4.Adam的事务修改数据 X，并将其修改为 XA<br>5.Adam的事务写入数据 XA<br>6.Barbara的事务读取数据 XA<br>7.Barbara的事务修改数据  XA，并将其修改为 XAB<br>8.Barbara的事务写入数据 XAB </p>
-<p>如你所见，Barbara又一次被强制的写入 XAB，同时也包含了Adam的修改。但是，这个方案与乐观锁完全不同——Barbara需要等待Adam的事务完成以后才能够读取数据。更甚的是，为了让该场景正确工作，我们需要在两个事务中都手动发起一个lock命令。（因为我们并不确定那个事务先运行，所以两个事务都需要在修改数据前先进行锁定）虽然乐观锁要为每个实体增加一个版本列，比悲观锁工作略多，但是之后我们不需要再在事务中发起锁操作了。JPA会自动完成所有的检查，我们只需要处理可能的异常即可。    </p>
-<p><strong>悲观锁使用底层数据库提供的锁机制来锁住表中已有的记录</strong>。JPA需要知道如何触发这些锁，并且尚不能完全支持某些数据库。</p>
-<h3 id="JPA1-0-锁机制"><a href="#JPA1-0-锁机制" class="headerlink" title="JPA1.0 锁机制"></a>JPA1.0 锁机制</h3><p>JPA 1.0只支持乐观锁，你可以使用EntityManager类的lock()方法指定锁模式的值，可以是READ或WRITE，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">EntityManager em = ... ;</div><div class="line">em.lock(p1, READ);</div></pre></td></tr></table></figure></p>
-<p>对于READ锁模式，JPA实体管理器在事务提交前都会锁定实体，检查实体的版本属性确定实体自上次被读取以来是否有更新，如果版本属性被更新了，实体管理器会抛出一个OptimisticLockException异常，并回滚事务。<br>对于WRITE锁模式，实体管理器执行和READ锁模式相同的乐观锁操作，但它也会更新实体的版本列。 </p>
-<h3 id="JPA2-0锁机制"><a href="#JPA2-0锁机制" class="headerlink" title="JPA2.0锁机制"></a>JPA2.0锁机制</h3><p>JPA 2.0增加了6种新的锁模式，其中两个是乐观锁。JPA 2.0也允许悲观锁，并增加了3种悲观锁，第6种锁模式是无锁。<br>下面是新增的两个乐观锁模式： </p>
-<ol>
-<li><strong>OPTIMISTIC</strong>：它和READ锁模式相同，JPA 2.0仍然支持READ锁模式，但明确指出在新应用程序中推荐使用OPTIMISTIC。 </li>
-<li><strong>OPTIMISTIC_FORCE_INCREMENT</strong>：它和WRITE锁模式相同，JPA 2.0仍然支持WRITE锁模式，但明确指出在新应用程序中推荐使用OPTIMISTIC_FORCE_INCREMENT。 </li>
-</ol>
-<p>下面是新增的三个悲观锁模式： </p>
-<ol>
-<li><strong>PESSIMISTIC_READ</strong>：只要事务读实体，实体管理器就锁定实体，直到事务完成锁才会解开，当你想使用重复读语义查询数据时使用这种锁模式，换句话说就是，当你想确保数据在连续读期间不被修改，这种锁模式不会阻碍其它事务读取数据。 </li>
-<li><strong>PESSIMISTIC_WRITE</strong>：只要事务更新实体，实体管理器就会锁定实体，这种锁模式强制尝试修改实体数据的事务串行化，当多个并发更新事务出现更新失败几率较高时使用这种锁模式。 </li>
-<li><strong>PESSIMISTIC_FORCE_INCREMENT</strong>：当事务读实体时，实体管理器就锁定实体，当事务结束时会增加实体的版本属性，即使实体没有修改。<br>你也可以指定新的锁模式NONE，在这种情况下表示没有锁发生。 </li>
-</ol>
-<h3 id="LockModeType类型"><a href="#LockModeType类型" class="headerlink" title="LockModeType类型"></a>LockModeType类型</h3><h4 id="JPA-2-0"><a href="#JPA-2-0" class="headerlink" title="JPA 2.0"></a>JPA 2.0</h4><table>
-<thead>
-<tr>
-<th>类型</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>NONE</td>
-<td>没有锁</td>
-</tr>
-<tr>
-<td>OPTIMISTIC</td>
-<td>乐观锁，类似于READ</td>
-</tr>
-<tr>
-<td>OPTIMISTIC_FORCE_INCREMENT</td>
-<td>乐观锁，类似于WRITE</td>
-</tr>
-<tr>
-<td>PESSIMISTIC_READ</td>
-<td>悲观读锁（Pessimistic read lock）</td>
-</tr>
-<tr>
-<td>PESSIMISTIC_WRITE</td>
-<td>悲观写锁（Pessimistic write lock）</td>
-</tr>
-<tr>
-<td>PESSIMISTIC_FORCE_INCREMENT</td>
-<td>悲观写锁，事务结束后会增加版本号（Pessimistic write lock, with version update）</td>
-</tr>
-</tbody>
-</table>
-<h4 id="JPA-1-0"><a href="#JPA-1-0" class="headerlink" title="JPA 1.0"></a>JPA 1.0</h4><table>
-<thead>
-<tr>
-<th>类型</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>READ</td>
-<td>乐观读锁</td>
-</tr>
-<tr>
-<td>WRITE</td>
-<td>乐观写锁</td>
-</tr>
-</tbody>
-</table>
-<p>@Version 注解用于支持乐观锁版本控制。</p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/JPA 2.0 锁机制/" data-id="cj6rbmix90060lhblvpnf1yv1" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Java/队列/BlockingQueue" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/队列/BlockingQueue/">BlockingQueue</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Java/队列/BlockingQueue/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/队列/">队列</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在新增的Concurrent包中，BlockingQueue很好的解决了多线程中，如何高效安全“传输”数据的问题。通过这些高效并且线程安全的队列类，为我们快速搭建高质量的多线程程序带来极大的便利。本文详细介绍了BlockingQueue家庭中的所有成员，包括他们各自的功能以及常见使用场景。</p>
-<h3 id="认识BlockingQueue"><a href="#认识BlockingQueue" class="headerlink" title="认识BlockingQueue"></a>认识BlockingQueue</h3><p>阻塞队列，顾名思义，首先它是一个队列，而一个队列在数据结构中所起的作用大致如下图所示：<br><img src="http://note.youdao.com/yws/public/resource/12f197c54acc0e273a242d85ed6f77de/xmlnote/C6A527167B95425C8FA10F82F7C895CF/8212" alt="image"><br>从上图我们可以很清楚看到，通过一个共享的队列，可以使得数据由队列的一端输入，从另外一端输出  </p>
-<p>常用的队列主要有以下两种：（当然通过不同的实现方式，还可以延伸出很多不同类型的队列，DelayQueue就是其中的一种）</p>
-<ul>
-<li>先进先出（FIFO）：先插入的队列的元素也最先出队列，类似于排队的功能。从某种程度上来说这种队列也体现了一种公平性。</li>
-<li>后进先出（LIFO）：后插入队列的元素最先出队列，这种队列优先处理最近发生的事件。</li>
-</ul>
-<p>多线程环境中，通过队列可以很容易实现数据共享，比如经典的“生产者”和“消费者”模型中，通过队列可以很便利地实现两者之间的数据共享。假设我们有若干生产者线程，另外又有若干个消费者线程。如果生产者线程需要把准备好的数据共享给消费者线程，利用队列的方式来传递数据，就可以很方便地解决他们之间的数据共享问题。但如果生产者和消费者在某个时间段内，万一发生数据处理速度不匹配的情况呢？理想情况下，如果生产者产出数据的速度大于消费者消费的速度，并且当生产出来的数据累积到一定程度的时候，那么生产者必须暂停等待一下（阻塞生产者线程），以便等待消费者线程把累积的数据处理完毕，反之亦然。然而，在concurrent包发布以前，在多线程环境下，我们每个程序员都必须去自己控制这些细节，尤其还要兼顾效率和线程安全，而这会给我们的程序带来不小的复杂度。好在此时，强大的concurrent包横空出世了，而他也给我们带来了强大的BlockingQueue。（在多线程领域：所谓阻塞，在某些情况下会挂起线程（即阻塞），一旦条件满足，被挂起的线程又会自动被唤醒）    </p>
-<p>下面两幅图演示了BlockingQueue的两个常见阻塞场景：<br><img src="http://note.youdao.com/yws/public/resource/12f197c54acc0e273a242d85ed6f77de/xmlnote/7BA34238D67C4FC8ADE876C233EFE79E/8213" alt="image"><br>如上图所示：当队列中没有数据的情况下，消费者端的所有线程都会被自动阻塞（挂起），直到有数据放入队列。<br><img src="http://note.youdao.com/yws/public/resource/12f197c54acc0e273a242d85ed6f77de/xmlnote/FD2D79816BC84727A23EA3F8CAE9E4AC/8214" alt="image"><br>如上图所示：当队列中填满数据的情况下，生产者端的所有线程都会被自动阻塞（挂起），直到队列中有空的位置，线程被自动唤醒。<br>这也是我们在多线程环境下，为什么需要BlockingQueue的原因。作为BlockingQueue的使用者，我们再也不需要关心什么时候需要阻塞线程，什么时候需要唤醒线程，因为这一切BlockingQueue都给你一手包办了。既然BlockingQueue如此神通广大，让我们一起来见识下它的常用方法：<br>​    </p>
-<h4 id="BlockingQueue的核心方法"><a href="#BlockingQueue的核心方法" class="headerlink" title="BlockingQueue的核心方法"></a>BlockingQueue的核心方法</h4><p> 抛出异常 | 抛出异常 | 特殊值(null) | 阻塞 | 超时<br>—|—|—|—|—<br>插入 | add(e) | offer(e) | put(e) | offer(e,time,unit)<br>移除 | remove() | poll() | take() | poll(time,unit)<br>检查 | element() | peek() | 不可用 | 不可用 </p>
-<h5 id="放入数据"><a href="#放入数据" class="headerlink" title="放入数据"></a>放入数据</h5><ul>
-<li>offer(anObject):表示如果可能的话,将anObject加到BlockingQueue里,即如果BlockingQueue可以容纳,则返回true,否则返回false.（本方法不阻塞当前执行方法的线程）</li>
-<li>offer(E o, long timeout, TimeUnit unit),可以设定等待的时间，如果在指定的时间内，还不能往队列中加入BlockingQueue，则返回失败。</li>
-<li>put(anObject):把anObject加到BlockingQueue里,如果BlockQueue没有空间,则调用此方法的线程被阻断，直到BlockingQueue里面有空间再继续.</li>
-</ul>
-<h5 id="获取数据"><a href="#获取数据" class="headerlink" title="获取数据"></a>获取数据</h5><ul>
-<li>poll(time):取走BlockingQueue里排在首位的对象,若不能立即取出,则可以等time参数规定的时间,取不到时返回null;</li>
-<li>poll(long timeout, TimeUnit unit)：从BlockingQueue取出一个队首的对象，如果在指定时间内，队列一旦有数据可取，则立即返回队列中的数据。否则知道时间超时还没有数据可取，返回失败。</li>
-<li>take():取走BlockingQueue里排在首位的对象,若BlockingQueue为空,阻断进入等待状态直到BlockingQueue有新的数据被加入; </li>
-<li>drainTo():一次性从BlockingQueue获取所有可用的数据对象（还可以指定获取数据的个数），通过该方法，可以提升获取数据效率；不需要多次分批加锁或释放锁。</li>
-</ul>
-<p>其中：BlockingQueue 不接受null 元素。试图add、put 或offer 一个null 元素时，某些实现会抛出NullPointerException。null 被用作指示poll 操作失败的警戒值。</p>
-<h3 id="BlockingQueue的几个注意点"><a href="#BlockingQueue的几个注意点" class="headerlink" title="BlockingQueue的几个注意点"></a>BlockingQueue的几个注意点</h3><ol>
-<li>BlockingQueue 可以是限定容量的。它在任意给定时间都可以有一个remainingCapacity，超出此容量，便无法无阻塞地put 附加元素。没有任何内部容量约束的BlockingQueue 总是报告Integer.MAX_VALUE 的剩余容量。</li>
-<li>BlockingQueue 实现主要用于生产者-使用者队列，但它另外还支持Collection 接口。因此，举例来说，使用remove(x) 从队列中移除任意一个元素是有可能的。然而，这种操作通常不 会有效执行，只能有计划地偶尔使用，比如在取消排队信息时。</li>
-<li>BlockingQueue 实现是线程安全的。所有排队方法都可以使用内部锁或其他形式的并发控制来自动达到它们的目的。然而，大量的 Collection 操作（addAll、containsAll、retainAll 和removeAll）没有必要自动执行，除非在实现中特别说明。因此，举例来说，在只添加了c 中的一些元素后，addAll(c) 有可能失败（抛出一个异常）。</li>
-<li>BlockingQueue 实质上不支持使用任何一种“close”或“shutdown”操作来指示不再添加任何项。这种功能的需求和使用有依赖于实现的倾向。例如，一种常用的策略是：对于生产者，插入特殊的end-of-stream 或poison 对象，并根据使用者获取这些对象的时间来对它们进行解释。</li>
-</ol>
-<h3 id="常见BlockingQueue"><a href="#常见BlockingQueue" class="headerlink" title="常见BlockingQueue"></a>常见BlockingQueue</h3><p>在了解了BlockingQueue的基本功能后，让我们来看看BlockingQueue家庭大致有哪些成员？<br><img src="http://note.youdao.com/yws/public/resource/12f197c54acc0e273a242d85ed6f77de/xmlnote/18EEB18D923F49C5A605655BB8E6C8DA/8215" alt="image">        </p>
-<h3 id="BlockingQueue成员详细介绍"><a href="#BlockingQueue成员详细介绍" class="headerlink" title="BlockingQueue成员详细介绍"></a>BlockingQueue成员详细介绍</h3><h4 id="ArrayBlockingQueue-数组大小一定"><a href="#ArrayBlockingQueue-数组大小一定" class="headerlink" title="ArrayBlockingQueue(数组大小一定)"></a>ArrayBlockingQueue(数组大小一定)</h4><p><strong>基于数组的阻塞队列实现，在ArrayBlockingQueue内部，维护了一个定长数组</strong>，以便缓存队列中的数据对象，这是一个常用的阻塞队列，除了一个定长数组外，ArrayBlockingQueue内部还保存着两个整形变量，分别标识着队列的头部和尾部在数组中的位置。    </p>
-<p>ArrayBlockingQueue在生产者放入数据和消费者获取数据，都是共用同一个锁对象，由此也意味着两者无法真正并行运行，这点尤其不同于LinkedBlockingQueue；按照实现原理来分析，ArrayBlockingQueue完全可以采用分离锁，从而实现生产者和消费者操作的完全并行运行。Doug Lea之所以没这样去做，也许是因为ArrayBlockingQueue的数据写入和获取操作已经足够轻巧，以至于引入独立的锁机制，除了给代码带来额外的复杂性外，其在性能上完全占不到任何便宜。 ArrayBlockingQueue和LinkedBlockingQueue间还有一个明显的不同之处在于，前者在插入或删除元素时不会产生或销毁任何额外的对象实例，而后者则会生成一个额外的Node对象。这在长时间内需要高效并发地处理大批量数据的系统中，其对于GC的影响还是存在一定的区别。而在创建ArrayBlockingQueue时，我们还可以控制对象的内部锁是否采用公平锁，默认采用非公平锁。</p>
-<h4 id="LinkedBlockingQueue（链表大小不定）"><a href="#LinkedBlockingQueue（链表大小不定）" class="headerlink" title="LinkedBlockingQueue（链表大小不定）"></a>LinkedBlockingQueue（链表大小不定）</h4><p><strong>基于链表的阻塞队列，同ArrayListBlockingQueue类似，其内部也维持着一个数据缓冲队列（该队列由一个链表构成）</strong>，当生产者往队列中放入一个数据时，队列会从生产者手中获取数据，并缓存在队列内部，而生产者立即返回；只有当队列缓冲区达到最大值缓存容量时（LinkedBlockingQueue可以通过构造函数指定该值），才会阻塞生产者队列，直到消费者从队列中消费掉一份数据，生产者线程会被唤醒，反之对于消费者这端的处理也基于同样的原理。而LinkedBlockingQueue之所以能够高效的处理并发数据，还因为其对于生产者端和消费者端分别采用了独立的锁来控制数据同步，这也意味着在高并发的情况下生产者和消费者可以并行地操作队列中的数据，以此来提高整个队列的并发性能。  </p>
-<p>作为开发者，我们需要注意的是，如果构造一个LinkedBlockingQueue对象，而没有指定其容量大小，LinkedBlockingQueue会默认一个类似无限大小的容量（Integer.MAX_VALUE），这样的话，如果生产者的速度一旦大于消费者的速度，也许还没有等到队列满阻塞产生，系统内存就有可能已被消耗殆尽了。    </p>
-<p>ArrayBlockingQueue和LinkedBlockingQueue是两个最普通也是最常用的阻塞队列，一般情况下，在处理多线程间的生产者消费者问题，使用这两个类足以。</p>
-<p>下面的代码演示了如何使用BlockingQueue：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">import java.util.concurrent.BlockingQueue;</div><div class="line">import java.util.concurrent.ExecutorService;</div><div class="line">import java.util.concurrent.Executors;</div><div class="line">import java.util.concurrent.LinkedBlockingQueue;</div><div class="line"></div><div class="line">public class BlockingQueueTest &#123;</div><div class="line">	public static void main(String[] args) throws InterruptedException &#123;</div><div class="line">		// 声明一个容量为10的缓存队列</div><div class="line">		BlockingQueue&lt;String&gt; queue = new LinkedBlockingQueue&lt;String&gt;(10);</div><div class="line">		Producer producer1 = new Producer(queue);</div><div class="line">		Producer producer2 = new Producer(queue);</div><div class="line">		Producer producer3 = new Producer(queue);</div><div class="line">		Consumer consumer = new Consumer(queue);</div><div class="line">		// 借助Executors</div><div class="line">		ExecutorService service = Executors.newCachedThreadPool();</div><div class="line">		// 启动线程</div><div class="line">		service.execute(producer1);</div><div class="line">		service.execute(producer2);</div><div class="line">		service.execute(producer3);</div><div class="line">		service.execute(consumer);</div><div class="line">		// 执行10s</div><div class="line">		Thread.sleep(10 * 1000);</div><div class="line">		producer1.stop();</div><div class="line">		producer2.stop();</div><div class="line">		producer3.stop();</div><div class="line">		Thread.sleep(2000);</div><div class="line">		// 退出Executor</div><div class="line">		service.shutdown();</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div></pre></td><td class="code"><pre><div class="line">import java.util.Random;</div><div class="line">import java.util.concurrent.BlockingQueue;</div><div class="line">import java.util.concurrent.TimeUnit;</div><div class="line">/**</div><div class="line"> * 消费者线程</div><div class="line"> *</div><div class="line"> */</div><div class="line">public class Consumer implements Runnable &#123;</div><div class="line">	private BlockingQueue&lt;String&gt; queue;</div><div class="line">	private static final int DEFAULT_RANGE_FOR_SLEEP = 1000;</div><div class="line">	</div><div class="line">	public Consumer(BlockingQueue&lt;String&gt; queue) &#123;</div><div class="line">		this.queue = queue;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	public void run() &#123;</div><div class="line">		System.out.println(&quot;启动消费者线程！&quot;);</div><div class="line">		Random r = new Random();</div><div class="line">		boolean isRunning = true;</div><div class="line">		try &#123;</div><div class="line">			while (isRunning) &#123;</div><div class="line">				System.out.println(&quot;正从队列获取数据...&quot;);</div><div class="line">				String data = queue.poll(2, TimeUnit.SECONDS);</div><div class="line">				if (null != data) &#123;</div><div class="line">					System.out.println(&quot;拿到数据：&quot; + data);</div><div class="line">					System.out.println(&quot;正在消费数据：&quot; + data);</div><div class="line">					Thread.sleep(r.nextInt(DEFAULT_RANGE_FOR_SLEEP));</div><div class="line">				&#125; else &#123;</div><div class="line">					// 超过2s还没数据，认为所有生产线程都已经退出，自动退出消费线程。</div><div class="line">					isRunning = false;</div><div class="line">				&#125;</div><div class="line">			&#125;</div><div class="line">		&#125; catch (InterruptedException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			Thread.currentThread().interrupt();</div><div class="line">		&#125; finally &#123;</div><div class="line">			System.out.println(&quot;退出消费者线程！&quot;);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line">import java.util.Random;</div><div class="line">import java.util.concurrent.BlockingQueue;</div><div class="line">import java.util.concurrent.TimeUnit;</div><div class="line">import java.util.concurrent.atomic.AtomicInteger;</div><div class="line">/**</div><div class="line"> * 生产者线程</div><div class="line"> *</div><div class="line"> */</div><div class="line">public class Producer implements Runnable &#123;</div><div class="line">	private volatile boolean isRunning = true;</div><div class="line">	private BlockingQueue queue;</div><div class="line">	private static AtomicInteger count = new AtomicInteger();</div><div class="line">	private static final int DEFAULT_RANGE_FOR_SLEEP = 1000;</div><div class="line">	</div><div class="line">	public Producer(BlockingQueue queue) &#123;</div><div class="line">		this.queue = queue;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	public void run() &#123;</div><div class="line">		String data = null;</div><div class="line">		Random r = new Random();</div><div class="line">		System.out.println(&quot;启动生产者线程！&quot;);</div><div class="line">		try &#123;</div><div class="line">			while (isRunning) &#123;</div><div class="line">				System.out.println(&quot;正在生产数据...&quot;);</div><div class="line">				Thread.sleep(r.nextInt(DEFAULT_RANGE_FOR_SLEEP));</div><div class="line">				data = &quot;data:&quot; + count.incrementAndGet();</div><div class="line">				System.out.println(&quot;将数据：&quot; + data + &quot;放入队列...&quot;);</div><div class="line">				if (!queue.offer(data, 2, TimeUnit.SECONDS)) &#123;</div><div class="line">					System.out.println(&quot;放入数据失败：&quot; + data);</div><div class="line">				&#125;</div><div class="line">			&#125;</div><div class="line">		&#125; catch (InterruptedException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			Thread.currentThread().interrupt();</div><div class="line">		&#125; finally &#123;</div><div class="line">			System.out.println(&quot;退出生产者线程！&quot;);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	public void stop() &#123;</div><div class="line">		isRunning = false;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h4 id="DelayQueue"><a href="#DelayQueue" class="headerlink" title="DelayQueue"></a>DelayQueue</h4><p>DelayQueue中的元素只有当其指定的延迟时间到了，才能够从队列中获取到该元素。DelayQueue是一个没有大小限制的队列，因此往队列中插入数据的操作（生产者）永远不会被阻塞，而只有获取数据的操作（消费者）才会被阻塞。    </p>
-<p>使用场景：<br>　　DelayQueue使用场景较少，但都相当巧妙，常见的例子比如使用一个DelayQueue来管理一个超时未响应的连接队列。
-　　
-　　</p>
-<h4 id="PriorityBlockingQueue"><a href="#PriorityBlockingQueue" class="headerlink" title="PriorityBlockingQueue"></a>PriorityBlockingQueue</h4><p>基于优先级的阻塞队列（优先级的判断通过构造函数传入的Compator对象来决定），但需要注意的是PriorityBlockingQueue并不会阻塞数据生产者，而只会在没有可消费的数据时，阻塞数据的消费者。因此使用的时候要特别注意，生产者生产数据的速度绝对不能快于消费者消费数据的速度，否则时间一长，会最终耗尽所有的可用堆内存空间。在实现PriorityBlockingQueue时，内部控制线程同步的锁采用的是公平锁。</p>
-<h4 id="SynchronousQueue"><a href="#SynchronousQueue" class="headerlink" title="SynchronousQueue"></a>SynchronousQueue</h4><p>一种无缓冲的等待队列，类似于无中介的直接交易，有点像原始社会中的生产者和消费者，生产者拿着产品去集市销售给产品的最终消费者，而消费者必须亲自去集市找到所要商品的直接生产者，如果一方没有找到合适的目标，那么对不起，大家都在集市等待。相对于有缓冲的BlockingQueue来说，少了一个中间经销商的环节（缓冲区），如果有经销商，生产者直接把产品批发给经销商，而无需在意经销商最终会将这些产品卖给那些消费者，由于经销商可以库存一部分商品，因此相对于直接交易模式，总体来说采用中间经销商的模式会吞吐量高一些（可以批量买卖）；但另一方面，又因为经销商的引入，使得产品从生产者到消费者中间增加了额外的交易环节，单个产品的及时响应性能可能会降低。    </p>
-<p>声明一个SynchronousQueue有两种不同的方式，它们之间有着不太一样的行为。公平模式和非公平模式的区别:<br>如果采用公平模式：SynchronousQueue会采用公平锁，并配合一个FIFO队列来阻塞多余的生产者和消费者，从而体系整体的公平策略；<br>但如果是非公平模式（SynchronousQueue默认）：SynchronousQueue采用非公平锁，同时配合一个LIFO队列来管理多余的生产者和消费者，而后一种模式，如果生产者和消费者的处理速度有差距，则很容易出现饥渴的情况，即可能有某些生产者或者是消费者的数据永远都得不到处理。  </p>
-<h5 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h5><p>BlockingQueue不光实现了一个完整队列所具有的基本功能，同时在多线程环境下，他还自动管理了多线间的自动等待于唤醒功能，从而使得程序员可以忽略这些细节，关注更高级的功能。</p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/队列/BlockingQueue/" data-id="cj6rbmiwk004llhbl5w5pd53d" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql存储引擎/" data-id="cj6vztsex00aboablo2mtxoeg" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -995,7 +1022,7 @@
 
 
   <div id="page-nav">
-    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/6/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/5/">5</a></li><li><a class="page-number" href="/page/6/">6</a></li><li class="active"><span class="page-number">7</span></li><li><a class="page-number" href="/page/8/">8</a></li><li><a class="page-number" href="/page/9/">9</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/18/">18</a></li><li><a class="page-next" rel="next" href="/page/8/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
+    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/6/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/5/">5</a></li><li><a class="page-number" href="/page/6/">6</a></li><li class="active"><span class="page-number">7</span></li><li><a class="page-number" href="/page/8/">8</a></li><li><a class="page-number" href="/page/9/">9</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/19/">19</a></li><li><a class="page-next" rel="next" href="/page/8/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
   </div>
 
 
@@ -1013,7 +1040,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">63</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">11</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">67</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">15</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
   </div>
 
 
@@ -1026,7 +1053,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">56</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">60</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
   </div>
 
 
@@ -1037,23 +1064,23 @@
     <ul class="sidebar-module-list">
       
         <li>
+          <a href="/2017/08/28/Java/基础/java三大特性/">java三大特性</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/28/Java/基础/Filter过滤器/">Filter过滤器</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/27/Java/基础/泛型/">泛型</a>
+        </li>
+      
+        <li>
+          <a href="/2017/08/27/Java/基础/面向对象7大原则/">面向对象7大原则</a>
+        </li>
+      
+        <li>
           <a href="/2017/08/16/Java/基础/java动态代理/">java动态代理</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/16/Java/基础/重载与重写/">重载与重写</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置七：缓存UserDetails/">配置七：缓存UserDetails</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置十二：Remember-Me功能/">配置十二：Remember-Me功能</a>
-        </li>
-      
-        <li>
-          <a href="/2017/08/15/Spring/Security/配置十五：权限鉴定结构/">配置十五：权限鉴定结构</a>
         </li>
       
     </ul>
