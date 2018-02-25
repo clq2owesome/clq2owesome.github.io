@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>类加载机制 | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="概述虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验，转换解析和初始化，最终形成可以被直接使用的java类型，这就是虚拟机的类加载机制。类的生命周期包括加载（Loading）、验证（Verification）、准备（Preparation）、解析（Resolution）、初始化（Initialization）、使用（Using）、卸载（Unloading）等七个阶段，其中验证、准备">
+<meta property="og:type" content="article">
+<meta property="og:title" content="类加载机制">
+<meta property="og:url" content="https://clq2owesome.github.io/2018/02/25/Java/基础/类加载机制/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="概述虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验，转换解析和初始化，最终形成可以被直接使用的java类型，这就是虚拟机的类加载机制。类的生命周期包括加载（Loading）、验证（Verification）、准备（Preparation）、解析（Resolution）、初始化（Initialization）、使用（Using）、卸载（Unloading）等七个阶段，其中验证、准备">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/ee75e4361b58214a36b4d854bbd3faf1/xmlnote/EEE7B3274550464AB506A63343F42905/7749">
+<meta property="og:updated_time" content="2018-02-25T07:10:44.935Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="类加载机制">
+<meta name="twitter:description" content="概述虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验，转换解析和初始化，最终形成可以被直接使用的java类型，这就是虚拟机的类加载机制。类的生命周期包括加载（Loading）、验证（Verification）、准备（Preparation）、解析（Resolution）、初始化（Initialization）、使用（Using）、卸载（Unloading）等七个阶段，其中验证、准备">
+<meta name="twitter:image" content="http://note.youdao.com/yws/public/resource/ee75e4361b58214a36b4d854bbd3faf1/xmlnote/EEE7B3274550464AB506A63343F42905/7749">
+  
+    <link rel="alternate" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" integrity="sha384-XdYbMnZ/QjLh6iI4ogqCTaIjrFk87ip+ekIjefZch0Y+PvJ8CDYtEs1ipDmPorQ+" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="/css/styles.css">
+  
+
+</head>
+
+<body>
+  <nav class="navbar navbar-inverse">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-menu-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="main-menu-navbar">
+      <ul class="nav navbar-nav">
+        
+          <li><a class=""
+                 href="/index.html">Home</a></li>
+        
+          <li><a class=""
+                 href="/archives/">Archives</a></li>
+        
+      </ul>
+
+      <!--
+      <ul class="nav navbar-nav navbar-right">
+        
+          <li><a href="/atom.xml" title="RSS Feed"><i class="fa fa-rss"></i></a></li>
+        
+      </ul>
+      -->
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+  <div class="container">
+    <div class="blog-header">
+  <h1 class="blog-title">LeoChan&#39;s 个人博客</h1>
+  
+    <p class="lead blog-description">技术都是通用的，重要的是是否具有自主解决问题的能力！</p>
+  
+</div>
+
+    <div class="row">
+        <div class="col-sm-8 blog-main">
+          <article id="post-Java/基础/类加载机制" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 class="article-title" itemprop="name">
+      类加载机制
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2018/02/25/Java/基础/类加载机制/" class="article-date"><time datetime="2018-02-25T07:09:45.000Z" itemprop="datePublished">2018-02-25</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验，转换解析和初始化，最终形成可以被直接使用的java类型，这就是虚拟机的类加载机制。<br>类的生命周期包括<strong>加载（Loading）</strong>、<strong>验证（Verification）</strong>、<strong>准备（Preparation）</strong>、<strong>解析（Resolution）</strong>、<strong>初始化（Initialization）</strong>、<strong>使用（Using）</strong>、<strong>卸载（Unloading）</strong>等七个阶段，其中<strong>验证、准备和解析三个部分统称为连接（Linking）</strong>。而<strong>类的加载指的就是从加载到初始化这五个阶段</strong>。    </p>
+<p>虚拟机规范对于何时进行加载这一阶段并没有强制约束，但对于初始化阶段，虚拟机规范是严格规定了有且只有四种情况必须立即对类进行初始化：</p>
+<ol>
+<li>遇到new,getstatic,putstatic或invokestatic这4条字节码指令时，如果类没有进行过初始化，则需要先触发其初始化。生成这4条指定的场景是：使用new关键字实例化对象，读取或设置一个类的静态字段以及调用一个类的静态方法的时候。当然，被final修饰并在编译期就把结果放入常量池的静态字段不属于这些场景，这类静态字段的值在编译期时就会被编译器优化而直接放入常量池，其引用直接指向其在常量池的入口。</li>
+<li>使用java.lang.reflect包的方法对类进行反射调用时，如果类没有进行过初始化，则需要先触发其初始化。</li>
+<li>当初始化一个类的时候，如果发现其父类还没有进行过初始化，则需要先触发其父类的初始化。</li>
+<li>当虚拟机启动时，用户需要指定一个要执行的主类（包含main（）方法的类），虚拟机会先初始化这个主类。</li>
+<li>当使用JDK1.7的动态语言支持时，如果一个java.lang.invoke.MethodHandle实例最后的解析结果REF_getStatic，REF_putStatic，REF_invokeStatic的方法句柄，并且这个方法句柄所对应的类没有进行过初始化，则需要先触发其初始化。</li>
+</ol>
+<p>以上四种场景中的行为称为对一个类进行主动引用，除此之外所有引用类的方式都不会触发初始化，称为被动引用。<br>接口的加载过程与类加载过程最主要的区别在于第三点，即当一个类在初始化时，要求其父类全部都已经初始化过了，但是当初始化一个接口时，并不需要先初始化其父接口，而是只有真正使用到父接口中的字段的时候才会初始化。</p>
+<h3 id="类加载的各个阶段"><a href="#类加载的各个阶段" class="headerlink" title="类加载的各个阶段"></a>类加载的各个阶段</h3><h5 id="一个简单的类加载过程："><a href="#一个简单的类加载过程：" class="headerlink" title="一个简单的类加载过程："></a>一个简单的类加载过程：</h5><ol>
+<li>寻找jre目录，寻找jvm.dll，并初始化JVM；</li>
+<li>产生一个Bootstrap Loader（启动类加载器）；</li>
+<li>Bootstrap Loader自动加载Extended Loader（标准扩展类加载器），并将其父Loader设为Bootstrap Loader。</li>
+<li>Bootstrap Loader自动加载AppClassLoader（系统类加载器），并将其父Loader设为Extended Loader。</li>
+<li>最后由AppClassLoader加载HelloWorld类。</li>
+</ol>
+<h5 id="类记载目录："><a href="#类记载目录：" class="headerlink" title="类记载目录："></a>类记载目录：</h5><ol>
+<li>Bootstrap ClassLoader : 将存放于<java_home>\lib目录中的，或者被-Xbootclasspath参数所指定的路径中的，并且是虚拟机识别的（仅按照文件名识别，如 rt.jar 名字不符合的类库即使放在lib目录中也不会被加载）类库加载到虚拟机内存中。启动类加载器无法被Java程序直接引用</java_home></li>
+<li>Extension ClassLoader : 将<java_home>\lib\ext目录下的，或者被java.ext.dirs系统变量所指定的路径中的所有类库加载。开发者可以直接使用扩展类加载器。</java_home></li>
+<li>Application ClassLoader : 负责加载用户类路径(ClassPath)上所指定的类库,开发者可直接使用。</li>
+</ol>
+<p>ExtClassLoader和AppClassLoader在JVM启动后，会在JVM中保存一份，并且在程序运行中无法改变其搜索路径。如果想在运行时从其他搜索路径加载类，就要产生新的类加载器。</p>
+<h5 id="类记载器特点："><a href="#类记载器特点：" class="headerlink" title="类记载器特点："></a>类记载器特点：</h5><ol>
+<li>运行一个程序时，总是由AppClassLoader（系统类加载器）开始加载指定的类。</li>
+<li>在加载类时，每个类加载器会将加载任务上交给其父，如果其父找不到，再由自己去加载。</li>
+<li>Bootstrap Loader（启动类加载器）是最顶级的类加载器了，其父加载器为null.</li>
+</ol>
+<h5 id="类加载有三种方式："><a href="#类加载有三种方式：" class="headerlink" title="类加载有三种方式："></a>类加载有三种方式：</h5><ol>
+<li>命令行启动应用时候由JVM初始化加载</li>
+<li>通过Class.forName()方法动态加载</li>
+<li>通过ClassLoader.loadClass()方法动态加载</li>
+</ol>
+<p>三种方式区别比较大，看个例子就明白了：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">public class HelloWorld &#123; </div><div class="line">        public static void main(String[] args) throws ClassNotFoundException &#123; </div><div class="line">                ClassLoader loader = HelloWorld.class.getClassLoader(); </div><div class="line">                System.out.println(loader); </div><div class="line">                //使用ClassLoader.loadClass()来加载类，不会执行初始化块 </div><div class="line">                loader.loadClass(&quot;Test2&quot;); </div><div class="line">                //使用Class.forName()来加载类，默认会执行初始化块 </div><div class="line">                //Class.forName(&quot;Test2&quot;); </div><div class="line">                //使用Class.forName()来加载类，并指定ClassLoader，参数2设置为false时初始化时不执行静态块，设置为true时初始化时执行静态块</div><div class="line">                //Class.forName(&quot;Test2&quot;, false, loader); </div><div class="line">        &#125; </div><div class="line">&#125;</div><div class="line"> </div><div class="line">public class Test2 &#123; </div><div class="line">        static &#123; </div><div class="line">                System.out.println(&quot;静态初始化块执行了！&quot;); </div><div class="line">        &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>有关ClassLoader还有很重要一点：<br><strong>同一个ClassLoader加载的类文件，只有一个Class实例。但是，如果同一个类文件被不同的ClassLoader载入，则会有两份不同的Class实例</strong>（前提是着两个类加载器不能用相同的父类加载器）。</p>
+<p>以下对类加载的各个阶段进行简单的说明。  </p>
+<ul>
+<li><strong>加载阶段</strong>，虚拟机需要完成三件事：<ol>
+<li>通过一个类的全限定名来获取定义此类的二进制字节流</li>
+<li>将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构</li>
+<li><strong>在java堆中生成一个代表这个类的java.lang.Class对象，作为方法区这些数据的访问入口</strong>。</li>
+</ol>
+</li>
+<li><strong>验证阶段</strong>，不同虚拟机会进行不同类验证的实现，但大致都会完成以下四个阶段的检验过程：文件格式验证（验证字节流是否符合Class文件格式的规范，并能被当前版本的虚拟机处理），元数据验证（对字节码描述信息进行语义分析，保证其描述信息符合java语言规范），字节码验证（对类方法体进行数据流和控制流分析，保证类的方法在运行时不会做出危害虚拟机的行为）和符号引用验证（发生在将符号引用转化为直接引用的时候，在解析阶段中发生）。</li>
+<li><strong>准备阶段</strong>，正式为类成员变量（被static修饰的变量）（注意，不是实例成员变量，实例变量会在对象实例化时随着对象一起分配在java堆上）分配内存并设置类变量初始值（通常情况下是数据类型的零值，不进行赋值操作）的阶段，这些内存都将在方法区中进行分配。    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">例：public static int value=123;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>则在准备阶段过后，value的初始值为0而不是123，因为这时候尚未开始执行任何Java方法，而把value赋值为123的putstatic指令是程序被编译后，存放于类构造器<client>()方法之中，所以把value赋值为123的动作将在初始化阶段才会执行。</client></p>
+<ul>
+<li><strong>解析阶段</strong>，虚拟机将常量池内的符号引用替换为直接引用的过程。符号引用与内存布局无关，而直接引用的目标必定已经在内存中存在。<strong>解析动作主要针对类或接口、字段、类方法、接口方法，方法类型，方法句柄和调用限定符号期类符号引用进行</strong>。</li>
+<li><strong>初始化阶段</strong>，真正开始执行类中定义的java程序代码（字节码），是执行类构造器<clinit>()方法的过程。</clinit></li>
+</ul>
+<p><clinit>()方法的一些特点：</clinit></p>
+<ol>
+<li><p><clinit>()方法是由编译器自动收集类中的所有类变量的赋值动作和静态语句块（static｛｝）中的语句合并产生的，编译器收集顺序是由语句在源文件中出现的顺序所决定的，静态语句块中只能访问到定义在静态语句块之前的变量，定义在它之后的变量，在前面的静态语句块可以赋值，但是不能访问。</clinit></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public Class test &#123;</div><div class="line">    static &#123;</div><div class="line">        i = 0; //给变量赋值可以正常编译通过</div><div class="line">        System.out.println(i); //这句编译器会提示“非法向前引用”</div><div class="line">    &#125;</div><div class="line">    static int i = 1;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p><clinit>()方法与类的构造函数（或者说实例构造器<init>()方法）不同，它不需要显式地调用父类构造器，虚拟机会保证在子类的<clinit>()方法执行之前完成父类<clinit>()方法的执行。因此在虚拟机中第一个被执行的<client>()方法的类肯定是java.lang.Object。   </client></clinit></clinit></init></clinit></p>
+</li>
+<li>由于父类的<clinit>() 方法先执行，也就意味着父类中定义的静态语句块要优先于子类的变量赋值操作</clinit></li>
+<li><p><clinit>()方法对于类或接口来说并不是必须的，如果一个类中没有静态语句块，也没有对变量的赋值操作，则编译器可以不为这个类生成<clinit>()方法。   </clinit></clinit></p>
+</li>
+<li><p>接口中不能使用静态语句块，但仍然有变量初始化的赋值操作，因此接口与类一样都会生成<clinit>()方法，不同于类的地方是执行接口的<clinit>()方法时不需要先执行父类的<clinit>()方法。只有当父接口中定义的变量使用时，父接口才会初始化。另外，接口的实现类在初始化时也一样不会执行接口的<client>()方法。</client></clinit></clinit></clinit></p>
+</li>
+<li><p>虚拟机会保证一个类的<clinit>()方法在多线程环境中被正确地加锁和同步，如果多个线程同时去初始化一个类，则只有一个线程去执行这个类的<clinit>()方法，其它线程阻塞等待，直到活动线程执行<clinit>()方法完毕。 如果在一个类的<client>()方法中有耗时很长的操作，就可能造成多个进程阻塞，在实际应用中这种阻塞往往是很隐蔽的。</client></clinit></clinit></clinit></p>
+<p> 需要注意的是，其他线程虽然会被阻塞，但如果执行<client>()方法的那条线程退出<client>()方法后，其他线程唤醒之后不会再次进入<client>()方法。同一个类加载器下，一个类型只会初始化一次。</client></client></client></p>
+</li>
+</ol>
+<p>了解完各个类加载机制的阶段后，我们需要进一步了解类加载器这个概念。类加载器只用于实现类的加载动作，即实现通过一个类的全限定名来获取描述此类的二进制字节流。<strong>但对于类来说，要判断两个类是否相等（instanceof，equal），其前提是两个类是由同一个类加载器所加载，否则，无论两个类是否来源于同一个Class文件，这两个类都必定不等，亦即是说，对于任意一个类，都需要由加载它的类加载器和这个类本身一同确立其在java虚拟机的唯一性。</strong>  </p>
+<p>在Java开发人员看来，类加载器可划分为以下三类系统提供的类加载器：启动类加载器（Boostrap ClassLoader，负责将存放在<java_home>\lib目录中的类库加载到虚拟机内存中，其无法被Java程序直接引用），扩展类加载器（Extension ClassLoader，由sun.misc.Launcher$ExtClassLoader实现，负责加载<java_home>\lib\ext目录中的类库，可被开发者直接使用），应用程序类加载器（由sun.misc.Launcher$AppClassLoader来实现，负责加载用户类路径（ClassPath）上指定的类库，可被开发者直接使用，且为默认的类加载器）。  </java_home></java_home></p>
+<p>java中采用<strong>双亲委派模型</strong>（Parents Delegation Model）来实现类的加载模式。双亲委派模型要求除了顶层的启动类加载器外，其余的类加载器都应当有自己的父类加载器，此处的父子关系不以继承来实现，而是采用组合来利用父加载器。    </p>
+<p>双亲委派模型的工作过程：如果一个类加载器收到了类加载的请求，它首先不会自己去尝试加载这个类，而是把这个请求委派给父类加载器去完成，每一个层次的类加载器都是如此，因此所有的加载请求最终都应该传送到顶层的启动类加载器中，只有当父加载器反馈自己无法完成这个加载请求（它的搜索范围中没有找到所需的类）时，子加载器才会自己去加载。</p>
+<p>使用双亲委派模型来组织类加载器之间的关系，有一个显而易见的好处是Java类随着它的类加载器一起具备了一种带有优先级的层次关系。例如类java.lang.Object，它存放在rt.jar之中，无论哪一个类加载器要加载这个类，最终都是委派给处于模型最顶端的启动类加载器进行加载，因此Object类在程序的各种类加载器环境中都是同一个类。相反，如果没有使用双亲委派模型，由各个类加载器自行去加载的话，如果用户自己编写了一个成为java.lang.Object的类，并放在程序的ClassPath之中，那系统中将会出现多个不同的Object类，Java类型体系中最基础的行为也就无法保证。</p>
+<p>其模型如下图所示：<br><img src="http://note.youdao.com/yws/public/resource/ee75e4361b58214a36b4d854bbd3faf1/xmlnote/EEE7B3274550464AB506A63343F42905/7749" alt="image">    </p>
+<h3 id="虚拟机字节码执行引擎"><a href="#虚拟机字节码执行引擎" class="headerlink" title="虚拟机字节码执行引擎"></a>虚拟机字节码执行引擎</h3><p>了解了以上类文件结构和类加载机制后，我们最后再来看看字节码在虚拟机中是如何被执行的。  </p>
+<p>不同的虚拟机实现时硕，执行引擎在执行Java执行的时候可能有解释执行（通过解释器执行）和编译执行（通过即时编译器产生本地代码执行）两种选择，也可能两者兼备，甚至可能包含几个不同级别的编译器执行引擎。  </p>
+<p>在具体了解虚拟机是如何执行字节码之前，我们先来从概念上理解虚拟机是如何执行程序的。程序的执行可以直接解释为是对方法的递归调用，通过一连串的方法链来最终得出执行结果，亦即是说虚拟机对程序的执行，根本上是对方法的调用和执行。</p>
+<p>栈帧（Stack Frame）是用于支持虚拟机进行方法调用和方法执行的数据结构，是虚拟机运行时数据区中的虚拟机栈的栈元素。栈帧存储了方法的局部变量表（最小单位为变量槽Variable Slot）、操作数栈、动态连接和方法返回地址等信息，每一个方法从调用开始到执行完成的过程，就对应着一个栈帧在虚拟机栈里面从入栈到出栈的过程。栈帧的内容在编译时就已经完成确定，不受程序运行期变量数据的影响，仅取决于具体的虚拟机实现。    </p>
+<p>前面说了，对程序的执行就是对方法链的调用和执行，即可能会出现很多方法同时处于执行状态，此时对于执行引擎来说，活动线程中，只有栈顶的栈帧是有效的，称为当前栈帧，其关联的方法称为当前方法，执行引擎所运行的所有字节码指令只针对当前栈帧进行操作。    </p>
+<p>方法调用包含两种方法：<strong>解析和分派</strong>。解析调用一定是个静态过程，在编译期间完全确定，在类装载的解析阶段就会把涉及的符号引用全部转变为可确定的直接引用，不会延迟到运行期再去完成。而分派调用则可能是动态的也可能是静态的，根据分派依据的宗量数可分为单分派和多分派。（具体情形请参考《深入理解java虚拟机》这本书第8章）</p>
+<p>方法执行即是指字节码解释执行引擎，包括解释执行和编译执行。而java编译器输出的指令流，基本上是一种基于栈的指令集架构。即Java虚拟机采用的是基于栈的字节码执行引擎。（具体情形请参考《深入理解java虚拟机》这本书第8章）</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/类加载机制/" data-id="cje2lrz21004jpxbll8ggta42" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+    
+<ul id="article-nav" class="nav nav-pills nav-justified">
+  
+  <li role="presentation">
+    <a href="/2018/02/25/服务器相关/redis/Redis集群/" id="article-nav-older" class="article-nav-link-wrap">
+      <i class="fa fa-chevron-left pull-left"></i>
+      <span class="article-nav-link-title">Redis集群</span>
+    </a>
+  </li>
+  
+  
+  <li role="presentation">
+    <a href="/2018/02/25/Java/基础/序列化和反序列化/" id="article-nav-newer" class="article-nav-link-wrap">
+      <span class="article-nav-link-title">序列化和反序列化</span>
+      <i class="fa fa-chevron-right pull-right"></i>
+    </a>
+  </li>
+  
+</ul>
+
+
+  
+</article>
+
+
+
+
+        </div>
+        <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+          
+  <div class="sidebar-module sidebar-module-inset">
+  <h4>关于</h4>
+  <p>该博客内的文章是博主在日常工作或者学习中总结出来，部分内容来自网络.</p>
+
+</div>
+
+
+  
+  <div class="sidebar-module">
+    <h4>分类</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">84</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/分布式/">分布式</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">21</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/时间日期/">时间日期</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">8</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Spring-Boot/">Spring Boot</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Spring-Session/">Spring Session</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">20</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">20</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">29</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">4</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Nginx/">Nginx</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">13</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">9</span></li></ul>
+  </div>
+
+
+
+  
+
+
+  
+
+  
+  <div class="sidebar-module">
+    <h4>归档</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2018/02/">二月 2018</a><span class="sidebar-module-list-count">45</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/10/">十月 2017</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">62</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">125</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/02/">二月 2017</a><span class="sidebar-module-list-count">2</span></li></ul>
+  </div>
+
+
+
+  
+  <div class="sidebar-module">
+    <h4>最近文章</h4>
+    <ul class="sidebar-module-list">
+      
+        <li>
+          <a href="/2018/02/25/Java/基础/java8新特性/">java8新特性</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/集合/HashSet原理/">HashSet原理</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/分布式/分布式锁/">分布式锁</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/集合/在List循环中删除元素/">在List循环中删除元素</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/">Hashtable与ConcurrentHashMap区别</a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+
+        </div>
+    </div>
+  </div>
+  <footer class="blog-footer">
+  <div class="container">
+    <div id="footer-info" class="inner">
+      &copy; 2018 LeoChan<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+  
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" integrity="sha384-8gBf6Y4YYq7Jx97PIqmTwLPin4hxIzQw5aDmUg/DDhul9fFpbbLcLh3nTIIDJKhx" crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+
+
+<script src="/js/script.js"></script>
+
+</body>
+</html>

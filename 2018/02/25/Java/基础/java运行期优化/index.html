@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>java运行期优化 | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="概述在部分的商用虚拟机（Sun HotSpot， IMB J9）中，Java程序最初是通过解释器（Interpreter）进行解释执行的，当虚拟机发现某个方法或代码块的运行特别频繁时，就会把这些代码定位“热点代码”（Hot Spot Code）。为了提高热点代码的执行效率，在运行时，虚拟机将会把这些代码编译成与本地平台相关的机器码，并进行各种层次的优化，完成这个任务的编译器称为即时编译器（Just">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java运行期优化">
+<meta property="og:url" content="https://clq2owesome.github.io/2018/02/25/Java/基础/java运行期优化/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="概述在部分的商用虚拟机（Sun HotSpot， IMB J9）中，Java程序最初是通过解释器（Interpreter）进行解释执行的，当虚拟机发现某个方法或代码块的运行特别频繁时，就会把这些代码定位“热点代码”（Hot Spot Code）。为了提高热点代码的执行效率，在运行时，虚拟机将会把这些代码编译成与本地平台相关的机器码，并进行各种层次的优化，完成这个任务的编译器称为即时编译器（Just">
+<meta property="og:image" content="https://raw.githubusercontent.com/clq2owesome/image/master/jieshi.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/clq2owesome/image/master/jit.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/clq2owesome/image/master/osr.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/clq2owesome/image/master/com1.png">
+<meta property="og:updated_time" content="2018-02-25T07:08:55.836Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="java运行期优化">
+<meta name="twitter:description" content="概述在部分的商用虚拟机（Sun HotSpot， IMB J9）中，Java程序最初是通过解释器（Interpreter）进行解释执行的，当虚拟机发现某个方法或代码块的运行特别频繁时，就会把这些代码定位“热点代码”（Hot Spot Code）。为了提高热点代码的执行效率，在运行时，虚拟机将会把这些代码编译成与本地平台相关的机器码，并进行各种层次的优化，完成这个任务的编译器称为即时编译器（Just">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/clq2owesome/image/master/jieshi.png">
+  
+    <link rel="alternate" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" integrity="sha384-XdYbMnZ/QjLh6iI4ogqCTaIjrFk87ip+ekIjefZch0Y+PvJ8CDYtEs1ipDmPorQ+" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="/css/styles.css">
+  
+
+</head>
+
+<body>
+  <nav class="navbar navbar-inverse">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-menu-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="main-menu-navbar">
+      <ul class="nav navbar-nav">
+        
+          <li><a class=""
+                 href="/index.html">Home</a></li>
+        
+          <li><a class=""
+                 href="/archives/">Archives</a></li>
+        
+      </ul>
+
+      <!--
+      <ul class="nav navbar-nav navbar-right">
+        
+          <li><a href="/atom.xml" title="RSS Feed"><i class="fa fa-rss"></i></a></li>
+        
+      </ul>
+      -->
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+  <div class="container">
+    <div class="blog-header">
+  <h1 class="blog-title">LeoChan&#39;s 个人博客</h1>
+  
+    <p class="lead blog-description">技术都是通用的，重要的是是否具有自主解决问题的能力！</p>
+  
+</div>
+
+    <div class="row">
+        <div class="col-sm-8 blog-main">
+          <article id="post-Java/基础/java运行期优化" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 class="article-title" itemprop="name">
+      java运行期优化
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2018/02/25/Java/基础/java运行期优化/" class="article-date"><time datetime="2018-02-25T07:09:45.000Z" itemprop="datePublished">2018-02-25</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>在部分的商用虚拟机（Sun HotSpot， IMB J9）中，Java程序最初是通过解释器（Interpreter）进行解释执行的，当虚拟机发现某个方法或代码块的运行特别频繁时，就会把这些代码定位“<strong>热点代码</strong>”（Hot Spot Code）。为了提高热点代码的执行效率，在运行时，虚拟机将会把这些代码编译成与本地平台相关的机器码，并进行各种层次的优化，完成这个任务的编译器称为<strong>即时编译器</strong>（Just In TimenCompiler，简称JIT编译器）。</p>
+<p>即时编辑器并不是虚拟机必须的部分，Java虚拟机规范并没有规定Java虚拟机内必须要有即时编译器的存在，更没有限定或指导即时编译器应该如何实现。但是，即时编译器编译性能的好坏，代码优化程度的高低却是衡量一款商用虚拟机优秀与否的最关键的技术指标之一。</p>
+<h3 id="HotSpot虚拟机内的即时编译器"><a href="#HotSpot虚拟机内的即时编译器" class="headerlink" title="HotSpot虚拟机内的即时编译器"></a>HotSpot虚拟机内的即时编译器</h3><h4 id="解释器与编译器"><a href="#解释器与编译器" class="headerlink" title="解释器与编译器"></a>解释器与编译器</h4><p>解释器与编译器两者各有优势：当程序需要迅速启动和执行的时候，解释器可以首先发挥作用，省去编译的时间，立即执行。在程序运行后，随着时间的推移，编译器逐渐发挥作用，把越来越多的代码编译成本地代码之后，可以获取更高的执行效率。</p>
+<p>当程序运行环境中内存资源限制较大（如部分嵌入式系统中），可以使用解释执行节约内存，反之可以使用编译执行来提升效率。同时，解释器还可以作为编译器激进优化时的一个“逃生门”，让编译器根据概率选择一些大多数时候都能提升运行速度的优化手段，当激进优化的假设不成立，如加载了新类后类型继承结构出现变化，出现“罕见陷阱”时可以通过逆优化退回到解释状态继续执行。如下图所示：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/jieshi.png" alt="image"></p>
+<p>HotSpot虚拟机中内置了两个即时编译器，分别称为<strong>Client Compiler</strong>（C1 编译器） 和 <strong>Server Compiler</strong>（C2 编译器），默认采用解释器与其中一个编译器直接配合的方式工作，程序使用哪个编译器，取决于虚拟机运行的模式，HotSpot虚拟机会根据自身版本与宿主机器的硬件性能自动选择运行模式，用户也可以使用“<strong>-client</strong>”或“<strong>-server</strong>”参数去强制指定虚拟机运行在Client模式或Server模式。</p>
+<p>虚拟机中的三种模式：</p>
+<ul>
+<li>混合模式（Mixed Mode）：解释器与编译器搭配使用的方式</li>
+<li>解释模式（Interpreted Mode）：使用参数“-Xint”强制虚拟机运行于解释模式，这时编译器完全不介入工作，全部代码都使用解释方式执行</li>
+<li>编译模式（Compiled Mode）：使用参数“—Xcomp”强制让虚拟机运行于编译模式，这时将优先采用编译方式执行程序，但是解释器仍然要在编译无法进行的情况下介入执行过程</li>
+</ul>
+<p>由于即使编译器编译本地代码需要占用程序运行时间，要编译出优化程度更高的代码，所花费的时间可能更长；而且想要编译出优化程度更高的代码，解释器可能还要替编译器收集性能监控信息，这对解释执行的速度也有影响。  </p>
+<p>为了在程序启动响应速度与运行效率之间达到最佳平衡，HotSpot虚拟机还会逐渐启用<strong>分层编译</strong>（Tiered Compilation）的策略。这个策略最终在JDK1.7的Server模式虚拟机中作为默认编译策略被开启。</p>
+<p>分层编译根据编译器编译，优化的规模与耗时，划分出不同的编译层次，其中包括：</p>
+<ol>
+<li>第0层，程序解释执行，解释器不开启性能监控功能（Profiling）。可触发第1层编译。</li>
+<li>第1层，也称为C1编译，将字节码编译为本地代码，进行简单，可靠的优化，如有必要将加入性能监控的逻辑。</li>
+<li>第2层（或2层以上），也称为C2编译，也是将字节码编译为本地代码，但是会启用一些编译耗时较长的优化，甚至会根据性能监控信息进行一些不可靠的激进优化</li>
+</ol>
+<p>实施分层编译后，Client Compiler 和 Server Compiler将会同时工作，许多代码都可能会被多次编译，用Client Compiler获取更高的编译速度，用Server Compiler来获取更好的编译质量，在解释执行的时候也无须再承担收集性能监控信息的任务。</p>
+<h4 id="编译对象和触发条件"><a href="#编译对象和触发条件" class="headerlink" title="编译对象和触发条件"></a>编译对象和触发条件</h4><p>在运行过程中会被即时编译器编译的“热点代码”有两类，即：</p>
+<ul>
+<li>被多次调用的方法</li>
+<li>被多次执行的循环体</li>
+</ul>
+<p>方法和循环体都是以整个方法作为<strong>编译对象</strong>的。这种编译方式因为编译发生在方法执行过程之中，因此形象地称之为<strong>栈上替换</strong>（On Stack Replacement，简称<strong>OSR编译</strong>）。</p>
+<p>判断一段代码是不是热点代码，是不是需要触发即时编译，这样的行为称为<strong>热点探测</strong>（Hot Spot Detection）。目前有两种方式：</p>
+<ul>
+<li><strong>基于采样的热点探测</strong>（Sample Based Hot Spot Detection）：采用这种方法的虚拟机会周期性地检查各个线程的栈顶，如果发现某个（或某些）方法经常出现在栈顶，那这个方法就是“热点方法”。<ul>
+<li>好处：实现简单，高效，还可以很容易地获取方法调用关系（将调用堆栈展开即可）</li>
+<li>缺点：很难精确地确认一个方法的热度，容易因为受到线程阻塞或别的外界因素的影响而扰乱热点探测</li>
+</ul>
+</li>
+<li><strong>基于计数器的热点探测</strong>（Counter Based Hot Spot Detection）：采用这种方法的虚拟机会为每个方法（甚至是代码块）建立计数器，统计方法的执行次数，如果执行次数超过一定的阀值就认为它是“热点方法”。<ul>
+<li>好处：统计结果相对来说更加精确和严谨</li>
+<li>缺点：实现起来麻烦一些，需要为每个方法建立并维护计数器，而不能直接获取到方法的调用关系</li>
+</ul>
+</li>
+</ul>
+<p>在HotSpot虚拟机中使用的是第二种方式，因此它为每个方法准备了两类计数器：<strong>方法调用计数器</strong>（Invocation Counter）和<strong>回边计数器</strong>（Back Edge Counter）。</p>
+<h6 id="方法调用计数器"><a href="#方法调用计数器" class="headerlink" title="方法调用计数器"></a>方法调用计数器</h6><p>默认阀值在Client模式下是1500次，在Server模式下是10000次，可以通过参数<code>-XX:CompileThreshold</code>来设定。</p>
+<p><strong>当一个方法被调用时，会先检查该方法是否存在被JIT编译过的版本，如果存在，则优先使用编译后的本地代码来执行。如果不存在已被编译过的版本，则将此方法的调用计数器值加1，然后判断方法调用计数器与回边计数器值之和是否超过方法调用计数器的阀值。如果已超过阀值，那么将会向即时编译器提交一个该方法的代码编译请求</strong>。</p>
+<p>如果不做任何设置，执行引擎并不会同步等待编译请求完成，而是继续进行解释器按照解释方式执行字节码，直到提交的请求被编译器编译完成。当编译工作完成之后，这个方法的调用入口地址就会被系统自动改写成新的，下一次调用该方法时 就会使用已编译的版本，如下图所示：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/jit.png" alt="image">   </p>
+<p><strong>方法调用计数器热度的衰减</strong>（Counter Decay）：如果不做任何设置，方法调用计数器统计的并不是方法被调用的绝对次数，而是一个相对的执行效率，即一段时间之内方法被调用的次数。超过一定的时间限度，如果方法的调用次数仍然不足以让它提交给即时编译器编译，那这个方法的调用计数器就会被减少一半，这个过程就称为方法调用计数器热度的衰减。而这段时间就称为<strong>此方法统计的半衰周期</strong>（Counter Half Life Time）。</p>
+<p><code>-XX:-UseCounterDeacy</code>：关闭热度衰减<br><code>-XX:CounterHalfLifeTime</code>：设置半衰周期的时间，单位是秒</p>
+<h6 id="回边计数器"><a href="#回边计数器" class="headerlink" title="回边计数器"></a>回边计数器</h6><p>通过参数：<code>-XX:OnStackReplacPercentage</code>来间接调整回边计数器的阀值</p>
+<ul>
+<li><p>Client模式下：<br>  回边计数器的阀值计算公式为：<strong>方法调用计数器阀值 x OSR比率（OnStackReplacePercentage） / 100</strong>   </p>
+<p>  其中，OnStackReplacePercentage默认值为933，如果都取默认值，那Client模式虚拟机的回边计数器的阀值为13995</p>
+</li>
+<li><p>Server模式下：<br>  回边计数器的阀值计算公式为：<strong>方法调用计数器阀值 x ( OSR比率（OnStackReplacePercentage） - 解释器监控比率（InterpreterProfilePercentage） ) / 100</strong>  </p>
+<p>  其中，OnStackReplacePercentage默认值为140，InterpreterProfilePercentage默认值为33，如果都取默认值，那Server模式虚拟机的回边计数器的阀值为10700</p>
+</li>
+</ul>
+<p><strong>当解释器遇到一条回边指令时，会先查找讲要执行的代码片段是否有已经编译好的版本，如果有，它将会优先执行已编译的代码，否则就把回边计数器的值加1，然后判断方法调用计数器与回边计数之和是否超过回边计数器的阀值。当超过阀值的时候，将会提交一个OSR编译请求，并且把回边计数器的值降低一些，以便继续在解释器中执行循环，等待编译器输出编译结果</strong>，如下图所示：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/osr.png" alt="image">   </p>
+<p>与方法计数不同，回边计数器没有计数热度衰减的过程，因此这个计数器统计的就是该方法循环执行的绝对次数。当计数器溢出的时候，它还会把方法计数器的值也调整到溢出状态，这样下次再进入该方法的时候就会执行标准编译过程。</p>
+<p>注意：上面的描述都是仅仅描述了Client VM的即时编译方式，对于Server VM来说，执行情况会比上面的描述更复杂一些。</p>
+<h4 id="编译过程"><a href="#编译过程" class="headerlink" title="编译过程"></a>编译过程</h4><p>在默认设置下，无论是方法调用产生的即时编译请求，还是OSR编译请求，虚拟机在代码编译器还未完成之前，都仍然将按照解释方式继续执行，而编译动作则在后台的编译线程中进行。用户可以通过参数<code>-XX:-BackgroundCompilation</code>来禁止后台编译，在禁止后台编译后，一旦达到JIT的编译条件，执行线程向虚拟机提交编译请求后将会一直等待，直到编译过程完成后再开始执行编译器输出的本地代码。</p>
+<p>Client Compiler编译的三个过程：</p>
+<ol>
+<li>在第一个阶段，一个平台独立的前端字节码构造成一种高级中间代码表示（High-Level Intermediate Repressentation，HIR）。HIR使用静态单分配（Static Single Assignment，SSA）的形式来代表代码值，这可以使得一些在HIR的构造过程之中和之后进行的优化动作更容易实现。在此之前编译器会在字节码上完成一部分基础优化，如方法内联，常量传播等优化将会在字节码被构造成HIR之前完成</li>
+<li>在第二阶段，一个平台相关的后端从HIR中产生低级中间代码表示（Low-Level Intermediate Representation，LIR），而在此之前会在HIR上完成另外一些优化，如空值检查消除，范围检查消除等，以便让HIR达到更高效的代码表示形式</li>
+<li>最后阶段是在平台相关的后端使用线性扫描算法（Linear Scan Register Allocation）在LIR上分配寄存器，并在LIR上做窥孔（Peephole）优化，然后产生机器代码。</li>
+</ol>
+<p>各阶段的流程如下图所示：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/com1.png" alt="image"></p>
+<h4 id="最具代表性的优化技术"><a href="#最具代表性的优化技术" class="headerlink" title="最具代表性的优化技术"></a>最具代表性的优化技术</h4><ul>
+<li>语言无关的经典优化技术之一：公共子表达式消除</li>
+<li>语言无关的经典优化技术之一：数组范围检查消除</li>
+<li>最重要的优化技术之一：方法内联</li>
+<li>最前沿的优化技术之一：逃逸分析</li>
+</ul>
+<h6 id="公共子表达式消除"><a href="#公共子表达式消除" class="headerlink" title="公共子表达式消除"></a>公共子表达式消除</h6><p>含义：如果一个表达式E已经计算过了，并且从先前的计算到现在E中所有变量的值都没有发生变化，那么E的这次出现就成为了<strong>公共子表达式</strong>。对于这种表达式，没有必要花时间再对它进行计算，只需要直接用前面计算过的表达式结果代替E就可以了。如果这种优化仅限于程序的基本块内，便称为<strong>局部公共子表达式消除</strong>。如果这种优化的范围涵盖了多个基本块，那就称为<strong>全局公共子表达式消除</strong>。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">假设有如下代码：</div><div class="line">int d = (c * b) * 12 + a + (a + b * c);</div><div class="line">当这段代码进入到虚拟机即时编译器后，它将进行如下优化：</div><div class="line">编译器检测到“c*b”与“b*c”是一样的表达式，而且在计算期间b与c的值是不变的，</div><div class="line">因此，这条表达式就可能被视为：</div><div class="line">int d = E * 12 + a + (a + E);</div><div class="line">这时，编译器还可能进行另外一种优化：代数化简</div><div class="line">int d = E * 13 + a * 2;</div></pre></td></tr></table></figure></p>
+<h6 id="数组边界检查消除"><a href="#数组边界检查消除" class="headerlink" title="数组边界检查消除"></a>数组边界检查消除</h6><p>Java语言是一门动态安全的语言，对数组的读写访问也不像C，C++那样在本质上是裸指针操作。</p>
+<p>如果有一个数组foo[]，在java语言中访问数组元素foo[i]的时候系统将会自动进行上下界的范围检查，即检查i必须满足i&gt;=0&amp;&amp;i&lt;foo.length这个条件，否则将抛出一个运行时异常：java.lang.ArrayIndexOutOfBoundsException。这对软件开发者来说是一件很好的事情，即使程序员没有专门编写防御代码，也可以避免大部分的溢出攻击。但是对于虚拟机的执行子系统来说，每次数组元素的读写都带有一次隐含的条件判定操作，对于拥有大量数组访问的程序代码，这无疑是一种性能负担。</p>
+<p>无论如何，为了安全，数组边界检查肯定是必须做的，但数组边界检查是不是必须在运行期间一次不漏地检查则是可以“商量”的。例如下面这个简单的情况：数组下标是一个常量，如foo[3]，只要在编译期根据数据流分析来确定foo.length的值，并判断下标“3”没有越界，执行的时候就无须判断了。更加常见的情况是数组访问发生在循环之中，并且使用循环变量来进行数组访问，如果编译器只要通过数据流分析就可以判定循环变量的取值范围永远在区间[0, foo.length)之内，那在整个循环中就可以把数组的上下界检查消除，这可以节省很多次的条件判断操作。</p>
+<p>要消除这些隐式开销，除了如数组边界检查优化这种尽可能把运行期检查提到编译器完成的思路之外，另外还有一种避免思路-<strong>隐式异常处理</strong>。Java中空指针检查和算术运算中除数为0的检查都采用了这种思路。举个例子，例如程序访问一个对象（假设对象叫foo）的某个属性（假设属性叫value），那以java伪代码来表示虚拟机访问foo.value过程如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">if (foo != null) &#123;</div><div class="line">    return foo.value;</div><div class="line">&#125; else &#123;</div><div class="line">    throw new NullPointException();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在用隐式异常优化后，虚拟机会把上面的伪代码所表示的访问过程变为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">try &#123;</div><div class="line">    return foo.value;</div><div class="line">&#125; catch(segment_fault) &#123;</div><div class="line">    uncommon_trap();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>虚拟机会注册一个Segment Fault信号的异常处理器，这样当foo不为空的时候，对value的访问是不会额外消耗一次对foo判空的开销的。代价就是当foo真的为空时，必须转入到异常处理器中恢复并抛出NullpointException异常，这个过程必须从用户态转到内核态中处理，结束后再回到用户态，速度远比一次判空检查慢。当foo极少为空的时候，隐式异常优化是值得的，但假如foo经常为空的话，这样的优化反而会让程序更慢，还好HotSpot虚拟机足够“聪明”，它会根据运行期收集到的Profile信息自动选择最优方案。</p>
+<p>与语言相关的其他消除操作还有：<strong>自动装箱消除</strong>（Autobox Elimination），<strong>安全点消除</strong>（Safepoint Elimination），<strong>消除反射</strong>（Dereflection）等</p>
+<h6 id="方法内联"><a href="#方法内联" class="headerlink" title="方法内联"></a>方法内联</h6><p>编译器最重要的优化手段之一，除了消除方法调用的成本外，它更重要的意义是为其他优化手段建立良好的基础。<br>例如：内联对其他优化手段的意义<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">public static void foo(Object obj) &#123;</div><div class="line">    if(obj != null) &#123;</div><div class="line">        System.out.println(&quot;do something&quot;);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">public static void testInline(String[] args) &#123;</div><div class="line">    Object obj = null;</div><div class="line">    foo(obj);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>事实上，testInline()方法内部全部都是无用的代码，如果不做内联，后续即使进行了无用代码消除的优化，也无法发现任何“Dead Code”，因为如果分开来看，foo()和testInline()两个方法里面的操作都可能是有意义的。</p>
+<p>含义：<strong>方法内联的优化行为看起来很简单，不过是把目标方法的代码“复制”到发起调用的方法之中，避免发生真实的方法调用而已</strong>。但实际上Java虚拟机中的内联过程远远没有那么简单，因为如果不是即时编译器做了一些特别的努力，按照经典编译原理的优化理论，大多数的java方法都无法进行内联。</p>
+<p>只有使用invokespecial指令调用的私有方法，实例构造器，父类方法以及使用invokestatic指令进行调用的静态方法才是在编译器进行解析的，除了上述4种方法外，其他的java方法调用都需要在运行时进行方法接收者的多态选择，并且都有可能存在多于一个版本的方法接收者（最多再除去被final修饰的方法这种特殊情况，尽管它使用invokevirtual指令调用，但也是非虚方法，Java语言规范中明确说明了这点）。简而言之，<strong>Java语言中默认的实例方法是虚方法</strong>。</p>
+<p>为了解决虚方法的内联问题，Java虚拟机团队想了很多办法，首先是引入了一种名为“<strong>类型继承关系分析</strong>”（Class Hierarchy Analysis， <strong>CHA</strong>）的技术。<strong>这是一种基于整个应用程序的类型分析技术，它用于确定在目前已加载的类中，某个接口是否有多于一种的实现，某个类是否存在子类，子类是否为抽象类等信息</strong>。</p>
+<p>编译器在进行内联时，如果是非虚方法，那么直接进行内联就可以了，这时候的内联是有稳定前提保障的。如果遇到虚方法，则会向CHA查询此方法在当前程序下是否有多个目标版本可供选择，如果查询结果只有一个版本，那也可以进行内联，不过这种内联就属于激进优化，需要预留一个“逃生门”（Guard条件不成立时的Slow Path），称为<strong>守护内联</strong>（Guarded Inlining）。如果程序的后续执行过程中，虚拟机一直没有加载到会令这个方法的接收者的继承关系发生变化的类，那这个内联优化的代码就可以一直使用下去。但如果加载了导致继承关系发生变化的新类，那就需要抛弃已经编译的代码，退回到解释状态执行，或者重新编译。</p>
+<p>如果向CHA查询出来的结果是有多个版本的目标方法可供选择，则编译器还将会进行最后一次努力，使用内联缓存（Inline Cache）来完成方法内联，这是一个建立在目标方法正常入口之前的缓存，它的工作原理大致是：<strong>在未发生方法调用之前，内联缓存状态为空，当第一次调用发生后，缓存记录下方法接收者的版本信息，并且每次进行方法调用时都比较接收者版本，如果以后进来的每次调用的方法接收者版本都是一样的，那这个内联还可以一直用下去。如果发生了方法接收者不一致的情况，就说明程序真正使用了虚方法的多态特性，这时才会取消内联，查找虚方法表进行方法分派</strong>。</p>
+<h3 id="逃逸分析"><a href="#逃逸分析" class="headerlink" title="逃逸分析"></a>逃逸分析</h3><p>逃逸分析（Escape Analysis）是目前java虚拟机中比较前沿的优化技术，它与类型继承关系分析一样，并不是直接优化代码的手段，而是为其他优化手段提供依据的分析技术。</p>
+<p>逃逸分析的基本行为就是分析对象动态作用域：当一个对象在方法中被定义后，它可能被外部方法所引用，例如作为调用参数传递到其他方法中，称为<strong>方法逃逸</strong>。甚至还有可能被外部线程访问到，譬如赋值给类变量或可以在其他线程中访问的实例变量，称为<strong>线程逃逸</strong>。</p>
+<p>如果能证明一个对象不会逃逸到方法或线程之外，也就是别的方法或线程无法通过任何途径访问到这个对象，则可能会为这个变量进行一些高效的优化：</p>
+<ul>
+<li>栈上分配（Stack Allocation）：Java虚拟机中，在Java堆上分配创建对象的内存空间几乎是Java程序员都清楚的常识了，Java堆中的对象对于各个线程都是共享可见的，只要持有这个对象的引用，就可以访问堆中存储的对象数据。虚拟机的垃圾收集系统可以回收堆中不再使用的对象，但回收动作无论是筛选可回收对象，还是回收和整理内存都需要耗费时间。<strong>如果确定一个对象不会逃逸除方法之外，那让这个对象在栈上分配内存将会是一个很不错的主意，对象所占用的内存空间就可以随栈帧出栈而销毁。在一般应用中，不会逃逸的局部对象所占的比例很大，如果能使用栈上分配，那大量的对象就会随着方法的结束而自动销毁了，垃圾收集系统的压力将会小很多</strong>。</li>
+<li>同步消除（Synchronization Elimination）；线程同步本身是一个相对耗时的过程，如果逃逸分析能够确定一个变量不会逃逸出线程，无法被其他线程访问，那这个变量的读写肯定不会有竞争，对这个变量实施的同步措施也就可以消除掉。</li>
+<li>标量替换（Scalar Replacement）：标量（Scalar）是指一个数据已经无法再分解成更小的数据来表示了，Java虚拟机中的原始数据类型（int，long等数值类型以及reference类型等）都不能再进一步分解，它们就可以称为<strong>标量</strong>。相对的，如果一个数据可以继续分解，那它就称作<strong>聚合量</strong>（Aggregate），Java中的对象就是最典型的聚合量。如果把一个Java对象拆散，根据程序访问的情况，将其使用到的成员变量恢复原始类型来访问就叫做<strong>标量替换</strong>。如果逃逸分析证明一个对象不会被外部访问，并且这个对象可以被拆散的话，那程序真正执行的时候将可能不创建这个对象，而改为直接创建它的若干个被这个方法使用到的成员变量来代替。将对象拆分后，除了可以让对象的成员变量在栈上（栈上存储的数据，有很大的概率会被虚拟机分配至物理机器的高速寄存器中存储）分配和读写之外，还可以为后续进一步的优化手段创建条件。</li>
+</ul>
+<p>逃逸分析不成熟的原因主要是不能保证逃逸分析的性能收益必定高于它的消耗。</p>
+<p><code>-XX:+DoEscapeAnalysis</code>:手动开启逃逸分析<br><code>-XX:+PrintEscapeAnalysis</code>:查看分析结果<br><code>-XX:+EliminateAllocations</code>:开启标量替换<br><code>-XX:+EliminateLocks</code>:开启同步消除<br><code>-XX:+PrintEliminateAllocations</code>:查看标量的替换情况   </p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/java运行期优化/" data-id="cje2lrz1x0047pxbl6mfku0fy" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+    
+<ul id="article-nav" class="nav nav-pills nav-justified">
+  
+  <li role="presentation">
+    <a href="/2018/02/25/Java/基础/序列化和反序列化/" id="article-nav-older" class="article-nav-link-wrap">
+      <i class="fa fa-chevron-left pull-left"></i>
+      <span class="article-nav-link-title">序列化和反序列化</span>
+    </a>
+  </li>
+  
+  
+  <li role="presentation">
+    <a href="/2018/02/25/Java/基础/对象存活/" id="article-nav-newer" class="article-nav-link-wrap">
+      <span class="article-nav-link-title">对象存活</span>
+      <i class="fa fa-chevron-right pull-right"></i>
+    </a>
+  </li>
+  
+</ul>
+
+
+  
+</article>
+
+
+
+
+        </div>
+        <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+          
+  <div class="sidebar-module sidebar-module-inset">
+  <h4>关于</h4>
+  <p>该博客内的文章是博主在日常工作或者学习中总结出来，部分内容来自网络.</p>
+
+</div>
+
+
+  
+  <div class="sidebar-module">
+    <h4>分类</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">84</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/分布式/">分布式</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">21</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/时间日期/">时间日期</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">8</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Spring-Boot/">Spring Boot</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Spring-Session/">Spring Session</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">20</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">20</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">29</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">4</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Nginx/">Nginx</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">13</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">9</span></li></ul>
+  </div>
+
+
+
+  
+
+
+  
+
+  
+  <div class="sidebar-module">
+    <h4>归档</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2018/02/">二月 2018</a><span class="sidebar-module-list-count">45</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/10/">十月 2017</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">62</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">125</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/02/">二月 2017</a><span class="sidebar-module-list-count">2</span></li></ul>
+  </div>
+
+
+
+  
+  <div class="sidebar-module">
+    <h4>最近文章</h4>
+    <ul class="sidebar-module-list">
+      
+        <li>
+          <a href="/2018/02/25/Java/基础/java8新特性/">java8新特性</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/集合/HashSet原理/">HashSet原理</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/分布式/分布式锁/">分布式锁</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/集合/在List循环中删除元素/">在List循环中删除元素</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/">Hashtable与ConcurrentHashMap区别</a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+
+        </div>
+    </div>
+  </div>
+  <footer class="blog-footer">
+  <div class="container">
+    <div id="footer-info" class="inner">
+      &copy; 2018 LeoChan<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+  
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" integrity="sha384-8gBf6Y4YYq7Jx97PIqmTwLPin4hxIzQw5aDmUg/DDhul9fFpbbLcLh3nTIIDJKhx" crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+
+
+<script src="/js/script.js"></script>
+
+</body>
+</html>

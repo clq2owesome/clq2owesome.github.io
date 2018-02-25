@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>主从结构（master-slave） | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="MySQL数据库自身提供的主从复制功能可以方便的实现数据的多处自动备份，实现数据库的拓展。多个数据备份不仅可以加强数据的安全性，通过实现读写分离还能进一步提升数据库的负载性能。 下图就描述了一个多个数据库间主从复制与读写分离的模型(来源网络)：在一主多从的数据库体系中，多个从服务器采用异步的方式更新主数据库的变化，业务服务器在执行写或者相关修改数据库的操作是在主服务器上进行的，读操作则是在各从服务">
+<meta property="og:type" content="article">
+<meta property="og:title" content="主从结构（master-slave）">
+<meta property="og:url" content="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/主从结构（master-slave）/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="MySQL数据库自身提供的主从复制功能可以方便的实现数据的多处自动备份，实现数据库的拓展。多个数据备份不仅可以加强数据的安全性，通过实现读写分离还能进一步提升数据库的负载性能。 下图就描述了一个多个数据库间主从复制与读写分离的模型(来源网络)：在一主多从的数据库体系中，多个从服务器采用异步的方式更新主数据库的变化，业务服务器在执行写或者相关修改数据库的操作是在主服务器上进行的，读操作则是在各从服务">
+<meta property="og:image" content="http://images2015.cnblogs.com/blog/1043616/201612/1043616-20161213151157558-1150305350.jpg">
+<meta property="og:image" content="http://hi.csdn.net/attachment/201202/28/0_1330439010P7lI.gif">
+<meta property="og:image" content="http://images.cnblogs.com/cnblogs_com/hustcat/mysql/mysql03-5.JPG">
+<meta property="og:image" content="http://images.cnblogs.com/cnblogs_com/hustcat/mysql/mysql03-6.JPG">
+<meta property="og:image" content="http://images.cnblogs.com/cnblogs_com/hustcat/mysql/mysql03-7.JPG">
+<meta property="og:image" content="http://images.cnblogs.com/cnblogs_com/hustcat/mysql/mysql03-8.JPG">
+<meta property="og:image" content="http://images.cnblogs.com/cnblogs_com/hustcat/mysql/mysql03-9.JPG">
+<meta property="og:image" content="http://images.cnblogs.com/cnblogs_com/hustcat/mysql/mysql03-10.JPG">
+<meta property="og:updated_time" content="2018-02-25T09:04:21.454Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="主从结构（master-slave）">
+<meta name="twitter:description" content="MySQL数据库自身提供的主从复制功能可以方便的实现数据的多处自动备份，实现数据库的拓展。多个数据备份不仅可以加强数据的安全性，通过实现读写分离还能进一步提升数据库的负载性能。 下图就描述了一个多个数据库间主从复制与读写分离的模型(来源网络)：在一主多从的数据库体系中，多个从服务器采用异步的方式更新主数据库的变化，业务服务器在执行写或者相关修改数据库的操作是在主服务器上进行的，读操作则是在各从服务">
+<meta name="twitter:image" content="http://images2015.cnblogs.com/blog/1043616/201612/1043616-20161213151157558-1150305350.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" integrity="sha384-XdYbMnZ/QjLh6iI4ogqCTaIjrFk87ip+ekIjefZch0Y+PvJ8CDYtEs1ipDmPorQ+" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="/css/styles.css">
+  
+
+</head>
+
+<body>
+  <nav class="navbar navbar-inverse">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-menu-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="main-menu-navbar">
+      <ul class="nav navbar-nav">
+        
+          <li><a class=""
+                 href="/index.html">Home</a></li>
+        
+          <li><a class=""
+                 href="/archives/">Archives</a></li>
+        
+      </ul>
+
+      <!--
+      <ul class="nav navbar-nav navbar-right">
+        
+          <li><a href="/atom.xml" title="RSS Feed"><i class="fa fa-rss"></i></a></li>
+        
+      </ul>
+      -->
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+  <div class="container">
+    <div class="blog-header">
+  <h1 class="blog-title">LeoChan&#39;s 个人博客</h1>
+  
+    <p class="lead blog-description">技术都是通用的，重要的是是否具有自主解决问题的能力！</p>
+  
+</div>
+
+    <div class="row">
+        <div class="col-sm-8 blog-main">
+          <article id="post-数据库相关/mysql/主从结构（master-slave）" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 class="article-title" itemprop="name">
+      主从结构（master-slave）
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2018/02/25/数据库相关/mysql/主从结构（master-slave）/" class="article-date"><time datetime="2018-02-25T02:09:45.000Z" itemprop="datePublished">2018-02-25</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a> / <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>MySQL数据库自身提供的主从复制功能可以方便的实现数据的多处自动备份，实现数据库的拓展。多个数据备份不仅可以加强数据的安全性，通过实现读写分离还能进一步提升数据库的负载性能。</p>
+<p>下图就描述了一个多个数据库间主从复制与读写分离的模型(来源网络)：<br><img src="http://images2015.cnblogs.com/blog/1043616/201612/1043616-20161213151157558-1150305350.jpg" alt="image"><br>在一主多从的数据库体系中，多个从服务器采用异步的方式更新主数据库的变化，业务服务器在执行写或者相关修改数据库的操作是在主服务器上进行的，读操作则是在各从服务器上进行。如果配置了多个从服务器或者多个主服务器又涉及到相应的负载均衡问题，关于负载均衡具体的技术细节还没有研究过，今天就先简单的实现一主一从的主从复制功能。</p>
+<h3 id="复制概述"><a href="#复制概述" class="headerlink" title="复制概述"></a>复制概述</h3><p>Mysql内建的复制功能是构建大型，高性能应用程序的基础。将Mysql的数据分布到多个系统上去，这种分布的机制，是通过将Mysql的某一台主机的数据复制到其它主机（slaves）上，并重新执行一遍来实现的。复制过程中一个服务器充当主服务器，而一个或多个其它服务器充当从服务器。主服务器将更新写入二进制日志文件，并维护文件的一个索引以跟踪日志循环。这些日志可以记录发送到从服务器的更新。当一个从服务器连接主服务器时，它通知主服务器从服务器在日志中读取的最后一次成功更新的位置。从服务器接收从那时起发生的任何更新，然后封锁并等待主服务器通知新的更新。</p>
+<p>请注意当你进行复制时，所有对复制中的表的更新必须在主服务器上进行。否则，你必须要小心，以避免用户对主服务器上的表进行的更新与对从服务器上的表所进行的更新之间的冲突。</p>
+<h3 id="mysql支持的复制类型"><a href="#mysql支持的复制类型" class="headerlink" title="mysql支持的复制类型"></a>mysql支持的复制类型</h3><ol>
+<li><p><code>基于语句的复制</code>：  在主服务器上执行的SQL语句，在从服务器上执行同样的语句。MySQL默认采用基于语句的复制，效率比较高。<br>一旦发现没法精确复制时，   会自动选着基于行的复制。 </p>
+</li>
+<li><p><code>基于行的复制</code>：把改变的内容复制过去，而不是把命令在从服务器上执行一遍. 从mysql5.0开始支持</p>
+</li>
+<li><p><code>混合类型的复制</code>: 默认采用基于语句的复制，一旦发现基于语句的无法精确的复制时，就会采用基于行的复制。</p>
+</li>
+</ol>
+<h3 id="复制解决的问题"><a href="#复制解决的问题" class="headerlink" title="复制解决的问题"></a>复制解决的问题</h3><p>MySQL复制技术有以下一些特点：</p>
+<ol>
+<li>数据分布 (Data distribution )</li>
+<li>负载平衡(load balancing)</li>
+<li>备份(Backups) </li>
+<li>高可用性和容错行(High availability and failover)</li>
+</ol>
+<h3 id="复制如何工作"><a href="#复制如何工作" class="headerlink" title="复制如何工作"></a>复制如何工作</h3><p>整体上来说，复制有3个步骤：   </p>
+<ol>
+<li>master将改变记录到二进制日志(binary log)中（这些记录叫做二进制日志事件，binary log events）；</li>
+<li>slave将master的binary log events拷贝到它的中继日志(relay log)；</li>
+<li>slave重做中继日志中的事件，将改变反映它自己的数据。</li>
+</ol>
+<p>下图描述了复制的过程：<br><img src="http://hi.csdn.net/attachment/201202/28/0_1330439010P7lI.gif" alt="image"><br>第一步是在主库上记录二进制日志。在每次准备提交事务完成数据更新前，主库将数据更新的事件记录到二进制日志中。MySQL会按事务提交的顺序而非每条语句的执行顺序来记录二进制日志。在记录二进制日志后，主库会告诉存储引擎可以提交事务了。</p>
+<p>下一步，备库将主库的二进制日志复制到其本地的中继日志中。首先，备库会启动一个工作线程，称为I/O线程，I/O线程跟主库建立一个普通的客户端连接，然后在主库上启动一个特殊的二进制转储（binlog dunp）线程（该线程没有对应的SQL命令），这个二进制转储线程会读取主库上二进制日志中的事件。它不会对事件进行轮询。如果该线程追赶上了主库，它将进入睡眠状态，直到主库发送信号量通知其有新的事件产生时才会被唤醒，备库I/O线程会将接收到的事件记录到中继日志中。</p>
+<p>备库的SQL线程执行最后一步，将线程从中继日志中读取事件并在备库执行，从而实现备库数据的更新。当SQL线程追赶上I/O线程时，中继日志通常已经在系统缓存中，所以中继日志的开销很低。SQL线程执行的事件也可以通过配置选项来决定是否写入其自己的二进制日志中。</p>
+<p>这种复制架构实现了获取事件和重放事件的解耦，允许这两个过程异步进行。也就是说I/O线程能够独立于SQL线程之外工作。但这种架构也限制了复制的过程，其中最重要的一点是在主库上并发运行的查询在备库只能串行化执行，因为只有一个SQL线程来重放中继日志中的事件。</p>
+<h3 id="复制配置"><a href="#复制配置" class="headerlink" title="复制配置"></a>复制配置</h3><p>有两台MySQL数据库服务器Master和slave，Master为主服务器，slave为从服务器，初始状态时，Master和slave中的数据信息相同，当Master中的数据发生变化时，slave也跟着发生相应的变化，使得master和slave的数据信息同步，达到备份的目的。    </p>
+<h5 id="要点："><a href="#要点：" class="headerlink" title="要点："></a>要点：</h5><p>负责在主、从服务器传输各种修改动作的媒介是主服务器的二进制变更日志，这个日志记载着需要传输给从服务器的各种修改动作。因此，主服务器必须激活二进制日志功能。从服务器必须具备足以让它连接主服务器并请求主服务器把二进制变更日志传输给它的权限。</p>
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><h4 id="主服务器配置"><a href="#主服务器配置" class="headerlink" title="主服务器配置"></a>主服务器配置</h4><ol>
+<li><p>修改mysql配置<br>找到主数据库的配置文件my.cnf(或者my.ini)，我的在/etc/mysql/my.cnf,在[mysqld]部分插入如下两行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">[mysqld]</div><div class="line">log-bin=mysql-bin #开启二进制日志</div><div class="line">server-id=1 #设置server-id</div></pre></td></tr></table></figure>
+</li>
+<li><p>重启mysql，创建用于同步的用户账号<br>打开mysql会话shell&gt;<code>mysql -h localhost -u name -p password</code></p>
+</li>
+</ol>
+<p>创建用户并授权：用户：rel1密码：slavepass<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">mysql&gt; CREATE USER &apos;repl&apos;@&apos;123.57.44.85&apos; IDENTIFIED BY &apos;slavepass&apos;;#创建用户</div><div class="line">mysql&gt; GRANT REPLICATION SLAVE ON *.* TO &apos;repl&apos;@&apos;123.57.44.85&apos;;#分配权限</div><div class="line">mysql&gt;flush privileges;   #刷新权限</div></pre></td></tr></table></figure></p>
+<ol>
+<li>查看master状态，记录二进制文件名(mysql-bin.000003)和位置(73)：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">mysql &gt; SHOW MASTER STATUS;</div><div class="line">+------------------+----------+--------------+------------------+</div><div class="line">| File             | Position | Binlog_Do_DB | Binlog_Ignore_DB |</div><div class="line">+------------------+----------+--------------+------------------+</div><div class="line">| mysql-bin.000003 | 73       | test         | manual,mysql     |</div><div class="line">+------------------+----------+--------------+------------------+</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h4 id="从服务器slave修改："><a href="#从服务器slave修改：" class="headerlink" title="从服务器slave修改："></a>从服务器slave修改：</h4><ol>
+<li><p>修改mysql配置<br>同样找到my.cnf配置文件，添加server-id</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">[mysqld]</div><div class="line">server-id=2 #设置server-id，必须唯一</div></pre></td></tr></table></figure>
+</li>
+<li><p>重启mysql，打开mysql会话，执行同步SQL语句(需要主服务器主机名，登陆凭据，二进制文件的名称和位置)：  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">mysql&gt; CHANGE MASTER TO</div><div class="line">    -&gt;     MASTER_HOST=&apos;182.92.172.80&apos;,</div><div class="line">    -&gt;     MASTER_USER=&apos;rep1&apos;,</div><div class="line">    -&gt;     MASTER_PASSWORD=&apos;slavepass&apos;,</div><div class="line">    -&gt;     MASTER_LOG_FILE=&apos;mysql-bin.000003&apos;,</div><div class="line">    -&gt;     MASTER_LOG_POS=73;</div></pre></td></tr></table></figure>
+</li>
+<li><p>启动slave同步进程：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt;start slave;</div></pre></td></tr></table></figure>
+</li>
+<li><p>查看slave状态：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">mysql&gt; show slave status\G;</div><div class="line">*************************** 1. row ***************************</div><div class="line">               Slave_IO_State: Waiting for master to send event</div><div class="line">                  Master_Host: 182.92.172.80</div><div class="line">                  Master_User: rep1</div><div class="line">                  Master_Port: 3306</div><div class="line">                Connect_Retry: 60</div><div class="line">              Master_Log_File: mysql-bin.000013</div><div class="line">          Read_Master_Log_Pos: 11662</div><div class="line">               Relay_Log_File: mysqld-relay-bin.000022</div><div class="line">                Relay_Log_Pos: 11765</div><div class="line">        Relay_Master_Log_File: mysql-bin.000013</div><div class="line">             Slave_IO_Running: Yes</div><div class="line">            Slave_SQL_Running: Yes</div><div class="line">              Replicate_Do_DB: </div><div class="line">          Replicate_Ignore_DB: </div><div class="line">        ...</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>当Slave_IO_Running和Slave_SQL_Running都为YES的时候就表示主从同步设置成功了。接下来就可以进行一些验证了，比如在主master数据库的test数据库的一张表中插入一条数据，在slave的test库的相同数据表中查看是否有新增的数据即可验证主从复制功能是否有效，还可以关闭slave（<code>mysql&gt;stop slave;</code>）,然后再修改master，看slave是否也相应修改（停止slave后，master的修改不会同步到slave），就可以完成主从复制功能的验证了。</p>
+<p>还可以用到的其他相关参数：</p>
+<p>master开启二进制日志后默认记录所有库所有表的操作，可以通过配置来指定只记录指定的数据库甚至指定的表的操作，具体在mysql配置文件的[mysqld]可添加修改如下选项：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"># 不同步哪些数据库  </div><div class="line">binlog-ignore-db = mysql  </div><div class="line">binlog-ignore-db = test  </div><div class="line">binlog-ignore-db = information_schema  </div><div class="line">  </div><div class="line"># 只同步哪些数据库，除此之外，其他不同步  </div><div class="line">binlog-do-db = game</div></pre></td></tr></table></figure></p>
+<h3 id="添加新slave服务器"><a href="#添加新slave服务器" class="headerlink" title="添加新slave服务器"></a>添加新slave服务器</h3><p>假如master已经运行很久了，想对新安装的slave进行数据同步，甚至它没有master的数据。<br>此时，有几种方法可以使slave从另一个服务开始，例如，从master拷贝数据，从另一个slave克隆，从最近的备份开始一个slave。Slave与master同步时，需要三样东西：</p>
+<ol>
+<li>master的某个时刻的数据快照；</li>
+<li>master当前的日志文件、以及生成快照时的字节偏移。这两个值可以叫做日志文件坐标(log file coordinate)，因为它们确定了一个二进制日志的位置，你可以用SHOW MASTER STATUS命令找到日志文件的坐标；</li>
+<li>master的二进制日志文件。</li>
+</ol>
+<p>可以通过以下几中方法来克隆一个slave：</p>
+<ol>
+<li>冷拷贝(cold copy)<br>停止master，将master的文件拷贝到slave；然后重启master。缺点很明显。</li>
+<li>热拷贝(warm copy)<br>如果你仅使用MyISAM表，你可以使用mysqlhotcopy拷贝，即使服务器正在运行。</li>
+<li><p>使用mysqldump<br>使用mysqldump来得到一个数据快照可分为以下几步：</p>
+<ol>
+<li><p>锁表：如果你还没有锁表，你应该对表加锁，防止其它连接修改数据库，否则，你得到的数据可以是不一致的。如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; FLUSH TABLES WITH READ LOCK;</div></pre></td></tr></table></figure>
+</li>
+<li><p>在另一个连接用mysqldump创建一个你想进行复制的数据库的转储：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">shell&gt; mysqldump --all-databases --lock-all-tables &gt;dbdump.db</div></pre></td></tr></table></figure>
+</li>
+<li><p>对表释放锁。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; UNLOCK TABLES;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="深入了解复制"><a href="#深入了解复制" class="headerlink" title="深入了解复制"></a>深入了解复制</h3><h4 id="基于语句的复制-Statement-Based-Replication"><a href="#基于语句的复制-Statement-Based-Replication" class="headerlink" title="基于语句的复制(Statement-Based Replication)"></a>基于语句的复制(Statement-Based Replication)</h4><p>MySQL 5.0及之前的版本仅支持基于语句的复制（也叫做逻辑复制，logical replication），这在数据库并不常见。master记录下改变数据的查询，然后，slave从中继日志中读取事件，并执行它，这些SQL语句与master执行的语句一样。 </p>
+<p>这种方式的优点就是实现简单。此外，基于语句的复制的二进制日志可以很好的进行压缩，而且日志的数据量也较小，占用带宽少——例如，一个更新GB的数据的查询仅需要几十个字节的二进制日志。而mysqlbinlog对于基于语句的日志处理十分方便。</p>
+<p>但是，基于语句的复制并不是像它看起来那么简单，因为一些查询语句依赖于master的特定条件，例如，master与slave可能有不同的时间。所以，MySQL的二进制日志的格式不仅仅是查询语句，还包括一些元数据信息，例如，当前的时间戳。即使如此，还是有一些语句，比如，CURRENT USER函数，不能正确的进行复制。此外，存储过程和触发器也是一个问题。</p>
+<p>另外一个问题就是基于语句的复制必须是串行化的。这要求大量特殊的代码，配置，例如InnoDB的next-key锁等。并不是所有的存储引擎都支持基于语句的复制。</p>
+<h4 id="基于记录的复制-Row-Based-Replication"><a href="#基于记录的复制-Row-Based-Replication" class="headerlink" title="基于记录的复制(Row-Based Replication)"></a>基于记录的复制(Row-Based Replication)</h4><p>MySQL增加基于记录的复制，在二进制日志中记录下实际数据的改变，这与其它一些DBMS的实现方式类似。这种方式有优点，也有缺点。优点就是可以对任何语句都能正确工作，一些语句的效率更高。主要的缺点就是二进制日志可能会很大，而且不直观，所以，你不能使用mysqlbinlog来查看二进制日志。<br>对于一些语句，基于记录的复制能够更有效的工作，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">mysql&gt; INSERT INTO summary_table(col1, col2, sum_col3)</div><div class="line">    -&gt; SELECT col1, col2, sum(col3)</div><div class="line">    -&gt; FROM enormous_table</div><div class="line">    -&gt; GROUP BY col1, col2;</div></pre></td></tr></table></figure></p>
+<p>假设，只有三种唯一的col1和col2的组合，但是，该查询会扫描原表的许多行，却仅返回三条记录。此时，基于记录的复制效率更高。  </p>
+<p>另一方面，下面的语句，基于语句的复制更有效：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; UPDATE enormous_table SET col1 = 0;</div></pre></td></tr></table></figure></p>
+<p>此时使用基于记录的复制代价会非常高。由于两种方式不能对所有情况都能很好的处理，所以，MySQL 5.1支持在基于语句的复制和基于记录的复制之前动态交换。你可以通过设置session变量binlog_format来进行控制。</p>
+<h4 id="复制相关的文件"><a href="#复制相关的文件" class="headerlink" title="复制相关的文件"></a>复制相关的文件</h4><p>除了二进制日志和中继日志文件外，还有其它一些与复制相关的文件。如下：    </p>
+<ul>
+<li><p>mysql-bin.index<br>服务器一旦开启二进制日志，会产生一个与二日志文件同名，但是以.index结尾的文件。它用于跟踪磁盘上存在哪些二进制日志文件。MySQL用它来定位二进制日志文件。</p>
+</li>
+<li><p>mysql-relay-bin.index<br>该文件的功能与mysql-bin.index类似，但是它是针对中继日志，而不是二进制日志</p>
+</li>
+<li><p>master.info<br>保存master的相关信息。不要删除它，否则，slave重启后不能连接master</p>
+</li>
+<li><p>relay-log.info<br>包含slave中当前二进制日志和中继日志的信息。</p>
+</li>
+</ul>
+<h4 id="发送复制事件到其它slave"><a href="#发送复制事件到其它slave" class="headerlink" title="发送复制事件到其它slave"></a>发送复制事件到其它slave</h4><p>当设置log_slave_updates时，你可以让slave扮演其它slave的master。此时，slave把SQL线程执行的事件写进行自己的二进制日志(binary log)，然后，它的slave可以获取这些事件并执行它。如下：<br><img src="http://images.cnblogs.com/cnblogs_com/hustcat/mysql/mysql03-5.JPG" alt="image">  </p>
+<h4 id="复制过滤-Replication-Filters"><a href="#复制过滤-Replication-Filters" class="headerlink" title="复制过滤(Replication Filters)"></a>复制过滤(Replication Filters)</h4><p>复制过滤可以让你只复制服务器中的一部分数据，有两种复制过滤：在master上过滤二进制日志中的事件；在slave上过滤中继日志中的事件。如下：<br><img src="http://images.cnblogs.com/cnblogs_com/hustcat/mysql/mysql03-6.JPG" alt="image">  </p>
+<h3 id="复制的常用拓扑结构"><a href="#复制的常用拓扑结构" class="headerlink" title="复制的常用拓扑结构"></a>复制的常用拓扑结构</h3><p>复制的体系结构有以下一些基本原则：</p>
+<ul>
+<li>每个slave只能有一个master；</li>
+<li>每个slave只能有一个唯一的服务器ID；</li>
+<li>每个master可以有很多slave；</li>
+<li>如果你设置log_slave_updates，slave可以是其它slave的master，从而扩散master的更新。</li>
+</ul>
+<p>MySQL不支持多主服务器复制(Multimaster Replication)——即一个slave可以有多个master。但是，通过一些简单的组合，我们却可以建立灵活而强大的复制体系结构。</p>
+<h4 id="单一master和多slave"><a href="#单一master和多slave" class="headerlink" title="单一master和多slave"></a>单一master和多slave</h4><p>由一个master和一个slave组成复制系统是最简单的情况。Slave之间并不相互通信，只能与master进行通信。如下：<br><img src="http://images.cnblogs.com/cnblogs_com/hustcat/mysql/mysql03-7.JPG" alt="image">  </p>
+<p>如果写操作较少，而读操作很时，可以采取这种结构。你可以将读操作分布到其它的slave，从而减小master的压力。但是，当slave增加到一定数量时，slave对master的负载以及网络带宽都会成为一个严重的问题。</p>
+<p>这种结构虽然简单，但是，它却非常灵活，足够满足大多数应用需求。一些建议：</p>
+<ol>
+<li>不同的slave扮演不同的作用(例如使用不同的索引，或者不同的存储引擎)；</li>
+<li>用一个slave作为备用master，只进行复制；</li>
+<li>用一个远程的slave，用于灾难恢复；</li>
+</ol>
+<h4 id="主动模式的Master-Master-Master-Master-in-Active-Active-Mode"><a href="#主动模式的Master-Master-Master-Master-in-Active-Active-Mode" class="headerlink" title="主动模式的Master-Master(Master-Master in Active-Active Mode)"></a>主动模式的Master-Master(Master-Master in Active-Active Mode)</h4><p>Master-Master复制的两台服务器，既是master，又是另一台服务器的slave。如图：<br><img src="http://images.cnblogs.com/cnblogs_com/hustcat/mysql/mysql03-8.JPG" alt="image"><br>主动的Master-Master复制有一些特殊的用处。例如，地理上分布的两个部分都需要自己的可写的数据副本。这种结构最大的问题就是更新冲突。假设一个表只有一行(一列)的数据，其值为1，如果两个服务器分别同时执行如下语句：  </p>
+<p>在第一个服务器上执行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; UPDATE tbl SET col=col + 1;</div></pre></td></tr></table></figure></p>
+<p>在第二个服务器上执行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; UPDATE tbl SET col=col * 2;</div></pre></td></tr></table></figure></p>
+<p>那么结果是多少呢？一台服务器是4，另一个服务器是3，但是，这并不会产生错误。<br>实际上，MySQL并不支持其它一些DBMS支持的多主服务器复制(Multimaster Replication)，这是MySQL的复制功能很大的一个限制(多主服务器的难点在于解决更新冲突)，但是，如果你实在有这种需求，你可以采用MySQL Cluster，以及将Cluster和Replication结合起来，可以建立强大的高性能的数据库平台。但是，可以通过其它一些方式来模拟这种多主服务器的复制。</p>
+<h4 id="主动-被动模式的Master-Master-Master-Master-in-Active-Passive-Mode"><a href="#主动-被动模式的Master-Master-Master-Master-in-Active-Passive-Mode" class="headerlink" title="主动-被动模式的Master-Master(Master-Master in Active-Passive Mode)"></a>主动-被动模式的Master-Master(Master-Master in Active-Passive Mode)</h4><p>这是master-master结构变化而来的，它避免了M-M的缺点，实际上，这是一种具有容错和高可用性的系统。它的不同点在于其中一个服务只能进行只读操作。如图：<br><img src="http://images.cnblogs.com/cnblogs_com/hustcat/mysql/mysql03-9.JPG" alt="image">  </p>
+<h4 id="带从服务器的Master-Master结构-Master-Master-with-Slaves"><a href="#带从服务器的Master-Master结构-Master-Master-with-Slaves" class="headerlink" title="带从服务器的Master-Master结构(Master-Master with Slaves)"></a>带从服务器的Master-Master结构(Master-Master with Slaves)</h4><p>这种结构的优点就是提供了冗余。在地理上分布的复制结构，它不存在单一节点故障问题，而且还可以将读密集型的请求放到slave上。<br><img src="http://images.cnblogs.com/cnblogs_com/hustcat/mysql/mysql03-10.JPG" alt="image"></p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/主从结构（master-slave）/" data-id="cje2lrz7800ctpxbld1c4hpto" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+    
+<ul id="article-nav" class="nav nav-pills nav-justified">
+  
+  <li role="presentation">
+    <a href="/2018/02/25/数据库相关/mysql/explain分析sql效率/" id="article-nav-older" class="article-nav-link-wrap">
+      <i class="fa fa-chevron-left pull-left"></i>
+      <span class="article-nav-link-title">explain分析sql效率</span>
+    </a>
+  </li>
+  
+  
+  <li role="presentation">
+    <a href="/2018/02/25/数据库相关/mysql/主键约束,唯一约束与默认约束/" id="article-nav-newer" class="article-nav-link-wrap">
+      <span class="article-nav-link-title">主键约束,唯一约束与默认约束</span>
+      <i class="fa fa-chevron-right pull-right"></i>
+    </a>
+  </li>
+  
+</ul>
+
+
+  
+</article>
+
+
+
+
+        </div>
+        <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+          
+  <div class="sidebar-module sidebar-module-inset">
+  <h4>关于</h4>
+  <p>该博客内的文章是博主在日常工作或者学习中总结出来，部分内容来自网络.</p>
+
+</div>
+
+
+  
+  <div class="sidebar-module">
+    <h4>分类</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">84</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/分布式/">分布式</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">21</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/时间日期/">时间日期</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">8</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Spring-Boot/">Spring Boot</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Spring-Session/">Spring Session</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">20</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">20</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">29</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">4</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Nginx/">Nginx</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">13</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">9</span></li></ul>
+  </div>
+
+
+
+  
+
+
+  
+
+  
+  <div class="sidebar-module">
+    <h4>归档</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2018/02/">二月 2018</a><span class="sidebar-module-list-count">45</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/10/">十月 2017</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">62</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">125</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/02/">二月 2017</a><span class="sidebar-module-list-count">2</span></li></ul>
+  </div>
+
+
+
+  
+  <div class="sidebar-module">
+    <h4>最近文章</h4>
+    <ul class="sidebar-module-list">
+      
+        <li>
+          <a href="/2018/02/25/Java/基础/java8新特性/">java8新特性</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/集合/HashSet原理/">HashSet原理</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/分布式/分布式锁/">分布式锁</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/集合/在List循环中删除元素/">在List循环中删除元素</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/">Hashtable与ConcurrentHashMap区别</a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+
+        </div>
+    </div>
+  </div>
+  <footer class="blog-footer">
+  <div class="container">
+    <div id="footer-info" class="inner">
+      &copy; 2018 LeoChan<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+  
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" integrity="sha384-8gBf6Y4YYq7Jx97PIqmTwLPin4hxIzQw5aDmUg/DDhul9fFpbbLcLh3nTIIDJKhx" crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+
+
+<script src="/js/script.js"></script>
+
+</body>
+</html>

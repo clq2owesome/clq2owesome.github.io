@@ -80,13 +80,13 @@
         <div class="col-sm-8 blog-main">
           
   
-    <article id="post-Spring/SpringMVC/JsonView过滤返回对象的字段" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/JPA/对应关系映射配置" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/JsonView过滤返回对象的字段/">JsonView过滤返回对象的字段</a>
+      <a class="article-title" href="/2017/07/19/Spring/JPA/对应关系映射配置/">对应关系映射配置</a>
     </h1>
   
 
@@ -95,13 +95,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/JsonView过滤返回对象的字段/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/JPA/对应关系映射配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
   </div>
 
 
@@ -110,9 +110,12 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>It can sometimes be useful to filter contextually the object that will be serialized to the HTTP response body. In order to provide such capability, Spring MVC has built-in support for rendering with Jackson’s Serialization Views.<br>To use it with an @ResponseBody controller method or controller methods that return ResponseEntity, simply add the @JsonView annotation with a class argument specifying the view class or interface to be used:</p>
-<p>有时非常有用去过滤一个即将序列化到http response body的对象，为了提供这种功能，SpringMVC使用Jackson’s Serialization Views实现该功能.<br>为了在注解了@ResponseBody的方法和返回ResponseEntity的方法中使用它，简单地在方法上加上@JsonView，并特别注明返回视图类或者接口<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line">@RestController</div><div class="line">public class UserController &#123;</div><div class="line"></div><div class="line">    @RequestMapping(path = &quot;/user&quot;, method = RequestMethod.GET)</div><div class="line">    @JsonView(User.WithoutPasswordView.class)</div><div class="line">    public User getUser() &#123;</div><div class="line">        return new User(&quot;eric&quot;, &quot;7!jd#h23&quot;);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">public class User &#123;</div><div class="line"></div><div class="line">    public interface WithoutPasswordView &#123;&#125;;</div><div class="line">    public interface WithPasswordView extends WithoutPasswordView &#123;&#125;;</div><div class="line"></div><div class="line">    private String username;</div><div class="line">    private String password;</div><div class="line"></div><div class="line">    public User() &#123;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public User(String username, String password) &#123;</div><div class="line">        this.username = username;</div><div class="line">        this.password = password;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @JsonView(WithoutPasswordView.class)</div><div class="line">    public String getUsername() &#123;</div><div class="line">        return this.username;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @JsonView(WithPasswordView.class)</div><div class="line">    public String getPassword() &#123;</div><div class="line">        return this.password;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>Note that despite @JsonView allowing for more than one class to be specified, the use on a controller method is only supported with exactly one class argument. Consider the use of a composite interface if you need to enable multiple views.<br>For controllers relying on view resolution, simply add the serialization view class to the model:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@Controller</div><div class="line">public class UserController extends AbstractController &#123;</div><div class="line"></div><div class="line">    @RequestMapping(path = &quot;/user&quot;, method = RequestMethod.GET)</div><div class="line">    public String getUser(Model model) &#123;</div><div class="line">        model.addAttribute(&quot;user&quot;, new User(&quot;eric&quot;, &quot;7!jd#h23&quot;));</div><div class="line">        model.addAttribute(JsonView.class.getName(), User.WithoutPasswordView.class);</div><div class="line">        return &quot;userView&quot;;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+        <h2 id="ManyToMany"><a href="#ManyToMany" class="headerlink" title="ManyToMany"></a>ManyToMany</h2><p>主控方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@ManyToMany(targetEntity=SysRoleEntity.class, fetch=FetchType.LAZY)</div><div class="line">@JoinTable(name=&quot;sys_admin_role&quot;, </div><div class="line">  joinColumns=@JoinColumn(name=&quot;admin_id&quot;, referencedColumnName=&quot;id&quot;),</div><div class="line">  inverseJoinColumns=@JoinColumn(name=&quot;role_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line"> ) </div><div class="line">private List&lt;SysRoleEntity&gt; listOfSysRole;</div></pre></td></tr></table></figure></p>
+<p>被动方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@ManyToMany(mappedBy=&quot;listOfSysRole&quot;, targetEntity=SysAdminEntity.class)</div><div class="line">private List&lt;SysAdminEntity&gt; listOfSysAdmin;</div></pre></td></tr></table></figure></p>
+<h2 id="ManyToOne-And-OneToMany"><a href="#ManyToOne-And-OneToMany" class="headerlink" title="ManyToOne And OneToMany"></a>ManyToOne And OneToMany</h2><p>主控方配置：一般是多的一方为主控<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@ManyToOne</div><div class="line">@JoinColumn(name=&quot;role_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line">private SysRoleEntity sysRole;</div></pre></td></tr></table></figure></p>
+<p>被动方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@OneToMany(mappedBy=&quot;sysRole&quot;, targetEntity=SysAuthorityEntity.class)</div><div class="line">private List&lt;SysAuthorityEntity&gt; listOfsysAuthority;</div></pre></td></tr></table></figure></p>
+<h2 id="OneToOne"><a href="#OneToOne" class="headerlink" title="OneToOne"></a>OneToOne</h2><p>主控方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@OneToOne(fetch=FetchType.LAZY)</div><div class="line">@JoinColumn(name=&quot;code_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line">private CodeEntity codeEntity;</div></pre></td></tr></table></figure></p>
+<p>被动方配置:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@OneToOne(mappedBy=&quot;codeEntity&quot;, targetEntity=OddsEntity.class, fetch=FetchType.LAZY)</div><div class="line">private OddsEntity oddsEntity;</div></pre></td></tr></table></figure></p>
 
       
     </div>
@@ -123,7 +126,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/JsonView过滤返回对象的字段/" data-id="cj6vztse1008soablz2z7wws3" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/对应关系映射配置/" data-id="cje2lrz4h008mpxblvwienr06" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -137,13 +140,13 @@
 
 
   
-    <article id="post-Spring/SpringMVC/ControllerAdvice" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Spring/Security/获取所有登录用户" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/ControllerAdvice/">ControllerAdvice</a>
+      <a class="article-title" href="/2017/07/19/Spring/Security/获取所有登录用户/">获取所有登录用户</a>
     </h1>
   
 
@@ -152,13 +155,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/ControllerAdvice/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Spring/Security/获取所有登录用户/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/Security/">Security</a>
   </div>
 
 
@@ -167,10 +170,9 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>@ControllerAdvice是一个组件注解，它使得其实现类能够被classpath扫描自动发现。若应用是通过MVC命令空间或MVC Java编程方式配置，那么该特性默认是自动开启的。 </p>
-<p>注解@ControllerAdvice的类可以拥有@ExceptionHandler、@InitBinder或@ModelAttribute注解的方法，并且这些方法会被应用至控制器类层次??的所有@RequestMapping方法上。   </p>
-<p>你也可以通过@ControllerAdvice的属性来指定其只对一个子集的控制器生效：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">// Target all Controllers annotated with @RestController</div><div class="line">@ControllerAdvice(annotations = RestController.class)</div><div class="line">public class AnnotationAdvice &#123;&#125;</div><div class="line"></div><div class="line">// Target all Controllers within specific packages</div><div class="line">@ControllerAdvice(&quot;org.example.controllers&quot;)</div><div class="line">public class BasePackageAdvice &#123;&#125;</div><div class="line"></div><div class="line">// Target all Controllers assignable to specific classes</div><div class="line">@ControllerAdvice(assignableTypes = &#123;ControllerInterface.class, AbstractController.class&#125;)</div><div class="line">public class AssignableTypesAdvice &#123;&#125;</div></pre></td></tr></table></figure></p>
-
+        <h2 id="web-xml"><a href="#web-xml" class="headerlink" title="web.xml"></a>web.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;listener&gt;</div><div class="line">    &lt;listener-class&gt;</div><div class="line">      org.springframework.security.web.session.HttpSessionEventPublisher</div><div class="line">    &lt;/listener-class&gt;</div><div class="line">&lt;/listener&gt;</div></pre></td></tr></table></figure>
+<h2 id="security-xml"><a href="#security-xml" class="headerlink" title="security.xml"></a>security.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;http&gt;</div><div class="line">    &lt;session-management &gt;</div><div class="line">    	&lt;concurrency-control max-sessions=&quot;1&quot; session-registry-ref=&quot;sessionRegistry&quot;</div><div class="line">    	expired-url=&quot;/admin/none/session_expired.jsp&quot; /&gt; </div><div class="line">    &lt;/session-management&gt;</div><div class="line">&lt;/http&gt;</div><div class="line"></div><div class="line">&lt;beans:bean id=&quot;sessionRegistry&quot; class=&quot;org.springframework.security.core.session.SessionRegistryImpl&quot; /&gt;</div></pre></td></tr></table></figure>
+<h2 id="java中使用"><a href="#java中使用" class="headerlink" title="java中使用"></a>java中使用</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sessionRegistry.getAllPrincipals()</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -180,7 +182,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/ControllerAdvice/" data-id="cj6vztse1008uoabl4pihza8t" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Security/获取所有登录用户/" data-id="cje2lrz4i008npxbl8hhor4hz" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -194,13 +196,13 @@
 
 
   
-    <article id="post-Spring/SpringMVC/NotNull,NotBlank,NotEmtity的区别" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Linux/activemq安装和配置" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/NotNull,NotBlank,NotEmtity的区别/">NotNull,NotBlank,NotEmtity的区别</a>
+      <a class="article-title" href="/2017/07/19/Linux/activemq安装和配置/">activemq安装和配置</a>
     </h1>
   
 
@@ -209,13 +211,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/NotNull,NotBlank,NotEmtity的区别/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Linux/activemq安装和配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
   </div>
 
 
@@ -224,219 +226,21 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="NotNull"><a href="#NotNull" class="headerlink" title="@NotNull"></a>@NotNull</h2><p>The CharSequence, Collection, Map or Array object is not null, but can be empty</p>
-<h2 id="NotEmpty"><a href="#NotEmpty" class="headerlink" title="@NotEmpty"></a>@NotEmpty</h2><p>The CharSequence, Collection, Map or Array object is not null and size &gt; 0.</p>
-<h2 id="NotBlank"><a href="#NotBlank" class="headerlink" title="@NotBlank"></a>@NotBlank</h2><p>The string is not null and the trimmed length is greater than zero.</p>
-<h3 id="汇总"><a href="#汇总" class="headerlink" title="汇总"></a>汇总</h3><table>
-<thead>
-<tr>
-<th>注解</th>
-<th>适用范围</th>
-<th>解释</th>
-<th>例子</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>@NotNull</td>
-<td>集合，字符</td>
-<td>不能为null，但是可以为空</td>
-<td><code>null:false</code> <br> <code>&quot; &quot;:true</code> <br><code>&quot;&quot;:true</code></td>
-</tr>
-<tr>
-<td>@NotEmpty</td>
-<td>集合，字符</td>
-<td>不能为null且长度（size，length）必须要大于0</td>
-<td><code>null:false</code> <br><code>&quot;&quot;:false</code><br> <code>&quot;  &quot;:true</code></td>
-</tr>
-<tr>
-<td>@NotBlank</td>
-<td>字符</td>
-<td>不能为null且调用trim()方法后的长度（length）必须大于0</td>
-<td><code>null:false</code> <br><code>&quot;&quot;:false</code><br> <code>&quot;   &quot;:false</code> <br> <code>&quot;sds&quot;:true</code></td>
-</tr>
-</tbody>
-</table>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/NotNull,NotBlank,NotEmtity的区别/" data-id="cj6vztse5008xoabl7ams9u0c" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/annotation-driven配置的含义" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/annotation-driven配置的含义/">annotation-driven配置的含义</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/annotation-driven配置的含义/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>要启用XML命名空间，请在你的DispatcherServlet上下文中（如果没有定义任何DispatcherServlet上下文，那么就在根上下文中）添加一个<code>mvc:annotation-driven</code>元素：</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></div><div class="line">    <span class="attr">xmlns:mvc</span>=<span class="string">"http://www.springframework.org/schema/mvc"</span></div><div class="line">    <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></div><div class="line">    <span class="attr">xsi:schemaLocation</span>=<span class="string">"</span></div><div class="line">        http://www.springframework.org/schema/beans</div><div class="line">        http://www.springframework.org/schema/beans/spring-beans.xsd</div><div class="line">        http://www.springframework.org/schema/mvc</div><div class="line">        http://www.springframework.org/schema/mvc/spring-mvc.xsd"&gt;</div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">mvc:annotation-driven</span>/&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></div></pre></td></tr></table></figure>
-<p>上面的简单的声明代码，就已经默认注册了一个<code>RequestMappingHandlerMapping</code>、一个<code>RequestMappingHandlerAdapter</code>，以及一个<code>ExceptionHandlerExceptionResolver</code>，以支持对使用了<code>@RequestMapping</code>、<code>@ExceptionHandler</code>及其他注解的控制器方法的请求处理。    </p>
-<p>同时，上面的代码还启用了以下的特性：  </p>
-<ol>
-<li>Spring 3风格的类型转换支持。这是使用一个配置的转换服务ConversionService实例，以及the JavaBeans PropertyEditors used for Data Binding.</li>
-<li>使用@NumberFormat对数字字段进行格式化，类型转换由ConversionService实现</li>
-<li>使用@DateTimeFormat注解对Date、Calendar、Long及Joda Time类型的字段进行格式化</li>
-<li>使用@Valid注解对@Controller输入进行验证——前提是classpath路径下比如提供符合JSR-303规范的验证器</li>
-<li>HTTP消息转换HttpMessageConverter的支持，对注解了@RequestMapping或@ExceptionHandler方法的@RequestBody方法参数或@ResponseBody返回值生效</li>
-</ol>
-<p>下面给出了一份由mvc:annotation-driven注册可用的HTTP消息转换器的完整列表：</p>
-<ol>
-<li>转换字节数组的ByteArrayHttpMessageConverter</li>
-<li>转换字符串的StringHttpMessageConverter</li>
-<li>ResourceHttpMessageConverter：org.springframework.core.io.Resource与所有媒体类型之间的互相转换</li>
-<li>SourceHttpMessageConverter：从（到）javax.xml.transform.Source的转换</li>
-<li>FormHttpMessageConverter：数据与MultiValueMap<string, string="">之间的互相转换</string,></li>
-<li>Jaxb2RootElementHttpMessageConverter：Java对象与XML之间的互相转换——该转换器在classpath路径下有JAXB2依赖并且没有Jackson 2 XML扩展时被注册</li>
-<li>MappingJackson2HttpMessageConverter：从（到）JSON的转换——该转换器在classpath下有Jackson 2依赖时被注册</li>
-<li>MappingJackson2XmlHttpMessageConverter：从（到）XML的转换——该转换器在classpath下有Jackson 2 XML扩展时被注册</li>
-<li>AtomFeedHttpMessageConverter：Atom源的转换——该转换器在classpath路径下有Rome时被注册</li>
-<li>RssChannelHttpMessageConverter：RSS源的转换——该转换器在classpath路径下有Rome时被注册</li>
-</ol>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/annotation-driven配置的含义/" data-id="cj6vztse7008zoablcjgxfvmu" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/RequestMapping详解" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/RequestMapping详解/">RequestMapping详解</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/RequestMapping详解/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>RequestMapping是一个用来处理请求地址映射的注解，可用于类或方法上。用于类上，表示类中的所有响应请求的方法都是以该地址作为父路径。</p>
-<hr>
-<p>RequestMapping注解有六个属性：</p>
-<h2 id="value："><a href="#value：" class="headerlink" title="value："></a>value：</h2><p>指定请求的实际地址，指定的地址可以是URI Template 模式（后面将会说明）</p>
-<p>value的uri值为以下三类：</p>
-<ol>
-<li><p>可以指定为普通的具体值；</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value=&quot;/owners&#125;&quot;, method=RequestMethod.GET)</div></pre></td></tr></table></figure>
+        <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><ol>
+<li>下载安装包</li>
+<li>将安装包放到/usr目录</li>
+<li><p>解压安装包</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo tar xvfz 包名</div></pre></td></tr></table></figure>
 </li>
-<li><p>可以指定为含有某变量的一类值(URI Template Patterns with Path Variables)；</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value=&quot;/owners/&#123;ownerId&#125;&quot;, method=RequestMethod.GET)</div></pre></td></tr></table></figure>
+<li><p>进入bin目录</p>
 </li>
-<li><p>可以指定为含正则表达式的一类值( URI Template Patterns with Regular Expressions);</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(&quot;/spring-web/&#123;symbolicName:[a-z-]+&#125;-&#123;version:\d\.\d\.\d&#125;.&#123;extension:\.[a-z]&#125;&quot;)</div></pre></td></tr></table></figure>
+<li>启动：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./activemq start</div></pre></td></tr></table></figure>
 </li>
 </ol>
-<h3 id="method："><a href="#method：" class="headerlink" title="method："></a>method：</h3><p>指定请求的method类型， GET、POST、PUT、DELETE等</p>
-<h3 id="consumes"><a href="#consumes" class="headerlink" title="consumes"></a>consumes</h3><p>指定处理请求的提交内容类型（Content-Type），例如application/json, text/html<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/pets&quot;, method = RequestMethod.POST, consumes=&quot;application/json&quot;)</div><div class="line">注：方法仅处理request Content-Type为“application/json”类型的请求。</div></pre></td></tr></table></figure></p>
-<h3 id="produces"><a href="#produces" class="headerlink" title="produces"></a>produces</h3><p>指定返回的内容类型，仅当request请求头中的(Accept)类型中包含该指定类型才返回<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/pets/&#123;petId&#125;&quot;, method = RequestMethod.GET, produces=&quot;application/json&quot;)  </div><div class="line">@ResponseBody </div><div class="line">注：方法仅处理request请求中Accept头中包含了&quot;application/json&quot;的请求，同时暗示了返回的内容类型为application/json</div></pre></td></tr></table></figure></p>
-<h3 id="params"><a href="#params" class="headerlink" title="params"></a>params</h3><p>指定request中必须包含某些参数值是，才让该方法处理<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/pets/&#123;petId&#125;&quot;, method = RequestMethod.GET, params=&quot;myParam=myValue&quot;)</div><div class="line">注：仅处理请求中包含了名为“myParam”，值为“myValue”的请求；</div></pre></td></tr></table></figure></p>
-<h3 id="headers"><a href="#headers" class="headerlink" title="headers"></a>headers</h3><p>指定request中必须包含某些指定的header值，才能让该方法处理请求<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/pets&quot;, method = RequestMethod.GET, headers=&quot;Referer=http://www.ifeng.com/&quot;)</div><div class="line">注：仅处理request的header中包含了指定“Refer”请求头和对应值为“http://www.ifeng.com/”的请求</div></pre></td></tr></table></figure></p>
-<h2 id="使用-RequestMapping-的一些高级用法"><a href="#使用-RequestMapping-的一些高级用法" class="headerlink" title="使用 @RequestMapping 的一些高级用法"></a>使用 @RequestMapping 的一些高级用法</h2><h3 id="params属性"><a href="#params属性" class="headerlink" title="params属性"></a>params属性</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">@RequestMapping (value= &quot;testParams&quot; , params=&#123; &quot;param1=value1&quot; , &quot;param2&quot; , &quot;!param3&quot; &#125;)</div><div class="line">public String testParams() &#123;</div><div class="line">   System. out .println( &quot;test Params...........&quot; );</div><div class="line">   return &quot;testParams&quot; ;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>用@RequestMapping 的params 属性指定了三个参数，这些参数都是针对请求参数而言的，它们分别表示参数param1 的值必须等于value1 ，参数param2 必须存在，值无所谓，参数param3 必须不存在，只有当请求/testParams.do 并且满足指定的三个参数条件的时候才能访问到该方法。所以当请求/testParams.do?param1=value1&amp;param2=value2 的时候能够正确访问到该testParams 方法，当请求/testParams.do?param1=value1&amp;param2=value2&amp;param3=value3 的时候就不能够正常的访问到该方法，因为在@RequestMapping 的params 参数里面指定了参数param3 是不能存在的。 </p>
-<h3 id="method属性"><a href="#method属性" class="headerlink" title="method属性"></a>method属性</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@RequestMapping (value= &quot;testMethod&quot; , method=&#123;RequestMethod. GET , RequestMethod. DELETE &#125;)</div><div class="line">public String testMethod() &#123;</div><div class="line">   return &quot;method&quot; ;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>在上面的代码中就使用method 参数限制了以GET 或DELETE 方法请求/testMethod 的时候才能访问到该Controller 的testMethod 方法。      </p>
-<h3 id="headers属性"><a href="#headers属性" class="headerlink" title="headers属性"></a>headers属性</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@RequestMapping (value= &quot;testHeaders&quot; , headers=&#123; &quot;host=localhost&quot; , &quot;Accept&quot; &#125;)</div><div class="line">public String testHeaders() &#123;</div><div class="line">   return &quot;headers&quot; ;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>headers 属性的用法和功能与params 属性相似。在上面的代码中当请求/testHeaders.do 的时候只有当请求头包含Accept 信息，且请求的host 为localhost 的时候才能正确的访问到testHeaders 方法。</p>
-<h2 id="RequestMapping-标记的处理器方法支持的方法参数和返回类型"><a href="#RequestMapping-标记的处理器方法支持的方法参数和返回类型" class="headerlink" title="@RequestMapping 标记的处理器方法支持的方法参数和返回类型"></a>@RequestMapping 标记的处理器方法支持的方法参数和返回类型</h2><h3 id="支持的方法参数类型"><a href="#支持的方法参数类型" class="headerlink" title="支持的方法参数类型:"></a>支持的方法参数类型:</h3><ol>
-<li>HttpServlet 对象，主要包括HttpServletRequest 、HttpServletResponse 和HttpSession 对象。 这些参数Spring 在调用处理器方法的时候会自动给它们赋值，所以当在处理器方法中需要使用到这些对象的时候，可以直接在方法上给定一个方法参数的申明，然后在方法体里面直接用就可以了。但是有一点需要注意的是在使用HttpSession 对象的时候，如果此时HttpSession 对象还没有建立起来的话就会有问题。</li>
-<li>Spring 自己的WebRequest 对象。 使用该对象可以访问到存放在HttpServletRequest 和HttpSession 中的属性值。</li>
-<li>InputStream 、OutputStream 、Reader 和Writer 。 InputStream 和Reader 是针对HttpServletRequest 而言的，可以从里面取数据；OutputStream 和Writer 是针对HttpServletResponse 而言的，可以往里面写数据。</li>
-<li>使用@PathVariable 、@RequestParam 、@CookieValue 和@RequestHeader 标记的参数。</li>
-<li>使用@ModelAttribute 标记的参数。</li>
-<li>java.util.Map 、Spring 封装的Model 和ModelMap 。 这些都可以用来封装模型数据，用来给视图做展示。</li>
-<li>实体类。 可以用来接收上传的参数。</li>
-<li>Spring 封装的MultipartFile 。 用来接收上传文件的。</li>
-<li>Spring 封装的Errors 和BindingResult 对象。 这两个对象参数必须紧接在需要验证的实体对象参数之后，它里面包含了实体对象的验证结果。</li>
-</ol>
-<h3 id="支持的返回类型"><a href="#支持的返回类型" class="headerlink" title="支持的返回类型:"></a>支持的返回类型:</h3><ol>
-<li>一个包含模型和视图的ModelAndView 对象。</li>
-<li>一个模型对象，这主要包括Spring 封装好的Model 和ModelMap ，以及java.util.Map ，当没有视图返回的时候视图名称将由RequestToViewNameTranslator 来决定。</li>
-<li>一个View 对象。这个时候如果在渲染视图的过程中模型的话就可以给处理器方法定义一个模型参数，然后在方法体里面往模型中添加值。</li>
-<li>一个String 字符串。这往往代表的是一个视图名称。这个时候如果需要在渲染视图的过程中需要模型的话就可以给处理器方法一个模型参数，然后在方法体里面往模型中添加值就可以了。</li>
-<li>返回值是void 。这种情况一般是我们直接把返回结果写到HttpServletResponse 中了，如果没有写的话，那么Spring 将会利用RequestToViewNameTranslator 来返回一个对应的视图名称。如果视图中需要模型的话，处理方法与返回字符串的情况相同。</li>
-<li>如果处理器方法被注解@ResponseBody 标记的话，那么处理器方法的任何返回类型都会通过HttpMessageConverters 转换之后写到HttpServletResponse 中，而不会像上面的那些情况一样当做视图或者模型来处理。</li>
-<li>除以上几种情况之外的其他任何返回类型都会被当做模型中的一个属性来处理，而返回的视图还是由RequestToViewNameTranslator 来决定，添加到模型中的属性名称可以在该方法上用@ModelAttribute(“attributeName”) 来定义，否则将使用返回类型的类名称的首字母小写形式来表示。使用@ModelAttribute 标记的方法会在@RequestMapping 标记的方法执行之前执行。</li>
-</ol>
-
+<h2 id="查看安装目录"><a href="#查看安装目录" class="headerlink" title="查看安装目录"></a>查看安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">whereis activemq</div></pre></td></tr></table></figure>
+<h2 id="查看61616端口是否正常启动"><a href="#查看61616端口是否正常启动" class="headerlink" title="查看61616端口是否正常启动"></a>查看61616端口是否正常启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">netstat -an | grep 61616</div></pre></td></tr></table></figure>
+<h2 id="查看进程"><a href="#查看进程" class="headerlink" title="查看进程"></a>查看进程</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ps -ef | grep activemq</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入bin目录</div><div class="line">./activemq stop</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -446,7 +250,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/RequestMapping详解/" data-id="cj6vztse80092oabll553sa4q" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/activemq安装和配置/" data-id="cje2lryy80009pxbliz6rfvc2" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -460,13 +264,13 @@
 
 
   
-    <article id="post-Spring/SpringMVC/Resource和Autowired" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-GitHub/安装gogs本地git服务器" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/Resource和Autowired/">Resource和Autowired</a>
+      <a class="article-title" href="/2017/07/19/GitHub/安装gogs本地git服务器/">安装gogs本地git服务器</a>
     </h1>
   
 
@@ -475,13 +279,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/Resource和Autowired/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/GitHub/安装gogs本地git服务器/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+    <a class="article-category-link" href="/categories/Github/">Github</a>
   </div>
 
 
@@ -490,19 +294,13 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>@Resource和@Autowired都是做bean的注入时使用，其实@Resource并不是Spring的注解，它的包是javax.annotation.Resource，需要导入，但是Spring支持该注解的注入。    </p>
-<h3 id="共同点"><a href="#共同点" class="headerlink" title="共同点"></a>共同点</h3><p>两者都可以写在字段和setter方法上。两者如果都写在字段上，那么就不需要再写setter方法。</p>
-<h3 id="不同点"><a href="#不同点" class="headerlink" title="不同点"></a>不同点</h3><ol>
-<li>@Autowired  </li>
-</ol>
-<p>@Autowired为Spring提供的注解，需要导入包org.springframework.beans.factory.annotation.Autowired;只按照byType注入。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">public class TestServiceImpl &#123;</div><div class="line">    // 下面两种@Autowired只要使用一种即可</div><div class="line">    @Autowired</div><div class="line">    private UserDao userDao; // 用于字段上</div><div class="line">    </div><div class="line">    @Autowired</div><div class="line">    public void setUserDao(UserDao userDao) &#123; // 用于属性的方法上</div><div class="line">        this.userDao = userDao;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>@Autowired注解是按照类型（byType）装配依赖对象，默认情况下它要求依赖对象必须存在，如果允许null值，可以设置它的required属性为false。如果我们想使用按照名称（byName）来装配，可以结合@Qualifier注解一起使用。如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">public class TestServiceImpl &#123;</div><div class="line">    @Autowired</div><div class="line">    @Qualifier(&quot;userDao&quot;)</div><div class="line">    private UserDao userDao; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<ol>
-<li>@Resource    </li>
-</ol>
-<p>@Resource默认按照ByName自动注入，由J2EE提供，需要导入包javax.annotation.Resource。<br>@Resource有两个重要的属性：name和type，而Spring将@Resource注解的name属性解析为bean的名字，而type属性则解析为bean的类型。所以，如果使用name属性，则使用byName的自动注入策略，而使用type属性时则使用byType自动注入策略。如果既不制定name也不制定type属性，这时将通过反射机制使用byName自动注入策略。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">public class TestServiceImpl &#123;</div><div class="line">    // 下面两种@Resource只要使用一种即可</div><div class="line">    @Resource(name=&quot;userDao&quot;)</div><div class="line">    private UserDao userDao; // 用于字段上</div><div class="line">    </div><div class="line">    @Resource(name=&quot;userDao&quot;)</div><div class="line">    public void setUserDao(UserDao userDao) &#123; // 用于属性的setter方法上</div><div class="line">        this.userDao = userDao;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>注：最好是将@Resource放在setter方法上，因为这样更符合面向对象的思想，通过set、get去操作属性，而不是直接去操作属性。<br>@Resource装配顺序：<br>①如果同时指定了name和type，则从Spring上下文中找到唯一匹配的bean进行装配，找不到则抛出异常。<br>②如果指定了name，则从上下文中查找名称（id）匹配的bean进行装配，找不到则抛出异常。<br>③如果指定了type，则从上下文中找到类似匹配的唯一bean进行装配，找不到或是找到多个，都会抛出异常。<br>④如果既没有指定name，又没有指定type，则自动按照byName方式进行装配；如果没有匹配，则回退为一个原始类型进行匹配，如果匹配则自动装配。<br>@Resource的作用相当于@Autowired，只不过@Autowired按照byType自动注入。</p>
-
+        <h2 id="gogs首页"><a href="#gogs首页" class="headerlink" title="gogs首页"></a>gogs首页</h2><p><a href="https://gogs.io/" target="_blank" rel="external">https://gogs.io/</a></p>
+<h2 id="下载二进制包"><a href="#下载二进制包" class="headerlink" title="下载二进制包"></a>下载二进制包</h2><p><a href="https://gogs.io/docs/installation/install_from_binary.html" target="_blank" rel="external">https://gogs.io/docs/installation/install_from_binary.html</a><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入解压目录：</div><div class="line">执行命令 ./gogs web</div></pre></td></tr></table></figure></p>
+<p>目录运行地址：<br><a href="http://localhost:3000/" target="_blank" rel="external">http://localhost:3000/</a></p>
+<p>登录地址：<a href="http://localhost:3000/user/login" target="_blank" rel="external">http://localhost:3000/user/login</a></p>
+<p>帐号：<code>root</code>      密码：<code>clq</code></p>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入go目录：/usr/local/Cellar/gogs</div><div class="line">执行命令./gogs web</div></pre></td></tr></table></figure>
+<h2 id="后台运行"><a href="#后台运行" class="headerlink" title="后台运行"></a>后台运行</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">进入go目录：/usr/local/Cellar/gogs</div><div class="line">执行命令 nohup ./gogs web &amp;</div></pre></td></tr></table></figure>
       
     </div>
 
@@ -512,7 +310,7 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/Resource和Autowired/" data-id="cj6vztse80094oabll11njnlb" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/GitHub/安装gogs本地git服务器/" data-id="cje2lryy40003pxbl13u1ud5d" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -526,13 +324,13 @@
 
 
   
-    <article id="post-Spring/SpringMVC/使用BindingResult处理校验异常" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Linux/tomcat安装和配置特定账号启动" class="article article-type-post" itemscope itemprop="blogPost">
 
   <header class="article-header">
     
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/使用BindingResult处理校验异常/">使用BindingResult处理校验异常</a>
+      <a class="article-title" href="/2017/07/19/Linux/tomcat安装和配置特定账号启动/">tomcat安装和配置特定账号启动</a>
     </h1>
   
 
@@ -541,13 +339,13 @@
 
   <div class="article-meta">
     <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/使用BindingResult处理校验异常/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+  <a href="/2017/07/19/Linux/tomcat安装和配置特定账号启动/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
 </div>
 
     
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
   </div>
 
 
@@ -556,375 +354,223 @@
 
     <div class="article-entry" itemprop="articleBody">
       
-        <p>BindingResult一般会跟在@Valid或@Validated后面，一个BindingResult只对应一个@Valid或@Validated，任何无法通过的验证都会被自动报告为错误并添加到BindingResult对象中去，你可以在方法参数中声明它并获取这些错误，同时这些错误也能在Spring MVC的HTML视图中被渲染。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public Map&lt;String, Object&gt; create(@Valid @RequestBody  Banner banner, BindingResult bindingResult)  throws BussinessException, IOException &#123;</div><div class="line">	logger.info(&quot;BannerController.create start&quot;);</div><div class="line">	if(bindingResult.hasErrors())&#123;</div><div class="line">        	String msg=&quot;&quot;;</div><div class="line">            List&lt;FieldError&gt; allErrors = bindingResult.getFieldErrors();</div><div class="line">            for(FieldError fe : allErrors) &#123;</div><div class="line">        		msg = fe.getField() + &quot;:&quot; + fe.getDefaultMessage();</div><div class="line">            &#125;</div><div class="line">            throw new BussinessException(msg);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/使用BindingResult处理校验异常/" data-id="cj6vztseb0097oablzak6654s" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/jackjson注解" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/jackjson注解/">jackjson注解</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/jackjson注解/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="jackson的常用注解"><a href="#jackson的常用注解" class="headerlink" title="jackson的常用注解"></a>jackson的常用注解</h1><h2 id="JsonRootName"><a href="#JsonRootName" class="headerlink" title="@JsonRootName"></a>@JsonRootName</h2><p>定义节点名称</p>
-<h2 id="JsonIgnore"><a href="#JsonIgnore" class="headerlink" title="@JsonIgnore"></a>@JsonIgnore</h2><p>作用在字段或方法上，用来完全忽略被注解的字段和方法对应的属性，即便这个字段或方法可以被自动检测到或者还有其他的注解</p>
-<h2 id="JsonProperty"><a href="#JsonProperty" class="headerlink" title="@JsonProperty"></a>@JsonProperty</h2><p>作用在字段或方法上，用来对属性的序列化/反序列化，可以用来避免遗漏属性，同时提供对属性名称重命名</p>
-<h2 id="JsonIgnoreProperties"><a href="#JsonIgnoreProperties" class="headerlink" title="@JsonIgnoreProperties"></a>@JsonIgnoreProperties</h2><p>作用在类上，用来说明有些属性在序列化/反序列化时需要忽略掉，可以将它看做是@JsonIgnore的批量操作，但它的功能比@JsonIgnore要强，比如一个类是代理类，我们无法将将@JsonIgnore标记在属性或方法上，此时便可用@JsonIgnoreProperties标注在类声明上，它还有一个重要的功能是作用在反序列化时解析字段时过滤一些未知的属性，否则通常情况下解析到我们定义的类不认识的属性便会抛出异常。</p>
+        <h2 id="安装命令"><a href="#安装命令" class="headerlink" title="安装命令"></a>安装命令</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install tomcat7</div></pre></td></tr></table></figure>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">1.用linux自带服务命令启动： service tomcat7 start</div><div class="line"></div><div class="line">2.用tomcat命令启动： cd /usr/share/tomcat7/bin</div><div class="line">./startup.sh</div><div class="line"></div><div class="line">3.以控制台方式启动:cd /usr/share/tomcat7/bin</div><div class="line">./catalina.sh</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">service tomcat7 stop</div><div class="line">或者</div><div class="line">cd /usr/share/tomcat7/bin</div><div class="line">./shutdown.sh</div></pre></td></tr></table></figure>
+<h2 id="查看tomcat启动情况"><a href="#查看tomcat启动情况" class="headerlink" title="查看tomcat启动情况"></a>查看tomcat启动情况</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ps -ef |grep tomcat7</div></pre></td></tr></table></figure>
+<h2 id="安装目录"><a href="#安装目录" class="headerlink" title="安装目录"></a>安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">/etc/tomcat7 - 全局配置</div><div class="line">/usr/share/tomcat7/ - 程序主目录</div><div class="line">/usr/share/tomcat7/conf/Catalina/localhost/ - 本机部署的 Catalina 配置</div><div class="line">/var/lib/tomcat7/ - 工作主目录</div><div class="line">/var/lib/tomcat7/webapps - （应用文件实际存放于此）</div><div class="line">/var/lib/tomcat7/work - 动态工作目录（动态编译的 .jsp 存放于此）</div></pre></td></tr></table></figure>
+<h3 id="使用特定账户启动tomcat"><a href="#使用特定账户启动tomcat" class="headerlink" title="使用特定账户启动tomcat"></a>使用特定账户启动tomcat</h3><p>用apt-get安装tomcat7时，会默认创建一个用户组：tomcat7；一个用户：tomcat7</p>
 <ol>
-<li>可以注明是想要忽略的属性列表如@JsonIgnoreProperties({“name”,”age”,”title”})</li>
-<li>也可以注明过滤掉未知的属性如@JsonIgnoreProperties(ignoreUnknown=true)</li>
-</ol>
-<h2 id="JsonUnwrapped"><a href="#JsonUnwrapped" class="headerlink" title="@JsonUnwrapped"></a>@JsonUnwrapped</h2><p>作用在属性字段或方法上，用来将子JSON对象的属性添加到封闭的JSON对象</p>
-<p>在2.0+版本中@JsonUnwrapped添加了prefix和suffix属性，用来对字段添加前后缀，这在有关属性分组上比较有用<br><code>@JsonUnwrapped(prefix = &quot;name_&quot;,suffix = &quot;_test&quot;)</code> </p>
-<h2 id="JsonIdentityInfo"><a href="#JsonIdentityInfo" class="headerlink" title="@JsonIdentityInfo"></a>@JsonIdentityInfo</h2><p>2.0+版本新注解，作用于类或属性上，被用来在序列化/反序列化时为该对象或字段添加一个对象识别码，通常是用来解决循环嵌套的问题，比如数据库中的多对多关系，通过配置属性generator来确定识别码生成的方式，有简单的，配置属性property来确定识别码的名称，识别码名称没有限制。</p>
-<ol>
-<li><p>对象识别码可以是虚拟的，即存在在JSON中，但不是POJO的一部分，这种情况下我们可以如此使用注解</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class,property = &quot;@id&quot;)</div></pre></td></tr></table></figure>
-</li>
-<li><p>对象识别码也可以是真实存在的，即以对象的属性为识别码，通常这种情况下我们一般以id属性为识别码，可以这么使用注解</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class,property = &quot;id&quot;)</div></pre></td></tr></table></figure>
+<li>在/usr/share/tomcat7/目录下创建logs目录</li>
+<li>修改/usr/share/tomcat7/所属的用户组<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">chown -R tomcat7 /usr/share/tomcat7</div></pre></td></tr></table></figure>
 </li>
 </ol>
-<h1 id="多态类型处理"><a href="#多态类型处理" class="headerlink" title="多态类型处理"></a>多态类型处理</h1><p>jackson允许配置多态类型处理，当进行反序列话时，JSON数据匹配的对象可能有多个子类型，为了正确的读取对象的类型，我们需要添加一些类型信息。可以通过下面几个注解来实现：</p>
-<h2 id="JsonTypeInfo"><a href="#JsonTypeInfo" class="headerlink" title="@JsonTypeInfo"></a>@JsonTypeInfo</h2><p>作用于类/接口，被用来开启多态类型处理，对基类/接口和子类/实现类都有效<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@JsonTypeInfo(use = JsonTypeInfo.Id.NAME,include = JsonTypeInfo.As.PROPERTY,property = &quot;name&quot;)</div></pre></td></tr></table></figure></p>
-<p>==use==:定义使用哪一种类型识别码，它有下面几个可选值：</p>
+<p>查看目录权限<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ls -la /usr/share/tomcat7</div></pre></td></tr></table></figure></p>
+<ol>
+<li><p>进入/usr/share/tomcat7/bin目录，修改sh脚本的执行权限</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">chmod +x *.sh</div></pre></td></tr></table></figure>
+</li>
+<li><p>使用tomcat7启动tomcat</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">runuser tomcat7 -s /bin/bash -c &quot;/usr/share/tomcat7/bin/startup.sh&quot;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="tomcat启动脚本"><a href="#tomcat启动脚本" class="headerlink" title="tomcat启动脚本"></a>tomcat启动脚本</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line">#!/bin/bash    </div><div class="line">tomcat_home=/Users/chenliqiang/software/apache-tomcat-test</div><div class="line">SHUTDOWN=$tomcat_home/bin/shutdown.sh  </div><div class="line">STARTTOMCAT=$tomcat_home/bin/startup.sh  </div><div class="line">  </div><div class="line">case $1 in   </div><div class="line"> </div><div class="line">start)    </div><div class="line">echo &quot;启动$tomcat_home&quot;  </div><div class="line">$STARTTOMCAT  </div><div class="line">;;     </div><div class="line"></div><div class="line">stop)      </div><div class="line">echo &quot;关闭$tomcat_home&quot;  </div><div class="line">$SHUTDOWN  </div><div class="line">pidlist=`ps -ef |grep tomcat  |grep -v &quot;grep&quot;|awk &apos;&#123;print $2&#125;&apos;`   </div><div class="line">kill -9 $pidlist  </div><div class="line">  </div><div class="line">#删除日志文件，如果你不先删除可以不要下面一行  </div><div class="line">rm  $tomcat_home/logs/* -rf  </div><div class="line">#删除tomcat的临时目录  </div><div class="line">rm  $tomcat_home/work/* -rf    </div><div class="line">;;     </div><div class="line"></div><div class="line">restart)    </div><div class="line">echo &quot;关闭$tomcat_home&quot;  </div><div class="line">$SHUTDOWN  </div><div class="line">pidlist=`ps -ef |grep tomcat  |grep -v &quot;grep&quot;|awk &apos;&#123;print $2&#125;&apos;`   </div><div class="line">kill -9 $pidlist  </div><div class="line">  </div><div class="line">#删除日志文件，如果你不先删除可以不要下面一行  </div><div class="line">rm  $tomcat_home/logs/* -rf  </div><div class="line">#删除tomcat的临时目录  </div><div class="line">rm  $tomcat_home/work/* -rf  </div><div class="line">  </div><div class="line">sleep 5  </div><div class="line">echo &quot;启动$tomcat_home&quot;  </div><div class="line">$STARTTOMCAT  </div><div class="line">#看启动日志  </div><div class="line">#tail -f $tomcat_home/logs/catalina.out  </div><div class="line">;;  </div><div class="line"></div><div class="line">logs)  </div><div class="line">cd $tomcat_home/logs  </div><div class="line">  </div><div class="line">tail -f catalina.out  </div><div class="line">;;     </div><div class="line">esac</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/tomcat安装和配置特定账号启动/" data-id="cje2lryyh000spxbl0p3xauly" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Linux/vi命令" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Linux/vi命令/">vi命令</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Linux/vi命令/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="vi命令"><a href="#vi命令" class="headerlink" title="vi命令"></a>vi命令</h2><p>vi命令是UNIX操作系统和类UNIX操作系统中最通用的全屏幕纯文本编辑器。</p>
+<p>Linux中的vi编辑器叫vim，它是vi的增强版（vi Improved），与vi编辑器完全兼容，而且实现了很多增强功能。 vi编辑器支持编辑模式和命令模式，编辑模式下可以完成文本的编辑功能，命令模式下可以完成对文件的操作命令，要正确使用vi编辑器就必须熟练掌握着两种模式的切换。默认情况下，打开vi编辑器后自动进入命令模式。从编辑模式切换到命令模式使用“esc”键，从命令模式切换到编辑模式使用“A”、“a”、“O”、“o”、“I”、“i”键。      </p>
+<p>vi编辑器提供了丰富的内置命令，有些内置命令使用键盘组合键即可完成，有些内置命令则需要以冒号“：”开头输入。常用内置命令如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">Ctrl+u：向文件首翻半屏；  </div><div class="line">Ctrl+d：向文件尾翻半屏；  </div><div class="line">Ctrl+f：向文件尾翻一屏；</div><div class="line">Ctrl+b：向文件首翻一屏；</div><div class="line">Esc：从编辑模式切换到命令模式；</div><div class="line">ZZ：命令模式下保存当前文件所做的修改后退出vi；</div><div class="line">:行号：光标跳转到指定行的行首；</div><div class="line">:$：光标跳转到最后一行的行首；</div><div class="line">x或X：删除一个字符，x删除光标后的，而X删除光标前的；</div><div class="line">D：删除从当前光标到光标所在行尾的全部字符；</div><div class="line">dd：删除光标行正行内容；</div><div class="line">ndd：删除当前行及其后n-1行； nyy：将当前行及其下n行的内容保存到寄存器？中，其中？为一个字母，n为一个数字；</div><div class="line">p：粘贴文本操作，用于将缓存区的内容粘贴到当前光标所在位置的下方；</div><div class="line">P：粘贴文本操作，用于将缓存区的内容粘贴到当前光标所在位置的上方；</div><div class="line">/字符串：文本查找操作，用于从当前光标所在位置开始向文件尾部查找指定字符串的内容，查找的字符串会被加亮显示； </div><div class="line">？name：文本查找操作，用于从当前光标所在位置开始向文件头部查找指定字符串的内容，查找的字符串会被加亮显示； </div><div class="line">a，bs/F/T：替换文本操作，用于在第a行到第b行之间，将F字符串换成T字符串。其中，“s/”表示进行替换操作；</div><div class="line">a：在当前字符后添加文本；</div><div class="line">A：在行末添加文本；</div><div class="line">i：在当前字符前插入文本；</div><div class="line">I：在行首插入文本；</div><div class="line">o：在当前行后面插入一空行；</div><div class="line">O：在当前行前面插入一空行；</div><div class="line">:wq：在命令模式下，执行存盘退出操作； </div><div class="line">:w：在命令模式下，执行存盘操作；</div><div class="line">:w！：在命令模式下，执行强制存盘操作； </div><div class="line">:q：在命令模式下，执行退出vi操作；</div><div class="line">:q！：在命令模式下，执行强制退出vi操作； </div><div class="line">:e文件名：在命令模式下，打开并编辑指定名称的文件；</div><div class="line">:n：在命令模式下，如果同时打开多个文件，则继续编辑下一个文件；</div><div class="line">:f：在命令模式下，用于显示当前的文件名、光标所在行的行号以及显示比例； </div><div class="line">:set number：在命令模式下，用于在最左端显示行号； </div><div class="line">:set nonumber：在命令模式下，用于在最左端不显示行号；</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/vi命令/" data-id="cje2lryyi000upxbltax7f9z1" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Linux/apt-get常用命令" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Linux/apt-get常用命令/">apt-get常用命令</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Linux/apt-get常用命令/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="什么的是apt-get"><a href="#什么的是apt-get" class="headerlink" title="什么的是apt-get"></a>什么的是apt-get</h2><p>高级包装工具（英语：Advanced Packaging Tools,简称：APT）是Debian及其衍生发行版（如：ubuntu）的软件包管理器。APT可以自动下载，配置，安装二进制或者源代码格式的软 件包，因此简化了 Unix系统上管理软件的过程,apt-get命令一般需要root权限执行，所以一般跟着sudo命令。</p>
+<h2 id="apt-get中文参数"><a href="#apt-get中文参数" class="headerlink" title="apt-get中文参数"></a>apt-get中文参数</h2><h3 id="用法："><a href="#用法：" class="headerlink" title="用法："></a>用法：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">apt-get [选项] 命令 apt-get [选项] install|remove pkg1 [pkg2 ...]</div><div class="line"></div><div class="line">apt-get [选项] source pkg1 [pkg2 ...]</div></pre></td></tr></table></figure>
+<p>apt-get 是一个下载安装软件包的简单命令行接口。 最常用的命令是update(更新) 和install(安装)。</p>
+<h3 id="命令："><a href="#命令：" class="headerlink" title="命令："></a>命令：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div></pre></td><td class="code"><pre><div class="line">update - 重新获取软件包列表 </div><div class="line"></div><div class="line">upgrade - 进行更新 </div><div class="line"></div><div class="line">install - 安装新的软件包 </div><div class="line"></div><div class="line">remove - 移除软件包 </div><div class="line"></div><div class="line">autoremove - 自动移除全部不使用的软件包 </div><div class="line"></div><div class="line">purge - 移除软件包和配置文件 </div><div class="line"></div><div class="line">source - 下载源码档案 </div><div class="line"></div><div class="line">build-dep - 为源码包配置编译依赖 </div><div class="line"></div><div class="line">dist-upgrade - 发行版升级</div><div class="line"></div><div class="line">dselect-upgrade - 依照 dselect 的选择更新 </div><div class="line"></div><div class="line">clean - 清除下载的归档文件 </div><div class="line"></div><div class="line">autoclean - 清除旧的的已下载的归档文件 </div><div class="line"></div><div class="line">check - 检验是否有损坏的依赖 </div><div class="line"></div><div class="line">选项： </div><div class="line"></div><div class="line">-h 本帮助文件。 </div><div class="line"></div><div class="line">-q 输出到日志 - 无进展指示 </div><div class="line"></div><div class="line">-qq 不输出信息，错误除外 </div><div class="line"></div><div class="line">-d 仅下载 - 不安装或解压归档文件 </div><div class="line"></div><div class="line">-s 不实际安装。模拟执行命令</div><div class="line"></div><div class="line">-y 假定对所有的询问选是，不提示 </div><div class="line"></div><div class="line">-f 尝试修正系统依赖损坏处 </div><div class="line"></div><div class="line">-m 如果归档无法定位，尝试继续</div><div class="line"></div><div class="line">-u 同时显示更新软件包的列表 </div><div class="line"></div><div class="line">-b 获取源码包后编译 -V 显示详细的版本号</div><div class="line"></div><div class="line">-c=? 阅读此配置文件</div><div class="line"></div><div class="line">-o=? 设置自定的配置选项，如 -o dir::cache=/tmp</div></pre></td></tr></table></figure>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">apt-cache search packagename 搜索包</div><div class="line">apt-cache show packagename 获取包的相关信息，如说明、大小、版本等</div><div class="line">apt-get install packagename 安装包</div><div class="line">apt-get install packagename --reinstall 重新安装包</div><div class="line">apt-get -f install 修复安装”-f = –fix-missing”</div><div class="line">apt-get remove packagename 删除包</div><div class="line">apt-get remove packagename --purge 删除包，包括删除配置文件等</div><div class="line">apt-get update 更新源</div><div class="line">apt-get upgrade 更新已安装的包</div><div class="line">apt-get dist-upgrade 升级系统</div><div class="line">apt-get dselect-upgrade 使用 dselect 升级</div><div class="line">apt-cache depends packagename 了解使用依赖</div><div class="line">apt-cache rdepends packagename 是查看该包被哪些包依赖</div><div class="line">apt-get build-dep packagename 安装相关的编译环境</div><div class="line">apt-get source packagename 下载该包的源代码</div><div class="line">apt-get clean 清理无用的包</div><div class="line">apt-get autoclean 清理无用的包</div><div class="line">apt-get check 检查是否有损坏的依赖</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/apt-get常用命令/" data-id="cje2lryyb000cpxblj4rd73f0" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Eclipse/codetemplates变量解析" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Eclipse/codetemplates变量解析/">codetemplates变量解析</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Eclipse/codetemplates变量解析/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Eclipse/">Eclipse</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ol>
+<li><p>在Java中的对应位置，输入/**三个字符，再按下回车键，就可以自动生成CodeTemplate中指定的模式了<br>CodeTemplate中的变量，都用美元符号后面的花括号围住，如${date}、${time}等，如果要在CodeTemplate中要写美元符号$，则用两个美元符号连写表示。<br>下面逐一解释一下这些变量的含义：</p>
 <ul>
-<li><p>JsonTypeInfo.Id.CLASS：使用完全限定类名做识别</p>
+<li>${year}，代表当前年份，例如：2015</li>
+<li>${date}，代表当前日期，例如：2015年11月29日</li>
+<li>${time}，代表当前时间，例如：下午10:07:15</li>
+<li>${project_name}，代表项目名</li>
+<li>${package_name}，代表包名</li>
+<li>${file_name}，代表当前文件名</li>
+<li>${type_name}，代表当前类名</li>
+<li><p>${enclosing_type}，如果类A是在另一个类B内部声明的，则该变量记录了类B的名字，否则为空，代码举例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * <span class="doctag">@enclosing</span>_type</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest</span> </span>&#123;</div><div class="line">    <span class="comment">/**</span></div><div class="line">     * <span class="doctag">@enclosing</span>_type VarTest</div><div class="line">     */</div><div class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest2</span> </span>&#123;</div><div class="line">        <span class="comment">/**</span></div><div class="line">         * <span class="doctag">@enclosing</span>_type VarTest.VarTest2</div><div class="line">         */</div><div class="line">        <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VarTest3</span> </span>&#123;</div><div class="line">            </div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
-<li><p>JsonTypeInfo.Id.MINIMAL_CLASS：若基类和子类在同一包类，使用类名(忽略包名)作为识别码</p>
-</li>
-<li><p>JsonTypeInfo.Id.NAME：一个合乎逻辑的指定名称</p>
-</li>
-<li><p>JsonTypeInfo.Id.CUSTOM：自定义识别码，由@JsonTypeIdResolver对应，稍后解释</p>
-</li>
-<li><p>JsonTypeInfo.Id.NONE：不使用识别码</p>
+<li><p>${tags}，输出函数的输入参数与返回值，例如有函数声明如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public int func(int a, String b, long c, boolean d) &#123;</div><div class="line">    return 0;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
 </ul>
-<p>==include==(可选):指定识别码是如何被包含进去的，它有下面几个可选值：</p>
+<p>CodeTemplate的Pattern如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * $&#123;tags&#125;</div><div class="line"> */</div></pre></td></tr></table></figure>
+<p>则生成的注释如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * </div><div class="line"> * @param a</div><div class="line"> * @param b</div><div class="line"> * @param c</div><div class="line"> * @param d</div><div class="line"> * @return</div><div class="line"> */</div></pre></td></tr></table></figure>
 <ul>
-<li><p>JsonTypeInfo.As.PROPERTY：作为数据的兄弟属性</p>
-</li>
-<li><p>JsonTypeInfo.As.EXISTING_PROPERTY：作为POJO中已经存在的属性</p>
-</li>
-<li><p>JsonTypeInfo.As.EXTERNAL_PROPERTY：作为扩展属性</p>
-</li>
-<li><p>JsonTypeInfo.As.WRAPPER_OBJECT：作为一个包装的对象</p>
-</li>
-<li><p>JsonTypeInfo.As.WRAPPER_ARRAY：作为一个包装的数组</p>
-</li>
+<li>${todo}，有这个变量的位置，会生成一个TODO标签</li>
+<li>${user}，这个变量存储了当前Eclipse的用户名，这个用户名可以在eclipse.ini中设置<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">-Duser.name=你的名称</div></pre></td></tr></table></figure></li>
 </ul>
-<p>==property==(可选):制定识别码的属性名称<br>此属性只有当use为JsonTypeInfo.Id.CLASS（若不指定property则默认为@class）、JsonTypeInfo.Id.MINIMAL_CLASS(若不指定property则默认为@c)、JsonTypeInfo.Id.NAME(若不指定property默认为@type)，include为JsonTypeInfo.As.PROPERTY、JsonTypeInfo.As.EXISTING_PROPERTY、JsonTypeInfo.As.EXTERNAL_PROPERTY时才有效</p>
-<p>==defaultImpl==(可选)：如果类型识别码不存在或者无效，可以使用该属性来制定反序列化时使用的默认类型</p>
-<p>==visible==(可选，默认为false)：是否可见<br>属性定义了类型标识符的值是否会通过JSON流成为反序列化器的一部分，默认为fale,也就是说,jackson会从JSON内容中处理和删除类型标识符再传递给JsonDeserializer。</p>
-<h2 id="JsonSubTypes"><a href="#JsonSubTypes" class="headerlink" title="@JsonSubTypes"></a>@JsonSubTypes</h2><p>作用于类/接口，用来列出给定类的子类，只有当子类类型无法被检测到时才会使用它</p>
-<p>一般是配合@JsonTypeInfo在基类上使用，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@JsonTypeInfo(use = JsonTypeInfo.Id.NAME,include = JsonTypeInfo.As.PROPERTY,property = &quot;typeName&quot;)  </div><div class="line">@JsonSubTypes(&#123;@JsonSubTypes.Type(value=Sub1.class,name = &quot;sub1&quot;),@JsonSubTypes.Type(value=Sub2.class,name = &quot;sub2&quot;)&#125;)</div></pre></td></tr></table></figure></p>
-<p>@JsonSubTypes的值是一个@JsonSubTypes.Type[]数组，里面枚举了多态类型(value对应类)和类型的标识符值(name对应@JsonTypeInfo中的property标识名称的值，此为可选值，若不制定需由@JsonTypeName在子类上制定)</p>
-<h2 id="JsonTypeName"><a href="#JsonTypeName" class="headerlink" title="@JsonTypeName"></a>@JsonTypeName</h2><p>作用于子类，用来为多态子类指定类型标识符的值<br>比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@JsonTypeName(value = &quot;sub1&quot;)</div></pre></td></tr></table></figure></p>
-<p>value属性作用同上面@JsonSubTypes里的name作用</p>
-<h1 id="用于序列化和反序列化的注解类"><a href="#用于序列化和反序列化的注解类" class="headerlink" title="用于序列化和反序列化的注解类"></a>用于序列化和反序列化的注解类</h1><h2 id="JsonSerialize和-JsonDeserialize"><a href="#JsonSerialize和-JsonDeserialize" class="headerlink" title="@JsonSerialize和@JsonDeserialize"></a>@JsonSerialize和@JsonDeserialize</h2><p>作用于方法和字段上，通过 using(JsonSerializer)和using(JsonDeserializer)来指定序列化和反序列化的实现，通常我们在需要自定义序列化和反序列化时会用到，比如下面的例子中的日期转换<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">public static class TestPOJO&#123;  </div><div class="line">    private String name;  </div><div class="line">    @JsonSerialize(using = MyDateSerializer.class)  </div><div class="line">    @JsonDeserialize(using = MyDateDeserializer.class)  </div><div class="line">    private Date birthday;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">  </div><div class="line">&#125; </div><div class="line"></div><div class="line">private static class MyDateSerializer extends JsonSerializer&lt;Date&gt;&#123;  </div><div class="line">    @Override  </div><div class="line">    public void serialize(Date value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException &#123;  </div><div class="line">        DateFormat dateFormat = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);  </div><div class="line">        String dateStr = dateFormat.format(value);  </div><div class="line">        jgen.writeString(dateStr);  </div><div class="line">    &#125;  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">private static class MyDateDeserializer extends JsonDeserializer&lt;Date&gt;&#123;  </div><div class="line">    @Override  </div><div class="line">    public Date deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException &#123;  </div><div class="line">        String value = jp.getValueAsString();  </div><div class="line">        DateFormat dateFormat = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);  </div><div class="line">        try &#123;  </div><div class="line">            return dateFormat.parse(value);  </div><div class="line">        &#125; catch (ParseException e) &#123;  </div><div class="line">            e.printStackTrace();  </div><div class="line">        &#125;  </div><div class="line">        return null;  </div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>也可以通过使用as(JsonSerializer)和as(JsonDeserializer)来实现多态类型转换，上面我们有提到多态类型处理时可以使用@JsonTypeInfo实现，还有一种比较简便的方式就是使用@JsonSerialize和@JsonDeserialize指定as的子类类型，注意这里必须指定为子类类型才可以实现替换运行时的类型<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line">public static class TestPOJO&#123;  </div><div class="line">    private String name;  </div><div class="line">    @JsonSerialize(as = Sub1.class)  </div><div class="line">    @JsonDeserialize(as = Sub1.class)  </div><div class="line">    private MyIn sub1;  </div><div class="line">    @JsonSerialize(as = Sub2.class)  </div><div class="line">    @JsonDeserialize(as = Sub2.class)  </div><div class="line">    private MyIn sub2;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">  </div><div class="line">&#125; </div><div class="line"></div><div class="line">public static class MyIn&#123;  </div><div class="line">    private int id;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">public static class Sub1 extends MyIn&#123;  </div><div class="line">    private String name;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">  </div><div class="line">    @Override  </div><div class="line">    public String toString() &#123;  </div><div class="line">        return &quot;Sub1&#123;&quot; +  </div><div class="line">            &quot;id=&quot; + getId()  +  </div><div class="line">            &quot;name=&apos;&quot; + name + &apos;\&apos;&apos; +  </div><div class="line">            &apos;&#125;&apos;;  </div><div class="line">    &#125;  </div><div class="line">&#125;  </div><div class="line">public static class Sub2 extends MyIn&#123;  </div><div class="line">    private int age;  </div><div class="line">    //getters、setters省略  </div><div class="line">  </div><div class="line">    @Override  </div><div class="line">    public String toString() &#123;  </div><div class="line">        return &quot;Sub1&#123;&quot; +  </div><div class="line">            &quot;id=&quot; + getId() +  </div><div class="line">            &quot;age=&apos;&quot; + age +  </div><div class="line">            &apos;&#125;&apos;;  </div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>上面例子中通过as来指定了需要替换实际运行时类型的子类，实际上上面例子中序列化时是可以不使用@JsonSerialize(as = Sub1.class)的，因为jackson可以自动将POJO转换为对应的JSON，而反序列化时由于无法自动检索匹配类型必须要指定@JsonDeserialize(as = Sub1.class)方可实现</p>
-<p>最后@JsonSerialize可以配置include属性来指定序列化时被注解的属性被包含的方式，默认总是被包含进来，但是可以过滤掉空的属性或有默认值的属性，举个简单的过滤空属性的例子如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">public static class TestPOJO&#123;  </div><div class="line">    @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)  </div><div class="line">    private String name;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h2 id="JsonPropertyOrder"><a href="#JsonPropertyOrder" class="headerlink" title="@JsonPropertyOrder"></a>@JsonPropertyOrder</h2><p>作用在类上，被用来指明当序列化时需要对属性做排序，它有2个属性</p>
-<p>一个是alphabetic：布尔类型，表示是否采用字母拼音顺序排序，默认是为false，即不排序</p>
-<p>还有一个属性是value：数组类型，表示将优先其他属性排序的属性名称<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@JsonPropertyOrder(alphabetic = true,value = &#123;&quot;c&quot;,&quot;b&quot;&#125;)  </div><div class="line">public static class TestPOJO&#123;  </div><div class="line">    private String a;  </div><div class="line">    private String c;  </div><div class="line">    private String d;  </div><div class="line">    private String b;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h2 id="JsonFilter"><a href="#JsonFilter" class="headerlink" title="@JsonFilter"></a>@JsonFilter</h2><p>Json属性过滤器，作用于类，作用同上面的@JsonView，都是过滤掉不想要的属性，输出自己想要的属性。和@JsonView不同的是@JsonFilter可以动态的过滤属性，比如我不想输出以system开头的所有属性等待，应该说@JsonFilter更高级一点</p>
-<h2 id="JsonIgnoreType"><a href="#JsonIgnoreType" class="headerlink" title="@JsonIgnoreType"></a>@JsonIgnoreType</h2><p>作用于类，表示被注解该类型的属性将不会被序列化和反序列化，也跟上面几个一样属于过滤属性功能的注解<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">public static class TestPOJO&#123;  </div><div class="line">    private Sub1 sub1;  </div><div class="line">    private Sub2 sub2;  </div><div class="line">    private MyIn myIn;  </div><div class="line">    private String name;  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">public static class MyIn&#123;  </div><div class="line">    private int id;  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">@JsonIgnoreType  </div><div class="line">public static class Sub1 extends MyIn&#123;  </div><div class="line">    private String name;  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">@JsonIgnoreType  </div><div class="line">public static class Sub2 extends MyIn&#123;  </div><div class="line">    private int age;  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>上面例子中我们在类Sub1和Sub2上都加上了@JsonIgnoreType，那么需要序列化和反序列时POJO中所有Sub1和Sub2类型的属性都将会被忽略，上面测试结果为{“myIn”:{“id”:1},”name”:”myName”}，只输出了name和myIn属性。需要注意的是@JsonIgnoreType是可以继承的，即如果在基类上添加了该注解，那么子类也相当于加了该注解。在上例中，如果只在基类MyIn上添加@JsonIgnoreType那么序列化TestPOJO时将会过滤掉MyIn、Sub1、Sub2。输出结果为{“name”:”myName”}</p>
-<h2 id="JsonAnySetter"><a href="#JsonAnySetter" class="headerlink" title="@JsonAnySetter"></a>@JsonAnySetter</h2><p>作用于方法，在反序列化时用来处理遇到未知的属性的时候调用，在本文前面我们知道可以通过注解@JsonIgnoreProperties(ignoreUnknown=true)来过滤未知的属性，但是如果需要这些未知的属性该如何是好?那么@JsonAnySetter就可以派上用场了，它通常会和map属性配合使用用来保存未知的属性，举例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">public static class TestPOJO&#123;  </div><div class="line">    private String name;  </div><div class="line">  </div><div class="line">    private Map other = new HashMap();  </div><div class="line">  </div><div class="line">    @JsonAnySetter  </div><div class="line">    public void set(String name,Object value) &#123;  </div><div class="line">        other.put(name,value);  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    //getters、setters省略  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>测试用例中我们在set方法上标注了@JsonAnySetter，每当遇到未知的属性时都会调用该方法</p>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/jackjson注解/" data-id="cj6vztsec0099oabl18237t9h" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/允许跨域请求配置" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/允许跨域请求配置/">允许跨域请求配置</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/允许跨域请求配置/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>==注意：加入了spring security后，配置不起作用了==</p>
-<h2 id="方式一：springMVC-servlet-xml配置"><a href="#方式一：springMVC-servlet-xml配置" class="headerlink" title="方式一：springMVC-servlet.xml配置"></a>方式一：springMVC-servlet.xml配置</h2><p>在spingMVC的配置文件中,这里的配置必需是4.2版本<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">xsi:schemaLocation=&quot;http://www.springframework.org/schema/mvc </div><div class="line">	http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd&quot;</div></pre></td></tr></table></figure></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">&lt;!-- API 接口跨域配置 --&gt;  </div><div class="line">&lt;mvc:cors&gt;  </div><div class="line">    &lt;mvc:mapping path=&quot;/**&quot;  </div><div class="line">         allowed-origins=&quot;*&quot;  </div><div class="line">         allowed-methods=&quot;POST, GET, OPTIONS, DELETE, PUT&quot;  </div><div class="line">         allowed-headers=&quot;Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, Access-Control-Allow-Origin&quot;  </div><div class="line">         allow-credentials=&quot;true&quot; /&gt;</div><div class="line">         </div><div class="line">    &lt;!-- 配置特定的域名 --&gt;</div><div class="line">    &lt;mvc:mapping path=&quot;/resources/**&quot;</div><div class="line">		allowed-origins=&quot;http://domain1.com&quot; /&gt;</div><div class="line">&lt;/mvc:cors&gt;</div></pre></td></tr></table></figure>
-<h2 id="方式二：注解配置（未测试）"><a href="#方式二：注解配置（未测试）" class="headerlink" title="方式二：注解配置（未测试）"></a>方式二：注解配置（未测试）</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">@Configuration</div><div class="line">@EnableWebMvc</div><div class="line">public class WebConfig extends WebMvcConfigurerAdapter &#123;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void addCorsMappings(CorsRegistry registry) &#123;</div><div class="line">		registry.addMapping(&quot;/**&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="自定义配置"><a href="#自定义配置" class="headerlink" title="自定义配置"></a>自定义配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">@Configuration</div><div class="line">@EnableWebMvc</div><div class="line">public class WebConfig extends WebMvcConfigurerAdapter &#123;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void addCorsMappings(CorsRegistry registry) &#123;</div><div class="line">		registry.addMapping(&quot;/api/**&quot;)</div><div class="line">			.allowedOrigins(&quot;http://domain2.com&quot;)</div><div class="line">			.allowedMethods(&quot;PUT&quot;, &quot;DELETE&quot;)</div><div class="line">			.allowedHeaders(&quot;header1&quot;, &quot;header2&quot;, &quot;header3&quot;)</div><div class="line">			.exposedHeaders(&quot;header1&quot;, &quot;header2&quot;)</div><div class="line">			.allowCredentials(false).maxAge(3600);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-      
-
-    
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/允许跨域请求配置/" data-id="cj6vztsed009coablmplckc99" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-Spring/SpringMVC/validation bean校验" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/SpringMVC/validation bean校验/">validation bean校验</a>
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/07/19/Spring/SpringMVC/validation bean校验/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
-</div>
-
-    
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a> / <a class="article-category-link" href="/categories/Spring/spring-MVC/">spring MVC</a>
-  </div>
-
-
-  </div>
-  <div class="article-inner">
-
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>规范：<a href="http://beanvalidation.org/1.1/spec/" target="_blank" rel="external">http://beanvalidation.org/1.1/spec/</a><br>hibernate validator文档：<a href="http://hibernate.org/validator/" target="_blank" rel="external">http://hibernate.org/validator/</a> </p>
-<h2 id="jar包"><a href="#jar包" class="headerlink" title="jar包"></a>jar包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">&lt;!--  校验 --&gt;</div><div class="line">&lt;dependency&gt;  </div><div class="line">    &lt;groupId&gt;javax.validation&lt;/groupId&gt;  </div><div class="line">    &lt;artifactId&gt;validation-api&lt;/artifactId&gt;  </div><div class="line">    &lt;version&gt;1.1.0.Final&lt;/version&gt;  </div><div class="line">&lt;/dependency&gt;</div><div class="line"></div><div class="line">&lt;dependency&gt;</div><div class="line">	&lt;groupId&gt;org.hibernate&lt;/groupId&gt;</div><div class="line">	&lt;artifactId&gt;hibernate-validator&lt;/artifactId&gt;</div><div class="line">	&lt;version&gt;5.2.4.Final&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div><div class="line">&lt;!--  校验 --&gt;</div></pre></td></tr></table></figure>
-<h2 id="常用注解说明"><a href="#常用注解说明" class="headerlink" title="常用注解说明"></a>常用注解说明</h2><table>
-<thead>
-<tr>
-<th>验证注解</th>
-<th>验证的数据类型</th>
-<th>说明</th>
-<th></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>@AssertFalse</td>
-<td>Boolean,boolean</td>
-<td>验证注解的元素值是false</td>
-<td></td>
-</tr>
-<tr>
-<td>@AssertTrue</td>
-<td>Boolean,boolean</td>
-<td>验证注解的元素值是true</td>
-<td></td>
-</tr>
-<tr>
-<td>@NotNull</td>
-<td>任意类型</td>
-<td>验证注解的元素值不是null</td>
-<td></td>
-</tr>
-<tr>
-<td>@Null</td>
-<td>任意类型</td>
-<td>验证注解的元素值是null</td>
-<td></td>
-</tr>
-<tr>
-<td>@Min(value=值)</td>
-<td>BigDecimal，BigInteger, byte,short,int,long，等任何Number或CharSequence（存储的是数字）子类型</td>
-<td>验证注解的元素值大于等于@Min指定的value值</td>
-<td></td>
-</tr>
-<tr>
-<td>@Max（value=值）</td>
-<td>和@Min要求一样</td>
-<td>验证注解的元素值小于等于@Max指定的value值</td>
-<td></td>
-</tr>
-<tr>
-<td>@DecimalMin(value=值)</td>
-<td>和@Min要求一样</td>
-<td>验证注解的元素值大于等于@ DecimalMin指定的value值</td>
-<td></td>
-</tr>
-<tr>
-<td>@DecimalMax(value=值)</td>
-<td>和@Min要求一样</td>
-<td>验证注解的元素值小于等于@ DecimalMax指定的value值</td>
-<td></td>
-</tr>
-<tr>
-<td>@Digits(integer=整数位数, fraction=小数位数)</td>
-<td>和@Min要求一样</td>
-<td>验证注解的元素值的整数位数和小数位数上限</td>
-<td></td>
-</tr>
-<tr>
-<td>@Size(min=下限, max=上限)</td>
-<td>字符串、Collection、Map、数组等</td>
-<td>验证注解的元素值的在min和max（包含）指定区间之内，如字符长度、集合大小</td>
-<td></td>
-</tr>
-<tr>
-<td>@Past</td>
-<td>java.util.Date,java.util.Calendar;Joda Time类库的日期类型</td>
-<td>验证注解的元素值（日期类型）比当前时间早</td>
-<td></td>
-</tr>
-<tr>
-<td>@Future</td>
-<td>与@Past要求一样</td>
-<td>验证注解的元素值（日期类型）比当前时间晚</td>
-<td></td>
-</tr>
-<tr>
-<td>@NotBlank</td>
-<td>CharSequence子类型</td>
-<td>验证注解的元素值不为空（不为null、去除首位空格后长度为0），不同于@NotEmpty，@NotBlank只应用于字符串且在比较时会去除字符串的首位空格</td>
-<td></td>
-</tr>
-<tr>
-<td>@Length(min=下限, max=上限)</td>
-<td>CharSequence子类型</td>
-<td>验证注解的元素值长度在min和max区间内</td>
-<td></td>
-</tr>
-<tr>
-<td>@NotEmpty</td>
-<td>CharSequence子类型、Collection、Map、数组</td>
-<td>验证注解的元素值不为null且不为空（字符串长度不为0、集合大小不为0）</td>
-<td></td>
-</tr>
-<tr>
-<td>@Range(min=最小值, max=最大值)</td>
-<td>BigDecimal,BigInteger,CharSequence, byte, short,int,long等原子类型和包装类型</td>
-<td>验证注解的元素值在最小值和最大值之间</td>
-<td></td>
-</tr>
-<tr>
-<td>@Email(regexp=正则表达式,flag=标志的模式)</td>
-<td>CharSequence子类型（如String）</td>
-<td>验证注解的元素值是Email，也可以通过regexp和flag指定自定义的email格式</td>
-<td></td>
-</tr>
-<tr>
-<td>@Pattern(regexp=正则表达式,flag=标志的模式)</td>
-<td>String，任何CharSequence的子类型</td>
-<td>验证注解的元素值与指定的正则表达式匹配</td>
-<td></td>
-</tr>
-<tr>
-<td>@Valid</td>
-<td>任何非原子类型</td>
-<td>指定递归验证关联的对象；如用户对象中有个地址对象属性，如果想在验证用户对象时一起验证地址对象的话，在地址对象上加@Valid注解即可级联验证</td>
-</tr>
-</tbody>
-</table>
-<h2 id="分组和级联校验"><a href="#分组和级联校验" class="headerlink" title="分组和级联校验"></a>分组和级联校验</h2><ol>
-<li>级联校验的对象加上@Valid</li>
-<li>级联校验的对象加上分组接口<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">public class OrderVo implements Serializable &#123;</div><div class="line">	</div><div class="line">	public static abstract interface MemberOrderValidation &#123;&#125;;</div><div class="line">	</div><div class="line">	@NotNull(groups=MemberOrderValidation.class, message=&quot;不能为null&quot;)</div><div class="line">	private Integer periodId;//期数id</div><div class="line">	</div><div class="line">	@NotNull(groups=MemberOrderValidation.class, message=&quot;不能为null&quot;)</div><div class="line">	private Integer patternId;//模式id</div><div class="line">	</div><div class="line">	@NotNull(groups=MemberOrderValidation.class, message=&quot;不能为null&quot;)</div><div class="line">	@Valid</div><div class="line">	private List&lt;OrderDetailVo&gt; listOfOrderDeailVo;</div><div class="line">	</div><div class="line">	//get and set</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line">public class OrderDetailVo implements Serializable &#123;</div><div class="line"></div><div class="line">	@NotNull(groups = &#123;MemberOrderValidation.class&#125;)</div><div class="line">	private Integer codeId;//码数id</div><div class="line">	@NotNull(groups = &#123;MemberOrderValidation.class&#125;)</div><div class="line">	private Integer oddsId;//赔率id</div><div class="line">	</div><div class="line">	@DecimalMax(value = &quot;100.00&quot;,message = &quot;体重有些超标哦&quot;, groups = &#123;MemberOrderValidation.class&#125;)</div><div class="line">	@DecimalMin(value = &quot;0&quot;,message = &quot;多吃点饭吧&quot;, groups = &#123;MemberOrderValidation.class&#125;)</div><div class="line">	private BigDecimal betAmount;//下注金额</div><div class="line">	</div><div class="line">	//get and set</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
 </ol>
-<h2 id="指定分组校验的顺序"><a href="#指定分组校验的顺序" class="headerlink" title="指定分组校验的顺序"></a>指定分组校验的顺序</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@GroupSequence(&#123;First.class, Second.class, User.class&#125;)  </div><div class="line">public class User implements Serializable &#123; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
       
     </div>
 
@@ -934,7 +580,135 @@
     
 
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/SpringMVC/validation bean校验/" data-id="cj6vztsee009eoabl1m7vvg7r" class="article-share-link">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Eclipse/codetemplates变量解析/" data-id="cje2lryxy0000pxblpqmzw6oh" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Linux/mysql安装" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Linux/mysql安装/">mysql安装</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Linux/mysql安装/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="使用apt-get"><a href="#使用apt-get" class="headerlink" title="使用apt-get"></a>使用apt-get</h2><h3 id="1-升级apt-get"><a href="#1-升级apt-get" class="headerlink" title="1.升级apt-get"></a>1.升级apt-get</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get update</div></pre></td></tr></table></figure>
+<h3 id="2-安装mysql-client-core-5-7"><a href="#2-安装mysql-client-core-5-7" class="headerlink" title="2.安装mysql-client-core-5.7"></a>2.安装mysql-client-core-5.7</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install MySQL-client-core-5.7</div></pre></td></tr></table></figure>
+<h3 id="3-安装-mysql-server-5-7"><a href="#3-安装-mysql-server-5-7" class="headerlink" title="3.安装 mysql-server-5.7"></a>3.安装 mysql-server-5.7</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install mysql-server-5.7</div></pre></td></tr></table></figure>
+<h3 id="4-检查mysql是否启动"><a href="#4-检查mysql是否启动" class="headerlink" title="4.检查mysql是否启动"></a>4.检查mysql是否启动</h3><ul>
+<li>查看mysql进程是否运行：ps -ef | grep mysql</li>
+<li>查看msyql 监听端口：netstat -tap | grep mysql</li>
+</ul>
+<h3 id="5-msyql服务停止"><a href="#5-msyql服务停止" class="headerlink" title="5.msyql服务停止"></a>5.msyql服务停止</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysql stop</div></pre></td></tr></table></figure>
+<h3 id="6-Mysql-服务启动"><a href="#6-Mysql-服务启动" class="headerlink" title="6.Mysql 服务启动"></a>6.Mysql 服务启动</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysql start</div></pre></td></tr></table></figure>
+<h3 id="7-Mysql-服务重启"><a href="#7-Mysql-服务重启" class="headerlink" title="7.Mysql 服务重启"></a>7.Mysql 服务重启</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysql restart</div></pre></td></tr></table></figure>
+<h3 id="8-登录mysql后台"><a href="#8-登录mysql后台" class="headerlink" title="8.登录mysql后台"></a>8.登录mysql后台</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">mysql -u [username] -p</div><div class="line">如：mysql -u root -p</div></pre></td></tr></table></figure>
+<h3 id="9-查看mysql安装目录"><a href="#9-查看mysql安装目录" class="headerlink" title="9.查看mysql安装目录"></a>9.查看mysql安装目录</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">whereis mysql</div></pre></td></tr></table></figure>
+<h3 id="10-查询运行文件所在路径-文件夹地址"><a href="#10-查询运行文件所在路径-文件夹地址" class="headerlink" title="10.查询运行文件所在路径(文件夹地址)"></a>10.查询运行文件所在路径(文件夹地址)</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">which mysql</div></pre></td></tr></table></figure>
+<h3 id="11-查看mysql字符集"><a href="#11-查看mysql字符集" class="headerlink" title="11.查看mysql字符集"></a>11.查看mysql字符集</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">show variables like &apos;character%&apos;;</div></pre></td></tr></table></figure>
+<h3 id="12-修改字符编码"><a href="#12-修改字符编码" class="headerlink" title="12.修改字符编码"></a>12.修改字符编码</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">1. 停止服务，找到mysql.cnf文件</div><div class="line">2. 使用vi /etc/mysql/mysql.cnf编辑文件</div><div class="line">3. 加入：  </div><div class="line">###############################</div><div class="line">[client]</div><div class="line">default-character-set=utf8</div><div class="line"></div><div class="line">[mysqld]</div><div class="line">character-set-server=utf8</div><div class="line"></div><div class="line">[mysql]</div><div class="line">default-character-set=utf8</div><div class="line">###############################</div><div class="line">4. :wq保存退出</div><div class="line">5. 重启服务</div></pre></td></tr></table></figure>
+<h3 id="13-修改数据库root的密码"><a href="#13-修改数据库root的密码" class="headerlink" title="13.修改数据库root的密码"></a>13.修改数据库root的密码</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/usr/local/mysql/bin/mysqladmin -u root password &apos;rootroot&apos;</div></pre></td></tr></table></figure>
+<h3 id="14-卸载"><a href="#14-卸载" class="headerlink" title="14.卸载"></a>14.卸载</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">ps -ef | grep mysql</div><div class="line">/etc/init.d/mysql status</div><div class="line">whereis mysql</div><div class="line">find / -name mysql【找到所有文件名为mysql的文件列表】</div><div class="line">rm -rf /usr/local/mysql/【使用rm命令来移除列表中的文件】</div><div class="line">rm -rf /etc/my.cnf【使用rm命令来移除列表中的文件】</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/mysql安装/" data-id="cje2lryyd000gpxblwhxsmy99" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Linux/nginx安装" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Linux/nginx安装/">安装nginx</a>
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/07/19/Linux/nginx安装/" class="article-date"><time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install nginx</div></pre></td></tr></table></figure>
+<h2 id="服务器安装目录"><a href="#服务器安装目录" class="headerlink" title="服务器安装目录"></a>服务器安装目录</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">whereis nginx</div><div class="line">/usr/sbin/nginx </div><div class="line">/etc/nginx </div><div class="line">/usr/share/nginx</div></pre></td></tr></table></figure>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.sudo /etc/init.d/nginx start  #通过init.d下的启动文件启动。</div><div class="line"></div><div class="line">2.sudo service nginx start   #通过ubuntu的服务管理器启动</div></pre></td></tr></table></figure>
+<h2 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.sudo /etc/init.d/nginx stop</div><div class="line"></div><div class="line">2.sudo service nginx stop</div></pre></td></tr></table></figure>
+<h2 id="重启"><a href="#重启" class="headerlink" title="重启"></a>重启</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1.sudo /etc/init.d/nginx restart</div><div class="line"></div><div class="line">2.sudo service nginx restart</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/nginx安装/" data-id="cje2lryye000jpxbl0lrlrvom" class="article-share-link">
         <i class="fa fa-share"></i> Share
       </a>
       
@@ -951,7 +725,7 @@
 
 
   <div id="page-nav">
-    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/13/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/12/">12</a></li><li><a class="page-number" href="/page/13/">13</a></li><li class="active"><span class="page-number">14</span></li><li><a class="page-number" href="/page/15/">15</a></li><li><a class="page-number" href="/page/16/">16</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/19/">19</a></li><li><a class="page-next" rel="next" href="/page/15/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
+    <nav><ul class="pagination"><li><a class="page-prev" rel="prev" href="/page/13/"><i class="fa fa-chevron-left"></i> Prev</a></li><li><a class="page-number" href="/">1</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/12/">12</a></li><li><a class="page-number" href="/page/13/">13</a></li><li class="active"><span class="page-number">14</span></li><li><a class="page-number" href="/page/15/">15</a></li><li><a class="page-number" href="/page/16/">16</a></li><li class="disabled"><span class="page-space">&hellip;</span></li><li><a class="page-number" href="/page/24/">24</a></li><li><a class="page-next" rel="next" href="/page/15/">Next <i class="fa fa-chevron-right"></i></a></li></ul></nav>
   </div>
 
 
@@ -969,7 +743,7 @@
   
   <div class="sidebar-module">
     <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">67</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">15</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">16</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">56</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">11</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">11</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">22</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">7</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">84</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/分布式/">分布式</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">21</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/时间日期/">时间日期</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">8</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Spring-Boot/">Spring Boot</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Spring-Session/">Spring Session</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">20</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">20</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">29</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">4</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Nginx/">Nginx</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">13</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">9</span></li></ul>
   </div>
 
 
@@ -982,7 +756,7 @@
   
   <div class="sidebar-module">
     <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">60</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">124</span></li></ul>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2018/02/">二月 2018</a><span class="sidebar-module-list-count">45</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/10/">十月 2017</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">62</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">125</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/02/">二月 2017</a><span class="sidebar-module-list-count">2</span></li></ul>
   </div>
 
 
@@ -993,23 +767,23 @@
     <ul class="sidebar-module-list">
       
         <li>
-          <a href="/2017/08/28/Java/基础/java三大特性/">java三大特性</a>
+          <a href="/2018/02/25/Java/基础/java8新特性/">java8新特性</a>
         </li>
       
         <li>
-          <a href="/2017/08/28/Java/基础/Filter过滤器/">Filter过滤器</a>
+          <a href="/2018/02/25/Java/集合/HashSet原理/">HashSet原理</a>
         </li>
       
         <li>
-          <a href="/2017/08/27/Java/基础/泛型/">泛型</a>
+          <a href="/2018/02/25/Java/分布式/分布式锁/">分布式锁</a>
         </li>
       
         <li>
-          <a href="/2017/08/27/Java/基础/面向对象7大原则/">面向对象7大原则</a>
+          <a href="/2018/02/25/Java/集合/在List循环中删除元素/">在List循环中删除元素</a>
         </li>
       
         <li>
-          <a href="/2017/08/16/Java/基础/java动态代理/">java动态代理</a>
+          <a href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/">Hashtable与ConcurrentHashMap区别</a>
         </li>
       
     </ul>
@@ -1023,7 +797,7 @@
   <footer class="blog-footer">
   <div class="container">
     <div id="footer-info" class="inner">
-      &copy; 2017 LeoChan<br>
+      &copy; 2018 LeoChan<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>

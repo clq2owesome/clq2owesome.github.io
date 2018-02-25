@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>JVM垃圾回收算法与收集器类型 | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="GC的类型当每个代满了之后都会自动促发collection，各收集器触发的条件不一样，当然也可以通过一些参数进行强制设定。主要分为两种类型：  Minor Collection：GC用较高的频率对young进行扫描和回收，采用复制算法。 Major Collection：同时对Young和Old进行内存收集，也叫Full GC；因为成本关系对Old的检查回收频率要比Young低很多，采用标记清除/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM垃圾回收算法与收集器类型">
+<meta property="og:url" content="https://clq2owesome.github.io/2017/08/12/Java/基础/JVM垃圾回收算法与收集器类型/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="GC的类型当每个代满了之后都会自动促发collection，各收集器触发的条件不一样，当然也可以通过一些参数进行强制设定。主要分为两种类型：  Minor Collection：GC用较高的频率对young进行扫描和回收，采用复制算法。 Major Collection：同时对Young和Old进行内存收集，也叫Full GC；因为成本关系对Old的检查回收频率要比Young低很多，采用标记清除/">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/CCA572C93C2D41698291596531755BB2/7831">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/B30EF1FE809B4E2AABD3328DD2070A06/7829">
+<meta property="og:image" content="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/0BCD8C3038BE460A8F667934590C8F36/7830">
+<meta property="og:image" content="http://7xkjk9.com1.z0.glb.clouddn.com/jvm-8.jpg">
+<meta property="og:image" content="http://files.jb51.net/file_images/article/201702/2017021415541227.png">
+<meta property="og:image" content="http://files.jb51.net/file_images/article/201702/2017021415541328.png">
+<meta property="og:image" content="http://files.jb51.net/file_images/article/201702/2017021415541529.png">
+<meta property="og:image" content="https://clq2owesome.github.io/2017/08/12/Java/基础/JVM垃圾回收算法与收集器类型/![image](http://files.jb51.net/file_images/article/201702/2017021415541227.png">
+<meta property="og:image" content="http://files.jb51.net/file_images/article/201702/2017021415541529.png">
+<meta property="og:image" content="http://files.jb51.net/file_images/article/201702/2017021415541630.png">
+<meta property="og:image" content="http://files.jb51.net/file_images/article/201702/2017021415541731.png">
+<meta property="og:updated_time" content="2018-02-25T07:13:09.966Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JVM垃圾回收算法与收集器类型">
+<meta name="twitter:description" content="GC的类型当每个代满了之后都会自动促发collection，各收集器触发的条件不一样，当然也可以通过一些参数进行强制设定。主要分为两种类型：  Minor Collection：GC用较高的频率对young进行扫描和回收，采用复制算法。 Major Collection：同时对Young和Old进行内存收集，也叫Full GC；因为成本关系对Old的检查回收频率要比Young低很多，采用标记清除/">
+<meta name="twitter:image" content="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/CCA572C93C2D41698291596531755BB2/7831">
+  
+    <link rel="alternate" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" integrity="sha384-XdYbMnZ/QjLh6iI4ogqCTaIjrFk87ip+ekIjefZch0Y+PvJ8CDYtEs1ipDmPorQ+" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="/css/styles.css">
+  
+
+</head>
+
+<body>
+  <nav class="navbar navbar-inverse">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-menu-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="main-menu-navbar">
+      <ul class="nav navbar-nav">
+        
+          <li><a class=""
+                 href="/index.html">Home</a></li>
+        
+          <li><a class=""
+                 href="/archives/">Archives</a></li>
+        
+      </ul>
+
+      <!--
+      <ul class="nav navbar-nav navbar-right">
+        
+          <li><a href="/atom.xml" title="RSS Feed"><i class="fa fa-rss"></i></a></li>
+        
+      </ul>
+      -->
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+  <div class="container">
+    <div class="blog-header">
+  <h1 class="blog-title">LeoChan&#39;s 个人博客</h1>
+  
+    <p class="lead blog-description">技术都是通用的，重要的是是否具有自主解决问题的能力！</p>
+  
+</div>
+
+    <div class="row">
+        <div class="col-sm-8 blog-main">
+          <article id="post-Java/基础/JVM垃圾回收算法与收集器类型" class="article article-type-post" itemscope itemprop="blogPost">
+
+  <header class="article-header">
+    
+  
+    <h1 class="article-title" itemprop="name">
+      JVM垃圾回收算法与收集器类型
+    </h1>
+  
+
+
+  </header>
+
+  <div class="article-meta">
+    <div class="article-datetime">
+  <a href="/2017/08/12/Java/基础/JVM垃圾回收算法与收集器类型/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
+</div>
+
+    
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
+  </div>
+
+
+  </div>
+  <div class="article-inner">
+
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="GC的类型"><a href="#GC的类型" class="headerlink" title="GC的类型"></a>GC的类型</h2><p>当每个代满了之后都会自动促发collection，各收集器触发的条件不一样，当然也可以通过一些参数进行强制设定。主要分为两种类型：</p>
+<ul>
+<li>Minor Collection：GC用较高的频率对young进行扫描和回收，采用复制算法。</li>
+<li>Major Collection：同时对Young和Old进行内存收集，也叫<strong>Full GC</strong>；因为成本关系对Old的检查回收频率要比Young低很多，采用标记清除/标记整理算法。可以通过调用代码System.gc()引发major collection，使用-XX:+DisableExplicitGC禁止它，或设为CMS并发-XX:+ExplicitGCInvokesConcurrent。</li>
+</ul>
+<p>更为具体的阐述如下：<br>由于年轻代进进出出的人多而频繁，所以年轻代的GC也就频繁一点，但涉及范围也就年轻代这点弹丸之地内的对象，其特点就是少量，多次，但快速，称之为Minor Collection。当年轻代的内存使用达到一定的阀值时，Minor Collection就被触发，Eden及某一Survior space（from space）之内存活的的对象被移到另一个空的Survior space（to space）中，然后from space和to space角色对调。当一个对象在两个survivor space之间移动过一定次数（达到预设的阀值）时，它就足够old了，够资格呆在年老代了。当然，如果survivor space比较小不足以容下所有live objects时，部分live objects也会直接晋升到年老代。 </p>
+<p>Survior spaces可以看作是Eden和年老代之间的缓冲，通过该缓冲可以检验一个对象生命周期是否足够的长，因为某些对象虽然逃过了一次Minor Collection，并不能说明其生命周期足够长，说不定在下一次Minor Collection之前就挂了。这样一定程度上确保了进入年老代的对象是货真价实的，减少了年老代空间使用的增长速度，也就降低年老代GC的频率。    </p>
+<p><strong>当年老代或者永久代的内存使用达到一定阀值时，一次基于所有代的GC就触发了</strong>，其特定是涉及范围广（量大），耗费的时间相对较长（较慢），但是频率比较低（次数少），称之为Major Collection(Full Collection)。通常，首先使用针对年轻代的GC算法进行年轻代的GC，然后使用针对年老代的GC算法对年老代和永久代进行GC。    </p>
+<h2 id="基本GC收集算法"><a href="#基本GC收集算法" class="headerlink" title="基本GC收集算法"></a>基本GC收集算法</h2><p><strong>标记清除(mark-sweep)</strong>：收集器先从根开始访问所有活跃对象，标记为活跃对象。然后再遍历一次整个内存区域，把所有没有标记活跃的对象进行回收处理。该算法遍历整个空间的成本较大暂停时间随空间大小线性增大，而且整理后堆里的碎片很多。可参考如下的示例图：<br><img src="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/CCA572C93C2D41698291596531755BB2/7831" alt="image"> </p>
+<p>不足之处：</p>
+<ul>
+<li>效率问题，标记和清除两个过程的效率都不高</li>
+<li>空间问题，标记清除之后会产生大量不连续的内存碎片，空间碎片太多可能会导致以后在程序运行过程中需要分配较大对象时，无法找到足够的连续内存而不得不提前触发另一次垃圾收集动作</li>
+</ul>
+<p><strong>复制(copying)</strong>：为了解决效率问题，一种成为“复制”的收集算法出现了。将堆内分成两个相同空间，从根(ThreadLocal的对象，静态对象）开始访问每一个关联的活跃对象，将空间A的活跃对象全部复制到空间B，然后一次性回收整个空间A。这样使得每次都是对整个半区进行内存回收，内存分配时也就不用考虑内存碎片等复杂情况，只要移动堆顶指针，按顺序分配内存即可，实现简单，运行高效。只是这种算法的代价是将内存缩小为了原来一半，未免太高了一点。</p>
+<p>现在一般的虚拟机都是采用这种算法来回收年轻代。<strong>HotSpot虚拟机默认Enden和Survivor的大小比例是8:1</strong>，也就是每次年轻代中可用内存空间为整个年轻代容量的90%（80%+10%），只有10%的内存会被“浪费”。当Survivor空间不够用时，需要依赖其他内存（年老代）<strong>进行分配担保（Handle Promotion）</strong>：如果Survivor空间没有足够空间存放上一次年轻代收集下来的存活对象时，这些对象将直接通过分配担保机制进入年老代。</p>
+<p>因为只访问活跃对象，将所有活动对象复制走之后就清空整个空间，不用去访问死对象，所以遍历空间的成本较小，但需要巨大的复制成本和较多的内存。可参考如下的示例图：<br><img src="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/B30EF1FE809B4E2AABD3328DD2070A06/7829" alt="image"> </p>
+<p><strong>标记整理(mark-sweep-compact)</strong>：综合了上述两者的做法和优点，标记过程仍然与“标记-清除”算法一样，但后续步骤不是直接对可回收对象进行清理，而是让所有存活的对象都向一端移动，然后直接清理掉端边界以外的内存。可参考如下的示例图：<br><img src="http://note.youdao.com/yws/public/resource/63fd0b1087cd86e931229e472fe87ee0/xmlnote/0BCD8C3038BE460A8F667934590C8F36/7830" alt="image"> </p>
+<p>总结：当前商业虚拟机的垃圾收集都采用“分代收集”算法，这种算法并没有什么新的思想，只是根据对象存活周期的不同将内存划分为几块。一般是把java堆分为新生代和老年代，这样就可以根据各个年代的特点采用最适当的收集算法。<strong>在新生代中，每次垃圾收集时都发现有大批对象死去，只有少量存活，那就选用复制算法，只需要付出少量存活对象的复制成本就可以完成收集。而老年代中因为对象存活率高，没有额外空间对它进行分配担保，就必须使用“标记-清理”或者“标记-整理”算法来进行回收</strong>。</p>
+<h2 id="HotSpot的算法实现"><a href="#HotSpot的算法实现" class="headerlink" title="HotSpot的算法实现"></a>HotSpot的算法实现</h2><h3 id="枚举根节点"><a href="#枚举根节点" class="headerlink" title="枚举根节点"></a>枚举根节点</h3><p>从可达性分析中从GC Roots节点找引用链这个操作为例，可作为GC Roots的节点主要在全局性的引用（例如常量或类静态属性）与执行上下文（例如栈帧中的本地变量表）中，现在很多应用仅仅方法区就有数百兆，如果要逐个检查这里面的引用，那必然会消耗很多时间。 </p>
+<p>另外，可达性分析对执行时间的敏感还体现在GC停顿上，因为这项分析工作必须在一个确保一致性的快照中进行-这里“一致性”的意思是指整个分析期间整个执行系统看起来就像被冻结在某个时间点上，不可以出现分析过程中对象引用关系还在不断变化的情况，该点不满足的话分析结果准确性就无法得到保证。这点是导致GC进行时必须停顿所有Java执行线程（Sun将这件事称为“Stop The World”）的其中一个重要原因，即使是号称（几乎）不会发生停顿的CMS收集器中，枚举根节点时也必须要停顿的</p>
+<p>由于目前的主流Java虚拟机使用的都是准确式GC，所以当执行系统停顿下来后，并不需要一个不漏地检查完所有执行上下文和全局的引用位置，虚拟机应当是有办法直接得知哪些地方存放着对象引用。在HotSpot的实现中，是使用一组称为OopMap的数据结构来达到这个目的的，在类加载完成的时候，HotSpot就把对象内什么偏移量上是什么类型的数据计算出来，在JIT编译过程中，也会在特定的位置记录下栈和寄存器中哪些位置是引用。这样，GC在扫描时就可以直接得知这些信息了。</p>
+<h3 id="安全点"><a href="#安全点" class="headerlink" title="安全点"></a>安全点</h3><p>在OopMap的协助下，HotSpot可以快速且准确地完成GC Roots枚举，但一个很现实的问题随之而来：可能导致引用关系变化，或者说OopMap内容变化的指令非常多，如果为每一条指令都生成对于的OopMap，那将会需要大量的额外空间，这样GC的空间成本将会变得很高</p>
+<p>实际上，HotSpot也的确没有为每条指令都生成OopMap，前面已经提到，只是在“特定的位置”记录了这些信息，这些位置称为<strong>安全点（Safepoint）</strong>，即程序执行时并非在所有地方都能停顿下来开始GC，只有在到达安全点时才能暂停。Safepoint的选定既不能太少以致于让GC等待时间太长，也不能过于频繁以致于过分增大运行时负荷。所以安全点的选定基本上是以程序“是否具有让程序长时间执行的特征”为标准进行选定的-因为每条执行的时间都非常短暂，程序不太可能因为指令流长度太长这个原因而过长时间运行，“长时间执行”的最明显特征就是指令序列复用，例如方法调用，循环跳转，异常跳转等，所以具有这些功能的指令才会产生Safepoint。</p>
+<p>对于Safepoint，另外一个需要考虑的问题是如何在GC发生时让所有线程（这里不包括执行JNI调用的线程）都“跑”到最近的安全点上再停顿下来。这里有两种方案可以供选择：<strong>抢先式中断（Preemptive Suspension）</strong>和<strong>主动式中断（Voluntary Suspension）</strong></p>
+<ul>
+<li>抢先式中断：不需要线程的执行代码主动去配合，在GC发生时，首先把所有线程全部中断，如果发现有线程中断的地方不在安全点上，就恢复线程，让它“跑”到安全点上。现在几乎没有虚拟机实现采用强先式中断来暂停线程从而响应GC事件。</li>
+<li>主动式中断：当GC需要中断线程的时候，不直接对线程操作，仅仅简单地设置一个标志，各个线程执行时主动去轮询这个标志，发现中断标志为真时就直接中断挂起。轮询标志的地方和安全点是重合的，另外再加上创建对象需要分配内存的地方</li>
+</ul>
+<h3 id="安全区域"><a href="#安全区域" class="headerlink" title="安全区域"></a>安全区域</h3><p>使用Safepoint似乎已经完美地解决了如何进入GC的问题，但实际情况并不一定。Safepoint机制保证了程序执行时，不不太长的时间内就会遇到可进入GC的Safepoint。但是，程序“不执行”的时候呢？所谓的程序不执行就是没有分配CPU时间，典型的例子就是线程处于Sleep状态或者Blocked状态，这时候线程无法响应JVM的中断请求，“走”到安全的地方去中断挂起，JVM也显然不太可能等待线程被分配CPU时间。对于这种情况，就需要<strong>安全区域</strong>（Safe Region）来解决。</p>
+<p><strong>安全区域是指在一段代码片段中，引用关系不会发生变化。在这个区域中的任意地方开始GC都是安全的</strong>。我们可以把Safe Region看做是被扩展了的Safepoint。</p>
+<p>在线程执行到Safe Region中的代码时，首先标识自己已经进入了Safe Region，当在这段时间里JVM要发起GC时，就不用管标识自己为Safe Region状态的线程了。在线程要离开Safe Region时，它要检查系统是否已经完成了根节点枚举（或者是整个GC过程），如果完成了，那线程就继续执行，否则它就必须等待直到收到可以安全离开Safe Region的信号为止。</p>
+<h2 id="GC收集器类型"><a href="#GC收集器类型" class="headerlink" title="GC收集器类型"></a>GC收集器类型</h2><p>JDK1.7 Update 14之后的HotSpot虚拟机所包含的所有收集器：<br><img src="http://7xkjk9.com1.z0.glb.clouddn.com/jvm-8.jpg" alt="image"><br>如果两个收集器之间存在连线，就说明它们可以搭配使用  </p>
+<p>年轻代收集器：Serial，ParNew，Parallel Scavenge<br>年老代收集器：CMS，Serial Old（MSC），Parallel Old<br>通用收集器：G1</p>
+<h3 id="古老的串行收集器-Serial-："><a href="#古老的串行收集器-Serial-：" class="headerlink" title="古老的串行收集器(Serial)："></a>古老的串行收集器(<strong>Serial</strong>)：</h3><p>这个收集器是一个单线程的收集器，但它的“单线程”的意义并不仅仅说明它只会使用一个CPU或一条收集线程去完成垃圾收集工作，更重要的是在它进行垃圾收集时，必须暂停其他所有的工作线程，直到它收集结束。  </p>
+<p>是虚拟机运行在Client模式下的默认新生代收集器。它有着优于其他收集器的地方：简单而高效（与其他收集器的但线程比），对于限定单个CPU的环境来说，Serial收集器由于没有线程交互的开销，专心做垃圾收集自然可以获得最高的单线程收集效率。</p>
+<p>-XX:+UseSerialGC：策略为年轻代串行复制，年老代串行标记整理。可参考如下的示例图：<br><img src="http://files.jb51.net/file_images/article/201702/2017021415541227.png" alt="image"> </p>
+<h3 id="ParNew收集器"><a href="#ParNew收集器" class="headerlink" title="ParNew收集器"></a>ParNew收集器</h3><p>ParNew收集器其实就是Serial收集器的多线程版本，除了使用多条线程进行垃圾收集之外，其余行为包括Serial收集器可用的所有控制参数（例如：-XX:SurvivorRatio,-XX:PretenureSizeThreshold，-XX:HandlePromotionFailure等），收集算法，Stop The Wrold，对象分配规则，回收策略等都与Serial收集器完全一样。       </p>
+<p>ParNew收集器也是使用<code>-XX:+UseConcMarkSweepGC</code>选项后的默认新生代收集器，也可以使用<code>-XX:+UseParNewGC</code>选项来强制指定它。</p>
+<p>策略为：  </p>
+<ul>
+<li>年轻代：暂停应用程序，多个垃圾收集线程并行的复制收集，线程数默认为CPU个数，CPU很多时，可用<code>-XX:ParallelGCThreads</code> 设定线程数。</li>
+<li>年老代：暂停应用程序，与串行收集器一样，单垃圾收集线程标记整理。  </li>
+</ul>
+<p>如上可知该收集器需要2+的CPU时才会优于串行收集器。可参考如下的示例图：<br><img src="http://files.jb51.net/file_images/article/201702/2017021415541328.png" alt="image"> </p>
+<h3 id="Parallel-Scavenge-收集器（吞吐量优先）"><a href="#Parallel-Scavenge-收集器（吞吐量优先）" class="headerlink" title="Parallel Scavenge 收集器（吞吐量优先）"></a>Parallel Scavenge 收集器（吞吐量优先）</h3><p>Parallel Scavenge收集器是一个新生代收集器，它也是使用复制算法的收集器，又是并行的多线程收集器。</p>
+<p><strong>Parallel Scavenge 收集器的特点是它的关注点与其他收集器不同，CMS等收集器的关注点是尽可能地缩短垃圾收集时用户线程的停顿时间，而Parallel Scavenge 收集器的目标则时达到一个可控制的吞吐量（Throughput）</strong>。所谓的吞吐量就是CPU用于运行用户代码的时间与CPU总消耗时间的比值，即吞吐量=运行用户代码时间/（运行用户代码时间+垃圾收集时间），虚拟机总共运行了100分钟，其中垃圾收集花掉1分钟，那吞吐量就是99%。</p>
+<p>停顿时间越短就越适合需要与用户交互的程序，良好的响应速度能提升用户体验，而高吞吐量则可以高效地利用CPU时间，尽快完成程序的运算任务，主要适合在后台运算而不需要太多交互的任务。      </p>
+<p>Parallel Scavenge 收集器提供了两个参数用于精确控制吞吐量，分别是控制<strong>最大垃圾收集停顿时间的-XX:MaxGCPauseMillis参数</strong>以及<strong>直接设置吞吐量大小的-XX:GCTimeRatio参数</strong>。</p>
+<ul>
+<li>-XX:MaxGCPauseMillis参数：该参数允许的值是一个大于0的毫秒数，收集器将尽可能地保证内存回收花费的时间不超过设定值。不过大家不要认为如果把这个参数的值设置得稍小一点就能使得系统的垃圾收集速度变的更快，<strong>GC停顿时间的缩短是以牺牲吞吐量和新生代空间来换取的</strong>：系统把新生代调小一些，比如收集300MB新生代肯定比收集500MB快吧，这也直接导致垃圾收集发生的更频繁一些，原来10秒收集一次，每次停顿100毫秒，现在变成5秒收集一次，每次停顿70毫秒。停顿时间的确在下降，但吞吐量也降下来了</li>
+<li>-XX:GCTimeRatio参数：该值应当是一个大于0且小于100的整数，也就是垃圾收集时间占总时间的比率，相当于吞吐量的倒数。如果把此参数设置为19，那允许的最大GC时间就占总时间的5%（即1/（1+19）），默认值为99，就是允许最大1%（即1/（1+99））的垃圾收集时间</li>
+<li>-XX:+UseAdaptiveSizePolicy参数：这是一个开关参数，当这个参数打开之后，就不需要人工指定新生代的大小（-Xmn），Eden和Survivor区的比例（-XX:SurvivorRatio）,晋升老年代对象大小（-XX:PretenureSizeThreshold）等细节参数了，虚拟机会根据当前系统的运行情况收集性能监控信息，动态调整这些参数以提供最合适的停顿时间或者最大的吞吐量，这种调节方式称为GC自适应的调节策略（GC Ergonomics）   </li>
+</ul>
+<p><img src="http://files.jb51.net/file_images/article/201702/2017021415541529.png" alt="image"></p>
+<h3 id="Serial-Old-收集器"><a href="#Serial-Old-收集器" class="headerlink" title="Serial Old 收集器"></a>Serial Old 收集器</h3><p>Serial Old 是Serial收集器的老年代版本，它同样是一个单线程收集器，使用“标记-整理”算法。   </p>
+<p>这个收集器的主要意义也是在于给Client模式下的虚拟机使用。如果在Server模式下，那么它主要还有两大用途：一种用途是在JDK1.5以及之前的版本中与Parallel Scavenge收集器搭配使用，另外一种用途就是作为CMS收集器的后备预案，在并发收集发生Concurrent Mode Failure使用。 </p>
+<p>新生代采用复制算法，暂停所有用户线程；年老代采用标记-整理算法，暂停所有用户线程<br><img src="![image](http://files.jb51.net/file_images/article/201702/2017021415541227.png" alt="image"></p>
+<h3 id="Parallel-Old-收集器"><a href="#Parallel-Old-收集器" class="headerlink" title="Parallel Old 收集器"></a>Parallel Old 收集器</h3><p>Parallel Old 收集器是Parallel Scavenge收集器的老年代版本，使用多线程和“标记-整理”算法，这个收集器是在JDK1.6中才开始提供的。</p>
+<p>直到Parallel Old 收集器出现后，“吞吐量优先”收集器终于有了比较名副其实的应用组合，在注重吞吐量以及CPU资源敏感的场合，都可以优先考虑Parallel Scavenge加Parallel Old的组合。<br><img src="http://files.jb51.net/file_images/article/201702/2017021415541529.png" alt="image">   </p>
+<h3 id="暂停时间优先的并发收集器-CMS"><a href="#暂停时间优先的并发收集器-CMS" class="headerlink" title="暂停时间优先的并发收集器(CMS)"></a>暂停时间优先的并发收集器(CMS)</h3><p>CMS（Concurrent Mark Sweep）收集器是一种以获取最短回收停顿时间为目标的收集器。CMS收集器是基于“标记-清除”算法实现的，它的运作过程相对于前面几种收集器来说更复杂一些，整个过程分为4个步骤，包括：</p>
+<ol>
+<li>初始标记：需要“Stop The Wrold”，仅仅只是标记一下GC Roots能直接关联到的对象，速度很快</li>
+<li>并发标记：这个阶段就是进行GC Roots Tracing的过程</li>
+<li>重新标记：需要“Stop The Wrold”，为了修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，这个阶段的停顿时间一般会比初始标记阶段稍长一些，但远比并发标记的时间短</li>
+<li>并发清除             </li>
+</ol>
+<p>由于整个过程中耗时最长的并发标记和并发清除过程收集器线程都可以与用户线程一起工作，所以，从总体上说，CMS收集器的内存回收过程是与用户线程一起并发执行的。</p>
+<p>-XX:+UseConcMarkSweepGC，策略为：</p>
+<ul>
+<li>年轻代：同样是暂停应用程序，多个垃圾收集线程并行的复制收集。</li>
+<li>年老代：则只有两次短暂停，其他时间应用程序与收集线程并发的清除。</li>
+</ul>
+<p>可参考如下的示例图：<br><img src="http://files.jb51.net/file_images/article/201702/2017021415541630.png" alt="image">     </p>
+<p>CMS3个明显的缺点：</p>
+<ol>
+<li><strong>CMS收集器对CPU资源非常敏感</strong>：在并发阶段，它虽然不会导致用户线程停顿，但是因为占用了一部分线程（或者说CPU资源）而导致应用程序变慢，总吞吐量会降低。CMS默认启动的回收线程数是（CPU数量+3）/4，也就是当CPU在4个以上时，并发回收时垃圾收集线程不少于25%的CPU资源，并且随着CPU数量的增加而下降。但是当CPU不足4个（譬如2个）时，CMS对用户程序的影响就可能变得很大，如果本来CPU负载就比较大，还分出一般的运算能力去执行收集器线程，就可能导致用户程序的执行速度忽然降低了50%。</li>
+<li><p><strong>CMS收集器无法处理浮动垃圾（Floating Garbage）</strong>：可能出现“Conurrent Mode Failure”失败而导致另一次Full GC的产生。由于CMS并发清理阶段用户线程还在运行着，伴随程序运行自然就还会有新的垃圾不断产生，这一部分垃圾出现在标记过程之后，CMS无法在档次收集中处理掉它们，治好留待下一次GC时再清理掉。这一部分垃圾就称为“<strong>浮动垃圾</strong>”。也是由于在垃圾收集阶段用户线程还需要运行，那也就还需要预留有足够的内存空间给用户线程使用，因此CMS收集器不能像其他收集器那样等到老年代几乎完全被填满了再进行收集，需要预留一部分空间提供并发收集时程序运作使用。      </p>
+<p> 在JDK1.5的默认设置下，CMS收集器当老年代使用了68%的空间后就会被激活，这是一个偏保守的设置，如果在应用中老年代增长不是太快，可以适当调高参数<code>-XX:CMSInitiatingOccupancyFraction</code>的值来提高触发百分比，以便降低内存回收次数从而获取更好的性能。</p>
+<p> 在JDK1.6中，CMS收集器的启动阀值已经提升到了92%，要是CMS运行期间预留的内存无法满足程序需要，就会出现一次“Concurrent Mode Failure”失败，这时虚拟机将启动后备方案：临时启用Serial Old收集器来重新进行老年代的垃圾收集，这样停顿时间就很长了。所以说<code>-XX:CMSInitiatingOccupancyFraction</code>参数设置的太高很容易导致大量“Concurrent Mode Failure”失败，性能反而降低</p>
+</li>
+<li><p><strong>CMS是一款基于“标记-清除”算法实现的收集器，这就意味着收集结束时会有大量空间碎片产生</strong>。为了解决这个问题，CMS收集器提供了一个<code>-XX:+UseCMSCompactAtFullCollection</code>开关参数（默认就是开启），用于在CMS收集器顶不住要进行Full GC时开启内存碎片的合并整理过程，内存整理的过程是无法并发的，空间碎片问题就没有了，但停顿时间不得不变长。  </p>
+<p> 虚拟机设计者还提供了另外一个参数<code>-XX:CMSFullGCsBeforeCompaction</code>，这个参数是用于设置执行多少次不压缩的Full GC后，跟着来一次带压缩的（默认值为0，表示每次进入Full GC时都进行碎片整理）</p>
+</li>
+</ol>
+<h3 id="G1收集器"><a href="#G1收集器" class="headerlink" title="G1收集器"></a>G1收集器</h3><p>G1收集器是一款面向服务端应用的垃圾收集器。在JDK1.7中，才达到足够成熟，HotSpot开发团队赋予它的使命是（在比较长期的）未来可以替换掉JDK1.5中发布的CMS收集器。与其他收集器相比，G1具备如下特点：</p>
+<ul>
+<li><strong>并行与并发</strong>：G1能充分利用多CPU，多核环境下的硬件优势，使用多个CPU来缩短“Stop the Wrold”停顿的时间，部分其他收集器原本需要停顿Java线程执行的GC动作，G1收集器仍然可以通过并发的方式让Java程序继续执行。</li>
+<li><strong>分代收集</strong>：与其他收集器一样，分代概念在G1中依然得以保留。虽然G1可以不需要其他收集器配合就能独立管理整个GC堆，但它能够采用不同的方式去处理新创建的对象和已经存活了一段时间，熬过多次GC的旧对象以获取更好的收集效果</li>
+<li><strong>空间整合</strong>：与CMS的“标记-清理”算法不同，G1从整体来看是基于“标记-整理”算法来实现的收集器，从局部（两个Region之间）上来看是基于“复制”算法实现的，但无论如何，这两种算法都意味着G1运行期间不会产生内存空间碎片，收集后能提供规整的可用内存</li>
+<li><strong>可预测的停顿</strong>：这是G1相对于CMS的另一大优势，降低停顿时间是G1和CMS共同的关注点，但G1除了追求低停顿外，还能建立可预测的停顿时间模型，能让使用者明确指定在一个长度为M毫秒的时间片段内，消耗在垃圾收集上的时间不得超过N毫秒，这几乎已经是实时Java（RTSJ）的垃圾收集器的特征了</li>
+</ul>
+<p>在G1之前的其他收集器进行收集的范围都是整个新生代或者老年代，而G1不再是这样。<strong>使用G1收集器时，Java堆的内存布局就与其他收集器有很大差别，它将整个Java堆划分为多个大小相等的独立区域（Region），虽然还保留有新生代和老年代的概念，但新生代很老年代不再是物理隔离的了，它们都是一部分Region（不需要连续）的集合</strong>。</p>
+<p><strong>G1收集器之所以能建立可预测的停顿时间模型，是因为它可以有计划地避免在整个Java堆中进行全区域的垃圾收集。G1跟踪各个Region里面的垃圾堆积的价值大小（回收所获得的空间大小以及回收所需要时间的经验值），在后台维护一个优先列表，每次根据允许的收集时间，优先回收价值最大的region（这也就是GarBage-First名称的由来）。这种使用Region划分内存空间以及有优先级的区域回收方式，保证了G1收集器在有限的时间内可以获取尽可能高的收集效率</strong>。</p>
+<p><strong>在G1收集器中，Region之间的对象引用以及其他收集器中的新生代和老年代之间的对象引用，虚拟机都是使用Remembered Set来避免全堆扫描的。G1中每个Region都有一个与之对应的Remembered Set，虚拟机发现程序在对Reference类型的数据进行写操作时，会产生一个Write Barrier暂时中断写操作，检查Reference引用的对象是否处于不同的Region之中，如果是，便通过CardTable把相关引用信息记录到被引用对象所属的Region的Remembered Set之中。当进行内存回收时，在GC根节点的枚举范围中加入Remembered Set即可保证不对全堆扫描也不会有遗漏</strong>。</p>
+<p>如果不计算维护Remembered Set的操作，G1收集器的运作大致可划分为以下几个步骤：</p>
+<ul>
+<li>初始标记：仅仅只是标记一下GC Roots能直接关联到的对象，并且修改TAMS（Next Top at Mark Start）的值，让下一阶段用户程序并发运行时，能在正确可用的Region中创建新对象，这阶段需要停顿线程，但耗时很短</li>
+<li>并发标记：从GC Roots开始对堆中对象进行可达性分析，找出存活的对象，这阶段耗时较长，但可与用户程序并发执行。</li>
+<li>最终标记：为了修正在并发标记期间因用户程序继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程Remembered Set Logs里面，最终标记阶段需要把Remembered Set Logs的数据合并到Remembered Set中，这阶段需要停顿线程，但是可并行执行。</li>
+<li>筛选回收：首先对各个Region的回收价值和成本进行排序，根据用户所期望的GC停顿时间来制定回收计划。因为只回收一部分Region，时间是用户可控制的，而且停顿用户将大幅提高收集效率，所以需要停顿用户线程。这部分其实也是可以并发执行的。</li>
+</ul>
+<p><img src="http://files.jb51.net/file_images/article/201702/2017021415541731.png" alt="image"></p>
+<h3 id="垃圾收集器参数总结"><a href="#垃圾收集器参数总结" class="headerlink" title="垃圾收集器参数总结"></a>垃圾收集器参数总结</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">-XX:+&lt;option&gt; 启用选项</div><div class="line">-XX:-&lt;option&gt; 不启用选项</div><div class="line">-XX:&lt;option&gt;=&lt;number&gt; </div><div class="line">-XX:&lt;option&gt;=&lt;string&gt;</div></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-XX:+UseSerialGC</td>
+<td>Jvm运行在Client模式下的默认值，打开此开关后，使用Serial + Serial Old的收集器组合进行内存回收</td>
+</tr>
+<tr>
+<td>-XX:+UseParNewGC</td>
+<td>打开此开关后，使用ParNew + Serial Old的收集器进行垃圾回收</td>
+</tr>
+<tr>
+<td>-XX:+UseConcMarkSweepGC</td>
+<td>使用ParNew + CMS +  Serial Old的收集器组合进行内存回收，Serial Old作为CMS出现“Concurrent Mode Failure”失败后的后备收集器使用。</td>
+</tr>
+<tr>
+<td>-XX:+UseParallelGC</td>
+<td>Jvm运行在Server模式下的默认值，打开此开关后，使用Parallel Scavenge +  Serial Old的收集器组合进行回收</td>
+</tr>
+<tr>
+<td>-XX:+UseParallelOldGC</td>
+<td>使用Parallel Scavenge +  Parallel Old的收集器组合进行回收</td>
+</tr>
+<tr>
+<td>-XX:SurvivorRatio</td>
+<td>新生代中Eden区域与Survivor区域的容量比值，默认为8，代表Eden:Subrvivor = 8:1</td>
+</tr>
+<tr>
+<td><strong>-XX:PretenureSizeThreshold</strong></td>
+<td>直接晋升到老年代对象的大小，设置这个参数后，大于这个参数的对象将直接在老年代分配，只对Serial和ParNew两款收集器有效</td>
+</tr>
+<tr>
+<td><strong>-XX:MaxTenuringThreshold</strong></td>
+<td>晋升到老年代的对象年龄，每次Minor GC之后，年龄就加1，当超过这个参数的值时进入老年代</td>
+</tr>
+<tr>
+<td>-XX:UseAdaptiveSizePolicy</td>
+<td>动态调整java堆中各个区域的大小以及进入老年代的年龄</td>
+</tr>
+<tr>
+<td>-XX:+HandlePromotionFailure</td>
+<td>是否允许新生代收集担保，进行一次minor gc后, 另一块Survivor空间不足时，将直接会在老年代中保留</td>
+</tr>
+<tr>
+<td>-XX:ParallelGCThreads</td>
+<td>设置并行GC进行内存回收的线程数</td>
+</tr>
+<tr>
+<td>-XX:GCTimeRatio</td>
+<td>GC时间占总时间的比列，默认值为99，即允许1%的GC时间，仅在使用Parallel Scavenge 收集器时有效</td>
+</tr>
+<tr>
+<td>-XX:MaxGCPauseMillis</td>
+<td>设置GC的最大停顿时间，在Parallel Scavenge 收集器下有效</td>
+</tr>
+<tr>
+<td>-XX:CMSInitiatingOccupancyFraction</td>
+<td>设置CMS收集器在老年代空间被使用多少后出发垃圾收集，默认值为68%，仅在CMS收集器时有效，-XX:CMSInitiatingOccupancyFraction=70</td>
+</tr>
+<tr>
+<td>-XX:+UseCMSCompactAtFullCollection</td>
+<td>由于CMS收集器会产生碎片，此参数设置在垃圾收集器后是否需要一次内存碎片整理过程，仅在CMS收集器时有效</td>
+</tr>
+<tr>
+<td>-XX:+CMSFullGCBeforeCompaction</td>
+<td>设置CMS收集器在进行若干次垃圾收集后再进行一次内存碎片整理过程，通常与UseCMSCompactAtFullCollection参数一起使用</td>
+</tr>
+<tr>
+<td>-XX:+UseFastAccessorMethods</td>
+<td>原始类型优化</td>
+</tr>
+<tr>
+<td>-XX:+DisableExplicitGC</td>
+<td>是否关闭手动System.gc</td>
+</tr>
+<tr>
+<td>-XX:+CMSParallelRemarkEnabled</td>
+<td>降低标记停顿</td>
+</tr>
+<tr>
+<td>-XX:LargePageSizeInBytes</td>
+<td>内存页的大小不可设置过大，会影响Perm的大小，-XX:LargePageSizeInBytes=128m</td>
+</tr>
+</tbody>
+</table>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><ul>
+<li><p>串行收集器：  </p>
+<ul>
+<li>适用情况：数据量比较小（100M左右）；单处理器下并且对响应时间无要求的应用。 </li>
+<li>缺点：只能用于小型应用</li>
+</ul>
+</li>
+<li><p>并行收集器：</p>
+<ul>
+<li>适用情况：“对吞吐量有高要求”，多CPU、对应用响应时间无要求的中、大型应用。举例：后台处理、科学计算。</li>
+<li>缺点：应用响应时间可能较长</li>
+</ul>
+</li>
+<li><p>并发收集器：</p>
+<ul>
+<li>适用情况：“对响应时间有高要求”，多CPU、对应用响应时间有较高要求的中、大型应用。举例：Web服务器/应用服务器、电信交换、集成开发环境。</li>
+</ul>
+</li>
+</ul>
+<h3 id="并行、并发的区别"><a href="#并行、并发的区别" class="headerlink" title="并行、并发的区别"></a>并行、并发的区别</h3><p>并行(Parallel)与并发(Concurrent)仅一字之差，但体现的意思却完全不同，这可能也是很多同学非常困惑的地方，要想深刻体会这其中的差别，可以多揣摩下上面关于GC收集器的示例图；</p>
+<ul>
+<li>并行：指多条垃圾收集线程并行，此时用户线程是没有运行的；</li>
+<li>并发：指用户线程与垃圾收集线程并发执行，程序在继续运行，而垃圾收集程序运行于另一个CPU上。   </li>
+</ul>
+<h2 id="内存分配与回收策略"><a href="#内存分配与回收策略" class="headerlink" title="内存分配与回收策略"></a>内存分配与回收策略</h2><p>对象的内存分配，往大方向讲，就是在堆上分配，对象主要分配在新生代的Eden区上，如果启动了本地线程分配缓存，将线程优先在TLAB上分配。少数情况下也可能会直接分配在老年代中，分配的规则不是百分之百固定的，其细节取决于当前使用的是哪一种垃圾收集器组合，还有虚拟机中与内存相关的参数的设置。</p>
+<h6 id="对象优先在Eden分配"><a href="#对象优先在Eden分配" class="headerlink" title="对象优先在Eden分配"></a>对象优先在Eden分配</h6><p>大多数情况下，对象在新生代Eden区中分配。当Eden区没有足够空间进行分配时，虚拟机将发起一次Minor GC。    </p>
+<p>虚拟机提供了<code>-XX:+PrintGCDeails</code>这个收集器日志参数，告诉虚拟机在发生垃圾收集行为时打印内存回收日志，并且在进程退出的时候输出当前的内存各个区域分配情况。</p>
+<h6 id="大对象直接进入老年代"><a href="#大对象直接进入老年代" class="headerlink" title="大对象直接进入老年代"></a>大对象直接进入老年代</h6><p>所谓的大对象是指，需要大量连续内存空间的Java对象，最典型的大对象就是那种很长的字符串以及数组。</p>
+<p>虚拟机提供了一个<code>-XX:PretenureSizeThreshold</code>参数，令大于这个设置值的对象直接在老年代分配。这样做的目的是避免在Eden区及两个Survivor区之间发生大量的内存复制。<br>注意：<strong><code>-XX:PretenureSizeThreshold</code>参数只对Serial和ParNew两款收集器有效</strong>，Parallel Scavenge收集器不认识这个参数，Parallel Scavenge收集器一般并不需要设置。如果遇到必须使用此参数的场合，可以考虑ParNew加CMS的收集器组合。</p>
+<h6 id="长期存活的对象将进入老年代"><a href="#长期存活的对象将进入老年代" class="headerlink" title="长期存活的对象将进入老年代"></a>长期存活的对象将进入老年代</h6><p>既然虚拟机采用了分代收集的思想来关联内存，那么内存回收时就必须能识别哪些对象应放在新生代，哪些对象应放在老年代中。为了做到这点，虚拟机给每个对象定义了一个对象年龄（Age）计数器。如果对象在Eden出生并经过第一次Minor GC后仍然存活，并且能被Survivor区容纳的话，将被移动到Survivor区中，并且对象的年龄设为1。对象在Survivor区中每“熬过”一次Minor GC，年龄就增加1岁，当它的年龄增加到一定程度（<strong>默认为15岁</strong>），就会被晋升到老年代中。对象晋升老年代的年龄阀值，可以通过参数<code>-XX:MaxTenuringThreshold</code>设置。</p>
+<h6 id="动态对象年龄判定"><a href="#动态对象年龄判定" class="headerlink" title="动态对象年龄判定"></a>动态对象年龄判定</h6><p>为了能更好的适应不同程序的内存状况，虚拟机并不是永远地要求对象的年龄必须达到了MaxTenuringThreshold才能晋升老年代，<strong>如果在Survivor空间中相同年龄所有对象大小的综合大于Survivor空间的一半，年龄大于或等于该年龄的对象就可以直接进入老年代，无须等到MaxTenuringThreshold中要求的年龄</strong>。</p>
+<h6 id="空间分配担保"><a href="#空间分配担保" class="headerlink" title="空间分配担保"></a>空间分配担保</h6><p><strong>在发生Minor GC之前，虚拟机会先检查老年代最大可用的连续空间是否大于新生代所有对象总空间，如果这个条件成立，那么Minor GC可以确保是安全的。如果不成立，则虚拟机会查看HandlePromotionFailure设置值是否允许担保失败。如果允许，那么会继续检查老年代最大可用的连续空间是否大于历次晋升到老年代对象的平均大小，如果大于，将尝试着进行一次Minor GC，尽管这次Minor GC是有风险的；如果小于，或者HandlePromotionFailure设置不允许冒险，那么此时也要改为进行一次Full GC</strong>。</p>
+<p>取平均值进行比较其实仍然是一种动态概率的手段，也就是说，如果某次Minor GC存活后的对象突增，远远高于平均值的话，依然会导致担保失败（Handle Promotion Failure）。如果出现了Handle Promotion Failure失败，那就只好在失败后重新发起一次Full GC。虽然担保失败时绕的圈子是最大的，但大部分情况下还是会将HandlePromotionFailure开关打开，避免Full GC过于频繁。</p>
+
+      
+    </div>
+
+    
+      
+
+    
+
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/JVM垃圾回收算法与收集器类型/" data-id="cje2lrz1m003qpxbldly44eht" class="article-share-link">
+        <i class="fa fa-share"></i> Share
+      </a>
+      
+      
+
+    </footer>
+  </div>
+  
+    
+<ul id="article-nav" class="nav nav-pills nav-justified">
+  
+  <li role="presentation">
+    <a href="/2017/08/12/服务器相关/Memcached/Memcached内存管理和回收机制/" id="article-nav-older" class="article-nav-link-wrap">
+      <i class="fa fa-chevron-left pull-left"></i>
+      <span class="article-nav-link-title">Memcached内存管理和回收机制</span>
+    </a>
+  </li>
+  
+  
+  <li role="presentation">
+    <a href="/2017/08/12/服务器相关/Memcached/一致性哈希算法/" id="article-nav-newer" class="article-nav-link-wrap">
+      <span class="article-nav-link-title">一致性哈希算法</span>
+      <i class="fa fa-chevron-right pull-right"></i>
+    </a>
+  </li>
+  
+</ul>
+
+
+  
+</article>
+
+
+
+
+        </div>
+        <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+          
+  <div class="sidebar-module sidebar-module-inset">
+  <h4>关于</h4>
+  <p>该博客内的文章是博主在日常工作或者学习中总结出来，部分内容来自网络.</p>
+
+</div>
+
+
+  
+  <div class="sidebar-module">
+    <h4>分类</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">84</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/分布式/">分布式</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">21</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/时间日期/">时间日期</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">8</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Spring-Boot/">Spring Boot</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Spring-Session/">Spring Session</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">20</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">20</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">29</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">4</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Nginx/">Nginx</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">13</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">9</span></li></ul>
+  </div>
+
+
+
+  
+
+
+  
+
+  
+  <div class="sidebar-module">
+    <h4>归档</h4>
+    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2018/02/">二月 2018</a><span class="sidebar-module-list-count">45</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/10/">十月 2017</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">62</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">125</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/02/">二月 2017</a><span class="sidebar-module-list-count">2</span></li></ul>
+  </div>
+
+
+
+  
+  <div class="sidebar-module">
+    <h4>最近文章</h4>
+    <ul class="sidebar-module-list">
+      
+        <li>
+          <a href="/2018/02/25/Java/基础/java8新特性/">java8新特性</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/集合/HashSet原理/">HashSet原理</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/分布式/分布式锁/">分布式锁</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/集合/在List循环中删除元素/">在List循环中删除元素</a>
+        </li>
+      
+        <li>
+          <a href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/">Hashtable与ConcurrentHashMap区别</a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+
+        </div>
+    </div>
+  </div>
+  <footer class="blog-footer">
+  <div class="container">
+    <div id="footer-info" class="inner">
+      &copy; 2018 LeoChan<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+  
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" integrity="sha384-8gBf6Y4YYq7Jx97PIqmTwLPin4hxIzQw5aDmUg/DDhul9fFpbbLcLh3nTIIDJKhx" crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+
+
+<script src="/js/script.js"></script>
+
+</body>
+</html>
