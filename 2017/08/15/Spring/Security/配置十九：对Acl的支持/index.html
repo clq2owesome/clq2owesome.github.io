@@ -1,76 +1,358 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-  <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <meta name="description" content="描述啊">
-  <meta name="keywords" content="undefined">
+
+
+
   
-    <link rel="icon" href="">
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
   
     
-  <title>配置十九：对Acl的支持 | LeoChan&#39;s 个人博客</title>
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.css" />
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="&amp;emsp;&amp;emsp;Acl的全称是Access Control List，俗称访问控制列表，是用以控制对象的访问权限的。其主要思想是将某个对象的某种权限授予给某个用户，或某种GrantedAuthority（可以简单的理解为某种角色），它们之间的关系都是多对多。如果某一个对象的某一操作是受保护的，那么在对该对象进行某种操作时就需要有对应的权限。 一. 准备工作使用Spring Security">
+<meta property="og:type" content="article">
+<meta property="og:title" content="配置十九：对Acl的支持">
+<meta property="og:url" content="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置十九：对Acl的支持/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="&amp;emsp;&amp;emsp;Acl的全称是Access Control List，俗称访问控制列表，是用以控制对象的访问权限的。其主要思想是将某个对象的某种权限授予给某个用户，或某种GrantedAuthority（可以简单的理解为某种角色），它们之间的关系都是多对多。如果某一个对象的某一操作是受保护的，那么在对该对象进行某种操作时就需要有对应的权限。 一. 准备工作使用Spring Security">
+<meta property="og:updated_time" content="2017-08-15T02:06:03.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="配置十九：对Acl的支持">
+<meta name="twitter:description" content="&amp;emsp;&amp;emsp;Acl的全称是Access Control List，俗称访问控制列表，是用以控制对象的访问权限的。其主要思想是将某个对象的某种权限授予给某个用户，或某种GrantedAuthority（可以简单的理解为某种角色），它们之间的关系都是多对多。如果某一个对象的某一操作是受保护的，那么在对该对象进行某种操作时就需要有对应的权限。 一. 准备工作使用Spring Security">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置十九：对Acl的支持/"/>
+
+
+
+
+
+  <title>配置十九：对Acl的支持 | LeoChan's 个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </head>
 
-<body>
-  <header>
-  <div class="header-container">
-    <a class='logo' href="/">
-      <span>LeoChan's 个人博客</span>
-    </a>
-    <ul class="right-header">
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LeoChan's 个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
       
-        <li class="nav-item">
-          
-            <a href="/" class="item-link">首页</a>
-          
+        <p class="site-subtitle">技术都是通用的，重要的是是否具有自主解决问题的能力！</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Startseite
+          </a>
         </li>
       
-        <li class="nav-item">
-          
-            <a href="/about" class="item-link">关于</a>
-          
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archiv
+          </a>
         </li>
       
-        <li class="nav-item">
-          
-            <a href="/archives" class="item-link">归档</a>
-          
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
         </li>
       
-        <li class="nav-item">
-          
-            <a href="/tags" class="item-link">标签</a>
-          
-        </li>
+
       
     </ul>
-  </div>
-</header>
+  
 
-  <main id='post'>
-  <div class="content">
-    <article>
-        <section class="content markdown-body">
-          <h1>配置十九：对Acl的支持</h1>
-          <div class='post-meta'>
-            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2017年08月15日</time>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
             
-              | <i class="fa fa-folder-open-o" aria-hidden="true"></i> 
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>/ <a class="article-category-link" href="/categories/Spring/Security/">Security</a>
-  </div>
 
+  <div id="posts" class="posts-expand">
+    
 
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置十九：对Acl的支持/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="LeoChan">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LeoChan's 个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">配置十九：对Acl的支持</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-08-15T10:09:45+08:00">
+                2017-08-15
+              </time>
+            
 
             
+
             
-          </div>
-          <p>&emsp;&emsp;Acl的全称是Access Control List，俗称访问控制列表，是用以控制对象的访问权限的。其主要思想是将某个对象的某种权限授予给某个用户，或某种GrantedAuthority（可以简单的理解为某种角色），它们之间的关系都是多对多。如果某一个对象的某一操作是受保护的，那么在对该对象进行某种操作时就需要有对应的权限。</p>
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+
+                
+                
+                  . 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring/Security/" itemprop="url" rel="index">
+                    <span itemprop="name">Security</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>&emsp;&emsp;Acl的全称是Access Control List，俗称访问控制列表，是用以控制对象的访问权限的。其主要思想是将某个对象的某种权限授予给某个用户，或某种GrantedAuthority（可以简单的理解为某种角色），它们之间的关系都是多对多。如果某一个对象的某一操作是受保护的，那么在对该对象进行某种操作时就需要有对应的权限。</p>
 <p>一. <strong>准备工作</strong><br>使用Spring Security的Acl功能需要引入Acl相关的jar包。如果我们的应用是使用Maven构建的，则可以在应用的pom.xml文件中加入如下依赖。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.security<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-security-acl<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;spring.security.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure></p>
 <p>此外，使用Spring Security的Acl时需要在数据库中建立四张表。在其官方文档中给出了一个基于数据库HSQLDB的建表语句。其脚本如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">create table acl_sid (</div><div class="line">  id bigint generated by default as identity(start with 100) not null primary key,</div><div class="line">  principal boolean not null,</div><div class="line">  sid varchar_ignorecase(100) not null,</div><div class="line">  constraint unique_uk_1 unique(sid,principal) );</div><div class="line"> </div><div class="line">create table acl_class (</div><div class="line">  id bigint generated by default as identity(start with 100) not null primary key,</div><div class="line">  class varchar_ignorecase(100) not null,</div><div class="line">  constraint unique_uk_2 unique(class) );</div><div class="line"> </div><div class="line">create table acl_object_identity (</div><div class="line">  id bigint generated by default as identity(start with 100) not null primary key,</div><div class="line">  object_id_class bigint not null,</div><div class="line">  object_id_identity bigint not null,</div><div class="line">  parent_object bigint,</div><div class="line">  owner_sid bigint not null,</div><div class="line">  entries_inheriting boolean not null,</div><div class="line">  constraint unique_uk_3 unique(object_id_class,object_id_identity),</div><div class="line">  constraint foreign_fk_1 foreign key(parent_object)references acl_object_identity(id),</div><div class="line">  constraint foreign_fk_2 foreign key(object_id_class)references acl_class(id),</div><div class="line">  constraint foreign_fk_3 foreign key(owner_sid)references acl_sid(id) );</div><div class="line"> </div><div class="line">create table acl_entry (</div><div class="line">  id bigint generated by default as identity(start with 100) not null primary key,</div><div class="line">  acl_object_identity bigint not null,ace_order int not null,sid bigint not null,</div><div class="line">  mask integer not null,granting boolean not null,audit_success boolean not null,</div><div class="line">  audit_failure boolean not null,</div><div class="line">  constraint unique_uk_4 unique(acl_object_identity,ace_order),</div><div class="line">  constraint foreign_fk_4 foreign key(acl_object_identity)</div><div class="line">      references acl_object_identity(id),</div><div class="line">  constraint foreign_fk_5 foreign key(sid) references acl_sid(id) );</div></pre></td></tr></table></figure></p>
 <p>笔者使用的是Oracle数据库，其中没有boolean和主键自增功能，对于boolean类型都使用一位number表示。具体建表语句如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">create table acl_sid (</div><div class="line">  id number not null primary key,</div><div class="line">  principal number(1) not null,</div><div class="line">  sid varchar(100) not null,</div><div class="line">  constraint unique_uk_1 unique(sid,principal) );</div><div class="line"> </div><div class="line">create table acl_class (</div><div class="line">  id number not null primary key,</div><div class="line">  class varchar(100) not null,</div><div class="line">  constraint unique_uk_2 unique(class) );</div><div class="line"> </div><div class="line">create table acl_object_identity (</div><div class="line">  id number not null primary key,</div><div class="line">  object_id_class number not null,</div><div class="line">  object_id_identity number not null,</div><div class="line">  parent_object number,</div><div class="line">  owner_sid number not null,</div><div class="line">  entries_inheriting number(1) not null,</div><div class="line">  constraint unique_uk_3 unique(object_id_class,object_id_identity),</div><div class="line">  constraint foreign_fk_1 foreign key(parent_object)references acl_object_identity(id),</div><div class="line">  constraint foreign_fk_2 foreign key(object_id_class)references acl_class(id),</div><div class="line">  constraint foreign_fk_3 foreign key(owner_sid)references acl_sid(id) );</div><div class="line"> </div><div class="line">create table acl_entry (</div><div class="line">  id number not null primary key,</div><div class="line">  acl_object_identity number not null,ace_order int not null,sid number not null,</div><div class="line">  mask number(3) not null,granting number(1) not null,audit_success number(1) not null,</div><div class="line">  audit_failure number(1) not null,</div><div class="line">  constraint unique_uk_4 unique(acl_object_identity,ace_order),</div><div class="line">  constraint foreign_fk_4 foreign key(acl_object_identity)</div><div class="line">      references acl_object_identity(id),</div><div class="line">  constraint foreign_fk_5 foreign key(sid) references acl_sid(id) );</div><div class="line"> </div><div class="line"> 新增记录时用于生成主键的sequence定义为：</div><div class="line">  create or replace sequence seq_acl_sid start with 1 increment by 1;</div><div class="line">  create or replace sequence seq_acl_class start with 1 increment by 1;</div><div class="line">  create or replace sequence seq_acl_object_identity start with 1 increment by 1;</div><div class="line">  create or replace sequence seq_acl_entry start with 1 increment by 1;</div></pre></td></tr></table></figure></p>
@@ -137,89 +419,324 @@
 <p>此外，还可以将我们的BasePermissionExt改成如下这样：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BasePermissionExt</span> <span class="keyword">extends</span> <span class="title">BasePermission</span> </span>&#123;</div><div class="line"> </div><div class="line">   <span class="comment">/**</span></div><div class="line">    * serialVersionUID</div><div class="line">    */</div><div class="line">   <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> longserialVersionUID = <span class="number">1L</span>;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Permission READ = <span class="keyword">new</span> BasePermissionExt(<span class="number">1</span> &lt;&lt; <span class="number">0</span>, <span class="string">'R'</span>); <span class="comment">// 1</span></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Permission WRITE = <span class="keyword">new</span> BasePermissionExt(<span class="number">1</span> &lt;&lt; <span class="number">1</span>, <span class="string">'W'</span>); <span class="comment">// 2</span></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Permission CREATE = <span class="keyword">new</span> BasePermissionExt(<span class="number">1</span> &lt;&lt; <span class="number">2</span>, <span class="string">'C'</span>); <span class="comment">// 4</span></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Permission DELETE = <span class="keyword">new</span> BasePermissionExt(<span class="number">1</span> &lt;&lt; <span class="number">3</span>, <span class="string">'D'</span>); <span class="comment">// 8</span></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Permission ADMINISTRATION = <span class="keyword">new</span> BasePermissionExt(<span class="number">1</span> &lt;&lt; <span class="number">4</span>, <span class="string">'A'</span>); <span class="comment">// 16</span></div><div class="line"> </div><div class="line">   <span class="function"><span class="keyword">public</span> <span class="title">BasePermissionExt</span><span class="params">(<span class="keyword">int</span> mask)</span> </span>&#123;</div><div class="line">      <span class="keyword">super</span>(mask);</div><div class="line">   &#125;</div><div class="line">  </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BasePermissionExt</span><span class="params">(<span class="keyword">int</span> mask, <span class="keyword">char</span> code)</span> </span>&#123;</div><div class="line">        <span class="keyword">super</span>(mask, code);</div><div class="line">    &#125;</div><div class="line">  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <p>然后通过传入Class参数来构造DefaultPermissionFactory。这个时候会将对应Class中所有类型为Permission的字段分别以字段名和字段值Permission对应的掩码为Key，以字段值Permission为Value进行注册。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"aclPermissionEvaluator"</span></span></div><div class="line">  <span class="attr">class</span>=<span class="string">"org.springframework.security.acls.AclPermissionEvaluator"</span>&gt;</div><div class="line">  <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">ref</span>=<span class="string">"aclService"</span> /&gt;</span></div><div class="line">  <span class="comment">&lt;!-- 手工注册DefaultPermissionFactory和其中的Permission --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"permissionFactory"</span>&gt;</span></div><div class="line">     <span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"org.springframework.security.acls.domain.DefaultPermissionFactory"</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">value</span>=<span class="string">"com.spring.security.BasePermissionExt"</span>/&gt;</span></div><div class="line">     <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure></p>
 
-        </section>
-    </article>
-    
-        
-  </div>
-  <aside>
-    
-  </aside>
-</main>
-
-
-
-  <footer>
-  <div class="copyright">
-    <div>
-      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
-    </div>
-    <div>
-      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
-    </div>
-  </div>
-</footer>
-
-
-<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
-<script src="/lib/in-view.min.js"></script>
-<script src="/lib/lodash.min.js"></script>
-<script>
-  var isDown = true
-  var oldY = 0
-  inView.offset(50)
-
-  document.body.addEventListener('touchstart', function(){});
-  
-  window.addEventListener('scroll', _.throttle(e => {
-    var currentY = window.scrollY
-    if((oldY - currentY) < 0) {
-      isDown = true
-    } else {
-      isDown = false
-    }
-    oldY = currentY
-  }, 250))
-
-  $("article img").each(function() {
-      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
-      $(this).wrapAll(strA);
-  });
-
-  $('.toc-link').each(function() {
-      var href = $(this).attr("href");
       
-      inView(href).on('exit', () => {
-        if (isDown) {
-          handleActive(href)
-        }
-      })
+    </div>
 
-      inView(href).on('enter', () => {
-        if (!isDown) {
-          handleActive(href)
-        }
-      })
+    <div>
+      
+        
 
-      this.onclick = function(e) {
-        var pos = $(href).offset().top - 10;
-        $("html,body").animate({scrollTop: pos}, 300);
-        setTimeout(() => {
-          handleActive(href)
-        }, 350)
-        return false
-      }
-  })
+      
+    </div>
 
-  function handleActive(href) {
-    document.querySelectorAll('.toc-link').forEach(elm => {
-      elm.classList.remove('active')
-    })
-    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/15/Spring/Security/配置十五：权限鉴定结构/" rel="next" title="配置十五：权限鉴定结构">
+                <i class="fa fa-chevron-left"></i> 配置十五：权限鉴定结构
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/15/Spring/Security/配置十三：session管理/" rel="prev" title="配置十三：session管理">
+                配置十三：session管理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="LeoChan" />
+          <p class="site-author-name" itemprop="name">LeoChan</p>
+           
+              <p class="site-description motion-element" itemprop="description">描述啊</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">235</span>
+                <span class="site-state-item-name">Artikel</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-name">Kategorien</span>
+              
+            </div>
+          
+
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LeoChan</span>
+</div>
+
+
+<div class="powered-by">
+  Erstellt mit  <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
   }
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.js"></script>
 
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
 
 </body>
 </html>

@@ -1,76 +1,358 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-  <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <meta name="description" content="描述啊">
-  <meta name="keywords" content="undefined">
+
+
+
   
-    <link rel="icon" href="">
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
   
     
-  <title>配置二十：整合Cas | LeoChan&#39;s 个人博客</title>
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.css" />
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="&amp;emsp;&amp;emsp;众所周知，Cas是对单点登录的一种实现。本文假设读者已经了解了Cas的原理及其使用，这些内容在本文将不会讨论。Cas有Server端和Client端，Client端通常对应着我们自己的应用，Spring Security整合Cas指的就是在Spring Security应用中整合Cas Client，以达到使用Cas Server实现单点登录和登出的效果。本文旨在描述如何在">
+<meta property="og:type" content="article">
+<meta property="og:title" content="配置二十：整合Cas">
+<meta property="og:url" content="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置二十：整合Cas/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="&amp;emsp;&amp;emsp;众所周知，Cas是对单点登录的一种实现。本文假设读者已经了解了Cas的原理及其使用，这些内容在本文将不会讨论。Cas有Server端和Client端，Client端通常对应着我们自己的应用，Spring Security整合Cas指的就是在Spring Security应用中整合Cas Client，以达到使用Cas Server实现单点登录和登出的效果。本文旨在描述如何在">
+<meta property="og:updated_time" content="2017-08-15T02:06:37.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="配置二十：整合Cas">
+<meta name="twitter:description" content="&amp;emsp;&amp;emsp;众所周知，Cas是对单点登录的一种实现。本文假设读者已经了解了Cas的原理及其使用，这些内容在本文将不会讨论。Cas有Server端和Client端，Client端通常对应着我们自己的应用，Spring Security整合Cas指的就是在Spring Security应用中整合Cas Client，以达到使用Cas Server实现单点登录和登出的效果。本文旨在描述如何在">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置二十：整合Cas/"/>
+
+
+
+
+
+  <title>配置二十：整合Cas | LeoChan's 个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </head>
 
-<body>
-  <header>
-  <div class="header-container">
-    <a class='logo' href="/">
-      <span>LeoChan's 个人博客</span>
-    </a>
-    <ul class="right-header">
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LeoChan's 个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
       
-        <li class="nav-item">
-          
-            <a href="/" class="item-link">首页</a>
-          
+        <p class="site-subtitle">技术都是通用的，重要的是是否具有自主解决问题的能力！</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Startseite
+          </a>
         </li>
       
-        <li class="nav-item">
-          
-            <a href="/about" class="item-link">关于</a>
-          
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archiv
+          </a>
         </li>
       
-        <li class="nav-item">
-          
-            <a href="/archives" class="item-link">归档</a>
-          
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
         </li>
       
-        <li class="nav-item">
-          
-            <a href="/tags" class="item-link">标签</a>
-          
-        </li>
+
       
     </ul>
-  </div>
-</header>
+  
 
-  <main id='post'>
-  <div class="content">
-    <article>
-        <section class="content markdown-body">
-          <h1>配置二十：整合Cas</h1>
-          <div class='post-meta'>
-            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2017年08月15日</time>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
             
-              | <i class="fa fa-folder-open-o" aria-hidden="true"></i> 
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>/ <a class="article-category-link" href="/categories/Spring/Security/">Security</a>
-  </div>
 
+  <div id="posts" class="posts-expand">
+    
 
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://clq2owesome.github.io/2017/08/15/Spring/Security/配置二十：整合Cas/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="LeoChan">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LeoChan's 个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">配置二十：整合Cas</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-08-15T10:09:45+08:00">
+                2017-08-15
+              </time>
+            
 
             
+
             
-          </div>
-          <p>&emsp;&emsp;众所周知，Cas是对单点登录的一种实现。本文假设读者已经了解了Cas的原理及其使用，这些内容在本文将不会讨论。Cas有Server端和Client端，Client端通常对应着我们自己的应用，Spring Security整合Cas指的就是在Spring Security应用中整合Cas Client，以达到使用Cas Server实现单点登录和登出的效果。本文旨在描述如何在Spring Security应用中使用Cas的单点登录。<br>&emsp;&emsp;首先需要将Spring Security对Cas支持的jar包加入到应用的类路径中。如果我们的应用使用Maven构造的，则可以在应用的pom.xml文件中加上如下依赖。    </p>
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+
+                
+                
+                  . 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring/Security/" itemprop="url" rel="index">
+                    <span itemprop="name">Security</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>&emsp;&emsp;众所周知，Cas是对单点登录的一种实现。本文假设读者已经了解了Cas的原理及其使用，这些内容在本文将不会讨论。Cas有Server端和Client端，Client端通常对应着我们自己的应用，Spring Security整合Cas指的就是在Spring Security应用中整合Cas Client，以达到使用Cas Server实现单点登录和登出的效果。本文旨在描述如何在Spring Security应用中使用Cas的单点登录。<br>&emsp;&emsp;首先需要将Spring Security对Cas支持的jar包加入到应用的类路径中。如果我们的应用使用Maven构造的，则可以在应用的pom.xml文件中加上如下依赖。    </p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.security<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-security-cas<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;spring.security.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
 <p>一. <strong>配置登录认证</strong><br>&emsp;&emsp;加入了spring-security-cas-xxx.jar到Spring Security应用的classpath后，我们便可以开始配置我们的Spring Security应用使用Cas进行单点登录了。<br>1.1 <strong>配置AuthenticationEntryPoint</strong><br>&emsp;&emsp;首先需要做的是将应用的登录认证入口改为使用CasAuthenticationEntryPoint。所以首先我们需要配置一个CasAuthenticationEntryPoint对应的bean，然后指定需要进行登录认证时使用该AuthenticationEntryPoint。配置CasAuthenticationEntryPoint时需要指定一个ServiceProperties，该对象主要用来描述service（Cas概念）相关的属性，主要是指定在Cas Server认证成功后将要跳转的地址。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!-- 指定登录入口为casEntryPoint --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">security:http</span>  <span class="attr">entry-point-ref</span>=<span class="string">"casEntryPoint"</span>&gt;</span></div><div class="line">  ...</div><div class="line"><span class="tag">&lt;/<span class="name">security:http</span>&gt;</span></div><div class="line"></div><div class="line"><span class="comment">&lt;!-- 认证的入口 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"casEntryPoint"</span></span></div><div class="line">  <span class="attr">class</span>=<span class="string">"org.springframework.security.cas.web.CasAuthenticationEntryPoint"</span>&gt;</div><div class="line">  <span class="comment">&lt;!-- Cas Server的登录地址 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"loginUrl"</span> <span class="attr">value</span>=<span class="string">"https://localhost:8443/cas/login"</span> /&gt;</span></div><div class="line">  <span class="comment">&lt;!-- service相关的属性 --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"serviceProperties"</span> <span class="attr">ref</span>=<span class="string">"serviceProperties"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div><div class="line"></div><div class="line"><span class="comment">&lt;!-- 指定service相关信息 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"serviceProperties"</span> <span class="attr">class</span>=<span class="string">"org.springframework.security.cas.ServiceProperties"</span>&gt;</span></div><div class="line">  <span class="comment">&lt;!-- Cas Server认证成功后的跳转地址，这里要跳转到我们的Spring Security应用，之后会由CasAuthenticationFilter处理，默认处理地址为/j_spring_cas_security_check --&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"service"</span></span></div><div class="line">     <span class="attr">value</span>=<span class="string">"http://localhost:8080/app/j_spring_cas_security_check"</span> /&gt;</div><div class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></div></pre></td></tr></table></figure></p>
 <p>1.2 <strong>配置CasAuthenticationFilter</strong><br>&emsp;&emsp;之后我们需要配置一个CasAuthenticationFilter，并将其放置在Filter链表中CAS_FILTER的位置，以处理Cas Server认证成功后的页面跳转，用以在Spring Security中进行认证。该Filter会将Cas Server传递过来的ticket（Cas概念）封装成一个Authentication（对应UsernamePasswordAuthenticationToken，其中ticket作为该Authentication的password），然后传递给AuthenticationManager进行认证。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">&lt;security:http entry-point-ref=&quot;casEntryPoint&quot;&gt;</div><div class="line">    ...</div><div class="line">  &lt;security:custom-filter ref=&quot;casFilter&quot; position=&quot;CAS_FILTER&quot;/&gt;</div><div class="line">  ...</div><div class="line">&lt;/security:http&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;casFilter&quot;</div><div class="line">  class=&quot;org.springframework.security.cas.web.CasAuthenticationFilter&quot;&gt;</div><div class="line">  &lt;property name=&quot;authenticationManager&quot; ref=&quot;authenticationManager&quot; /&gt;</div><div class="line">  &lt;!-- 指定处理地址，不指定时默认将会是“/j_spring_cas_security_check” --&gt;</div><div class="line">  &lt;property name=&quot;filterProcessesUrl&quot; value=&quot;/j_spring_cas_security_check&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
@@ -90,89 +372,324 @@
 <p>&emsp;&emsp;需要注意的是在代理端通过AttributePrincipal的getProxyTicketFor()方法获取到的proxy ticket每次都是不一样的，所以在被代理端通过StatelessTicketCache根据proxy ticket缓存认证对象Authentication时只有在同一proxy ticket能够请求多次的情况下才会有用，这也就要求我们在代理端同样能将proxy ticket缓存起来，以在请求同一地址时能使用相同的proxy ticket。    </p>
 <p>3.3 <strong>既为代理端又为被代理端</strong><br>&emsp;&emsp;Cas Proxy的代理端和被代理端是相互独立的，所以一个Cas应用既可以作为代理端去访问其它Cas应用，也可以作为被代理端被其它应用访问。当Spring Security应用整合Cas后既想作为Cas Proxy的代理端访问其它Cas应用，也想作为被代理端被其它Cas应用访问时只需要将上述作为代理端的配置和作为被代理端的配置整到一起就行了。以下是一段示例代码。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line">&lt;!-- 指定service相关信息 --&gt;</div><div class="line">&lt;bean id=&quot;serviceProperties&quot; class=&quot;org.springframework.security.cas.ServiceProperties&quot;&gt;</div><div class="line">&lt;!-- Cas Server认证成功后的跳转地址，这里要跳转到我们的Spring Security应用，之后会由CasAuthenticationFilter处理，默认处理地址为/j_spring_cas_security_check --&gt;</div><div class="line">&lt;property name=&quot;service&quot;</div><div class="line"> value=&quot;http://localhost:8080/app /j_spring_cas_security_check&quot; /&gt;</div><div class="line">&lt;property name=&quot;authenticateAllArtifacts&quot; value=&quot;true&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;!-- 配置ProxyGrantingTicketStorage，用以保存pgtId和pgtIou --&gt;</div><div class="line">&lt;bean id=&quot;proxyGrantingTicketStorage&quot; class=&quot;org.jasig.cas.client.proxy.ProxyGrantingTicketStorageImpl&quot;/&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;casFilter&quot;</div><div class="line">  class=&quot;org.springframework.security.cas.web.CasAuthenticationFilter&quot;&gt;</div><div class="line">  &lt;property name=&quot;authenticationManager&quot; ref=&quot;authenticationManager&quot; /&gt;</div><div class="line">  &lt;!-- 指定处理地址，不指定时默认将会是“/j_spring_cas_security_check” --&gt;</div><div class="line">  &lt;property name=&quot;filterProcessesUrl&quot; value=&quot;/j_spring_cas_security_check&quot;/&gt;</div><div class="line">  &lt;property name=&quot;proxyGrantingTicketStorage&quot; ref=&quot;proxyGrantingTicketStorage&quot;/&gt;</div><div class="line">  &lt;property name=&quot;proxyReceptorUrl&quot; value=&quot;/proxyCallback&quot;/&gt;</div><div class="line">  &lt;!-- 通过ServiceProperties指定CasAuthenticationFilter的authenticateAllArtifacts为true  --&gt;</div><div class="line">  &lt;property name=&quot;serviceProperties&quot; ref=&quot;serviceProperties&quot; /&gt;</div><div class="line">  &lt;!-- 指定使用的AuthenticationDetailsSource为ServiceAuthenticationDetailsSource --&gt;</div><div class="line">  &lt;property name=&quot;authenticationDetailsSource&quot;&gt;</div><div class="line">     &lt;bean class=&quot;org.springframework.security.cas.web.authentication.ServiceAuthenticationDetailsSource&quot; /&gt;</div><div class="line">  &lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;casAuthenticationProvider&quot;</div><div class="line">class=&quot;org.springframework.security.cas.authentication.CasAuthenticationProvider&quot;&gt;</div><div class="line">  &lt;!-- 通过username来加载UserDetails --&gt;</div><div class="line">  &lt;property name=&quot;authenticationUserDetailsService&quot;&gt;</div><div class="line">     &lt;bean class=&quot;org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper&quot;&gt;</div><div class="line">        &lt;!-- 真正加载UserDetails的UserDetailsService实现 --&gt;</div><div class="line">        &lt;constructor-arg ref=&quot;userDetailsService&quot; /&gt;</div><div class="line">     &lt;/bean&gt;</div><div class="line">  &lt;/property&gt;</div><div class="line">  &lt;property name=&quot;serviceProperties&quot; ref=&quot;serviceProperties&quot; /&gt;</div><div class="line">  &lt;!-- 配置TicketValidator在登录认证成功后验证ticket --&gt;</div><div class="line">  &lt;property name=&quot;ticketValidator&quot;&gt;</div><div class="line">     &lt;bean class=&quot;org.jasig.cas.client.validation.Cas20ProxyTicketValidator&quot;&gt;</div><div class="line">        &lt;!-- Cas Server访问地址的前缀，即根路径--&gt;</div><div class="line">        &lt;constructor-arg index=&quot;0&quot; value=&quot;https://localhost:8443/cas&quot; /&gt;</div><div class="line">        &lt;!-- 指定Cas Server回调传递pgtId和pgtIou的地址，该地址必须使用https协议 --&gt;</div><div class="line">        &lt;property name=&quot;proxyCallbackUrl&quot; value=&quot;https://elim:8043/app/proxyCallback&quot;/&gt;</div><div class="line">        &lt;property name=&quot;proxyGrantingTicketStorage&quot; ref=&quot;proxyGrantingTicketStorage&quot;/&gt;</div><div class="line">        &lt;!-- 作为被代理端时配置接收任何代理 --&gt;</div><div class="line">        &lt;property name=&quot;acceptAnyProxy&quot; value=&quot;true&quot;/&gt;</div><div class="line">     &lt;/bean&gt;</div><div class="line">  &lt;/property&gt;</div><div class="line">  &lt;property name=&quot;key&quot; value=&quot;key4CasAuthenticationProvider&quot; /&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
 
-        </section>
-    </article>
-    
-        
-  </div>
-  <aside>
-    
-  </aside>
-</main>
-
-
-
-  <footer>
-  <div class="copyright">
-    <div>
-      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
-    </div>
-    <div>
-      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
-    </div>
-  </div>
-</footer>
-
-
-<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
-<script src="/lib/in-view.min.js"></script>
-<script src="/lib/lodash.min.js"></script>
-<script>
-  var isDown = true
-  var oldY = 0
-  inView.offset(50)
-
-  document.body.addEventListener('touchstart', function(){});
-  
-  window.addEventListener('scroll', _.throttle(e => {
-    var currentY = window.scrollY
-    if((oldY - currentY) < 0) {
-      isDown = true
-    } else {
-      isDown = false
-    }
-    oldY = currentY
-  }, 250))
-
-  $("article img").each(function() {
-      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
-      $(this).wrapAll(strA);
-  });
-
-  $('.toc-link').each(function() {
-      var href = $(this).attr("href");
       
-      inView(href).on('exit', () => {
-        if (isDown) {
-          handleActive(href)
-        }
-      })
+    </div>
 
-      inView(href).on('enter', () => {
-        if (!isDown) {
-          handleActive(href)
-        }
-      })
+    <div>
+      
+        
 
-      this.onclick = function(e) {
-        var pos = $(href).offset().top - 10;
-        $("html,body").animate({scrollTop: pos}, 300);
-        setTimeout(() => {
-          handleActive(href)
-        }, 350)
-        return false
-      }
-  })
+      
+    </div>
 
-  function handleActive(href) {
-    document.querySelectorAll('.toc-link').forEach(elm => {
-      elm.classList.remove('active')
-    })
-    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/15/Spring/Security/配置二：登录/" rel="next" title="配置二：登录">
+                <i class="fa fa-chevron-left"></i> 配置二：登录
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/15/Spring/Security/配置九：Filter/" rel="prev" title="配置九：Filter">
+                配置九：Filter <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="LeoChan" />
+          <p class="site-author-name" itemprop="name">LeoChan</p>
+           
+              <p class="site-description motion-element" itemprop="description">描述啊</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">235</span>
+                <span class="site-state-item-name">Artikel</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-name">Kategorien</span>
+              
+            </div>
+          
+
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LeoChan</span>
+</div>
+
+
+<div class="powered-by">
+  Erstellt mit  <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
   }
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.js"></script>
 
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
 
 </body>
 </html>

@@ -1,171 +1,706 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-  <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <meta name="description" content="描述啊">
-  <meta name="keywords" content="undefined">
+
+
+
   
-    <link rel="icon" href="">
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
   
     
-  <title>AES完整实现（Java） | LeoChan&#39;s 个人博客</title>
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.css" />
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="AES加密解密用到的工具类SHA1123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960/** * 对公众平台发送给公众账号的消息加解密示例代码. *  * @copyright Copyright (c) 1998-2014 Te">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AES完整实现（Java）">
+<meta property="og:url" content="https://clq2owesome.github.io/2017/08/10/Java/加密解密／编码解码/AES完整实现（Java）/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="AES加密解密用到的工具类SHA1123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960/** * 对公众平台发送给公众账号的消息加解密示例代码. *  * @copyright Copyright (c) 1998-2014 Te">
+<meta property="og:updated_time" content="2017-08-10T03:44:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AES完整实现（Java）">
+<meta name="twitter:description" content="AES加密解密用到的工具类SHA1123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960/** * 对公众平台发送给公众账号的消息加解密示例代码. *  * @copyright Copyright (c) 1998-2014 Te">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://clq2owesome.github.io/2017/08/10/Java/加密解密／编码解码/AES完整实现（Java）/"/>
+
+
+
+
+
+  <title>AES完整实现（Java） | LeoChan's 个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </head>
 
-<body>
-  <header>
-  <div class="header-container">
-    <a class='logo' href="/">
-      <span>LeoChan's 个人博客</span>
-    </a>
-    <ul class="right-header">
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LeoChan's 个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
       
-        <li class="nav-item">
-          
-            <a href="/" class="item-link">首页</a>
-          
+        <p class="site-subtitle">技术都是通用的，重要的是是否具有自主解决问题的能力！</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Startseite
+          </a>
         </li>
       
-        <li class="nav-item">
-          
-            <a href="/about" class="item-link">关于</a>
-          
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archiv
+          </a>
         </li>
       
-        <li class="nav-item">
-          
-            <a href="/archives" class="item-link">归档</a>
-          
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
         </li>
       
-        <li class="nav-item">
-          
-            <a href="/tags" class="item-link">标签</a>
-          
-        </li>
+
       
     </ul>
-  </div>
-</header>
+  
 
-  <main id='post'>
-  <div class="content">
-    <article>
-        <section class="content markdown-body">
-          <h1>AES完整实现（Java）</h1>
-          <div class='post-meta'>
-            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2017年08月10日</time>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
             
-              | <i class="fa fa-folder-open-o" aria-hidden="true"></i> 
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>/ <a class="article-category-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a>
-  </div>
 
+  <div id="posts" class="posts-expand">
+    
 
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://clq2owesome.github.io/2017/08/10/Java/加密解密／编码解码/AES完整实现（Java）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="LeoChan">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LeoChan's 个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">AES完整实现（Java）</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-08-10T10:09:45+08:00">
+                2017-08-10
+              </time>
+            
 
             
+
             
-          </div>
-          <h2 id="AES加密解密用到的工具类"><a href="#AES加密解密用到的工具类" class="headerlink" title="AES加密解密用到的工具类"></a>AES加密解密用到的工具类</h2><h3 id="SHA1"><a href="#SHA1" class="headerlink" title="SHA1"></a>SHA1</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 对公众平台发送给公众账号的消息加解密示例代码.</div><div class="line"> * </div><div class="line"> * @copyright Copyright (c) 1998-2014 Tencent Inc.</div><div class="line"> */</div><div class="line"></div><div class="line">// ------------------------------------------------------------------------</div><div class="line"></div><div class="line">package com.xx.aes;</div><div class="line"></div><div class="line">import java.security.MessageDigest;</div><div class="line">import java.util.Arrays;</div><div class="line"></div><div class="line">/**</div><div class="line"> * SHA1 class</div><div class="line"> *</div><div class="line"> * 计算公众平台的消息签名接口.</div><div class="line"> */</div><div class="line">class SHA1 &#123;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 用SHA1算法生成安全签名</div><div class="line">	 * @param token 票据</div><div class="line">	 * @param timestamp 时间戳</div><div class="line">	 * @param nonce 随机字符串</div><div class="line">	 * @param encrypt 密文</div><div class="line">	 * @return 安全签名</div><div class="line">	 * @throws AesException </div><div class="line">	 */</div><div class="line">	public static String getSHA1(String token, String timestamp, String nonce, String encrypt) throws AesException &#123;</div><div class="line">		try &#123;</div><div class="line">			String[] array = new String[] &#123; token, timestamp, nonce, encrypt &#125;;</div><div class="line">			StringBuffer sb = new StringBuffer();</div><div class="line">			// 字符串排序</div><div class="line">			Arrays.sort(array);</div><div class="line">			for (int i = 0; i &lt; 4; i++) &#123;</div><div class="line">				sb.append(array[i]);</div><div class="line">			&#125;</div><div class="line">			String str = sb.toString();</div><div class="line">			// SHA1签名生成</div><div class="line">			MessageDigest md = MessageDigest.getInstance(&quot;SHA-1&quot;);</div><div class="line">			md.update(str.getBytes());</div><div class="line">			byte[] digest = md.digest();</div><div class="line"></div><div class="line">			StringBuffer hexstr = new StringBuffer();</div><div class="line">			String shaHex = &quot;&quot;;</div><div class="line">			for (int i = 0; i &lt; digest.length; i++) &#123;</div><div class="line">				shaHex = Integer.toHexString(digest[i] &amp; 0xFF);</div><div class="line">				if (shaHex.length() &lt; 2) &#123;</div><div class="line">					hexstr.append(0);</div><div class="line">				&#125;</div><div class="line">				hexstr.append(shaHex);</div><div class="line">			&#125;</div><div class="line">			return hexstr.toString();</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			throw new AesException(AesException.ComputeSignatureError);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+                  . 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/加密解密／编码解码/" itemprop="url" rel="index">
+                    <span itemprop="name">加密解密／编码解码</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="AES加密解密用到的工具类"><a href="#AES加密解密用到的工具类" class="headerlink" title="AES加密解密用到的工具类"></a>AES加密解密用到的工具类</h2><h3 id="SHA1"><a href="#SHA1" class="headerlink" title="SHA1"></a>SHA1</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 对公众平台发送给公众账号的消息加解密示例代码.</div><div class="line"> * </div><div class="line"> * @copyright Copyright (c) 1998-2014 Tencent Inc.</div><div class="line"> */</div><div class="line"></div><div class="line">// ------------------------------------------------------------------------</div><div class="line"></div><div class="line">package com.xx.aes;</div><div class="line"></div><div class="line">import java.security.MessageDigest;</div><div class="line">import java.util.Arrays;</div><div class="line"></div><div class="line">/**</div><div class="line"> * SHA1 class</div><div class="line"> *</div><div class="line"> * 计算公众平台的消息签名接口.</div><div class="line"> */</div><div class="line">class SHA1 &#123;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 用SHA1算法生成安全签名</div><div class="line">	 * @param token 票据</div><div class="line">	 * @param timestamp 时间戳</div><div class="line">	 * @param nonce 随机字符串</div><div class="line">	 * @param encrypt 密文</div><div class="line">	 * @return 安全签名</div><div class="line">	 * @throws AesException </div><div class="line">	 */</div><div class="line">	public static String getSHA1(String token, String timestamp, String nonce, String encrypt) throws AesException &#123;</div><div class="line">		try &#123;</div><div class="line">			String[] array = new String[] &#123; token, timestamp, nonce, encrypt &#125;;</div><div class="line">			StringBuffer sb = new StringBuffer();</div><div class="line">			// 字符串排序</div><div class="line">			Arrays.sort(array);</div><div class="line">			for (int i = 0; i &lt; 4; i++) &#123;</div><div class="line">				sb.append(array[i]);</div><div class="line">			&#125;</div><div class="line">			String str = sb.toString();</div><div class="line">			// SHA1签名生成</div><div class="line">			MessageDigest md = MessageDigest.getInstance(&quot;SHA-1&quot;);</div><div class="line">			md.update(str.getBytes());</div><div class="line">			byte[] digest = md.digest();</div><div class="line"></div><div class="line">			StringBuffer hexstr = new StringBuffer();</div><div class="line">			String shaHex = &quot;&quot;;</div><div class="line">			for (int i = 0; i &lt; digest.length; i++) &#123;</div><div class="line">				shaHex = Integer.toHexString(digest[i] &amp; 0xFF);</div><div class="line">				if (shaHex.length() &lt; 2) &#123;</div><div class="line">					hexstr.append(0);</div><div class="line">				&#125;</div><div class="line">				hexstr.append(shaHex);</div><div class="line">			&#125;</div><div class="line">			return hexstr.toString();</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			throw new AesException(AesException.ComputeSignatureError);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <h3 id="PKCS7Encoder"><a href="#PKCS7Encoder" class="headerlink" title="PKCS7Encoder"></a>PKCS7Encoder</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 对公众平台发送给公众账号的消息加解密示例代码.</div><div class="line"> * </div><div class="line"> * @copyright Copyright (c) 1998-2014 Tencent Inc.</div><div class="line"> */</div><div class="line"></div><div class="line">// ------------------------------------------------------------------------</div><div class="line"></div><div class="line">package com.xx0.aes;</div><div class="line"></div><div class="line">import java.nio.charset.Charset;</div><div class="line">import java.util.Arrays;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 提供基于PKCS7算法的加解密接口.</div><div class="line"> */</div><div class="line">class PKCS7Encoder &#123;</div><div class="line">	static Charset CHARSET = Charset.forName(&quot;utf-8&quot;);</div><div class="line">	static int BLOCK_SIZE = 32;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 获得对明文进行补位填充的字节.</div><div class="line">	 * </div><div class="line">	 * @param count 需要进行填充补位操作的明文字节个数</div><div class="line">	 * @return 补齐用的字节数组</div><div class="line">	 */</div><div class="line">	static byte[] encode(int count) &#123;</div><div class="line">		// 计算需要填充的位数</div><div class="line">		int amountToPad = BLOCK_SIZE - (count % BLOCK_SIZE);</div><div class="line">		if (amountToPad == 0) &#123;</div><div class="line">			amountToPad = BLOCK_SIZE;</div><div class="line">		&#125;</div><div class="line">		// 获得补位所用的字符</div><div class="line">		char padChr = chr(amountToPad);</div><div class="line">		String tmp = new String();</div><div class="line">		for (int index = 0; index &lt; amountToPad; index++) &#123;</div><div class="line">			tmp += padChr;</div><div class="line">		&#125;</div><div class="line">		return tmp.getBytes(CHARSET);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 删除解密后明文的补位字符</div><div class="line">	 * </div><div class="line">	 * @param decrypted 解密后的明文</div><div class="line">	 * @return 删除补位字符后的明文</div><div class="line">	 */</div><div class="line">	static byte[] decode(byte[] decrypted) &#123;</div><div class="line">		int pad = (int) decrypted[decrypted.length - 1];</div><div class="line">		if (pad &lt; 1 || pad &gt; 32) &#123;</div><div class="line">			pad = 0;</div><div class="line">		&#125;</div><div class="line">		return Arrays.copyOfRange(decrypted, 0, decrypted.length - pad);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 将数字转化成ASCII码对应的字符，用于对明文进行补码</div><div class="line">	 * </div><div class="line">	 * @param a 需要转化的数字</div><div class="line">	 * @return 转化得到的字符</div><div class="line">	 */</div><div class="line">	static char chr(int a) &#123;</div><div class="line">		byte target = (byte) (a &amp; 0xFF);</div><div class="line">		return (char) target;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <h3 id="EncryptedMessage"><a href="#EncryptedMessage" class="headerlink" title="EncryptedMessage"></a>EncryptedMessage</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line">package com.xxx.aes;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 携带加密运算后得到的签名、时间戳、随机串和密文的对象</div><div class="line"> */</div><div class="line">public class EncryptedMessage &#123;</div><div class="line"></div><div class="line">	private String signature;</div><div class="line">	private String timestamp;</div><div class="line">	private String nonce;</div><div class="line">	private String data;</div><div class="line">	public EncryptedMessage(String signature, String timestamp, String nonce,</div><div class="line">			String data) &#123;</div><div class="line">		super();</div><div class="line">		this.signature = signature;</div><div class="line">		this.timestamp = timestamp;</div><div class="line">		this.nonce = nonce;</div><div class="line">		this.data = data;</div><div class="line">	&#125;</div><div class="line">	public String getSignature() &#123;</div><div class="line">		return signature;</div><div class="line">	&#125;</div><div class="line">	public void setSignature(String signature) &#123;</div><div class="line">		this.signature = signature;</div><div class="line">	&#125;</div><div class="line">	public String getTimestamp() &#123;</div><div class="line">		return timestamp;</div><div class="line">	&#125;</div><div class="line">	public void setTimestamp(String timeStamp) &#123;</div><div class="line">		this.timestamp = timeStamp;</div><div class="line">	&#125;</div><div class="line">	public String getNonce() &#123;</div><div class="line">		return nonce;</div><div class="line">	&#125;</div><div class="line">	public void setNonce(String nonce) &#123;</div><div class="line">		this.nonce = nonce;</div><div class="line">	&#125;</div><div class="line">	public String getData() &#123;</div><div class="line">		return data;</div><div class="line">	&#125;</div><div class="line">	public void setData(String data) &#123;</div><div class="line">		this.data = data;</div><div class="line">	&#125;</div><div class="line">	@Override</div><div class="line">	public String toString() &#123;</div><div class="line">		return &quot;EncryptedMessage [signature=&quot; + signature + &quot;, timestamp=&quot;</div><div class="line">				+ timestamp + &quot;, nonce=&quot; + nonce + &quot;, data=&quot; + data + &quot;]&quot;;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <h3 id="ByteGroup"><a href="#ByteGroup" class="headerlink" title="ByteGroup"></a>ByteGroup</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">package com.xx.aes;</div><div class="line"></div><div class="line">import java.util.ArrayList;</div><div class="line"></div><div class="line">class ByteGroup &#123;</div><div class="line">	ArrayList&lt;Byte&gt; byteContainer = new ArrayList&lt;Byte&gt;();</div><div class="line"></div><div class="line">	public byte[] toBytes() &#123;</div><div class="line">		byte[] bytes = new byte[byteContainer.size()];</div><div class="line">		for (int i = 0; i &lt; byteContainer.size(); i++) &#123;</div><div class="line">			bytes[i] = byteContainer.get(i);</div><div class="line">		&#125;</div><div class="line">		return bytes;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public ByteGroup addBytes(byte[] bytes) &#123;</div><div class="line">		for (byte b : bytes) &#123;</div><div class="line">			byteContainer.add(b);</div><div class="line">		&#125;</div><div class="line">		return this;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public int size() &#123;</div><div class="line">		return byteContainer.size();</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <h2 id="AES加密解密"><a href="#AES加密解密" class="headerlink" title="AES加密解密"></a>AES加密解密</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div><div class="line">171</div><div class="line">172</div><div class="line">173</div><div class="line">174</div><div class="line">175</div><div class="line">176</div><div class="line">177</div><div class="line">178</div><div class="line">179</div><div class="line">180</div><div class="line">181</div><div class="line">182</div><div class="line">183</div><div class="line">184</div><div class="line">185</div><div class="line">186</div><div class="line">187</div><div class="line">188</div><div class="line">189</div><div class="line">190</div><div class="line">191</div><div class="line">192</div><div class="line">193</div><div class="line">194</div><div class="line">195</div><div class="line">196</div><div class="line">197</div><div class="line">198</div><div class="line">199</div><div class="line">200</div><div class="line">201</div><div class="line">202</div><div class="line">203</div><div class="line">204</div><div class="line">205</div><div class="line">206</div><div class="line">207</div><div class="line">208</div><div class="line">209</div><div class="line">210</div><div class="line">211</div><div class="line">212</div><div class="line">213</div><div class="line">214</div><div class="line">215</div><div class="line">216</div><div class="line">217</div><div class="line">218</div><div class="line">219</div><div class="line">220</div><div class="line">221</div><div class="line">222</div><div class="line">223</div><div class="line">224</div><div class="line">225</div><div class="line">226</div><div class="line">227</div><div class="line">228</div><div class="line">229</div><div class="line">230</div><div class="line">231</div><div class="line">232</div><div class="line">233</div><div class="line">234</div><div class="line">235</div><div class="line">236</div><div class="line">237</div><div class="line">238</div><div class="line">239</div><div class="line">240</div><div class="line">241</div><div class="line">242</div><div class="line">243</div><div class="line">244</div><div class="line">245</div><div class="line">246</div><div class="line">247</div><div class="line">248</div><div class="line">249</div><div class="line">250</div><div class="line">251</div><div class="line">252</div><div class="line">253</div><div class="line">254</div><div class="line">255</div><div class="line">256</div><div class="line">257</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 针对org.apache.commons.codec.binary.Base64，</div><div class="line"> * 需要导入架包commons-codec-1.9（或commons-codec-1.8等其他版本）</div><div class="line"> * 官方下载地址：http://commons.apache.org/proper/commons-codec/download_codec.cgi</div><div class="line"> */</div><div class="line">package com.xx.aes;</div><div class="line"></div><div class="line">import java.net.URISyntaxException;</div><div class="line">import java.nio.charset.Charset;</div><div class="line">import java.util.Arrays;</div><div class="line">import java.util.Random;</div><div class="line"></div><div class="line">import javax.crypto.Cipher;</div><div class="line">import javax.crypto.spec.IvParameterSpec;</div><div class="line">import javax.crypto.spec.SecretKeySpec;</div><div class="line"></div><div class="line">import org.apache.commons.codec.binary.Base64;</div><div class="line"></div><div class="line">/**</div><div class="line"> * 用于加密和解密网络中互相传送消息，并且验证消息的安全性，消息加密后用Base64进行编码</div><div class="line"> * 说明：异常java.security.InvalidKeyException:illegal Key Size的解决方案</div><div class="line"> * &lt;ol&gt;</div><div class="line"> * 	&lt;li&gt;在官方网站下载JCE无限制权限策略文件（JDK7的下载地址：</div><div class="line"> *      http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html&lt;/li&gt;</div><div class="line"> * 	&lt;li&gt;下载后解压，可以看到local_policy.jar和US_export_policy.jar以及readme.txt&lt;/li&gt;</div><div class="line"> * 	&lt;li&gt;如果安装了JRE，将两个jar文件放到%JRE_HOME%\lib\security目录下覆盖原来的文件&lt;/li&gt;</div><div class="line"> * 	&lt;li&gt;如果安装了JDK，将两个jar文件放到%JDK_HOME%\jre\lib\security目录下覆盖原来文件&lt;/li&gt;</div><div class="line"> * &lt;/ol&gt;</div><div class="line"> */</div><div class="line">public class HBBizMsgCrypt &#123;</div><div class="line">	static Charset CHARSET = Charset.forName(&quot;utf-8&quot;);</div><div class="line">	Base64 base64 = new Base64();</div><div class="line">	byte[] aesKey;</div><div class="line">	String token;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 构造函数</div><div class="line">	 * @param token 开发者设置的token</div><div class="line">	 * @param encodingAesKey 开发者设置的EncodingAESKey</div><div class="line">	 * </div><div class="line">	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息</div><div class="line">	 */</div><div class="line">	public HBBizMsgCrypt(String token, String encodingAesKey) throws AesException &#123;</div><div class="line">		if (encodingAesKey.length() != 43) &#123;</div><div class="line">			throw new AesException(AesException.IllegalAesKey);</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		this.token = token;</div><div class="line">		this.aesKey = Base64.decodeBase64(encodingAesKey + &quot;=&quot;);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	// 生成4个字节的网络字节序</div><div class="line">	byte[] getNetworkBytesOrder(int sourceNumber) &#123;</div><div class="line">		byte[] orderBytes = new byte[4];</div><div class="line">		orderBytes[3] = (byte) (sourceNumber &amp; 0xFF);</div><div class="line">		orderBytes[2] = (byte) (sourceNumber &gt;&gt; 8 &amp; 0xFF);</div><div class="line">		orderBytes[1] = (byte) (sourceNumber &gt;&gt; 16 &amp; 0xFF);</div><div class="line">		orderBytes[0] = (byte) (sourceNumber &gt;&gt; 24 &amp; 0xFF);</div><div class="line">		return orderBytes;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	// 还原4个字节的网络字节序</div><div class="line">	int recoverNetworkBytesOrder(byte[] orderBytes) &#123;</div><div class="line">		int sourceNumber = 0;</div><div class="line">		for (int i = 0; i &lt; 4; i++) &#123;</div><div class="line">			sourceNumber &lt;&lt;= 8;</div><div class="line">			sourceNumber |= orderBytes[i] &amp; 0xff;</div><div class="line">		&#125;</div><div class="line">		return sourceNumber;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	// 随机生成16位字符串</div><div class="line">	public	String getRandomStr() &#123;</div><div class="line">		String base = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&quot;;</div><div class="line">		Random random = new Random();</div><div class="line">		StringBuffer sb = new StringBuffer();</div><div class="line">		for (int i = 0; i &lt; 16; i++) &#123;</div><div class="line">			int number = random.nextInt(base.length());</div><div class="line">			sb.append(base.charAt(number));</div><div class="line">		&#125;</div><div class="line">		return sb.toString();</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 对明文进行加密.</div><div class="line">	 * </div><div class="line">	 * @param randomStr 随机字符串</div><div class="line">	 * @param text 需要加密的明文</div><div class="line">	 * @return 加密后base64编码的字符串</div><div class="line">	 * @throws AesException aes加密失败</div><div class="line">	 */</div><div class="line">	 public String encrypt(String randomStr, String text) throws AesException &#123;</div><div class="line">		ByteGroup byteCollector = new ByteGroup();</div><div class="line">		byte[] randomStrBytes = randomStr.getBytes(CHARSET);</div><div class="line">		byte[] textBytes = text.getBytes(CHARSET);</div><div class="line">		byte[] networkBytesOrder = getNetworkBytesOrder(textBytes.length);</div><div class="line"></div><div class="line">		// randomStr + networkBytesOrder + text</div><div class="line">		byteCollector.addBytes(randomStrBytes);</div><div class="line">		byteCollector.addBytes(networkBytesOrder);</div><div class="line">		byteCollector.addBytes(textBytes);</div><div class="line"></div><div class="line">		// ... + pad: 使用自定义的填充方式对明文进行补位填充</div><div class="line">		byte[] padBytes = PKCS7Encoder.encode(byteCollector.size());</div><div class="line">		byteCollector.addBytes(padBytes);</div><div class="line"></div><div class="line">		// 获得最终的字节流, 未加密</div><div class="line">		byte[] unencrypted = byteCollector.toBytes();</div><div class="line"></div><div class="line">		try &#123;</div><div class="line">			// 设置加密模式为AES的CBC模式</div><div class="line">			Cipher cipher = Cipher.getInstance(&quot;AES/CBC/NoPadding&quot;);</div><div class="line">			SecretKeySpec keySpec = new SecretKeySpec(aesKey, &quot;AES&quot;);</div><div class="line">			IvParameterSpec iv = new IvParameterSpec(aesKey, 0, 16);</div><div class="line">			cipher.init(Cipher.ENCRYPT_MODE, keySpec, iv);</div><div class="line"></div><div class="line">			// 加密</div><div class="line">			byte[] encrypted = cipher.doFinal(unencrypted);</div><div class="line"></div><div class="line">			// 使用BASE64对加密后的字符串进行编码</div><div class="line">			String base64Encrypted = base64.encodeToString(encrypted);</div><div class="line"></div><div class="line">			return base64Encrypted;</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			throw new AesException(AesException.EncryptAESError);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 对密文进行解密.</div><div class="line">	 * </div><div class="line">	 * @param text 需要解密的密文</div><div class="line">	 * @return 解密得到的明文</div><div class="line">	 * @throws AesException aes解密失败</div><div class="line">	 */</div><div class="line">	public String decrypt(String text) throws AesException &#123;</div><div class="line">		byte[] original;</div><div class="line">		try &#123;</div><div class="line">			// 设置解密模式为AES的CBC模式</div><div class="line">			Cipher cipher = Cipher.getInstance(&quot;AES/CBC/NoPadding&quot;);</div><div class="line">			SecretKeySpec key_spec = new SecretKeySpec(aesKey, &quot;AES&quot;);</div><div class="line">			IvParameterSpec iv = new IvParameterSpec(Arrays.copyOfRange(aesKey, 0, 16));</div><div class="line">			cipher.init(Cipher.DECRYPT_MODE, key_spec, iv);</div><div class="line"></div><div class="line">			// 使用BASE64对密文进行解码</div><div class="line">			byte[] encrypted = Base64.decodeBase64(text);</div><div class="line"></div><div class="line">			// 解密</div><div class="line">			original = cipher.doFinal(encrypted);</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			throw new AesException(AesException.DecryptAESError);</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		String decrypt;</div><div class="line">		try &#123;</div><div class="line">			// 去除补位字符</div><div class="line">			byte[] bytes = PKCS7Encoder.decode(original);</div><div class="line"></div><div class="line">			// 分离16位随机字符串,网络字节序</div><div class="line">			byte[] networkOrder = Arrays.copyOfRange(bytes, 16, 20);</div><div class="line"></div><div class="line">			int textLength = recoverNetworkBytesOrder(networkOrder);</div><div class="line"></div><div class="line">			decrypt = new String(Arrays.copyOfRange(bytes, 20, 20 + textLength), CHARSET);</div><div class="line">		&#125; catch (Exception e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			throw new AesException(AesException.IllegalBuffer);</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		return decrypt;</div><div class="line"></div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 将发送的消息加密打包.</div><div class="line">	 * &lt;ol&gt;</div><div class="line">	 * 	&lt;li&gt;对要发送的消息进行AES-CBC加密&lt;/li&gt;</div><div class="line">	 * 	&lt;li&gt;生成安全签名&lt;/li&gt;</div><div class="line">	 * &lt;/ol&gt;</div><div class="line">	 * </div><div class="line">	 * @param msg 需要加密的消息</div><div class="line">	 * @param timestamp 时间戳，可以自己生成</div><div class="line">	 * @param nonce 随机串，可以自己生成</div><div class="line">	 * </div><div class="line">	 * @return 加密后的信息载体，包括signature, timestamp, nonce, encrypt的字符串</div><div class="line">	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息</div><div class="line">	 * @throws URISyntaxException URI语法错误</div><div class="line">	 */</div><div class="line">	public EncryptedMessage encryptMsg(String msg, String timestamp, String nonce) throws AesException, URISyntaxException &#123;</div><div class="line">		// 加密</div><div class="line">		String encrypt = encrypt(getRandomStr(), msg);</div><div class="line">		</div><div class="line">		if (timestamp == null || &quot;&quot;.equals(timestamp)) &#123;</div><div class="line">			timestamp = String.valueOf(System.currentTimeMillis());</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">		String signature = SHA1.getSHA1(token, timestamp, nonce, encrypt);</div><div class="line"></div><div class="line">		return new EncryptedMessage(signature, timestamp, nonce, encrypt);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * 检验消息的真实性，并且获取解密后的明文.</div><div class="line">	 * &lt;ol&gt;</div><div class="line">	 * 	&lt;li&gt;利用收到的密文生成安全签名，进行签名验证&lt;/li&gt;</div><div class="line">	 * 	&lt;li&gt;对消息进行解密&lt;/li&gt;</div><div class="line">	 * &lt;/ol&gt;</div><div class="line">	 * </div><div class="line">	 * @param msgSignature 签名串，对应URL参数的signature</div><div class="line">	 * @param timestamp 时间戳，对应URL参数的timestamp</div><div class="line">	 * @param nonce 随机串，对应URL参数的nonce</div><div class="line">	 * @param data 密文，对应URL参数的data</div><div class="line">	 * </div><div class="line">	 * @return 解密后的原文</div><div class="line">	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息</div><div class="line">	 */</div><div class="line">	public String decryptMsg(String msgSignature, String timestamp, String nonce, String data)</div><div class="line">			throws AesException &#123;</div><div class="line"></div><div class="line">		// 验证安全签名</div><div class="line">		String signature = SHA1.getSHA1(token, timestamp, nonce, data);</div><div class="line"></div><div class="line">		// 和URL中的签名比较是否相等</div><div class="line">		// System.out.println(&quot;URL中的签名：&quot; + msg_sign);</div><div class="line">		// System.out.println(&quot;校验签名：&quot; + signature);</div><div class="line">		if (!signature.equals(msgSignature)) &#123;</div><div class="line">			throw new AesException(AesException.ValidateSignatureError);</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		// 解密</div><div class="line">		String result = decrypt(data);</div><div class="line">		return result;</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	public static void main(String[] args) throws AesException, URISyntaxException &#123;</div><div class="line">		HBBizMsgCrypt hBBizMsgCrypt=new HBBizMsgCrypt(&quot;123456&quot;,&quot;0123456789012345678901234567890123456789123&quot;);</div><div class="line">		</div><div class="line">		String name=&quot;李四&quot;;</div><div class="line">		String idCard=&quot;123456789123456789&quot;;</div><div class="line">		String mobile=&quot;13428825923&quot;;</div><div class="line">		String bankAccount=&quot;123456789&quot;;</div><div class="line">		String s1=hBBizMsgCrypt.encrypt(hBBizMsgCrypt.getRandomStr(), name);</div><div class="line">		String s2=hBBizMsgCrypt.encrypt(hBBizMsgCrypt.getRandomStr(), idCard);</div><div class="line">		String s3=hBBizMsgCrypt.encrypt(hBBizMsgCrypt.getRandomStr(), mobile);</div><div class="line">		String s4=hBBizMsgCrypt.encrypt(hBBizMsgCrypt.getRandomStr(), bankAccount);</div><div class="line">        </div><div class="line"></div><div class="line">		System.out.println(hBBizMsgCrypt.decrypt(s1));</div><div class="line">		System.out.println(hBBizMsgCrypt.decrypt(s2));</div><div class="line">		System.out.println(hBBizMsgCrypt.decrypt(s3));</div><div class="line">		System.out.println(hBBizMsgCrypt.decrypt(s4));</div><div class="line">	</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <h2 id="加密解密异常类"><a href="#加密解密异常类" class="headerlink" title="加密解密异常类"></a>加密解密异常类</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line">package com.xx.aes;</div><div class="line"></div><div class="line">@SuppressWarnings(&quot;serial&quot;)</div><div class="line">public class AesException extends Exception &#123;</div><div class="line"></div><div class="line">	public final static int OK = 0;</div><div class="line">	public final static int ValidateSignatureError = -40001;</div><div class="line">	public final static int ParseXmlError = -40002;</div><div class="line">	public final static int ComputeSignatureError = -40003;</div><div class="line">	public final static int IllegalAesKey = -40004;</div><div class="line">	public final static int ValidateAppidError = -40005;</div><div class="line">	public final static int EncryptAESError = -40006;</div><div class="line">	public final static int DecryptAESError = -40007;</div><div class="line">	public final static int IllegalBuffer = -40008;</div><div class="line">	//public final static int EncodeBase64Error = -40009;</div><div class="line">	//public final static int DecodeBase64Error = -40010;</div><div class="line">	//public final static int GenReturnXmlError = -40011;</div><div class="line"></div><div class="line">	private int code;</div><div class="line"></div><div class="line">	private static String getMessage(int code) &#123;</div><div class="line">		switch (code) &#123;</div><div class="line">		case ValidateSignatureError:</div><div class="line">			return &quot;签名验证错误&quot;;</div><div class="line">		case ParseXmlError:</div><div class="line">			return &quot;xml解析失败&quot;;</div><div class="line">		case ComputeSignatureError:</div><div class="line">			return &quot;sha加密生成签名失败&quot;;</div><div class="line">		case IllegalAesKey:</div><div class="line">			return &quot;SymmetricKey非法&quot;;</div><div class="line">		case ValidateAppidError:</div><div class="line">			return &quot;appid校验失败&quot;;</div><div class="line">		case EncryptAESError:</div><div class="line">			return &quot;aes加密失败&quot;;</div><div class="line">		case DecryptAESError:</div><div class="line">			return &quot;aes解密失败&quot;;</div><div class="line">		case IllegalBuffer:</div><div class="line">			return &quot;解密后得到的buffer非法&quot;;</div><div class="line">//		case EncodeBase64Error:</div><div class="line">//			return &quot;base64加密错误&quot;;</div><div class="line">//		case DecodeBase64Error:</div><div class="line">//			return &quot;base64解密错误&quot;;</div><div class="line">//		case GenReturnXmlError:</div><div class="line">//			return &quot;xml生成失败&quot;;</div><div class="line">		default:</div><div class="line">			return null; // cannot be</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public int getCode() &#123;</div><div class="line">		return code;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	AesException(int code) &#123;</div><div class="line">		super(getMessage(code));</div><div class="line">		this.code = code;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-        </section>
-    </article>
-    
-        
-  </div>
-  <aside>
-    
-    <div class="toc-container">
-        <h1>目录</h1>
-        <div class="content">
-            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#AES加密解密用到的工具类"><span class="toc-number">1.</span> <span class="toc-text">AES加密解密用到的工具类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SHA1"><span class="toc-number">1.1.</span> <span class="toc-text">SHA1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#PKCS7Encoder"><span class="toc-number">1.2.</span> <span class="toc-text">PKCS7Encoder</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#EncryptedMessage"><span class="toc-number">1.3.</span> <span class="toc-text">EncryptedMessage</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ByteGroup"><span class="toc-number">1.4.</span> <span class="toc-text">ByteGroup</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AES加密解密"><span class="toc-number">2.</span> <span class="toc-text">AES加密解密</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#加密解密异常类"><span class="toc-number">3.</span> <span class="toc-text">加密解密异常类</span></a></li></ol>
-        </div>
-    </div>
-    
-  </aside>
-</main>
-
-
-
-  <footer>
-  <div class="copyright">
-    <div>
-      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
-    </div>
-    <div>
-      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
-    </div>
-  </div>
-</footer>
-
-
-<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
-<script src="/lib/in-view.min.js"></script>
-<script src="/lib/lodash.min.js"></script>
-<script>
-  var isDown = true
-  var oldY = 0
-  inView.offset(50)
-
-  document.body.addEventListener('touchstart', function(){});
-  
-  window.addEventListener('scroll', _.throttle(e => {
-    var currentY = window.scrollY
-    if((oldY - currentY) < 0) {
-      isDown = true
-    } else {
-      isDown = false
-    }
-    oldY = currentY
-  }, 250))
-
-  $("article img").each(function() {
-      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
-      $(this).wrapAll(strA);
-  });
-
-  $('.toc-link').each(function() {
-      var href = $(this).attr("href");
       
-      inView(href).on('exit', () => {
-        if (isDown) {
-          handleActive(href)
-        }
-      })
+    </div>
 
-      inView(href).on('enter', () => {
-        if (!isDown) {
-          handleActive(href)
-        }
-      })
+    <div>
+      
+        
 
-      this.onclick = function(e) {
-        var pos = $(href).offset().top - 10;
-        $("html,body").animate({scrollTop: pos}, 300);
-        setTimeout(() => {
-          handleActive(href)
-        }, 350)
-        return false
-      }
-  })
+      
+    </div>
 
-  function handleActive(href) {
-    document.querySelectorAll('.toc-link').forEach(elm => {
-      elm.classList.remove('active')
-    })
-    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/10/Java/加密解密／编码解码/RAS完整实现(Java)/" rel="next" title="RAS完整实现(Java)">
+                <i class="fa fa-chevron-left"></i> RAS完整实现(Java)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/10/Java/加密解密／编码解码/AES加密算法简单介绍/" rel="prev" title="AES加密算法简单介绍">
+                AES加密算法简单介绍 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="LeoChan" />
+          <p class="site-author-name" itemprop="name">LeoChan</p>
+           
+              <p class="site-description motion-element" itemprop="description">描述啊</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">235</span>
+                <span class="site-state-item-name">Artikel</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-name">Kategorien</span>
+              
+            </div>
+          
+
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#AES加密解密用到的工具类"><span class="nav-number">1.</span> <span class="nav-text">AES加密解密用到的工具类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SHA1"><span class="nav-number">1.1.</span> <span class="nav-text">SHA1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PKCS7Encoder"><span class="nav-number">1.2.</span> <span class="nav-text">PKCS7Encoder</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EncryptedMessage"><span class="nav-number">1.3.</span> <span class="nav-text">EncryptedMessage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ByteGroup"><span class="nav-number">1.4.</span> <span class="nav-text">ByteGroup</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AES加密解密"><span class="nav-number">2.</span> <span class="nav-text">AES加密解密</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#加密解密异常类"><span class="nav-number">3.</span> <span class="nav-text">加密解密异常类</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LeoChan</span>
+</div>
+
+
+<div class="powered-by">
+  Erstellt mit  <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
   }
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.js"></script>
 
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
 
 </body>
 </html>

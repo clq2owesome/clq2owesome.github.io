@@ -1,76 +1,358 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-  <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <meta name="description" content="描述啊">
-  <meta name="keywords" content="undefined">
+
+
+
   
-    <link rel="icon" href="">
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
   
     
-  <title>mysql存储引擎 | LeoChan&#39;s 个人博客</title>
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.css" />
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="MyISAM在Mysql5.1及之前的版本，MyISAM是默认的存储引擎。MyISAM提供了大量的特性，包括全文索引，压缩，空间函数（GIS）等，但MyISAM不支持事务和行级锁，而且有一个毫无疑问的缺陷就是奔溃后无法安全恢复。 MyISAM格式的一个重要缺陷就是不能在表损坏后恢复数据，不支持外键，也不支持事务 存储MyISAM会将表存储在两个文件中：数据文件和索引文件，分别以.MYD和.MYI为">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mysql存储引擎">
+<meta property="og:url" content="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql存储引擎/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="MyISAM在Mysql5.1及之前的版本，MyISAM是默认的存储引擎。MyISAM提供了大量的特性，包括全文索引，压缩，空间函数（GIS）等，但MyISAM不支持事务和行级锁，而且有一个毫无疑问的缺陷就是奔溃后无法安全恢复。 MyISAM格式的一个重要缺陷就是不能在表损坏后恢复数据，不支持外键，也不支持事务 存储MyISAM会将表存储在两个文件中：数据文件和索引文件，分别以.MYD和.MYI为">
+<meta property="og:updated_time" content="2018-02-25T08:59:07.237Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="mysql存储引擎">
+<meta name="twitter:description" content="MyISAM在Mysql5.1及之前的版本，MyISAM是默认的存储引擎。MyISAM提供了大量的特性，包括全文索引，压缩，空间函数（GIS）等，但MyISAM不支持事务和行级锁，而且有一个毫无疑问的缺陷就是奔溃后无法安全恢复。 MyISAM格式的一个重要缺陷就是不能在表损坏后恢复数据，不支持外键，也不支持事务 存储MyISAM会将表存储在两个文件中：数据文件和索引文件，分别以.MYD和.MYI为">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql存储引擎/"/>
+
+
+
+
+
+  <title>mysql存储引擎 | LeoChan's 个人博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </head>
 
-<body>
-  <header>
-  <div class="header-container">
-    <a class='logo' href="/">
-      <span>LeoChan's 个人博客</span>
-    </a>
-    <ul class="right-header">
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LeoChan's 个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
       
-        <li class="nav-item">
-          
-            <a href="/" class="item-link">首页</a>
-          
+        <p class="site-subtitle">技术都是通用的，重要的是是否具有自主解决问题的能力！</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Startseite
+          </a>
         </li>
       
-        <li class="nav-item">
-          
-            <a href="/about" class="item-link">关于</a>
-          
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archiv
+          </a>
         </li>
       
-        <li class="nav-item">
-          
-            <a href="/archives" class="item-link">归档</a>
-          
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
         </li>
       
-        <li class="nav-item">
-          
-            <a href="/tags" class="item-link">标签</a>
-          
-        </li>
+
       
     </ul>
-  </div>
-</header>
+  
 
-  <main id='post'>
-  <div class="content">
-    <article>
-        <section class="content markdown-body">
-          <h1>mysql存储引擎</h1>
-          <div class='post-meta'>
-            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2017年07月29日</time>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
             
-              | <i class="fa fa-folder-open-o" aria-hidden="true"></i> 
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a>/ <a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
-  </div>
 
+  <div id="posts" class="posts-expand">
+    
 
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/mysql存储引擎/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="LeoChan">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LeoChan's 个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">mysql存储引擎</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-07-29T10:09:45+08:00">
+                2017-07-29
+              </time>
+            
 
             
+
             
-          </div>
-          <h2 id="MyISAM"><a href="#MyISAM" class="headerlink" title="MyISAM"></a>MyISAM</h2><p>在Mysql5.1及之前的版本，MyISAM是默认的存储引擎。MyISAM提供了大量的特性，包括全文索引，压缩，空间函数（GIS）等，但MyISAM不支持事务和行级锁，而且有一个毫无疑问的缺陷就是奔溃后无法安全恢复。</p>
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据库相关/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库相关</span>
+                  </a>
+                </span>
+
+                
+                
+                  . 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据库相关/mysql/" itemprop="url" rel="index">
+                    <span itemprop="name">mysql</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="MyISAM"><a href="#MyISAM" class="headerlink" title="MyISAM"></a>MyISAM</h2><p>在Mysql5.1及之前的版本，MyISAM是默认的存储引擎。MyISAM提供了大量的特性，包括全文索引，压缩，空间函数（GIS）等，但MyISAM不支持事务和行级锁，而且有一个毫无疑问的缺陷就是奔溃后无法安全恢复。</p>
 <p><strong>MyISAM格式的一个重要缺陷就是不能在表损坏后恢复数据，不支持外键，也不支持事务</strong></p>
 <h4 id="存储"><a href="#存储" class="headerlink" title="存储"></a>存储</h4><p>MyISAM会将表存储在两个文件中：数据文件和索引文件，分别以<code>.MYD</code>和<code>.MYI</code>为扩展名。MyISAM表可以包含动态或者静态（长度固定）行。MySQL会根据表的定义来决定采用何种行格式。MyISAM表可以存储的行记录数，一般受限于可用的磁盘空间，或者操作系统中当个文件的最大尺寸。</p>
 <h4 id="MyISAM特性"><a href="#MyISAM特性" class="headerlink" title="MyISAM特性"></a>MyISAM特性</h4><h6 id="加锁与并发"><a href="#加锁与并发" class="headerlink" title="加锁与并发"></a>加锁与并发</h6><p>MyISAM对整张表加锁，而不是针对行。读取时会对需要读到的所有表加共享锁，写入时则对表加排他锁。但是在表有读取查询的同时，也可以往表中插入新的记录（这被称为并发插入，CONCURRENT INSERT）。</p>
@@ -221,96 +503,349 @@
 <p>数据量不大的话，这样做工作的很好。如果数据量很大，则可以考虑做分批处理，针对每一段数据执行事务提交操作，以避免大事务产生过多的undo。假设有主键字段id，重复运行以下语句（最小值x和最大值y进行相应的替换）将数据导入到新表：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">mysql&gt; START TRANSACTION;</div><div class="line">mysql&gt; INSERT INTO innodb_table SElECT * FROM myisam_table </div><div class="line">    -&gt; WHERE id BETWEEN x AND y;</div><div class="line">mysql&gt; COMMIT;</div></pre></td></tr></table></figure></p>
 <p>这样操作完成以后，新表是原表的一个全量复制，原表还在，如果需要可以删除原表。如果有必要，可以在执行的过程中对原表加锁，以确保新表和原表的数据一致。</p>
 
-        </section>
-    </article>
-    
-        
-  </div>
-  <aside>
-    
-    <div class="toc-container">
-        <h1>目录</h1>
-        <div class="content">
-            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#MyISAM"><span class="toc-number">1.</span> <span class="toc-text">MyISAM</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#存储"><span class="toc-number">1.0.1.</span> <span class="toc-text">存储</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MyISAM特性"><span class="toc-number">1.0.2.</span> <span class="toc-text">MyISAM特性</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#加锁与并发"><span class="toc-number">1.0.2.0.1.</span> <span class="toc-text">加锁与并发</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#修复"><span class="toc-number">1.0.2.0.2.</span> <span class="toc-text">修复</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#索引特性"><span class="toc-number">1.0.2.0.3.</span> <span class="toc-text">索引特性</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#延迟更新索引键（Delayed-Key-Write）"><span class="toc-number">1.0.2.0.4.</span> <span class="toc-text">延迟更新索引键（Delayed Key Write）</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#MyISAM压缩表"><span class="toc-number">1.0.2.0.5.</span> <span class="toc-text">MyISAM压缩表</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#MyISAM性能"><span class="toc-number">1.0.2.0.6.</span> <span class="toc-text">MyISAM性能</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#InnoDB"><span class="toc-number">2.</span> <span class="toc-text">InnoDB</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL-官方对InnoDB是这样解释的"><span class="toc-number">2.1.</span> <span class="toc-text">MySQL 官方对InnoDB是这样解释的</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MySQL内建的其他存储引擎"><span class="toc-number">3.</span> <span class="toc-text">MySQL内建的其他存储引擎</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Archive引擎"><span class="toc-number">3.0.1.</span> <span class="toc-text">Archive引擎</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Blackhole引擎"><span class="toc-number">3.0.2.</span> <span class="toc-text">Blackhole引擎</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CSV引擎"><span class="toc-number">3.0.3.</span> <span class="toc-text">CSV引擎</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Federated引擎"><span class="toc-number">3.0.4.</span> <span class="toc-text">Federated引擎</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Memory引擎"><span class="toc-number">3.0.5.</span> <span class="toc-text">Memory引擎</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Merge引擎"><span class="toc-number">3.0.6.</span> <span class="toc-text">Merge引擎</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NDB集群引擎"><span class="toc-number">3.0.7.</span> <span class="toc-text">NDB集群引擎</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#转换表的引擎"><span class="toc-number">4.</span> <span class="toc-text">转换表的引擎</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#1-ALTER-TABLE"><span class="toc-number">4.0.0.0.1.</span> <span class="toc-text">1.ALTER TABLE</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#2-导出和导入"><span class="toc-number">4.0.0.0.2.</span> <span class="toc-text">2.导出和导入</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-创建与查询（推荐）"><span class="toc-number">4.0.0.0.3.</span> <span class="toc-text">3.创建与查询（推荐）</span></a></li></ol></li></ol></li></ol></li></ol></li></ol>
-        </div>
-    </div>
-    
-  </aside>
-</main>
-
-
-
-  <footer>
-  <div class="copyright">
-    <div>
-      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
-    </div>
-    <div>
-      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
-    </div>
-  </div>
-</footer>
-
-
-<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
-<script src="/lib/in-view.min.js"></script>
-<script src="/lib/lodash.min.js"></script>
-<script>
-  var isDown = true
-  var oldY = 0
-  inView.offset(50)
-
-  document.body.addEventListener('touchstart', function(){});
-  
-  window.addEventListener('scroll', _.throttle(e => {
-    var currentY = window.scrollY
-    if((oldY - currentY) < 0) {
-      isDown = true
-    } else {
-      isDown = false
-    }
-    oldY = currentY
-  }, 250))
-
-  $("article img").each(function() {
-      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
-      $(this).wrapAll(strA);
-  });
-
-  $('.toc-link').each(function() {
-      var href = $(this).attr("href");
       
-      inView(href).on('exit', () => {
-        if (isDown) {
-          handleActive(href)
-        }
-      })
+    </div>
 
-      inView(href).on('enter', () => {
-        if (!isDown) {
-          handleActive(href)
-        }
-      })
+    <div>
+      
+        
 
-      this.onclick = function(e) {
-        var pos = $(href).offset().top - 10;
-        $("html,body").animate({scrollTop: pos}, 300);
-        setTimeout(() => {
-          handleActive(href)
-        }, 350)
-        return false
-      }
-  })
+      
+    </div>
 
-  function handleActive(href) {
-    document.querySelectorAll('.toc-link').forEach(elm => {
-      elm.classList.remove('active')
-    })
-    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/29/数据库相关/mysql/数据库连接池介绍/" rel="next" title="数据库连接池介绍">
+                <i class="fa fa-chevron-left"></i> 数据库连接池介绍
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/29/数据库相关/mysql/事务的ACID特性和隔离级别/" rel="prev" title="事务的ACID特性和隔离级别">
+                事务的ACID特性和隔离级别 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="LeoChan" />
+          <p class="site-author-name" itemprop="name">LeoChan</p>
+           
+              <p class="site-description motion-element" itemprop="description">描述啊</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">235</span>
+                <span class="site-state-item-name">Artikel</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-name">Kategorien</span>
+              
+            </div>
+          
+
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#MyISAM"><span class="nav-number">1.</span> <span class="nav-text">MyISAM</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#存储"><span class="nav-number">1.0.1.</span> <span class="nav-text">存储</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MyISAM特性"><span class="nav-number">1.0.2.</span> <span class="nav-text">MyISAM特性</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#加锁与并发"><span class="nav-number">1.0.2.0.1.</span> <span class="nav-text">加锁与并发</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#修复"><span class="nav-number">1.0.2.0.2.</span> <span class="nav-text">修复</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#索引特性"><span class="nav-number">1.0.2.0.3.</span> <span class="nav-text">索引特性</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#延迟更新索引键（Delayed-Key-Write）"><span class="nav-number">1.0.2.0.4.</span> <span class="nav-text">延迟更新索引键（Delayed Key Write）</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#MyISAM压缩表"><span class="nav-number">1.0.2.0.5.</span> <span class="nav-text">MyISAM压缩表</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#MyISAM性能"><span class="nav-number">1.0.2.0.6.</span> <span class="nav-text">MyISAM性能</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#InnoDB"><span class="nav-number">2.</span> <span class="nav-text">InnoDB</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL-官方对InnoDB是这样解释的"><span class="nav-number">2.1.</span> <span class="nav-text">MySQL 官方对InnoDB是这样解释的</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MySQL内建的其他存储引擎"><span class="nav-number">3.</span> <span class="nav-text">MySQL内建的其他存储引擎</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Archive引擎"><span class="nav-number">3.0.1.</span> <span class="nav-text">Archive引擎</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Blackhole引擎"><span class="nav-number">3.0.2.</span> <span class="nav-text">Blackhole引擎</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CSV引擎"><span class="nav-number">3.0.3.</span> <span class="nav-text">CSV引擎</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Federated引擎"><span class="nav-number">3.0.4.</span> <span class="nav-text">Federated引擎</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Memory引擎"><span class="nav-number">3.0.5.</span> <span class="nav-text">Memory引擎</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Merge引擎"><span class="nav-number">3.0.6.</span> <span class="nav-text">Merge引擎</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NDB集群引擎"><span class="nav-number">3.0.7.</span> <span class="nav-text">NDB集群引擎</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#转换表的引擎"><span class="nav-number">4.</span> <span class="nav-text">转换表的引擎</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#1-ALTER-TABLE"><span class="nav-number">4.0.0.0.1.</span> <span class="nav-text">1.ALTER TABLE</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#2-导出和导入"><span class="nav-number">4.0.0.0.2.</span> <span class="nav-text">2.导出和导入</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#3-创建与查询（推荐）"><span class="nav-number">4.0.0.0.3.</span> <span class="nav-text">3.创建与查询（推荐）</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LeoChan</span>
+</div>
+
+
+<div class="powered-by">
+  Erstellt mit  <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
   }
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.js"></script>
 
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
 
 </body>
 </html>
