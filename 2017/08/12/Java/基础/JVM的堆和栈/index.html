@@ -1,117 +1,76 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  
-  <title>JVM的堆和栈 | LeoChan&#39;s 个人博客</title>
+<html lang="zh-CN">
+  <head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="栈栈是java程序运行的关键，在java中，每一个线程都会有一个与之对应的线程栈。它是由许多栈帧（stack frame）或者说帧（frame）组成的，一个栈帧包含一个java方法调用的状态。当线程调用一个java方法时，虚拟机压入一个新的栈帧到该线程的java栈中，当该方法返回时，这个栈帧被从java栈中弹出并抛弃。总结起来就是，栈负责java程序运行过程中的进程和程序处理逻辑的控制。   栈帧">
-<meta property="og:type" content="article">
-<meta property="og:title" content="JVM的堆和栈">
-<meta property="og:url" content="https://clq2owesome.github.io/2017/08/12/Java/基础/JVM的堆和栈/index.html">
-<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
-<meta property="og:description" content="栈栈是java程序运行的关键，在java中，每一个线程都会有一个与之对应的线程栈。它是由许多栈帧（stack frame）或者说帧（frame）组成的，一个栈帧包含一个java方法调用的状态。当线程调用一个java方法时，虚拟机压入一个新的栈帧到该线程的java栈中，当该方法返回时，这个栈帧被从java栈中弹出并抛弃。总结起来就是，栈负责java程序运行过程中的进程和程序处理逻辑的控制。   栈帧">
-<meta property="og:image" content="http://note.youdao.com/yws/public/resource/5ae3ccd96f4823c07e89aa21f066d959/xmlnote/A54E95E4BFD74BCBA2EB0A5FA12C5BD1/7827">
-<meta property="og:updated_time" content="2017-08-12T11:58:44.000Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="JVM的堆和栈">
-<meta name="twitter:description" content="栈栈是java程序运行的关键，在java中，每一个线程都会有一个与之对应的线程栈。它是由许多栈帧（stack frame）或者说帧（frame）组成的，一个栈帧包含一个java方法调用的状态。当线程调用一个java方法时，虚拟机压入一个新的栈帧到该线程的java栈中，当该方法返回时，这个栈帧被从java栈中弹出并抛弃。总结起来就是，栈负责java程序运行过程中的进程和程序处理逻辑的控制。   栈帧">
-<meta name="twitter:image" content="http://note.youdao.com/yws/public/resource/5ae3ccd96f4823c07e89aa21f066d959/xmlnote/A54E95E4BFD74BCBA2EB0A5FA12C5BD1/7827">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="描述啊">
+  <meta name="keywords" content="undefined">
   
-    <link rel="alternate" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+    <link rel="icon" href="">
   
-  
-  
-    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
-  
-
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" integrity="sha384-XdYbMnZ/QjLh6iI4ogqCTaIjrFk87ip+ekIjefZch0Y+PvJ8CDYtEs1ipDmPorQ+" crossorigin="anonymous">
-
-  <link rel="stylesheet" href="/css/styles.css">
-  
-
+    
+  <title>JVM的堆和栈 | LeoChan&#39;s 个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.css" />
 </head>
 
 <body>
-  <nav class="navbar navbar-inverse">
-  <div class="container">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-menu-navbar" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>LeoChan's 个人博客</span>
+    </a>
+    <ul class="right-header">
       
-    </div>
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
 
-    <!-- Collect the nav links, forms, and other content for toggling -->
-    <div class="collapse navbar-collapse" id="main-menu-navbar">
-      <ul class="nav navbar-nav">
-        
-          <li><a class=""
-                 href="/index.html">Home</a></li>
-        
-          <li><a class=""
-                 href="/archives/">Archives</a></li>
-        
-      </ul>
-
-      <!--
-      <ul class="nav navbar-nav navbar-right">
-        
-          <li><a href="/atom.xml" title="RSS Feed"><i class="fa fa-rss"></i></a></li>
-        
-      </ul>
-      -->
-    </div><!-- /.navbar-collapse -->
-  </div><!-- /.container-fluid -->
-</nav>
-
-  <div class="container">
-    <div class="blog-header">
-  <h1 class="blog-title">LeoChan&#39;s 个人博客</h1>
-  
-    <p class="lead blog-description">技术都是通用的，重要的是是否具有自主解决问题的能力！</p>
-  
-</div>
-
-    <div class="row">
-        <div class="col-sm-8 blog-main">
-          <article id="post-Java/基础/JVM的堆和栈" class="article article-type-post" itemscope itemprop="blogPost">
-
-  <header class="article-header">
-    
-  
-    <h1 class="article-title" itemprop="name">
-      JVM的堆和栈
-    </h1>
-  
-
-
-  </header>
-
-  <div class="article-meta">
-    <div class="article-datetime">
-  <a href="/2017/08/12/Java/基础/JVM的堆和栈/" class="article-date"><time datetime="2017-08-12T02:09:45.000Z" itemprop="datePublished">2017-08-12</time></a>
-</div>
-
-    
-    
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>JVM的堆和栈</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2017年08月12日</time>
+            
+              | <i class="fa fa-folder-open-o" aria-hidden="true"></i> 
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/基础/">基础</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a>/ <a class="article-category-link" href="/categories/Java/基础/">基础</a>
   </div>
 
 
-  </div>
-  <div class="article-inner">
 
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h3><p>栈是java程序运行的关键，在java中，每一个线程都会有一个与之对应的线程栈。它是由许多栈帧（stack frame）或者说帧（frame）组成的，一个栈帧包含一个java方法调用的状态。当线程调用一个java方法时，虚拟机压入一个新的栈帧到该线程的java栈中，当该方法返回时，这个栈帧被从java栈中弹出并抛弃。总结起来就是，<strong>栈负责java程序运行过程中的进程和程序处理逻辑的控制</strong>。  </p>
+            
+            
+          </div>
+          <h3 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h3><p>栈是java程序运行的关键，在java中，每一个线程都会有一个与之对应的线程栈。它是由许多栈帧（stack frame）或者说帧（frame）组成的，一个栈帧包含一个java方法调用的状态。当线程调用一个java方法时，虚拟机压入一个新的栈帧到该线程的java栈中，当该方法返回时，这个栈帧被从java栈中弹出并抛弃。总结起来就是，<strong>栈负责java程序运行过程中的进程和程序处理逻辑的控制</strong>。  </p>
 <p>栈帧由三部分组成：局部变量区，操作数栈和帧数据区。</p>
 <ol>
 <li>局部变量区，顾名思义，存储对应方法的参数和局部变量。</li>
@@ -139,133 +98,96 @@
 <h5 id="堆中存什么？栈中存什么？"><a href="#堆中存什么？栈中存什么？" class="headerlink" title="堆中存什么？栈中存什么？"></a>堆中存什么？栈中存什么？</h5><p> <strong>堆中存的是对象</strong>。<strong>栈中存的是基本数据类型和堆中对象的引用</strong>。一个对象的大小是不可估计的，或者说是可以动态变化的，但是在栈中，一个对象只对应了一个4btye的引用（堆栈分离的好处）  </p>
 <p> 为什么不把基本类型放堆中呢？因为其占用的空间一般是1~8个字节——需要空间比较少，而且因为是基本类型，所以不会出现动态增长的情况——长度固定，因此栈中存储就够了，如果把他存在堆中是没有什么意义的（还会浪费空间，后面说明）。可以这么说，基本类型和对象的引用都是存放在栈中，而且都是几个字节的一个数，因此在程序运行时，他们的处理方式是统一的。但是基本类型、对象引用和对象本身就有所区别了，因为一个是栈中的数据一个是堆中的数据。最常见的一个问题就是，Java中参数传递时的问题。</p>
 
-      
-    </div>
-
+        </section>
+    </article>
     
-      
-
+        
+  </div>
+  <aside>
     
-
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/12/Java/基础/JVM的堆和栈/" data-id="cje2lrz1l003opxblfft66kxu" class="article-share-link">
-        <i class="fa fa-share"></i> Share
-      </a>
-      
-      
-
-    </footer>
-  </div>
-  
-    
-<ul id="article-nav" class="nav nav-pills nav-justified">
-  
-  <li role="presentation">
-    <a href="/2017/08/12/Java/基础/单例模式/" id="article-nav-older" class="article-nav-link-wrap">
-      <i class="fa fa-chevron-left pull-left"></i>
-      <span class="article-nav-link-title">单例模式</span>
-    </a>
-  </li>
-  
-  
-  <li role="presentation">
-    <a href="/2017/08/12/Java/基础/静态代码块和静态方法/" id="article-nav-newer" class="article-nav-link-wrap">
-      <span class="article-nav-link-title">静态代码块和静态方法</span>
-      <i class="fa fa-chevron-right pull-right"></i>
-    </a>
-  </li>
-  
-</ul>
-
-
-  
-</article>
-
-
-
-
-        </div>
-        <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
-          
-  <div class="sidebar-module sidebar-module-inset">
-  <h4>关于</h4>
-  <p>该博客内的文章是博主在日常工作或者学习中总结出来，部分内容来自网络.</p>
-
-</div>
-
-
-  
-  <div class="sidebar-module">
-    <h4>分类</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Eclipse/">Eclipse</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Github/">Github</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/">Java</a><span class="sidebar-module-list-count">84</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/Cookie/">Cookie</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JAXB/">JAXB</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/JavaMail/">JavaMail</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/分布式/">分布式</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/基础/">基础</a><span class="sidebar-module-list-count">21</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/数据类型/">数据类型</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/日记/">日记</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/时间日期/">时间日期</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/线程/">线程</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/网络NIO/">网络NIO</a><span class="sidebar-module-list-count">12</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/队列/">队列</a><span class="sidebar-module-list-count">5</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Java/集合/">集合</a><span class="sidebar-module-list-count">8</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Linux/">Linux</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Maven/">Maven</a><span class="sidebar-module-list-count">9</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/">Spring</a><span class="sidebar-module-list-count">60</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Application-Event/">Application Event</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/JPA/">JPA</a><span class="sidebar-module-list-count">7</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Security/">Security</a><span class="sidebar-module-list-count">22</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Spring-Boot/">Spring Boot</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Spring-Session/">Spring Session</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/Task/">Task</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a><span class="sidebar-module-list-count">17</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/Spring/基础/">基础</a><span class="sidebar-module-list-count">5</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/">前端技术相关</a><span class="sidebar-module-list-count">3</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/forever/">forever</a><span class="sidebar-module-list-count">2</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/前端技术相关/javascript/">javascript</a><span class="sidebar-module-list-count">1</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/">数据库相关</a><span class="sidebar-module-list-count">20</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/数据库相关/mysql/">mysql</a><span class="sidebar-module-list-count">20</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/">服务器相关</a><span class="sidebar-module-list-count">29</span><ul class="sidebar-module-list-child"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hessian/">Hessian</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Memcached/">Memcached</a><span class="sidebar-module-list-count">4</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Nginx/">Nginx</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a><span class="sidebar-module-list-count">3</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/red5/">red5</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/redis/">redis</a><span class="sidebar-module-list-count">13</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/服务器相关/resin/">resin</a><span class="sidebar-module-list-count">3</span></li></ul></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/categories/网络/">网络</a><span class="sidebar-module-list-count">9</span></li></ul>
-  </div>
-
-
-
-  
-
-
-  
-
-  
-  <div class="sidebar-module">
-    <h4>归档</h4>
-    <ul class="sidebar-module-list"><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2018/02/">二月 2018</a><span class="sidebar-module-list-count">45</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/10/">十月 2017</a><span class="sidebar-module-list-count">1</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/08/">八月 2017</a><span class="sidebar-module-list-count">62</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/07/">七月 2017</a><span class="sidebar-module-list-count">125</span></li><li class="sidebar-module-list-item"><a class="sidebar-module-list-link" href="/archives/2017/02/">二月 2017</a><span class="sidebar-module-list-count">2</span></li></ul>
-  </div>
-
-
-
-  
-  <div class="sidebar-module">
-    <h4>最近文章</h4>
-    <ul class="sidebar-module-list">
-      
-        <li>
-          <a href="/2018/02/25/Java/基础/java8新特性/">java8新特性</a>
-        </li>
-      
-        <li>
-          <a href="/2018/02/25/Java/集合/HashSet原理/">HashSet原理</a>
-        </li>
-      
-        <li>
-          <a href="/2018/02/25/Java/分布式/分布式锁/">分布式锁</a>
-        </li>
-      
-        <li>
-          <a href="/2018/02/25/Java/集合/在List循环中删除元素/">在List循环中删除元素</a>
-        </li>
-      
-        <li>
-          <a href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/">Hashtable与ConcurrentHashMap区别</a>
-        </li>
-      
-    </ul>
-  </div>
-
-
-
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#栈"><span class="toc-number">1.</span> <span class="toc-text">栈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#堆"><span class="toc-number">2.</span> <span class="toc-text">堆</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#堆和栈的联系和区别"><span class="toc-number">3.</span> <span class="toc-text">堆和栈的联系和区别</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#为什么要把堆和栈区分出来呢？栈中不是也可以存储数据吗？"><span class="toc-number">3.1.</span> <span class="toc-text">为什么要把堆和栈区分出来呢？栈中不是也可以存储数据吗？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#在Java中，Main函数就是栈的起始点，也是程序的起始点。"><span class="toc-number">3.2.</span> <span class="toc-text">在Java中，Main函数就是栈的起始点，也是程序的起始点。</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#堆中存什么？栈中存什么？"><span class="toc-number">3.2.1.</span> <span class="toc-text">堆中存什么？栈中存什么？</span></a></li></ol></li></ol></li></ol>
         </div>
     </div>
-  </div>
-  <footer class="blog-footer">
-  <div class="container">
-    <div id="footer-info" class="inner">
-      &copy; 2018 LeoChan<br>
-      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    
+  </aside>
+</main>
+
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
     </div>
   </div>
 </footer>
 
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
   
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" integrity="sha384-8gBf6Y4YYq7Jx97PIqmTwLPin4hxIzQw5aDmUg/DDhul9fFpbbLcLh3nTIIDJKhx" crossorigin="anonymous"></script>
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
 
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
 
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
 
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
 
-<script src="/js/script.js"></script>
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.js"></script>
+
 
 </body>
 </html>
