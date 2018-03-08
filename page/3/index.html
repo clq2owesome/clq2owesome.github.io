@@ -68,14 +68,14 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-数据库相关/mysql/建立索引的原则" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Linux/设置主机SSH连接不需要密码" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2018/02/25/数据库相关/mysql/建立索引的原则/" class="article-date">
+    <a href="/2018/02/25/Linux/设置主机SSH连接不需要密码/" class="article-date">
   <time datetime="2018-02-25T02:09:45.000Z" itemprop="datePublished">2018-02-25</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a>►<a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
   </div>
 
   </div>
@@ -86,7 +86,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/25/数据库相关/mysql/建立索引的原则/">建立索引的原则</a>
+      <a class="article-title" href="/2018/02/25/Linux/设置主机SSH连接不需要密码/">设置主机SSH连接不需要密码</a>
     </h1>
   
 
@@ -94,414 +94,31 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <ol>
-<li><strong>最左前缀匹配原则</strong>，非常重要的原则，mysql会一直向右匹配直到遇到范围查询(&gt;、&lt;、between、like)就停止匹配，比如a = 1 and b = 2 and c &gt; 3 and d = 4 如果建立(a,b,c,d)顺序的索引，d是用不到索引的，如果建立(a,b,d,c)的索引则都可以用到，a,b,d的顺序可以任意调整。</li>
-<li>=和in可以乱序，比如a = 1 and b = 2 and c = 3 建立(a,b,c)索引可以任意顺序，mysql的查询优化器会帮你优化成索引可以识别的形式</li>
-<li>尽量选择区分度高的列作为索引,区分度的公式是count(distinct col)/count(*)，表示字段不重复的比例，比例越大我们扫描的记录数越少，唯一键的区分度是1，而一些状态、性别字段可能在大数据面前区分度就是0，那可能有人会问，这个比例有什么经验值吗？使用场景不同，这个值也很难确定，一般需要join的字段我们都要求是0.1以上，即平均1条扫描10条记录</li>
-<li>索引列不能参与计算，保持列“干净”，比如from_unixtime(create_time) = ’2014-05-29’就不能使用到索引，原因很简单，b+树中存的都是数据表中的字段值，但进行检索时，需要把所有元素都应用函数才能比较，显然成本太大。所以语句应该写成create_time = unix_timestamp(’2014-05-29’);</li>
-<li>尽量的扩展索引，不要新建索引。比如表中已经有a的索引，现在要加(a,b)的索引，那么只需要修改原来的索引即可</li>
-</ol>
-<h3 id="实际中的一些通用的原则："><a href="#实际中的一些通用的原则：" class="headerlink" title="实际中的一些通用的原则："></a>实际中的一些通用的原则：</h3><ol>
-<li><p>在经常用作过滤器的字段上建立索引；</p>
+        <h2 id="单一连接"><a href="#单一连接" class="headerlink" title="单一连接"></a>单一连接</h2><ol>
+<li><p>在本机生成私匙和公匙</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ssh-keygen -t rsa</div></pre></td></tr></table></figure>
 </li>
-<li><p>在SQL语句中经常进行GROUP BY、ORDER BY的字段上建立索引；MySQL查询只使用一个索引，因此如果where子句中已经使用了索引的话，那么order by中的列是不会使用索引的。因此数据库默认排序可以符合要求的情况下不要使用排序操作；尽量不要包含多个列的排序，如果需要最好给这些列创建复合索引。</p>
+<li><p>把公匙放到需要连接的服务器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">scp ~/.ssh/id_rsa.pub 连接的账户@服务器ip:.ssh/id_rsa.pub</div><div class="line"></div><div class="line">如：</div><div class="line">scp ~/.ssh/id_rsa.pub root@120.77.81.95:.ssh/id_rsa.pub</div></pre></td></tr></table></figure>
 </li>
-<li><p>在不同值较少的字段上不必要建立索引，如性别字段；</p>
+<li><p>生成authorized_keys文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">检查是否存在该文件：</div><div class="line">cat /root/.ssh/authorized_keys</div><div class="line">不存在则生成</div><div class="line">touch /root/.ssh/authorized_keys</div></pre></td></tr></table></figure>
 </li>
-<li><p>对于经常存取的列避免建立索引；</p>
+<li><p>将id_rsa.pub的内容追加到authorized_keys 中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cat /root/.ssh/id_rsa.pub &gt;&gt; /root/.ssh/authorized_keys</div></pre></td></tr></table></figure>
 </li>
-<li><p>用于联接的列（主健/外健）上建立索引；</p>
-</li>
-<li><p>在经常查询的多个列上建立复合索引，但要注意复合索引的建立顺序要按照使用的频率来确定；</p>
-</li>
-<li><p>缺省情况下建立的是非簇集索引，但在以下情况下最好考虑簇集索引，如：含有有限数目（不是很少）唯一的列；进行大范围的查询；充分的利用索引可以减少表扫描I/0的次数，有效的避免对整表的搜索。当然合理的索引要建立在对各种查询的分析和预测中，也取决于DBA的所设计的数据库结构。</p>
-</li>
-<li><p>MySQL只对以下操作符才使用索引：&lt;,&lt;=,=,&gt;,&gt;=,between,in,以及某些时候的like(不以通配符%或_开头的情形)</p>
-</li>
-<li><p>索引不会包含有NULL值的列。只要列中包含有NULL值都将不会被包含在索引中，复合索引中只要有一列含有NULL值，那么这一列对于此复合索引就是无效的。所以我们在数据库设计时不要让字段的默认值为NULL。</p>
-</li>
-<li><p>使用短索引。<br>对串列进行索引，如果可能应该指定一个前缀长度。例如，如果有一个CHAR(255)的列，如果在前10个或20个字符内，多数值是惟一的，那么就不要对整个列进行索引,只需要针对特定的前缀进行索引即可。短索引不仅可以提高查询速度而且可以节省磁盘空间和I/O操作。</p>
+<li><p>测试<br>回到主机,ssh连接服务器，不需要密码则成功</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ssh root@120.77.81.95</div></pre></td></tr></table></figure>
 </li>
 </ol>
-<h3 id="索引的不足之处"><a href="#索引的不足之处" class="headerlink" title="索引的不足之处"></a>索引的不足之处</h3><p>过多的使用索引将会造成滥用。因此索引也会有它的缺点：  </p>
-<ol>
-<li><p>虽然索引大大提高了查询速度，同时却会降低更新表的速度，如对表进行INSERT、UPDATE和DELETE。因为更新表时，MySQL不仅要保存数据，还要保存一下索引文件。</p>
-</li>
-<li><p>建立索引会占用磁盘空间的索引文件。一般情况这个问题不太严重，但如果你在一个大表上创建了多种组合索引，索引文件的会膨胀很快。</p>
-</li>
-</ol>
+<p>如出现Agent admitted failure to sign using the key错误<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ssh-add   ~/.ssh/id_rsa</div></pre></td></tr></table></figure></p>
+<h3 id="控制n个机器如上所述自动登录"><a href="#控制n个机器如上所述自动登录" class="headerlink" title="控制n个机器如上所述自动登录"></a>控制n个机器如上所述自动登录</h3><p>需要n对钥匙(密钥和公钥), ssh-keygen 命令可以随意更改钥匙对的名字, 比如:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"># ssh-keygen -t rsa</div><div class="line">Generating public/private rsa key pair.</div><div class="line">Enter file in which to save the key (/root/.ssh/id_rsa): /root/.ssh/id_rsa_192.168.60.110</div></pre></td></tr></table></figure></p>
+<p>这样私钥和公钥的名字分别就是: id_rsa_192.168.60.110和 id_rsa_192.168.60.110.pub;然后将 id_rsa_192.168.60.110.pub 文件的内容, 追加到sever的 ~/.ssh/authorized_keys文件中,最后, 在本地用ssh命令的 -i 参数指定本地密钥, 并登录:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"># ssh -i /root/.ssh/id_rsa_192.168.60.110 someone@192.168.60.110</div></pre></td></tr></table></figure></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/建立索引的原则/" data-id="cjei8ydke00dh7obl5enbb1fs" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-数据库相关/mysql/创建高性能的索引" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/02/25/数据库相关/mysql/创建高性能的索引/" class="article-date">
-  <time datetime="2018-02-25T02:09:45.000Z" itemprop="datePublished">2018-02-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a>►<a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/25/数据库相关/mysql/创建高性能的索引/">创建高性能的索引</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>索引（在MySQL中也叫做“键（key）”）是存储引擎用于快速找到记录的一种数据结构。索引优化应该是对查询性能优化最有效的手段了。</p>
-<h2 id="索引基础"><a href="#索引基础" class="headerlink" title="索引基础"></a>索引基础</h2><h3 id="索引类型"><a href="#索引类型" class="headerlink" title="索引类型"></a>索引类型</h3><p>在MySQL中，索引是在存储引擎层而不是服务器层实现的。所以，并没有统一的索引标准：不同存储引擎的索引的工作方式并不一样，也不是所有的存储引擎都支持所有类型的索引。即使多个存储引擎支持同一种类型的索引，其底层的实现也可能不同。</p>
-<h4 id="B-Tree索引"><a href="#B-Tree索引" class="headerlink" title="B-Tree索引"></a>B-Tree索引</h4><p>存储引擎以不同的方式使用B-Tree索引，性能也各有不同，各有优劣。例如，MyISAM使用前缀压缩计数使得索引更小，但InnoDB则按照原数据格式进行存储。再如MyISAM索引通过数据的物理位置引用被索引的行，而InnoDB则根据主键引用被索引的行。</p>
-<p>B-Tree通常意味着所有的值都是按顺序存储的，并且每一个叶子页到根的距离相同。如下图展示了B-Tree索引的抽象表示：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/mysql1.jpeg" alt="image"><br>B-Tree索引能够加快访问数据的速度，因为存储引擎不再需要进行全表扫描来获取需要的数据，取而代之的是从索引的根节点（图示并未画出）开始进行搜索。根节点的槽中存放了指向子节点的指针，存储引擎根据这些指针向下层查找。通过比较节点页的值和要查找的值可以找到合适的指针进入下层子节点，这些指针实际上定义了子节点页中值的上限和下限。最终存储引擎要么是找到对应的值，要么该记录不存在。</p>
-<p>叶子节点比较特别，它们的指针指向的是被索引的数据，而不是其他节点页。上图仅绘制了一个节点和其对应的叶子节点，其实在根节点和叶子节点之间可能有很多层节点页。树的深度和表的大小直接相关。</p>
-<p><strong>索引对多个值进行排序的依据是CREATE TABLE语句中定义索引时列的顺序。</strong></p>
-<p><strong>B-Tree索引适用于全键值，键值范围或键前缀查找。其中键前缀查找只适用于根据最左前缀的查找</strong>。</p>
-<ul>
-<li><strong>全值匹配</strong><br>  全值匹配指的是和索引中的所有列进行匹配</li>
-<li><strong>匹配最左前缀</strong><br>  即按定义好的索引顺序，只使用索引的第一列或几列（按顺序）</li>
-<li><strong>匹配列前缀</strong><br>  也可以只匹配某一列的值的开头部分</li>
-<li><strong>匹配范围值</strong><br>  匹配某一范围内的值</li>
-<li><strong>精确匹配某一列并范围匹配另外一列</strong><br>  即第一列或几列是全值匹配，跟着一列是范围匹配，往后的列不能用于索引查询</li>
-<li><strong>只访问索引的查询</strong><br>  B-Tree通常可以支持“只访问索引的查询”，即查询只需要访问索引，而无须访问数据行</li>
-</ul>
-<p>B-Tree索引的限制：</p>
-<ul>
-<li>如果不是按照索引的最左列开始查找，则无法使用索引。</li>
-<li>不能跳过索引中的列</li>
-<li>如果查询中有某个列的范围查询，则其右边所有列都无法使用索引优化查询。</li>
-</ul>
-<p>索引列的顺序很重要：这些限制都和索引列的顺序有关。在优化性能的时候，可能需要使用相同的列但顺序不同的索引来满足不同类型的查询需求。</p>
-<h4 id="哈希索引"><a href="#哈希索引" class="headerlink" title="哈希索引"></a>哈希索引</h4><p>哈希索引（hash index）基于哈希表实现，只有精确匹配索引所有列的查询才有效。对于每一行数据，存储引擎都会对所有的索引列计算一个哈希码（hash code），哈希码是一个较小的值，并且不同键值的行计算出来的哈希码也不一样。哈希索引将所有的哈希码存储在索引中，同时在哈希表中保存指向每个数据行的指针。</p>
-<p>在Mysql中，只有Memory引擎显式支持哈希索引。这也是Memory引擎表的默认索引类型，Memory引擎同时也支持B-Tree索引。值得一提的是，Memory引擎是支持非唯一哈希索引的，这在数据库世界里面是比较与众不同的。如果多个列的哈希值相同，索引会以链表的方式存放多个记录指针到同一个哈希条目中。</p>
-<p>例如：<br>创建一个测试表：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">CREATE TABLE `testhash` (</div><div class="line">  `fname` varchar(50) COLLATE utf8_unicode_ci NOT NULL,</div><div class="line">  `lanme` varchar(50) COLLATE utf8_unicode_ci NOT NULL,</div><div class="line">  KEY `fname` (`fname`) USING HASH</div><div class="line">) ENGINE=MEMORY DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci</div></pre></td></tr></table></figure></p>
-<p>表中数据如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">mysql&gt; select * from testhash;</div><div class="line">+-------+-----------+</div><div class="line">| fname | lanme     |</div><div class="line">+-------+-----------+</div><div class="line">| Arjen | Lentz     |</div><div class="line">| Baron | Schwartz  |</div><div class="line">| Peter | Zaitsev   |</div><div class="line">| Vadim | Tkachenko |</div><div class="line">+-------+-----------+</div><div class="line">4 行于数据集 (0.05 秒)</div></pre></td></tr></table></figure></p>
-<p>假设索引使用假想的哈希函数f(),它返回下面的值（都是示例数据，非真实数据）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">f(&apos;Arjen&apos;)=2323</div><div class="line">f(&apos;Baron&apos;)=7437</div><div class="line">f(&apos;Peter&apos;)=8784</div><div class="line">f(&apos;Vadim&apos;)=2458</div></pre></td></tr></table></figure></p>
-<p>则哈希索引的数据结构如下：</p>
-<table>
-<thead>
-<tr>
-<th>槽（Slot）</th>
-<th>值（Value）</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>2323</td>
-<td>指向第1行的指针</td>
-</tr>
-<tr>
-<td>2458</td>
-<td>指向第4行的指针</td>
-</tr>
-<tr>
-<td>7437</td>
-<td>指向第2行的指针</td>
-</tr>
-<tr>
-<td>8784</td>
-<td>指向第3行的指针</td>
-</tr>
-</tbody>
-</table>
-<p>注意每个槽的编号是顺序的，但是数据行不是，现在来看如下查询：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT lanme FROM testhash WHERE fname = &apos;Peter&apos;;</div></pre></td></tr></table></figure></p>
-<p>MySQL先计算’Peter’的哈希值，并使用该值寻找对应的记录指针。因为f(‘Peter’)=8784，索引MySQL在索引中查找8784，可以找到指向第3行的指针，最后一步是比较第3行的值是否为’Peter’，以确保就是要查找的行。</p>
-<p>因为索引自身只需存储对应的哈希值，所以索引的结构十分紧凑，这也让哈希索引查找的速度非常快。然而，哈希索引也有它的限制：</p>
-<ul>
-<li><strong>哈希索引只包含哈希值和行指针，而不存储字段值，所以不能使用索引中的值来避免读取行</strong>。不过，访问内存中的行的速度很快，所以大部分情况下这一点对性能的影响并不明显。</li>
-<li><strong>哈希索引数据并不是按照索引值顺序存储的，而是按照索引值的哈希值大小存储的，原数据的大小跟索引值的哈希值大小并不一致，所以也就无法用于排序</strong>。</li>
-<li><strong>哈希索引也不支持部分索引列匹配查找，因为哈希索引始终是使用索引列的全部内容来计算哈希值的</strong>。例如，在数据列（A，B）上建立哈希索引，如果查询只有数据列A，则无法使用该索引。</li>
-<li><p><strong>哈希索引只支持等值比较查询，包括=，IN()，&lt;=&gt;（注意，&lt;&gt;和&lt;=&gt;是不同的操作），也不支持任何范围查询</strong>。例如WHERE price &gt; 100。<br>  注：&lt;=&gt;用于比较可能含有NULL的值，如</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">... WHERE col_a &lt;=&gt; ? ...</div></pre></td></tr></table></figure>
-<p>  这里的占位符有可能是常量也有可能是NULL，当使用&lt;=&gt;运算符时，你没有必要对查询语句做任何修改。</p>
-</li>
-<li><strong>访问哈希索引的数据非常快，除非有很多哈希冲突（不同的索引列值却有相同的哈希值）</strong>。当出现哈希冲突的时候，存储引擎必须遍历链表中所有的行指针，逐行进行比较，直到找到所有符合条件的行。</li>
-<li><strong>如果哈希冲突很多的话，一些索引维护操作的代价也会很高</strong>。例如，如果在某个选择性很低 （哈希冲突很多）的列上建立哈希索引，那么当从表中删除一行时，存储引擎需要遍历对应哈希值的链表中的每一行，找到并删除对应行的引用，冲突越多，代价越大。</li>
-</ul>
-<h2 id="索引的优点"><a href="#索引的优点" class="headerlink" title="索引的优点"></a>索引的优点</h2><p>最常见的B-Tree索引，按照顺序存储数据，所以MySQL可以用来做ORDER BY和GROUP BY操作。因为数据是有序的，所以B-Tree也就会将相关的列值都存储在一起。最后，因为索引中存储了实际的列值，所以某些查询只使用索引就能够完成全部查询。据此特性，总结下来索引有如下三个优点：</p>
-<ul>
-<li>索引大大减少了服务器需要扫描的数据量</li>
-<li>索引可以帮助服务器避免排序和临时表</li>
-<li>索引可以将随机I/O变为顺序I/O</li>
-</ul>
-<h2 id="高性能的索引策略"><a href="#高性能的索引策略" class="headerlink" title="高性能的索引策略"></a>高性能的索引策略</h2><h3 id="独立的列"><a href="#独立的列" class="headerlink" title="独立的列"></a>独立的列</h3><p>如果查询中的列不是独立的，则MySQL就不会使用索引。“独立的列”是指索引列不能是表达式的一部分，也不能是函数的参数。<br>例如，下面这个查询无法使用actor_id列的索引：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT actor_id FORM sakila.actor WHERE actor_id + 1 = 5</div></pre></td></tr></table></figure></p>
-<h3 id="前缀索引和索引选择性"><a href="#前缀索引和索引选择性" class="headerlink" title="前缀索引和索引选择性"></a>前缀索引和索引选择性</h3><p>通常可以索引开始的部分字符，这样可以大大节约索引空间，从而提高索引效率。但这样也会降低索引的选择性。<strong>索引的选择性是指，不重复的索引值（也称为基数，cardinality）和数据表的记录总数（#T）的比值，范围从1/#T到1之间。索引的选择性越高则查询效率越高，因为选择性高的索引可以让MySQL在查找时过滤掉更多的行。唯一索引的选择性是1，这是最好的索引选择性，性能也是最好的</strong>。</p>
-<p>一般情况下某个列前缀的选择性也是足够高的，足以满足查询性能。对于OLOB，TEXT或者很长的VARCHAR类型的列，必须使用前缀索引，因为MySQL不允许索引这些列的完整长度。</p>
-<p>诀窍在于要选择足够长的前缀以保证较高的选择性，同时又不能太长（以便节约空间）。前缀应该足够长，以使得前缀索引的选择性接近于索引整个列。换句话说，前缀的“基数”因该接近于完整列的“<strong>基数</strong>”。</p>
-<p>选择合适的前缀需要反复进行实验：比如<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">SELECT COUNT(*) AS cnt, LEFT(city, 7) AS pref FROM sakila.city_demo GROUP BY pref ORDER BY cnt DESC LIMIT 10;</div></pre></td></tr></table></figure></p>
-<table>
-<thead>
-<tr>
-<th>cnt</th>
-<th>pref</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>70</td>
-<td>Santing</td>
-</tr>
-<tr>
-<td>68</td>
-<td>San Fel</td>
-</tr>
-<tr>
-<td>65</td>
-<td>London</td>
-</tr>
-<tr>
-<td>…</td>
-<td>…</td>
-</tr>
-</tbody>
-</table>
-<p>不断改变前缀的长度，发现长度为7时最合适。</p>
-<p>计算合适的前缀长度的另外一个办法就是计算完整列的选择性，并使前缀的选择性接近于完整列的选择性。下面显示如何计算完整列的选择性：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT COUNT(DISTINCT city) / COUNT(*) FROM sakila.city_demo;</div><div class="line"></div><div class="line">+---------------------------------+</div><div class="line">| COUNT(DISTINCT city) / COUNT(*) | </div><div class="line">+---------------------------------+</div><div class="line">|  0.0312                         |</div><div class="line">+---------------------------------+</div></pre></td></tr></table></figure></p>
-<p>下面演示一下如何创建前缀索引：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; ALTER TABLE sakila.city_demo ADD KEY (city(7));</div></pre></td></tr></table></figure></p>
-<p><strong>前缀索引是一种能使索引更小，更快的有效办法，但另一方面也有其缺点：MySQL无法使用前缀索引做ORDER BY 和 GROUP BY，也无法使用前缀索引做覆盖扫描</strong>。</p>
-<h3 id="多列索引"><a href="#多列索引" class="headerlink" title="多列索引"></a>多列索引</h3><p>在多个列上建立独立的单列索引大部分情况下并不能提高MySQL的查询性能。MySQL5.0和更新版本引入了一种叫“<strong>索引合并</strong>”（index merge）策略，一定程度上可以使用表上的多个单列索引来定位指定的行。</p>
-<p>在MySQL5.0和更新的版本中，查询能够同时使用这两个单列索引进行扫描，并将扫描结果进行合并。这种算法有三个变种：</p>
-<ul>
-<li>OR条件的联合（union）</li>
-<li>AND条件的相交（intersection）</li>
-<li>组合前两种情况的联合及相交</li>
-</ul>
-<p>例如有单索引列actor_id和film_id<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">SELECT film_id, actor_id FROM sakila.film_actor WHERE actor_id = 1 OR film_id = 1;</div></pre></td></tr></table></figure></p>
-<p>索引合并策略有时候是一种优化的结果，但实际上更多时候说明了表上的索引建得很糟糕：</p>
-<ul>
-<li>当出现服务器对多个索引做相交操作时（通常有多个AND条件），通常意味着需要一个包含所有相关列的多列索引，而不是多个独立的单列索引。</li>
-<li>当服务器需要对多个索引做联合操作时（通常有多个OR条件），通常需要耗费大量CPU和内存资源在算法的缓存，排序和合并操作上。特别是当其中有些索引的选择性不高，需要合并并扫描返回的大量数据的时候。</li>
-<li>更重要的是，优化器不会把这些计算到“查询成本”（cost）中，优化器只关心随机页面读取。这会使得查询的成本被“低估”，导致该执行计划还不如直接走全表扫描。这样做不但会消耗更多的CPU和内存资源，还可能会影响查询的并发性，但如果是单独运行这样的查询则往往会忽略对并发性的影响。</li>
-</ul>
-<h3 id="选择合适的索引列顺序"><a href="#选择合适的索引列顺序" class="headerlink" title="选择合适的索引列顺序"></a>选择合适的索引列顺序</h3><p>在一个多列B-Tree索引中，索引列的顺序意味着索引首先按照最左列进行排序，其次是第二列，等等。所以，索引可以按照升序或者降序进行扫描，以满足精确符合列顺序的ORDER BY 和 GROUP BY 和 DISTINCT 等子句的查询需求。</p>
-<p>多列索引的列顺序至关重要。<strong>对于如何选择索引的列顺序有一个经验法则：将选择性最高的列放到索引最前列</strong>。</p>
-<p>当不需要考虑排序和分组时，将选择性最高的列放在前面通常是很好的。</p>
-<h3 id="聚簇索引"><a href="#聚簇索引" class="headerlink" title="聚簇索引"></a>聚簇索引</h3><p>聚簇索引并不是一种单独的索引类型，而是一种数据存储方式。当表有聚簇索引时，它的数据行实际上存放在索引的叶子页（leaf page）中。术语“聚簇”表示数据行和相邻的键值紧凑地存储在一起。因为无法同时把数据行存放在两个不同的地方，所以一个表只能有一个聚簇索引。</p>
-<p>因为是存储引擎负责实现索引，因此不是所有的存储引擎都支持聚簇索引。</p>
-<p>InnoDB将通过主键聚集数据。如果没有定义主键，InnoDB会选择一个唯一的非空索引代替。如果没有这样的索引。InnoDB会隐式定义一个主键来作为聚簇索引。InnoDB只聚集在同一个页面中的记录。包含相邻键值的页面可能会相距甚远。</p>
-<p>聚集数据的一些重要的优点：</p>
-<ul>
-<li>可以把相关数据保存到一起。</li>
-<li>数据访问更快。聚簇索引将索引和数据保存在同一个B-Tree中，因此从聚簇索引中获取数据通常比在非聚簇索引中查找更快。</li>
-<li>使用覆盖索引扫描的查询可以直接使用页节点中的主键值</li>
-</ul>
-<p>聚簇索引的一些缺点：</p>
-<ul>
-<li>聚簇数据最大限度地提高了I/O密集型应用的性能。但如果数据全部都放在内存中，则访问的顺序就没那么重要了，聚簇索引也就没什么优势了。</li>
-<li>插入速度严重依赖于插入顺序。按照主键的顺序插入是加载数据到InnoDB表中速度最快的方式。但如果不是按照主键顺序加载数据，那么在加载完成后最好使用<code>OPTIMIZE TABLE</code>命令重新组织一下表。</li>
-<li>更新聚簇索引列的代价很高，因为会强制InnoDB将每个被更新的行移动到新的位置。</li>
-<li>基于聚簇索引的表在插入新行，或者主键被更新导致需要移动行的时候，可能面临“页分裂（page split）”的问题。当行的主键值要求必须将这一行插入到某个已满的页中时，存储引擎会将该页分裂成两个页面来容纳改行，这就是一次页分裂操作。页分裂会导致表占用更多的磁盘空间。</li>
-<li>聚簇索引可能导致全表扫描变慢，尤其是行比较稀疏，或者由于页分裂导致数据存储不连续的时候。</li>
-<li>二级索引（非聚簇索引）可能比想象的要更大，因为在二级索引的叶子节点包含了引用行的主键列。</li>
-<li>二级索引访问需要两次索引查找，而不是一次。要记住，二级索引叶子节点保存的不是指向行的物理位置的指针，而是行的主键值。</li>
-</ul>
-<h3 id="InnoDB和MyISAM的数据分布对比"><a href="#InnoDB和MyISAM的数据分布对比" class="headerlink" title="InnoDB和MyISAM的数据分布对比"></a>InnoDB和MyISAM的数据分布对比</h3><p>来看看InnoDB和MyISAM是如何存储下面这个表的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">CREATE TABLE layout_test (</div><div class="line"> col1 int not null,</div><div class="line"> col2 int not null,</div><div class="line"> PRIMARY KEY(col1),</div><div class="line"> KEY(col2)</div><div class="line">);</div></pre></td></tr></table></figure></p>
-<h6 id="MyISAM"><a href="#MyISAM" class="headerlink" title="MyISAM"></a>MyISAM</h6><p>MyISAM按照数据插入的顺序存储在磁盘上，如下图：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM1.jpeg" alt="image"><br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM2.jpeg" alt="image"><br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM3.jpeg" alt="image"></p>
-<h6 id="InnoDB的数据分布"><a href="#InnoDB的数据分布" class="headerlink" title="InnoDB的数据分布"></a>InnoDB的数据分布</h6><p><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM4.jpeg" alt="image"><br>该图显示了整个表，而不是只有索引。因为在InnoDB中，聚簇索引“就是”表，所以不像MyISAM那样需要独立的行存储。</p>
-<p><strong>聚簇所以的每一个叶子节点都包含了主键值，事务ID，用于事务和MVCC的回滚指针以及所有的剩余列。如果主键是一个列前缀索引，InnoDB也会包含完整的主键列和剩下的其他列</strong>。</p>
-<p>还有一点和MyISAM的不同是，InnoDB的二级索引和聚簇索引很不同。InnoDB二级索引的叶子节点中存储的不是“行指针”，而是主键值，并以此作为指向行的“指针”。这样的策略减少了当出现行一定或者数据页分裂时二级索引的维护工作。使用主键值当作指针会让二级索引占用更多的空间，换来的好处是，InnoDB在移动行时无须更新二级索引中的这个“指针”。</p>
-<p>下面是二级索引分布图：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM5.jpeg" alt="image"></p>
-<p>下图是描述InnoDB和MyISAM如何存放表的抽象图：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM6.jpeg" alt="image"></p>
-<h3 id="在InnoDB表中按主键顺序插入行"><a href="#在InnoDB表中按主键顺序插入行" class="headerlink" title="在InnoDB表中按主键顺序插入行"></a>在InnoDB表中按主键顺序插入行</h3><p>如果正在使用InnoDB表并且没有什么数据需要聚集，那么可以定义一个代理键（surrogate key）作为主键，这种主键的数据应该和应用无关，最简单的方法是使用<code>AUTO_INCREMENT</code>自增列。这样可以保证数据行是按顺序写入，对于根据主键做关联操作的性能会更好。</p>
-<p>向聚簇索引中顺序插入数据：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM7.jpeg" alt="image"><br>因为主键的值是顺序的，所以InnoDB把每一条记录都存储在上一条记录的后面。当达到页的最大填充因子时（InnoDB默认最大填充因子是页大小的15/16，流出部分空间用于以后修改），下一条记录就会写入新的页中。一旦数据按照这种顺序的方式加载，主键页就会近似于被顺序的记录填满，这页正是所期望的结果（然而，二级索引页可能是不一样的）。</p>
-<p>最好避免随机的（不连续且值的分布范围非常大）聚簇索引，特别是对于I/O密集型的应用。例如，从性能的角度考虑，使用UUID来作为聚簇索引则会很糟糕：它使得聚簇索引的插入变得完全随机，这是最坏的情况，使得数据没有任何聚集特性。</p>
-<p>随机聚簇索引的缺点：</p>
-<ul>
-<li>写入的目标页可能已经刷到磁盘上并从缓存中移除，或者是还没有被加载到缓存中，InnoDB在插入之前不得不先找到并从磁盘读取目标页到内存中。这将导致大量的随机I/O</li>
-<li>因为写入是乱序的，InnoDB不得不频繁地做页分裂操作，以便为新的行分配空间，页分裂会导致移动大量数据，一次插入最少需要修改三个页而不是一个页。</li>
-<li>由于频繁的页分裂，页会变得稀疏并被不规则填充，所以最终数据会有碎片。</li>
-</ul>
-<p>在把这些随机值载入到聚簇索引以后，也行需要做一次<code>OPTIMIZE TABLE</code>来重建表并优化页的填充。</p>
-<h3 id="覆盖索引"><a href="#覆盖索引" class="headerlink" title="覆盖索引"></a>覆盖索引</h3><p>如果一个索引包含（或者说覆盖）所有需要查询的字段的值，我们就称之为“覆盖索引”。</p>
-<p>覆盖索引是非常有用的工具，能够极大地提高性能。考虑一下如果查询只需要扫描索引而无须回表，会带来多少好处：</p>
-<ul>
-<li><strong>索引条目通常远小于数据行大小，所以如果只需要读取索引，那MySQL机会极大地减少数据访问量</strong>。这对缓存负载非常重要，因为这种情况下响应时间大部分花费在数据拷贝上。覆盖索引对于I/O密集型的应用也有帮助，因为索引比数据更小，更容易全部放入内存中（这对于MyISAM尤其正确，因为MyISAM能压缩索引以变的更小）。</li>
-<li><strong>因为索引是按照列值顺序存储的（至少在单个页内是如此），所以对于I/O密集型的范围查询会比随机从磁盘读取每一行数据的I/O要少的多</strong>。</li>
-<li><strong>一些存储引擎如MyISAM在内存中只缓存索引，数据则依赖于操作系统来缓存</strong>，因此要访问数据需要一次系统调用。这可能会导致严重的性能问题，尤其是那些系统调用占了数据访问中的最大开销的场景。</li>
-<li>由于InnoDB的聚簇索引，覆盖索引对InnoDB表特别有用。InnoDB的二级索引在叶子节点中保存了行的主键值，所以如果二级主键能够覆盖查询，则可以避免对主键索引的二次查询。</li>
-</ul>
-<p><strong>不是所有类型的索引都可以成为覆盖索引。覆盖索引必须要存储索引列的值，而哈希索引，空间索引和全文索引等都不存储索引列的值，所以MySQL只能使用B-Tree索引做覆盖索引</strong>。另外，不同的存储引擎实现覆盖索引的方式也不同，而且不是所有的引擎都支持覆盖索引。</p>
-<p>比如，表inventory有一个多列索引（store_id, film_id）。MySQL如果只需访问这两列，就可以使用这个索引做覆盖索引<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT store_id, film_id FROM inventory;</div></pre></td></tr></table></figure></p>
-<p>下面的查询不会使用覆盖查询：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT * FROM products WHERE actor=&apos;SEAN CARREY&apos; AND title like &apos;%APOLLO%&apos;</div></pre></td></tr></table></figure></p>
-<p>这里的索引无法覆盖该查询，有两个原因：</p>
-<ul>
-<li>没有任何索引能够覆盖这个查询。因为查询从表中选择了所有的列，而没有任何索引覆盖了所有的列。不过，理论上MySQL还有一个捷径可以利用：WHERE条件中的列是由索引可以覆盖的，因此MySQL可以使用该索引找到对应的actor并检查title是否匹配，过滤之后再读取需要的数据行。</li>
-<li>MySQL不能在索引中执行LIKE操作。MySQL能在索引中做最左前缀匹配的LIKE比较，因为该操作可以转换为简单的比较操作，但是如果是通配符开头的LIKE查询，存储引擎就无法做比较匹配。这种情况下，MySQL服务器只能提取数据行的值而不是索引值来做比较。</li>
-</ul>
-<p>也有办法可以解决上面说的两个问题，需要重写查询并巧妙地设计索引。先将索引扩展至覆盖三个数据列（artist, title, prod_id），然后按如下方式重写查询：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT * FROM products JOIN (</div><div class="line">-&gt; SELECT prod_id FROM products WHERE actor=&apos;SEAN CARREY&apos; AND title LIKE &apos;%APOLLO&apos;</div><div class="line">-&gt; ) AS t1 ON (t1.prod_id = products.prod_id)</div></pre></td></tr></table></figure></p>
-<p>我们把这种方式叫做“<strong>延迟关联（deferred join）</strong>”,因为延迟了对列的访问。在查询的第一阶段MySQL可以使用覆盖索引，在FROM子句的子查询中找到匹配的prod_id，然后根据这些prod_id值在外层查询匹配获取需要的所有列值。虽然无法使用索引覆盖整个查询，但总算比完全无法利用索引覆盖好。</p>
-<h3 id="使用索引扫描来做排序"><a href="#使用索引扫描来做排序" class="headerlink" title="使用索引扫描来做排序"></a>使用索引扫描来做排序</h3><p>MySQL有两种方式可以生成有序的结果：</p>
-<ul>
-<li>通过排序操作</li>
-<li>按索引顺序扫描</li>
-</ul>
-<p><strong>只有当索引的列顺序和ORDER BY子句的顺序完全一致，并且所有列的排序方向（倒序或正序）都一样时，MySQL才能够使用索引来对结果做排序。如果查询需要关联多张表，则只有当ORDER BY子句引用的字段全部为第一张表时，才能使用索引做排序。ORDER BY子句和查找型查询的限制是一样的：需要满足索引的最左前缀的要求，否则MySQL都需要执行排序操作，而无法利用索引排序</strong>。</p>
-<p>有一种情况下ORDER BY子句可以不满足索引的最左前缀的要求，就是前导列为常量的时候。如果WHERE子句或者JOIN子句对这些列指定了常量，就可以“弥补”索引的不足。</p>
-<p>例如：表rental在列（rental_data，inv_id, cust_id）上设置了索引，则以下SQL语句可以用索引排序<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT rental_id, staff_id FROM rental WHERE retal_data = &apos;2018-01-01&apos; ORDER BY inv_id, cust_id;</div><div class="line"></div><div class="line">mysql&gt; ... WHERE retal_data = &apos;2018-01-01&apos; ORDER BY inv_id DESC;</div><div class="line"></div><div class="line">mysql&gt; ... WHERE retal_data &gt; &apos;2018-01-01&apos; ORDER BY retal_date, inv_id;</div></pre></td></tr></table></figure></p>
-<p>下面是一些不能使用索引做排序的查询：</p>
-<ol>
-<li><p>这个查询使用了两种不同的排序方向，但是索引列都是正序排序的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; ... WHERE retal_data = &apos;2018-01-01&apos; ORDER BY inv_id DESC, cust_id ASC;</div></pre></td></tr></table></figure>
-</li>
-<li><p>这个查询的ORDER BY 子句中引用了一个不在索引中的列：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; ... WHERE retal_data = &apos;2018-01-01&apos; ORDER BY inv_id, staff_id</div></pre></td></tr></table></figure>
-</li>
-<li><p>这个查询的WHERE 和 ORDER BY中的列无法组合成索引的最左前缀：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; ... WHERE retal_data = &apos;2018-01-01&apos; ORDER BY cust_id;</div></pre></td></tr></table></figure>
-</li>
-<li><p>这个查询在索引列的第一列上是范围条件，所以MySQL无法使用索引的其余列：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; ... WHERE retal_data &gt; &apos;2018-01-01&apos; ORDER BY inv_id, cust_id;</div></pre></td></tr></table></figure>
-</li>
-<li><p>这个查询在inv_id列上有多个等于条件。对于排序来说，这也是一种范围查询：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; ... WHERE retal_data = &apos;2018-01-01&apos; AND inv_id IN(1,2) ORDER BY cust_id;</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<h3 id="压缩（前缀压缩）索引"><a href="#压缩（前缀压缩）索引" class="headerlink" title="压缩（前缀压缩）索引"></a>压缩（前缀压缩）索引</h3><p>MyISAM使用前缀压缩来减少索引的大小，从而让更多的索引可以放入内存中，这在某些情况下能极大地提高性能。默认只压缩字符串，但通过参数设置也可以对整数做压缩。</p>
-<p><strong>MyISAM压缩每个索引块的方法是，先完全保存索引块中的第一个值，然后将其他值和第一个值进行比较得到相同前缀的字节数和剩余的不同后缀部分，把这部分存储起来即可。例如，索引块中第一个值是“perfform”，第二值是“performance”，那么第二个值的前缀压缩后存储的是类似“7,ance”这样的形式。MyISAM对行指针也采用类似的前缀压缩方式</strong>。</p>
-<p>压缩块使用更少的空间，代价是某些操作可能更慢。因为每个值的压缩前缀都依赖前面的值，所以MyISAM查找时无法在索引块使用二分查找而只能从从头开始扫描。正序的扫描速度还不错，但是如果是倒序扫描就不是很好了。</p>
-<h3 id="冗余和重复索引"><a href="#冗余和重复索引" class="headerlink" title="冗余和重复索引"></a>冗余和重复索引</h3><p>MySQL允许在相同列上创建多个索引。重复索引是指在相同的列上按照相同的顺序创建的相同类型的索引。应该避免这样创建重复索引，发现以后也应该立即移除。</p>
-<p>冗余索引通常发生在为表添加新索引的时候。例如有人可能会添加一个新的索引（A,B）而不是扩展已有的索引（A）。还有一种情况是将一个索引扩展为（A, ID），其中ID是主键，对于InnoDB来说主键列已经包含在二级索引中了，所以这也是冗余的。</p>
-<p>大多数情况下都不需要冗余索引，应该尽量扩展已有的索引而不是创建新索引。但也有时候出于性能方面的考虑需要冗余索引，因为扩展已有的索引会导致其变的太大，从而影响其他使用该索引的查询的性能。</p>
-<p>表中的索引越多插入速度会越慢。一般来说，增加新索引将会导致INSERT，UPDATE，DELETE等操作的速度变慢，特别是新增索引后导致达到了内存瓶颈的时候。</p>
-<p>可以使用Percona Toolkit中的<code>pt-duplicate-key-checker</code>分析表结构来找出冗余和重复的索引。</p>
-<h3 id="未使用的索引"><a href="#未使用的索引" class="headerlink" title="未使用的索引"></a>未使用的索引</h3><p>可以使用Percona Toolkit中的<code>pt-index-usage</code>，该工具可以读取查询日志，并对日志中的每条查询进行EXPLAIN操作，然后打印出关于索引和查询的报告。</p>
-<h3 id="索引的锁"><a href="#索引的锁" class="headerlink" title="索引的锁"></a>索引的锁</h3><p>InnoDB只有在访问行的时候才会对其加锁，而索引能够减少InnoDB访问的行数，从而减少锁的数量。但这只有当InnoDB在存储引擎层能够过滤掉所有不需要的行时才有效。如果索引无法过滤掉无效的行，那么在InnoDB检索到数据并返回给服务器层以后，MySQL服务器才能应用WHERE子句。</p>
-<p>比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">mysql&gt; set AUTOCOMMIT=0;</div><div class="line">mysql&gt; BEGIN;</div><div class="line">mysql&gt; SELECT actor_id FROM actor WHERE actor_id &lt; 5 AND actor_id &lt;&gt; 1 FOR UPDATE;</div><div class="line"></div><div class="line">+----------+</div><div class="line">| actor_id | </div><div class="line">+----------+</div><div class="line">| 2        |</div><div class="line">| 3        |</div><div class="line">| 4        |</div><div class="line">+----------+</div></pre></td></tr></table></figure></p>
-<p>这条查询仅仅会返回2～4之间的行，但是实际上获取了1～4之间的行的排他锁。InnoDB会锁住第一行。此时其他事务想获取第一行数据时不得不等待。</p>
-<p>关于InnoDB，索引和锁有一些很少有人知道的细节：InnoDB在二级索引上使用共享（读）锁，但访问主键索引需要排他（写）锁。这消除了使用覆盖索引的可能性，并且使得<code>SELECT FOR UPDATE</code> 比 <code>LOCK IN SHARE MODE</code> 或 非锁定查询要慢很多。</p>
-<h3 id="优化排序"><a href="#优化排序" class="headerlink" title="优化排序"></a>优化排序</h3><p>对于那些选择性非常低的列，可以增加一些特殊的索引来做排序。例如，可以创建（sex, rating）索引用于下面的查询：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT &lt;cols&gt; FROM profiles WHERE sex=&apos;M&apos; ORDER BY rating LIMIT 10;</div></pre></td></tr></table></figure></p>
-<p>这个查询同时使用了ORDER BY 和 LIMIT，如果没有索引的话会很慢。</p>
-<p>即使有索引，如果用户界面上需要翻页，并且翻页到比较靠后时查询也可能非常慢。如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt;SELECT &lt;cols&gt; FROM profiles WHERE sex=&apos;M&apos; ORDER BY rating LIMIT 100000, 10;</div></pre></td></tr></table></figure></p>
-<p>无论如何创建索引，这种查询都是个严重的问题，因为随着偏移量的增加，MySQL需要花费大量的时间来扫描需要丢弃的数据。一个更好的办法是限制用户能够翻页的数量，实际上这对用户体验的影响不大，因为用户很少会真正在乎搜索结果的第100000页。</p>
-<p>优化这类搜索的另一个比较好的策略是使用延迟关联，通过使用覆盖索引查询返回需要的主键，再根据这些主键关联原来的表获取需要的行。这可以减少MySQL扫描那些需要丢弃的行数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT &lt;cols&gt; FROM profiles INNER JOIN (</div><div class="line">-&gt; SELECT &lt;primary key cols&gt; FROM profiles</div><div class="line">-&gt; WHERE x.sex=&apos;M&apos; ORDER BY rating LIMIT 100000, 10</div><div class="line">-&gt; ) AS x USING(&lt;primary key cols&gt;);</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/创建高性能的索引/" data-id="cjei8ydke00df7oblyj601gxu" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-数据库相关/mysql/主键约束,唯一约束与默认约束" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/02/25/数据库相关/mysql/主键约束,唯一约束与默认约束/" class="article-date">
-  <time datetime="2018-02-25T02:09:45.000Z" itemprop="datePublished">2018-02-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a>►<a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/25/数据库相关/mysql/主键约束,唯一约束与默认约束/">主键约束,唯一约束与默认约束</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="主键约束（PRIMARY-KEY）"><a href="#主键约束（PRIMARY-KEY）" class="headerlink" title="主键约束（PRIMARY KEY）"></a>主键约束（PRIMARY KEY）</h3><ol>
-<li>主键用于唯一地标识表中的每一条记录，可以定义一列或多列为主键。 一个表只有一个主键</li>
-<li>是不可能（或很难）更新． 几乎不会对主键进行更新操作</li>
-<li>主键列上没有任何两行具有相同值（即重复值），不允许空（NULL）． </li>
-<li>主健可作外健，唯一索引不可；</li>
-</ol>
-<h3 id="唯一性约束（UNIQUE）"><a href="#唯一性约束（UNIQUE）" class="headerlink" title="唯一性约束（UNIQUE）"></a>唯一性约束（UNIQUE）</h3><ol>
-<li>唯一性约束用来限制不受主键约束的列上的数据的唯一性，用于作为访问某行的可选手段</li>
-<li>只要唯一就可以更新． </li>
-<li>即表中任意两行在 指定列上都不允许有相同的值，允许空（NULL）． </li>
-<li>一个表上可以放置多个唯一性约束</li>
-</ol>
-<h5 id="唯一性约束和主键约束的区别："><a href="#唯一性约束和主键约束的区别：" class="headerlink" title="唯一性约束和主键约束的区别："></a>唯一性约束和主键约束的区别：</h5><ol>
-<li>唯一性约束允许在该列上存在NULL值，而主键约束的限制更为严格，不但不允许有重复，而且也不允许有空值。 </li>
-<li>在创建唯一性约束和主键约束时可以创建聚集索引和非聚集索引，但在 默认情况下主键约束产生聚集索引，而唯一性约束产生非聚集索引</li>
-</ol>
-<h3 id="默认值-DEFAULT"><a href="#默认值-DEFAULT" class="headerlink" title="默认值(DEFAULT)"></a>默认值(DEFAULT)</h3><p>当插入记录时，如果没有明确为字段赋值，则自动赋予默认值。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/主键约束,唯一约束与默认约束/" data-id="cjei8ydkb00d77oblbk8cl349" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-GitHub/打开SSH功能" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/02/25/GitHub/打开SSH功能/" class="article-date">
-  <time datetime="2018-02-25T02:09:45.000Z" itemprop="datePublished">2018-02-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Github/">Github</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/25/GitHub/打开SSH功能/">打开SSH功能</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>在Mac通过ssh localhost 拒绝访问的问题，可能是由于sshd服务未开启</p>
-<h3 id="开启sshd服务"><a href="#开启sshd服务" class="headerlink" title="开启sshd服务"></a>开启sshd服务</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo launchctl load -w /System/Library/LaunchDaemons/ssh.plist</div></pre></td></tr></table></figure>
-<h3 id="关闭sshd服务"><a href="#关闭sshd服务" class="headerlink" title="关闭sshd服务"></a>关闭sshd服务</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo launchctl unload -w /System/Library/LaunchDaemons/ssh.plist</div></pre></td></tr></table></figure>
-<h3 id="查看ssh的服务是否开启"><a href="#查看ssh的服务是否开启" class="headerlink" title="查看ssh的服务是否开启"></a>查看ssh的服务是否开启</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">launchctl list | grep ssh</div><div class="line">------------------</div><div class="line">-	0	com.openssh.sshd</div></pre></td></tr></table></figure>
-<h3 id="查看是否成功"><a href="#查看是否成功" class="headerlink" title="查看是否成功"></a>查看是否成功</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">ssh localhost</div><div class="line">-------------------</div><div class="line">The authenticity of host &apos;localhost (::1)&apos; can&apos;t be established.</div><div class="line">ECDSA key fingerprint is SHA256:uS8js0TJ5KVjuNBq9dA2PnVWghti86Wf17B08r8cXyg.</div><div class="line">Are you sure you want to continue connecting (yes/no)? yes</div><div class="line">Warning: Permanently added &apos;localhost&apos; (ECDSA) to the list of known hosts.</div><div class="line">PTY allocation request failed on channel 0</div><div class="line">Hi there, You&apos;ve successfully authenticated, but Gogs does not provide shell access.</div><div class="line">If this is unexpected, please log in with password and setup Gogs under another user.</div><div class="line">Connection to localhost closed.</div></pre></td></tr></table></figure>
-<p><img src="http://img.blog.csdn.net/20150503221150338?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGlhbnlpaWk=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="image"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/GitHub/打开SSH功能/" data-id="cjei8ydcy00047obly7e6vau7" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Linux/设置主机SSH连接不需要密码/" data-id="cjei97eb0001489blvwzujuoo" class="article-share-link">Share</a>
       
       
     </footer>
@@ -633,7 +250,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/事务/" data-id="cjei8ydk800d27oblo6lr1nfr" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/事务/" data-id="cjei97ehp00cx89bl6a2m7c9f" class="article-share-link">Share</a>
       
       
     </footer>
@@ -643,14 +260,14 @@
 
 
   
-    <article id="post-Linux/Bash Shell的操作环境" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-数据库相关/mysql/主键约束,唯一约束与默认约束" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2018/02/25/Linux/Bash Shell的操作环境/" class="article-date">
+    <a href="/2018/02/25/数据库相关/mysql/主键约束,唯一约束与默认约束/" class="article-date">
   <time datetime="2018-02-25T02:09:45.000Z" itemprop="datePublished">2018-02-25</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a>►<a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
   </div>
 
   </div>
@@ -661,7 +278,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/25/Linux/Bash Shell的操作环境/">Bash Shell的操作环境</a>
+      <a class="article-title" href="/2018/02/25/数据库相关/mysql/主键约束,唯一约束与默认约束/">主键约束,唯一约束与默认约束</a>
     </h1>
   
 
@@ -669,276 +286,28 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="路径与命令查找顺序"><a href="#路径与命令查找顺序" class="headerlink" title="路径与命令查找顺序"></a>路径与命令查找顺序</h3><p>基本上，命令运行的顺序可以这样看：</p>
-<ol>
-<li>以相对/绝对路径执行命令，例如：<code>/bin/ls</code> 或 <code>./ls</code></li>
-<li>由alias找到该命令执行</li>
-<li>由bash内置的命令来执行</li>
-<li>通过$PATH这个变量的顺序找到的第一个命令来执行</li>
+        <h3 id="主键约束（PRIMARY-KEY）"><a href="#主键约束（PRIMARY-KEY）" class="headerlink" title="主键约束（PRIMARY KEY）"></a>主键约束（PRIMARY KEY）</h3><ol>
+<li>主键用于唯一地标识表中的每一条记录，可以定义一列或多列为主键。 一个表只有一个主键</li>
+<li>是不可能（或很难）更新． 几乎不会对主键进行更新操作</li>
+<li>主键列上没有任何两行具有相同值（即重复值），不允许空（NULL）． </li>
+<li>主健可作外健，唯一索引不可；</li>
 </ol>
-<h3 id="bash的登录与欢迎信息：-etc-issue，-etc-motd"><a href="#bash的登录与欢迎信息：-etc-issue，-etc-motd" class="headerlink" title="bash的登录与欢迎信息：/etc/issue，/etc/motd"></a>bash的登录与欢迎信息：/etc/issue，/etc/motd</h3><h4 id="登录界面"><a href="#登录界面" class="headerlink" title="登录界面"></a>登录界面</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cat /etc/issue</div><div class="line">Ubuntu 16.04.3 LTS \n \l</div></pre></td></tr></table></figure>
-<p>issue这个文件的内容可以使用反斜杠作为变量调用</p>
-<table>
-<thead>
-<tr>
-<th>代码</th>
-<th>issue内的各代码意义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>\d</td>
-<td>本地端的日期</td>
-</tr>
-<tr>
-<td>\l</td>
-<td>显示第几个终端机接口</td>
-</tr>
-<tr>
-<td>\m</td>
-<td>显示硬件的等级（i386/i486/i586/i686）</td>
-</tr>
-<tr>
-<td>\n</td>
-<td>显示主机的网络名称</td>
-</tr>
-<tr>
-<td>\o</td>
-<td>显示domain name</td>
-</tr>
-<tr>
-<td>\r</td>
-<td>操作系统的版本（相当于 uname -r）</td>
-</tr>
-<tr>
-<td>\t</td>
-<td>显示本地端时间的时间</td>
-</tr>
-<tr>
-<td>\s</td>
-<td>操作系统的名称</td>
-</tr>
-<tr>
-<td>\v</td>
-<td>操作系统的版本</td>
-</tr>
-</tbody>
-</table>
-<h4 id="欢迎内容"><a href="#欢迎内容" class="headerlink" title="欢迎内容"></a>欢迎内容</h4><p>如果你想要让用户登录后取得一些信息，例如你想要让大家都知道的信息，那么可以将信息加入/etc/motd里面去</p>
-<h3 id="bash的环境配置文件"><a href="#bash的环境配置文件" class="headerlink" title="bash的环境配置文件"></a>bash的环境配置文件</h3><h4 id="login-shell"><a href="#login-shell" class="headerlink" title="login shell"></a>login shell</h4><p>取得bash时需要完整的登录流程的，就称为login shell</p>
-<p>login shell其实只会读取这两个配置文件：</p>
-<ul>
-<li><code>/etc/profile</code>：这是系统整体的设置，你最好不要修改这个文件</li>
-<li><code>~/.bash_profile</code> 或 <code>~/.bash_login</code> 或 <code>~/.profile</code>：属于用户个人设置，你要改自己的数据，就写入这里</li>
-</ul>
-<p>bash的login shell情况下所读取的整体环境配置文件其实只有/etc/profile，但是/etc/profile还会调用其他的配置文件（/etc/inputrc，/etc/profile.d/*.sh，/etc/sysconfig/i18n）</p>
-<p>在login shell的bash环境中，所读取的个人偏好配置文件其实主要有三个，并且只会依序读取其中一个，三个文件的顺序为：</p>
-<ol>
-<li>~/.bash_profile</li>
-<li>~/.bash_login</li>
-<li>~/.profile</li>
+<h3 id="唯一性约束（UNIQUE）"><a href="#唯一性约束（UNIQUE）" class="headerlink" title="唯一性约束（UNIQUE）"></a>唯一性约束（UNIQUE）</h3><ol>
+<li>唯一性约束用来限制不受主键约束的列上的数据的唯一性，用于作为访问某行的可选手段</li>
+<li>只要唯一就可以更新． </li>
+<li>即表中任意两行在 指定列上都不允许有相同的值，允许空（NULL）． </li>
+<li>一个表上可以放置多个唯一性约束</li>
 </ol>
-<p>bash配置文件的读入方式比较有趣，主要通过一个命令“source”来读取的。也就是说~/.bash_profile其实会再调用~/.bashrc的设置内容，整个login shell的读取流程如下：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/bash.png" alt="image"></p>
-<h4 id="non-login-shell"><a href="#non-login-shell" class="headerlink" title="non-login shell"></a>non-login shell</h4><p>当你取得non-login shell时，该bash配置文件仅会读取~/.bashrc</p>
-<h4 id="读取环境配置文件的命令：source"><a href="#读取环境配置文件的命令：source" class="headerlink" title="读取环境配置文件的命令：source"></a>读取环境配置文件的命令：source</h4><p>由于/etc/profile 与 ~/.bash_profile都是取得login shell的时候才会读取的配置文件，所以如果你将自己的偏好设置写入上述的文件后，通常都是得注销再登录后该设置才会生效。那么能不能直接读取配置文件而不注销登录呢？可以的！那就是得要利用source这个命令了<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">source 配置文件</div><div class="line">例：</div><div class="line">将主文件夹的~/.bashrc的设置读入目前的bash环境中</div><div class="line">source ~/.bashrc</div><div class="line">. ~/.bashrc</div></pre></td></tr></table></figure></p>
-<p>利用source或者小数点（.）都可以将配置文件的内容读进目前的shell环境中</p>
-<h3 id="bash默认组合键"><a href="#bash默认组合键" class="headerlink" title="bash默认组合键"></a>bash默认组合键</h3><table>
-<thead>
-<tr>
-<th>组合按键</th>
-<th>执行结果</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ctrl+C</td>
-<td>终止目前的命令</td>
-</tr>
-<tr>
-<td>Ctrl+D</td>
-<td>输入结束（EOF）</td>
-</tr>
-<tr>
-<td>Ctrl+M</td>
-<td>就是Enter</td>
-</tr>
-<tr>
-<td>Ctrl+S</td>
-<td>暂停屏幕的输出</td>
-</tr>
-<tr>
-<td>Ctrl+Q</td>
-<td>恢复屏幕的输出</td>
-</tr>
-<tr>
-<td>Ctrl+U</td>
-<td>在提示符下，将整行命令删除</td>
-</tr>
-<tr>
-<td>Ctrl+Z</td>
-<td>暂停目前的命令</td>
-</tr>
-</tbody>
-</table>
-<h3 id="通配符"><a href="#通配符" class="headerlink" title="通配符"></a>通配符</h3><table>
-<thead>
-<tr>
-<th>符号</th>
-<th>意义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>*</td>
-<td>代表0个到无穷多个任意字符</td>
-</tr>
-<tr>
-<td>?</td>
-<td>代表一定有一个任意字符</td>
-</tr>
-<tr>
-<td>[]</td>
-<td>同样代表一定有一个在中括号内的字符（非任意字符）。例如[abcd]代表一定有一个字符，可能是a，b，c，d这个四个任何一个</td>
-</tr>
-<tr>
-<td>[-]</td>
-<td>若有减号在中括号内时，代表在编码顺序内的所有字符。例如[0-9]代表0到9之间的所有数字，因为数字的语系编码是连续的</td>
-</tr>
-<tr>
-<td>[^]</td>
-<td>若中括号内的第一个字符为指数符号（^）,那表示原向选择。例如[^abc]代表一个有一个字符，只要是非a，b，c的其他字符就可以</td>
-</tr>
-</tbody>
-</table>
-<h3 id="特殊符号"><a href="#特殊符号" class="headerlink" title="特殊符号"></a>特殊符号</h3><table>
-<thead>
-<tr>
-<th>符号</th>
-<th>内容</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>#</td>
-<td>批注符号，这个最常被使用在script中，视为说明，其后的数据均不执行</td>
-</tr>
-<tr>
-<td>\</td>
-<td>转义符号，将“特殊符号或通配符”还原成一般字符</td>
-</tr>
-<tr>
-<td>\</td>
-<td></td>
-<td>管道（pipe），分隔两个管道命令的界定</td>
-</tr>
-<tr>
-<td>;</td>
-<td>连续命令执行分隔符，连续性命令的界定</td>
-</tr>
-<tr>
-<td>~</td>
-<td>用户的主文件夹</td>
-</tr>
-<tr>
-<td>$</td>
-<td>使用变量前导符，即是变量之前需要加的变量替代值</td>
-</tr>
-<tr>
-<td>&amp;</td>
-<td>作业控制（job control），将命令变成背景工作</td>
-</tr>
-<tr>
-<td>!</td>
-<td>逻辑运算意义上的“非”</td>
-</tr>
-<tr>
-<td>/</td>
-<td>目录符号，路径分隔的符号</td>
-</tr>
-<tr>
-<td>&gt;,&gt;&gt;</td>
-<td>数据流重定向，输出导向，分别是“替换”与“累加”</td>
-</tr>
-<tr>
-<td>&lt;,&lt;&lt;</td>
-<td>数据流重定向，输入导向</td>
-</tr>
-<tr>
-<td>‘’</td>
-<td>单引号，不具有变量置换的功能</td>
-</tr>
-<tr>
-<td>“”</td>
-<td>具有变量置换的功能</td>
-</tr>
-</tbody>
-</table>
-<p><code>` | 两个“</code>”为可以先执行的命令，也可以使用$()<br>() | 在中间为子shell的起始与结束<br>{} | 在中间为命令块的组合</p>
-<h3 id="数据流重定向"><a href="#数据流重定向" class="headerlink" title="数据流重定向"></a>数据流重定向</h3><p>数据流重定向就是将某个命令执行后应该要出现在屏幕上的数据传输到其他地方</p>
-<h4 id="standard-output-与-standard-error-output"><a href="#standard-output-与-standard-error-output" class="headerlink" title="standard output 与 standard error output"></a>standard output 与 standard error output</h4><p>标准输出指的是命令执行所回传的正确的信息，而标准错误输出可理解为命令执行失败后，所回传的错误信息</p>
-<ul>
-<li>标准输入（stdin）：代码为0，使用&lt;或&lt;&lt;</li>
-<li>标准输出（stdout）：代码为1，使用&gt;或&gt;&gt;</li>
-<li>标准错误输出（stderr）：代码为2，使用2&gt;或2&gt;&gt;</li>
-</ul>
-<p>如果仅存在&gt;时，则代表默认的代码1，也就是说：</p>
-<ul>
-<li><code>1&gt;</code>：以<strong>覆盖</strong>的方法将正确的数据输出到指定的文件或者设备上</li>
-<li><code>1&gt;&gt;</code>：以<strong>累加</strong>的方法将正确的数据输出到指定的文件或者设备上</li>
-<li><code>2&gt;</code>：以<strong>覆盖</strong>的方法将错误的数据输出到指定的文件或者设备上</li>
-<li><code>2&gt;&gt;</code>：以<strong>累加</strong>的方法将错误的数据输出到指定的文件或者设备上</li>
-</ul>
-<h5 id="dev-null-垃圾桶黑洞设备"><a href="#dev-null-垃圾桶黑洞设备" class="headerlink" title="/dev/null 垃圾桶黑洞设备"></a>/dev/null 垃圾桶黑洞设备</h5><p>如果要将错误信息忽略掉而不显示或存储，可以使用<code>2&gt; /dev/null</code>,这个/dev/null可以吃掉任何导向这个设备的信息</p>
-<h5 id="将正确数据与错误数据写入同一文件"><a href="#将正确数据与错误数据写入同一文件" class="headerlink" title="将正确数据与错误数据写入同一文件"></a>将正确数据与错误数据写入同一文件</h5><p>可以使用命令<code>2&gt;&amp;1</code> 或者 <code>&amp;&gt;</code>，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">find /home -name .bashrc &gt; list 2&gt;&amp;1</div><div class="line">find /home -name .bashrc &amp;&gt; list</div></pre></td></tr></table></figure></p>
-<h3 id="命令执行的判断依据：-amp-amp"><a href="#命令执行的判断依据：-amp-amp" class="headerlink" title="命令执行的判断依据：(;, &amp;&amp;, ||)"></a>命令执行的判断依据：(<code>;</code>, <code>&amp;&amp;</code>, <code>||</code>)</h3><h4 id="cmd-cmd（在考虑命令相关性的连续命令执行）"><a href="#cmd-cmd（在考虑命令相关性的连续命令执行）" class="headerlink" title="cmd;cmd（在考虑命令相关性的连续命令执行）"></a>cmd;cmd（在考虑命令相关性的连续命令执行）</h4><p>在命令与命令中间利用分号（;）来隔开，分号前的命令执行完后就会立即接着执行后面的命令，例如<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sync; sync; shutdown -h now</div></pre></td></tr></table></figure></p>
-<h4 id="（命令回传码）与-amp-amp-或"><a href="#（命令回传码）与-amp-amp-或" class="headerlink" title="$?（命令回传码）与&amp;&amp;或||"></a>$?（命令回传码）与&amp;&amp;或||</h4><p>一般地，若前一个命令执行的结果为正确，在Linux下面会回传一个$?=0的值</p>
-<p>如果要通过这个回传码来判断后续的命令是否要执行，需要借助“&amp;&amp;”或“||”</p>
-<table>
-<thead>
-<tr>
-<th>命令的执行情况</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>cmd1 &amp;&amp; cmd2</td>
-<td>若cmd1执行完毕且正确执行（$?=0），则开始执行cmd2<br>若cmd1执行完毕且错误（$?≠0），则cmd2不执行</td>
-</tr>
-<tr>
-<td>cmd1 \</td>
-<td>\</td>
-<td>cmd2</td>
-<td>若cmd1执行完毕且正确执行（$?=0），则cmd2不执行<br>若cmd1执行完毕且错误（$?≠0），则开始执行cmd2</td>
-</tr>
-</tbody>
-</table>
-<p>例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">判断一个目录是否存在，不存在则创建</div><div class="line">ls /tmp/abc || mkdir /tmp/abc</div><div class="line"></div><div class="line">要在目录创建文件，但不知道该目录是否存在</div><div class="line">ls /tmp/abc || mkdir /tmp/abc &amp;&amp; touch /tmp/abc/hehe</div></pre></td></tr></table></figure></p>
-<p>一般来说，假设判断式有三个，也就是：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">command1 &amp;&amp; command2 || command3</div></pre></td></tr></table></figure></p>
-<p>而且顺序通常不会变，因为一般来说，command2与command3会放置肯定可以执行成功的命令</p>
-<h3 id="管道命令（pipe）"><a href="#管道命令（pipe）" class="headerlink" title="管道命令（pipe）"></a>管道命令（pipe）</h3><p>管道命令“|”仅能处理由前面一个命令传来的正确信息，也就是standard output的信息，对于standard error ouput并没有直接处理的能力</p>
-<p>在每个管道后面接的第一个数据必定是“命令”，而且这个命令必须要能够接收standard output的数据才行，这样的命令才可以是“管道命令”，例如：less，more head，tail等</p>
-<h4 id="选取命令：cut，grep"><a href="#选取命令：cut，grep" class="headerlink" title="选取命令：cut，grep"></a>选取命令：cut，grep</h4><h5 id="cut"><a href="#cut" class="headerlink" title="cut"></a>cut</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">cut -d &apos;分隔字符&apos; -f fields</div><div class="line">cut -c 字符范围</div><div class="line">参数：</div><div class="line">-d：后面接分隔字符，与-f一起使用</div><div class="line">-f：依据-d的分隔字符将一段信息切割成为数段，用-f取出第几段的意思</div><div class="line">-c：以字符的单位取出固定字符区间</div></pre></td></tr></table></figure>
-<h5 id="grep"><a href="#grep" class="headerlink" title="grep"></a>grep</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">grep [-acinv] [--color=auto] &apos;查找字符串&apos; filename</div><div class="line">参数：</div><div class="line">-a：将binary文件以text文件的方式查找数据</div><div class="line">-c：计算找到&apos;查找字符串&apos;的次数</div><div class="line">-i：忽略大小写</div><div class="line">-n：顺便输出行号</div><div class="line">-v：反向选择，即显示出没有&apos;查找字符串&apos;内容的那一行</div><div class="line">--color=auto：可以将找到的关键字部分加上颜色显示</div><div class="line"></div><div class="line">例子：将last当中有出现root那一行就取出来</div><div class="line">last | grep &apos;root&apos;</div><div class="line">----------------------------</div><div class="line">root     pts/0        210.21.9.252     Tue Dec 12 14:45   still logged in</div><div class="line">root     pts/0        210.21.9.252     Tue Dec 12 09:45 - 13:49  (04:03)</div><div class="line">root     pts/0        210.21.9.252     Mon Dec 11 15:05 - 19:19  (04:13)</div><div class="line"></div><div class="line">例子：将last当中没有出现root那一行就取出来</div><div class="line">last | grep -v &apos;root&apos;</div><div class="line">-----------------------------</div><div class="line">reboot   system boot  4.4.0-101-generi Fri Dec  8 20:22   still running</div><div class="line"></div><div class="line">wtmp begins Fri Dec  1 09:57:09 2017</div><div class="line"></div><div class="line">例子：在last的输出信息中，只要有root就取出，并且仅取第一列</div><div class="line">last | grep &apos;root&apos; | cut -d &apos; &apos; -f 1</div><div class="line">------------------------------</div><div class="line">root</div><div class="line">root</div><div class="line">root</div></pre></td></tr></table></figure>
-<h3 id="排序命令：sort，wc，uniq"><a href="#排序命令：sort，wc，uniq" class="headerlink" title="排序命令：sort，wc，uniq"></a>排序命令：sort，wc，uniq</h3><h4 id="sort"><a href="#sort" class="headerlink" title="sort"></a>sort</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">sort [-fbMnrtuk] [file or stdin]</div><div class="line">参数：</div><div class="line">-f：忽略大小写</div><div class="line">-b：忽略最前面的空格部分</div><div class="line">-M：以月份的名字来排序，例如JAN，DEC等的排序方法</div><div class="line">-n：使用“纯数字”进行排序（默认是以文字类型来排序的）</div><div class="line">-r：反向排序</div><div class="line">-u：就是uniq，相同的数据中，仅出现一行代表</div><div class="line">-t：分隔符，默认是用[tab]键来分隔</div><div class="line">-k：以那个区间（field）来进行排序的意思</div></pre></td></tr></table></figure>
-<h4 id="uniq"><a href="#uniq" class="headerlink" title="uniq"></a>uniq</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">uniq [-ic]</div><div class="line">参数：</div><div class="line">-i：忽略大小写</div><div class="line">-c：进行计算</div></pre></td></tr></table></figure>
-<h4 id="wc"><a href="#wc" class="headerlink" title="wc"></a>wc</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">wc [-lwm]</div><div class="line">参数：</div><div class="line">-l：仅列出行</div><div class="line">-w：仅列出多少字</div><div class="line">-m：多少字符</div><div class="line"></div><div class="line">例：取得这个月登录系统的总人次</div><div class="line">last | grep [a-zA-Z] | grep -v &apos;wtmp&apos; | wc -l</div><div class="line">#由于last会输出空白行和wtmp字样在最下面两行，所以利用grep取出非空白行以及wtmp那一行，再计算行数</div></pre></td></tr></table></figure>
-<h3 id="双向重定向：tee"><a href="#双向重定向：tee" class="headerlink" title="双向重定向：tee"></a>双向重定向：tee</h3><p>tee会同时将数据流保存到文件并且输出到屏幕。而输出到屏幕的，其实就是stdout，可以让下个命令继续处理<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">tee [-a] file</div><div class="line">参数：</div><div class="line">-a：以累加的方式，将数据加入file中</div><div class="line"></div><div class="line">例子：将last的输出存一份到last.list文件中,同时屏幕也有输出</div><div class="line">last | tee last.list | more</div></pre></td></tr></table></figure></p>
-<h3 id="字符转换命令：tr，col，join，paste，expand"><a href="#字符转换命令：tr，col，join，paste，expand" class="headerlink" title="字符转换命令：tr，col，join，paste，expand"></a>字符转换命令：tr，col，join，paste，expand</h3><h4 id="tr可以用来删除一段信息当中的文字，或者是进行文字信息的替换"><a href="#tr可以用来删除一段信息当中的文字，或者是进行文字信息的替换" class="headerlink" title="tr可以用来删除一段信息当中的文字，或者是进行文字信息的替换"></a>tr可以用来删除一段信息当中的文字，或者是进行文字信息的替换</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">tr [-ds] SET1 ...</div><div class="line">参数：</div><div class="line">-d：删除信息当中的SET1这个字符串</div><div class="line">-s：替换掉重复的字符</div><div class="line"></div><div class="line">例子：将/etc/passwd输出的信息中的冒号（:）删除</div><div class="line">cat /etc/passwd | tr -d &apos;:&apos;</div></pre></td></tr></table></figure>
-<h4 id="col"><a href="#col" class="headerlink" title="col"></a>col</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">col -[xb]</div><div class="line">参数：</div><div class="line">-x：将tab键转换成对等的空格键</div><div class="line">-b：在文字内有反斜杠（/）时，仅保留反斜杠最后接的那个字符</div></pre></td></tr></table></figure>
-<p>col经常被利用于将man page 转存为纯文本文件以方便查阅的功能</p>
-<h4 id="join"><a href="#join" class="headerlink" title="join"></a>join</h4><p>主要用于处理两个文件之间的数据，而且，主要是将两个文件中有相同数据的那一行加在一起<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">join [-ti12] file1 file2</div><div class="line">参数：</div><div class="line">-t：join默认以空格符分隔数据，并且对比“第一个字段”的数据；如果两个文件相同，则将两条数据连成一行，且第一个字段放在第一个</div><div class="line">-i：忽略大小写</div><div class="line">-1:这个是数字1，代表第一个文件要用哪个字段来分析</div><div class="line">-2:代表第二个文件要用哪个字段来分析</div></pre></td></tr></table></figure></p>
-<h4 id="paste"><a href="#paste" class="headerlink" title="paste"></a>paste</h4><p>相对于join必须要对比两个文件的数据相关性，paste就直接将两行贴在一起，且中间以[tab]键隔开而已<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">paster [-d] file1 file2</div><div class="line">参数：</div><div class="line">-d：后面可以接分隔符，默认是以[tab]来分隔的</div><div class="line">- ：如果file部分写成 - ，表示来自standard output的数据</div></pre></td></tr></table></figure></p>
-<h4 id="expand"><a href="#expand" class="headerlink" title="expand"></a>expand</h4><p>将[tab]按键转成空格键<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">expand [-t] file</div><div class="line">参数：</div><div class="line">-t：后面可以接数字，一般来说，一个[tab]键可以用8个空格键替换，我们也可以自行定义一个[tab]按键代表多少个字符</div></pre></td></tr></table></figure></p>
-<h3 id="切割命令：split"><a href="#切割命令：split" class="headerlink" title="切割命令：split"></a>切割命令：split</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">split [-bl] file PREFIX</div><div class="line">参数：</div><div class="line">-b：后面可接欲切割成的文件大小，可加单位，例如b，k，m等</div><div class="line">-l：以行数来切割</div><div class="line">PREFIX：代表前导符，可以作为切割文件的前导文字</div></pre></td></tr></table></figure>
-<h3 id="参数代换：xargs"><a href="#参数代换：xargs" class="headerlink" title="参数代换：xargs"></a>参数代换：xargs</h3><p>xargs就是产生某个命令的参数的意思。xargs可以读入stdin的数据，并且以空格符或断行字符进行分辨，将stdin的数据分隔成为arguments<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">xargs [-0epn] command</div><div class="line">参数：</div><div class="line">-0: 如果输入的stdin含有特殊字符，例如`，\，空格键等字符时，这个参数可以将它还原成一般字符。这个参数可以用于特殊状态</div><div class="line">-e：这个是EOF（end of file）的意思，后面可以接一个字符串，当xgras分析到这个字符串时，就会停止继续工作</div><div class="line">-p：在执行每个命令的参数时，都会询问用户的意思</div><div class="line">-n：后面接次数，每次command执行时，要使用几个参数的意思</div></pre></td></tr></table></figure></p>
-<h3 id="关于减号的用途"><a href="#关于减号的用途" class="headerlink" title="关于减号的用途"></a>关于减号的用途</h3><p>管道命令在bash的连续的处理程序中是相当重要的，在log file 的分析当中也是相当重要的一环。另外在管道命令中，经常会使用到前一个命令的stdout作为这次的stdin，某些命令需要用到文件名来进行处理时，该stdin与stdout可以利用减号“-”来替代，例如<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">tar -cvf - /home | tar -xvf -</div></pre></td></tr></table></figure></p>
-<p>上面的例子是说我将/home里面的文件打包，但打包的数据不是记录到文件，而是传送到sdtout；经过管道后，将<code>tar -cvf - /home</code>传送给后面的<code>tar -xvf -</code>。后面的这个-则是取用前一个命令的stdout，因此我们就不需要使用文件了</p>
+<h5 id="唯一性约束和主键约束的区别："><a href="#唯一性约束和主键约束的区别：" class="headerlink" title="唯一性约束和主键约束的区别："></a>唯一性约束和主键约束的区别：</h5><ol>
+<li>唯一性约束允许在该列上存在NULL值，而主键约束的限制更为严格，不但不允许有重复，而且也不允许有空值。 </li>
+<li>在创建唯一性约束和主键约束时可以创建聚集索引和非聚集索引，但在 默认情况下主键约束产生聚集索引，而唯一性约束产生非聚集索引</li>
+</ol>
+<h3 id="默认值-DEFAULT"><a href="#默认值-DEFAULT" class="headerlink" title="默认值(DEFAULT)"></a>默认值(DEFAULT)</h3><p>当插入记录时，如果没有明确为字段赋值，则自动赋予默认值。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Linux/Bash Shell的操作环境/" data-id="cjei8ydcz00057oblhc4ytqgf" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/主键约束,唯一约束与默认约束/" data-id="cjei97ehn00cs89blecc1xatb" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1105,7 +474,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/主从结构（master-slave）/" data-id="cjei8ydk600cy7obliwmh0spa" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/主从结构（master-slave）/" data-id="cjei97ehm00cq89bl6m3lfzmz" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1225,7 +594,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/explain分析sql效率/" data-id="cjei8ydk000cl7obltvj9dxgg" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/explain分析sql效率/" data-id="cjei97ehi00cg89blpl6uxr5l" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1289,7 +658,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/Btree索引和Hash索引的区别/" data-id="cjei8ydjy00cg7oblnogoc05f" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/Btree索引和Hash索引的区别/" data-id="cjei97ehh00cd89bl05n05ogf" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1334,7 +703,208 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Spring/Spring Session/Spring Session配置/" data-id="cjei8ydj300ai7obl62pv0uf2" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Spring/Spring Session/Spring Session配置/" data-id="cjei97ego00ad89blmkc3ae3s" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Spring/Spring Cloud/简介" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/25/Spring/Spring Cloud/简介/" class="article-date">
+  <time datetime="2018-02-25T02:09:45.000Z" itemprop="datePublished">2018-02-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/Spring-Session/">Spring Session</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/02/25/Spring/Spring Cloud/简介/">简介</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Spring Cloud 是一个基于Spring Boot实现的微服务架构开发工具。它为微服务架构中涉及的<strong>配置管理</strong>，<strong>服务治理</strong>，<strong>断路器</strong>，<strong>智能路由</strong>，<strong>微代理</strong>，<strong>控制总线</strong>，<strong>全局锁</strong>，<strong>决策竞选</strong>，<strong>分布式会话</strong>和<strong>集群状态管理</strong>等操作提供了一种简单的开发方式。</p>
+<p>Spring Cloud包含了多个子项目：</p>
+<ul>
+<li><strong>Spring Cloud Config</strong>：配置管理工具，支持使用Git存储配置内容，可以使用它实现应用配置的外部化存储，并支持客户端配置信息刷新，加密/解密配置内容等</li>
+<li><strong>Spring Cloud Netflix</strong>：核心组件，对多个NetFlix OSS开源套件进行整合<ul>
+<li><strong>Eureka</strong>：服务治理组件，包含服务注册中心，服务注册与发现机制的实现</li>
+<li><strong>Hystrix</strong>：容错管理组件，实现断路器模式，帮助服务依赖中出现的延迟和为故障提供强大的容错能力</li>
+<li><strong>Ribbon</strong>：客户端负载均衡的服务调用组件</li>
+<li><strong>Feign</strong>：基于Ribbon和Hystrix的声明式服务调用组件</li>
+<li><strong>Zuul</strong>：网关组件，提供智能路由，访问过滤等功能</li>
+<li><strong>Archaius</strong>：外部化配置组件</li>
+</ul>
+</li>
+<li><strong>Spring Cloud Bus</strong>：事件，消息总线，用于传播集群中的状态变化和事件，以触发后续的处理，比如用来动态刷新配置等</li>
+<li><strong>Spring Cloud Cluster</strong>：针对ZooKeeper，Redis，Hazelcast，Consul的选举算法和通用状态模式的实现</li>
+<li><strong>Spring Cloud Cloudfoundry</strong>：与Pivotal Cloudfounddry的整合支持</li>
+<li><strong>Spring Cloud Consul</strong>：服务发现与配置管理工具</li>
+<li><strong>Spring Cloud Stream</strong>：通过Redis，Rabbit或者Kafka实现的消费微服务，可以通过简单的声明式模型来发送和接收消息</li>
+<li><strong>Spring Cloud AWS</strong>：用于简化整合Amazon Web Service组件</li>
+<li><strong>Spring Cloud Security</strong>：安全工具包，提供在Zuul代理中对OAuth2客户端请求的中继器</li>
+<li><strong>Spring Cloud Sleuth</strong>：Spring Cloud应用的分布式跟踪实现，可以完美整合Zipkin</li>
+<li><strong>Spring Cloud ZooKeeper</strong>：基于ZooKeeper的服务发现与配置管理组件</li>
+<li><strong>Spring Cloud Starters</strong>：Spring Cloud的基础组件，它是基于Spring Boot风格项目的基础依赖模块</li>
+<li><strong>Spring Cloud CLI</strong>：用于在Groovy中快速创建Spring Cloud应用的Spring Boot CLI插件</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Spring/Spring Cloud/简介/" data-id="cjei97egm00a889bl4w6ult9h" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Spring/Spring Boot/常用的配置" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/25/Spring/Spring Boot/常用的配置/" class="article-date">
+  <time datetime="2018-02-25T02:09:45.000Z" itemprop="datePublished">2018-02-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/Spring-Boot/">Spring Boot</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/02/25/Spring/Spring Boot/常用的配置/">常用的配置</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div></pre></td><td class="code"><pre><div class="line">#Banner</div><div class="line">banner.charset=UTF-8</div><div class="line">banner.location=classpath:banner.txt</div><div class="line"></div><div class="line"></div><div class="line">#Spring Config(ConfigFileApplicationListener)</div><div class="line">spring.config.name=Spring配置文件名，默认为application</div><div class="line">spring.config.location=Spring配置文件的路径</div><div class="line"></div><div class="line">#Profiles</div><div class="line">spring.profiles.active=激活使用哪个环境的配置文件</div><div class="line">spring.profiles.include=无条件的激活指定的配置文件</div><div class="line"></div><div class="line">#logging</div><div class="line">logging.path=/var/logs</div><div class="line">logging.file=myapp.log</div><div class="line">logging.level.org.springframework=DEBUG，TRACE，INFO，WARN，ERROR，FATAL，OFF</div><div class="line"></div><div class="line">#inentity</div><div class="line">spring.application.name=</div><div class="line">spring.application.index=</div><div class="line"></div><div class="line">#embedded server configuration （ServerProperties）</div><div class="line">server.port=8080</div><div class="line">server.address= #bind to a specific NIC</div><div class="line">server.session-timeout=session过期时间（秒）</div><div class="line">server.context-path=#the context path，默认为/</div><div class="line">server.servlet-path=#the servlet path，默认为/</div><div class="line">server.display-name=应用的显示名称</div><div class="line"></div><div class="line">#Spring Mvc</div><div class="line">spring.mvc.locate=en_UK</div><div class="line">spring.mvc.date-format=yyyy-MM-dd</div><div class="line">spring.mvc.favicon.enabled=true</div><div class="line">spring.view.prefix=</div><div class="line">spring.view.suffix=</div><div class="line"></div><div class="line">#datasource</div><div class="line">spring.datasource.url</div><div class="line">spring.datasource.username</div><div class="line">spring.datasource.password</div><div class="line">spring.datasource.jndi-name</div><div class="line"></div><div class="line">#mongodb</div><div class="line">spring.data.mongodb.host=</div><div class="line">spring.data.mongodb.port=</div><div class="line">spring.data.mongodb.uri=mongodb://location/test</div><div class="line">spring.data.mongodb.database=</div><div class="line">spring.data.mongodb.authentication-database=</div><div class="line">spring.data.mongodb.grid-fs-database=</div><div class="line">spring.data.mongodb.username=</div><div class="line">spring.data.mongodb.password=</div><div class="line">spring.data.mongodb.repositories,enabled=</div><div class="line"></div><div class="line">#jpa</div><div class="line">spring.jpa.open-in-view=true</div><div class="line">spring.jpa.show-sql=true</div><div class="line">spring.jpa.database-platform=</div><div class="line">spring.jpa.database=</div><div class="line">spring.jpa.generate-ddl=false</div><div class="line">spring.jpa.hibernate.naming-strategy=</div><div class="line">spring.jpa.hibernate.ddl-auto=</div><div class="line">spring.data.jpa.repositories.enabled=true</div></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Spring/Spring Boot/常用的配置/" data-id="cjei97egl00a589bly2uonaug" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Spring/Spring Boot/多环境配置" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/25/Spring/Spring Boot/多环境配置/" class="article-date">
+  <time datetime="2018-02-25T02:09:45.000Z" itemprop="datePublished">2018-02-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/Spring-Boot/">Spring Boot</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/02/25/Spring/Spring Boot/多环境配置/">多环境配置</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="配置文件加载顺序"><a href="#配置文件加载顺序" class="headerlink" title="配置文件加载顺序"></a>配置文件加载顺序</h2><ol>
+<li>在命令行中传入的参数</li>
+<li>SPRING_APPLICATION_JSON中的属性。SPRING_APPLICATION_JSON是以JSON格式配置在系统环境变量中的内容</li>
+<li>java:comp/env中的JNDI属性</li>
+<li>java的系统属性，可以通过System.getproperties()获得的内容</li>
+<li>操作系统的环境变量</li>
+<li>通过random.*配置的随机属性</li>
+<li>位于当前应用jar包之外，针对不同{profile}环境的配置文件内容，例如application-{profile}.properties或是YAML定义的配置文件</li>
+<li>位于当前应用jar包之内，针对不同{profile}环境的配置文件内容，例如application-{profile}.properties或是YAML定义的配置文件</li>
+<li>位于当前应用jar包之外的application.properties和YAML配置内容</li>
+<li>位于当前应用jar包之内的application.properties和YAML配置内容</li>
+<li>在@Configuration注解修改的类中，通过@PropertySource注解定义的属性</li>
+<li>应用默认属性，使用SpringApplication.setDefaultProperties定义的内容</li>
+</ol>
+<p>优先级按上面的顺序由高到低，数字越小优先级越高</p>
+<p>可以看到，其中第7项和第9项都是从应用jar包之外读取配置文件，所以，实现外部化配置的原理就是从此切入，为其指定外部配置文件的记载位置来取代jar包之内的配置内容。通过这样的实现，我们的工程在配置中就变的非常干净，只需在本地放置开发需要的配置即可，而不用关心其他环境的配置，由其对应环境的负责人去维护即可</p>
+<h3 id="命令行参数"><a href="#命令行参数" class="headerlink" title="命令行参数"></a>命令行参数</h3><p>使用命令<code>java -jar</code>来启动应用时，还可以在命令行中指定应用的参数，比如<code>java -jar xxx.jar --server.port=8888</code>，直接以命令行的方式来设置<code>server.port</code>属性，并将启动应用的端口设为8888</p>
+<p>在命令行方式启动Spring Boot应用时，连续的两个减号–就是对application.properties中的属性值进行赋值的标识。所以，<code>java -jar xxx.jar --server.port=8888</code>命令，等价于在application.properties中添加属性server.port=8888</p>
+<h2 id="application-properties"><a href="#application-properties" class="headerlink" title="application.properties"></a>application.properties</h2><p><strong>Spring Boot的默认配置文件位置为：src/main/resources/application.properties 或者 application.yml；Spring Boot默认会加载放置在src/main/resources目录或者类路径的/config下</strong></p>
+<p>在Spring Boot中，多环境配置的文件名需要满足application-{profile}.properties的格式，其中{profile}对应你的环境标识，如下所示：</p>
+<ul>
+<li><strong>application-dev.properties</strong>（开发环境）</li>
+<li><strong>application-test.properties</strong>（测试环境）</li>
+<li><strong>application-prod.properties</strong>（生产环境）</li>
+</ul>
+<p>至于具体哪个配置文件会被加载，需要在application.properties文件中通过<strong>spring.profiles.active</strong>属性来设置，其值对应配置文件中的{profile}值。如spring.profiles.active=test就会加载application-test.properties配置文件内容</p>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><p>application.properties<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">root=http://localhost</div><div class="line"></div><div class="line">#spring.profiles.active</div><div class="line">spring.profiles.active=dev</div></pre></td></tr></table></figure></p>
+<ol>
+<li>Controller<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">@Autowired  </div><div class="line">private Environment env;  </div><div class="line">           </div><div class="line">@RequestMapping(&quot;/testProfile&quot;)  </div><div class="line">public String testProfile()&#123;  </div><div class="line">    return env.getProperty(&quot;profile&quot;);  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>测试：</p>
+<ul>
+<li>上述代码执行后的结果是：dev_envrimont</li>
+<li>如果application.properties的配置改为：spring.profiles.active=prod，则结果是：prod_envrimont</li>
+<li>如果application.properties的配置改为：spring.profiles.active=prod，而application.properties中也配置了profile=xxx（不管该配置配置在spring.profiles.active=prod的上方还是下方），这个时候结果是：prod_envrimont</li>
+<li>如果application.properties的配置改为：spring.profiles.active=prod，而application.properties中也配置了profile=xxx（不管该配置配置在spring.profiles.active=prod的上方还是下方），但是application-prod.properties删掉了profile = prod_envrimont，这个时候结果是：xxx</li>
+</ul>
+<p>结论：</p>
+<ul>
+<li>各个环境公共的配置写在application.properties中</li>
+<li>各个模块独有的配置配置在自己的application-{xxx}.properties文件中</li>
+<li>程序读取的时候优先读取application.properties中选中的profile的配置，若读不到才会从application.properties去读</li>
+</ul>
+<h2 id="application-yml"><a href="#application-yml" class="headerlink" title="application.yml"></a>application.yml</h2><p>缺陷：无法通过@PropertySource注解来加载配置</p>
+<h3 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a>示例</h3><p>spring boot中，可以通过在application.yml配置文件中，配置多个不同的profile，实现在不同的环境（比如开发、测试和生产环境）使用不同的配置变量。</p>
+<p>具体配置如下（application.yml中的内容）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">server:  </div><div class="line">  port: 8082  </div><div class="line">  </div><div class="line"># 默认的profile为dev，其他环境通过指定启动参数使用不同的profile，比如：  </div><div class="line">#   测试环境：java -jar my-spring-boot.jar --spring.profiles.active=test  </div><div class="line">#   生产环境：java -jar my-spring-boot.jar --spring.profiles.active=prod  </div><div class="line">spring:  </div><div class="line">  profiles:  </div><div class="line">    active: dev  </div><div class="line">  </div><div class="line">---  </div><div class="line"># 开发环境配置  </div><div class="line">spring:  </div><div class="line">  profiles: dev  </div><div class="line">mysql:  </div><div class="line">  ipPort: localhost:3306  </div><div class="line">    </div><div class="line">---  </div><div class="line"># 测试环境配置  </div><div class="line">spring:  </div><div class="line">  profiles: test  </div><div class="line">mysql:  </div><div class="line">  ipPort: 192.168.0.12:8066  </div><div class="line">    </div><div class="line">---  </div><div class="line"># 生产环境配置  </div><div class="line">spring:  </div><div class="line">  profiles: prod  </div><div class="line">mysql:  </div><div class="line">  ipPort: 192.168.0.13:8066</div></pre></td></tr></table></figure></p>
+<h2 id="启动Spring-Boot的方式"><a href="#启动Spring-Boot的方式" class="headerlink" title="启动Spring Boot的方式"></a>启动Spring Boot的方式</h2><ol>
+<li>作为一个Java应用程序，可以直接通过运行拥有main函数的类来启动</li>
+<li><p>通过maven执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mvn spring-boot:run命令</div></pre></td></tr></table></figure>
+</li>
+<li><p>在服务其上部署运行时，通常先使用<code>mvn install</code>将应用打包成jar包，再通过<code>java -jar xxx.jar</code>来启动应用</p>
+</li>
+</ol>
+<p>通过指定启动参数使用不同的profile，比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">#   测试环境：Java -jar my-spring-boot.jar --spring.profiles.active=test</div><div class="line">#   生产环境：java -jar my-spring-boot.jar --spring.profiles.active=prod</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Spring/Spring Boot/多环境配置/" data-id="cjei97ej000fj89blatjeb736" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1389,19 +959,19 @@
           </li>
         
           <li>
+            <a href="/2018/02/25/Java/基础/类加载机制/">类加载机制</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/25/Java/集合/HashSet原理/">HashSet原理</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/25/Java/集合/几种常见的map/">几种常见的map</a>
+          </li>
+        
+          <li>
             <a href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/">Hashtable与ConcurrentHashMap区别</a>
-          </li>
-        
-          <li>
-            <a href="/2018/02/25/Java/分布式/分布式事务/">分布式事务</a>
-          </li>
-        
-          <li>
-            <a href="/2018/02/25/Java/分布式/分布式锁/">分布式锁</a>
-          </li>
-        
-          <li>
-            <a href="/2018/02/25/Java/集合/在List循环中删除元素/">在List循环中删除元素</a>
           </li>
         
       </ul>

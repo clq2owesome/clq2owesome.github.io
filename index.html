@@ -184,11 +184,11 @@
 <p>通过key获取相应的分组引用，然后作为对象的键。</p>
 <h5 id="5-6-匹配成对标签"><a href="#5-6-匹配成对标签" class="headerlink" title="5.6 匹配成对标签"></a>5.6 匹配成对标签</h5><p>要求匹配：<br><figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">title</span>&gt;</span>regular expression<span class="tag">&lt;/<span class="name">title</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span>laoyao bye bye<span class="tag">&lt;/<span class="name">p</span>&gt;</span></div></pre></td></tr></table></figure></p>
 <p>不匹配：<br><figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">title</span>&gt;</span>wrong!<span class="tag">&lt;/<span class="name">p</span>&gt;</span></div></pre></td></tr></table></figure></p>
-<p>匹配一个开标签，可以使用正则&lt;[^&gt;]+&gt;，</p>
-<p>匹配一个闭标签，可以使用&lt;\/[^&gt;]+&gt;，</p>
+<p>匹配一个开标签，可以使用正则<code>&lt;[^&gt;]+&gt;</code>，</p>
+<p>匹配一个闭标签，可以使用<code>&lt;\/[^&gt;]+&gt;</code>，</p>
 <p>但是要求匹配成对标签，那就需要使用反向引用，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">var regex = /&lt;([^&gt;]+)&gt;[\d\D]*&lt;\/\1&gt;/;</div><div class="line">var string1 = &quot;&lt;title&gt;regular expression&lt;/title&gt;&quot;;</div><div class="line">var string2 = &quot;&lt;p&gt;laoyao bye bye&lt;/p&gt;&quot;;</div><div class="line">var string3 = &quot;&lt;title&gt;wrong!&lt;/p&gt;&quot;;</div><div class="line">console.log( regex.test(string1) ); // true</div><div class="line">console.log( regex.test(string2) ); // true</div><div class="line">console.log( regex.test(string3) ); // false</div></pre></td></tr></table></figure></p>
-<p>其中开标签&lt;[^&gt;]+&gt;改成&lt;([^&gt;]+)&gt;，使用括号的目的是为了后面使用反向引用，而提供分组。闭标签使用了反向引用，&lt;\/\1&gt;。</p>
-<p>另外[\d\D]的意思是，这个字符是数字或者不是数字，因此，也就是匹配任意字符的意思。</p>
+<p>其中开标签<code>&lt;[^&gt;]+&gt;</code>改成<code>&lt;([^&gt;]+)&gt;</code>，使用括号的目的是为了后面使用反向引用，而提供分组。闭标签使用了反向引用，<code>&lt;\/\1&gt;</code>。</p>
+<p>另外<code>[\d\D]</code>的意思是，这个字符是数字或者不是数字，因此，也就是匹配任意字符的意思。</p>
 <h2 id="正则表达式中-括号-方括号-大括号-的区别"><a href="#正则表达式中-括号-方括号-大括号-的区别" class="headerlink" title="正则表达式中(括号) [方括号] {大括号}的区别"></a>正则表达式中(括号) [方括号] {大括号}的区别</h2><ul>
 <li><p><code>括号()</code> ： 括号是多个匹配，它把括号内的当做一组来处理，限制一些多选的范围，比如上面的需求只能是com cn net结尾的用括号就是最好的选择。<br>括号能提取字符串，如(com|cn|net)就可以限制，只能是com或cn或net。<br>括号将括号里面的内容作为一组，这就是与[]不同的地方。</p>
 </li>
@@ -206,10 +206,10 @@
 <p>看下一个例子，假定要分析的字符串是xfooxxxxxxfoo</p>
 <ul>
 <li><p><strong>贪婪模式</strong>:<br>  最大匹配方式。模式分为子模式p1(.*)和子模式p2(foo)两个部分. 其中p1中的量词匹配方式使用默认方式(贪婪型)。 匹配开始时,吃入所有字符xfooxxxxxx去匹配子模式p1。匹配成功,但这样以来就没有了字符串去匹配子模式p2。本轮匹配失败；第二轮：减少p1部分的匹配量，吐出最后一个字符, 把字符串分割成xfooxxxxxxfo和o两个子字符串s1和s2。 s1匹配p1, 但s2不匹配p2。本轮匹配失败；第三轮，再次减少p1部分匹配量，吐出两个字符, 字符串被分割成xfooxxxxxxfo和oo两部分。结果同上。第四轮，再次减少p1匹配量, 字符串分割成xfooxxxxxx和foo两个部分, 这次s1/s2分别和p1/p2匹配。停止尝试,返回匹配成功。</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">var regex = /.*foo/;</div><div class="line">var string = &quot;xfooxxxxxxfoo&quot;;</div><div class="line">console.log( string.match(regex) ); //xfooxxxxxxfoo</div></pre></td></tr></table></figure>
+  <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> regex = <span class="regexp">/.*foo/</span>;</div><div class="line"><span class="keyword">var</span> string = <span class="string">"xfooxxxxxxfoo"</span>;</div><div class="line"><span class="built_in">console</span>.log( string.match(regex) ); <span class="comment">//xfooxxxxxxfoo</span></div></pre></td></tr></table></figure>
 </li>
 <li><p><strong>非贪婪模式</strong>:<br>  最小匹配方式。第一次尝试匹配, p1由于是0或任意次，因此被忽略，用字符串去匹配p2,失败；第二次，读入第一个字符x, 尝试和p1匹配, 匹配成功; 字符串剩余部分fooxxxxxxfoo中前三个字符和p2也是匹配的. 因此, 停止尝试, 返回匹配成功。在这种模式下，如果对剩余字符串继续去寻找和模式相匹配的子字符串，还会找到字符串末尾的另一个xfoo，而在贪婪模式下，由于第一次匹配成功的子串就已经是所有字符，因此不存在第二个匹配子串。</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">var regex = /.*?foo/;</div><div class="line">var string = &quot;xfooxxxxxxfoo&quot;;</div><div class="line">console.log( string.match(regex) ); //xfoo</div></pre></td></tr></table></figure>
+  <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> regex = <span class="regexp">/.*?foo/</span>;</div><div class="line"><span class="keyword">var</span> string = <span class="string">"xfooxxxxxxfoo"</span>;</div><div class="line"><span class="built_in">console</span>.log( string.match(regex) ); <span class="comment">//xfoo</span></div></pre></td></tr></table></figure>
 </li>
 </ul>
 <h2 id="JavaScript-RegExp-对象"><a href="#JavaScript-RegExp-对象" class="headerlink" title="JavaScript RegExp 对象"></a>JavaScript RegExp 对象</h2><p>正则表达式是描述字符模式的对象。</p>
@@ -220,7 +220,7 @@
 <li>modifiers(修饰符) 用于指定全局匹配、区分大小写的匹配和多行匹配</li>
 </ul>
 <p>注意：当使用构造函数创造正则对象时，需要常规的字符转义规则（在前面加反斜杠 \）。比如，以下是等价的：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> re = <span class="keyword">new</span> <span class="built_in">RegExp</span>(<span class="string">"\\w+"</span>);</div><div class="line"><span class="keyword">var</span> re = <span class="regexp">/\w+/</span>;</div></pre></td></tr></table></figure></p>
-<p>例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">var re = new RegExp(&quot;\\w+&quot;);</div><div class="line">re.test(&quot;abc&quot;);//true</div><div class="line"></div><div class="line">/\w+\.test(&quot;abc&quot;);//true</div></pre></td></tr></table></figure></p>
+<p>例如：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> re = <span class="keyword">new</span> <span class="built_in">RegExp</span>(<span class="string">"\\w+"</span>);</div><div class="line">re.test(<span class="string">"abc"</span>);<span class="comment">//true</span></div><div class="line"></div><div class="line">/\w+\.test(<span class="string">"abc"</span>);<span class="comment">//true</span></div></pre></td></tr></table></figure></p>
 <p><strong>修饰符</strong><br>修饰符用于执行区分大小写和全局匹配:</p>
 <table>
 <thead>
@@ -251,7 +251,7 @@
 <h6 id="test"><a href="#test" class="headerlink" title="test()"></a>test()</h6><p>test() 方法用于检测一个字符串是否匹配某个模式.</p>
 <p>如果字符串中有匹配的值返回 true ，否则返回 false。</p>
 <p><strong>语法：</strong><br>RegExpObject.test(string)</p>
-<p><strong>例子:</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">var str=&quot;Hello world!&quot;;</div><div class="line">//查找&quot;Hello&quot;</div><div class="line">var patt=/Hello/g;</div><div class="line">console.log(patt.test(str)); //true</div></pre></td></tr></table></figure></p>
+<p><strong>例子:</strong><br><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> str=<span class="string">"Hello world!"</span>;</div><div class="line"><span class="comment">//查找"Hello"</span></div><div class="line"><span class="keyword">var</span> patt=<span class="regexp">/Hello/g</span>;</div><div class="line"><span class="built_in">console</span>.log(patt.test(str)); <span class="comment">//true</span></div></pre></td></tr></table></figure></p>
 <h6 id="match"><a href="#match" class="headerlink" title="match()"></a>match()</h6><p>找到一个或多个正则表达式的匹配。</p>
 <p><strong>语法：</strong><br>string.match(regexp)</p>
 <p><strong>例子:</strong><br><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">有修饰符g</div><div class="line"><span class="keyword">var</span> str=<span class="string">"The rain in SPAIN stays mainly in the plain"</span>; </div><div class="line"><span class="built_in">console</span>.log(str.match(<span class="regexp">/ain/g</span>));<span class="comment">//"ain", "ain", "ain"</span></div><div class="line"></div><div class="line">没有修饰符g</div><div class="line"><span class="keyword">var</span> str=<span class="string">"The rain in SPAIN stays mainly in the plain"</span>; </div><div class="line"><span class="built_in">console</span>.log(str.match(<span class="regexp">/ain/</span>));<span class="comment">//"ain"</span></div></pre></td></tr></table></figure></p>
@@ -260,7 +260,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/03/08/正则表达式/正则表达式/" data-id="cjei8yddw001w7obl6lmks9x4" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/03/08/正则表达式/正则表达式/" data-id="cjei97ebf001t89ble5oa044x" class="article-share-link">Share</a>
       
       
     </footer>
@@ -270,9 +270,130 @@
 
 
   
-    <article id="post-Java/集合/Hashtable与ConcurrentHashMap区别" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/基础/类加载机制" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/" class="article-date">
+    <a href="/2018/02/25/Java/基础/类加载机制/" class="article-date">
+  <time datetime="2018-02-25T07:09:45.000Z" itemprop="datePublished">2018-02-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/基础/">基础</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/02/25/Java/基础/类加载机制/">类加载机制</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验，转换解析和初始化，最终形成可以被直接使用的java类型，这就是虚拟机的类加载机制。<br>类的生命周期包括<strong>加载（Loading）</strong>、<strong>验证（Verification）</strong>、<strong>准备（Preparation）</strong>、<strong>解析（Resolution）</strong>、<strong>初始化（Initialization）</strong>、<strong>使用（Using）</strong>、<strong>卸载（Unloading）</strong>等七个阶段，其中<strong>验证、准备和解析三个部分统称为连接（Linking）</strong>。而<strong>类的加载指的就是从加载到初始化这五个阶段</strong>。    </p>
+<p>虚拟机规范对于何时进行加载这一阶段并没有强制约束，但对于初始化阶段，虚拟机规范是严格规定了有且只有四种情况必须立即对类进行初始化：</p>
+<ol>
+<li>遇到new,getstatic,putstatic或invokestatic这4条字节码指令时，如果类没有进行过初始化，则需要先触发其初始化。生成这4条指定的场景是：使用new关键字实例化对象，读取或设置一个类的静态字段以及调用一个类的静态方法的时候。当然，被final修饰并在编译期就把结果放入常量池的静态字段不属于这些场景，这类静态字段的值在编译期时就会被编译器优化而直接放入常量池，其引用直接指向其在常量池的入口。</li>
+<li>使用java.lang.reflect包的方法对类进行反射调用时，如果类没有进行过初始化，则需要先触发其初始化。</li>
+<li>当初始化一个类的时候，如果发现其父类还没有进行过初始化，则需要先触发其父类的初始化。</li>
+<li>当虚拟机启动时，用户需要指定一个要执行的主类（包含main（）方法的类），虚拟机会先初始化这个主类。</li>
+<li>当使用JDK1.7的动态语言支持时，如果一个java.lang.invoke.MethodHandle实例最后的解析结果REF_getStatic，REF_putStatic，REF_invokeStatic的方法句柄，并且这个方法句柄所对应的类没有进行过初始化，则需要先触发其初始化。</li>
+</ol>
+<p>以上四种场景中的行为称为对一个类进行主动引用，除此之外所有引用类的方式都不会触发初始化，称为被动引用。<br>接口的加载过程与类加载过程最主要的区别在于第三点，即当一个类在初始化时，要求其父类全部都已经初始化过了，但是当初始化一个接口时，并不需要先初始化其父接口，而是只有真正使用到父接口中的字段的时候才会初始化。</p>
+<h3 id="类加载的各个阶段"><a href="#类加载的各个阶段" class="headerlink" title="类加载的各个阶段"></a>类加载的各个阶段</h3><h5 id="一个简单的类加载过程："><a href="#一个简单的类加载过程：" class="headerlink" title="一个简单的类加载过程："></a>一个简单的类加载过程：</h5><ol>
+<li>寻找jre目录，寻找jvm.dll，并初始化JVM；</li>
+<li>产生一个Bootstrap Loader（启动类加载器）；</li>
+<li>Bootstrap Loader自动加载Extended Loader（标准扩展类加载器），并将其父Loader设为Bootstrap Loader。</li>
+<li>Bootstrap Loader自动加载AppClassLoader（系统类加载器），并将其父Loader设为Extended Loader。</li>
+<li>最后由AppClassLoader加载HelloWorld类。</li>
+</ol>
+<h5 id="类记载目录："><a href="#类记载目录：" class="headerlink" title="类记载目录："></a>类记载目录：</h5><ol>
+<li>Bootstrap ClassLoader : 将存放于<java_home>\lib目录中的，或者被-Xbootclasspath参数所指定的路径中的，并且是虚拟机识别的（仅按照文件名识别，如 rt.jar 名字不符合的类库即使放在lib目录中也不会被加载）类库加载到虚拟机内存中。启动类加载器无法被Java程序直接引用</java_home></li>
+<li>Extension ClassLoader : 将<java_home>\lib\ext目录下的，或者被java.ext.dirs系统变量所指定的路径中的所有类库加载。开发者可以直接使用扩展类加载器。</java_home></li>
+<li>Application ClassLoader : 负责加载用户类路径(ClassPath)上所指定的类库,开发者可直接使用。</li>
+</ol>
+<p>ExtClassLoader和AppClassLoader在JVM启动后，会在JVM中保存一份，并且在程序运行中无法改变其搜索路径。如果想在运行时从其他搜索路径加载类，就要产生新的类加载器。</p>
+<h5 id="类记载器特点："><a href="#类记载器特点：" class="headerlink" title="类记载器特点："></a>类记载器特点：</h5><ol>
+<li>运行一个程序时，总是由AppClassLoader（系统类加载器）开始加载指定的类。</li>
+<li>在加载类时，每个类加载器会将加载任务上交给其父，如果其父找不到，再由自己去加载。</li>
+<li>Bootstrap Loader（启动类加载器）是最顶级的类加载器了，其父加载器为null.</li>
+</ol>
+<h5 id="类加载有三种方式："><a href="#类加载有三种方式：" class="headerlink" title="类加载有三种方式："></a>类加载有三种方式：</h5><ol>
+<li>命令行启动应用时候由JVM初始化加载</li>
+<li>通过Class.forName()方法动态加载</li>
+<li>通过ClassLoader.loadClass()方法动态加载</li>
+</ol>
+<p>三种方式区别比较大，看个例子就明白了：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">public class HelloWorld &#123; </div><div class="line">        public static void main(String[] args) throws ClassNotFoundException &#123; </div><div class="line">                ClassLoader loader = HelloWorld.class.getClassLoader(); </div><div class="line">                System.out.println(loader); </div><div class="line">                //使用ClassLoader.loadClass()来加载类，不会执行初始化块 </div><div class="line">                loader.loadClass(&quot;Test2&quot;); </div><div class="line">                //使用Class.forName()来加载类，默认会执行初始化块 </div><div class="line">                //Class.forName(&quot;Test2&quot;); </div><div class="line">                //使用Class.forName()来加载类，并指定ClassLoader，参数2设置为false时初始化时不执行静态块，设置为true时初始化时执行静态块</div><div class="line">                //Class.forName(&quot;Test2&quot;, false, loader); </div><div class="line">        &#125; </div><div class="line">&#125;</div><div class="line"> </div><div class="line">public class Test2 &#123; </div><div class="line">        static &#123; </div><div class="line">                System.out.println(&quot;静态初始化块执行了！&quot;); </div><div class="line">        &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>有关ClassLoader还有很重要一点：<br><strong>同一个ClassLoader加载的类文件，只有一个Class实例。但是，如果同一个类文件被不同的ClassLoader载入，则会有两份不同的Class实例</strong>（前提是着两个类加载器不能用相同的父类加载器）。</p>
+<p>以下对类加载的各个阶段进行简单的说明。  </p>
+<ul>
+<li><strong>加载阶段</strong>，虚拟机需要完成三件事：<ol>
+<li>通过一个类的全限定名来获取定义此类的二进制字节流</li>
+<li>将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构</li>
+<li><strong>在java堆中生成一个代表这个类的java.lang.Class对象，作为方法区这些数据的访问入口</strong>。</li>
+</ol>
+</li>
+<li><strong>验证阶段</strong>，不同虚拟机会进行不同类验证的实现，但大致都会完成以下四个阶段的检验过程：文件格式验证（验证字节流是否符合Class文件格式的规范，并能被当前版本的虚拟机处理），元数据验证（对字节码描述信息进行语义分析，保证其描述信息符合java语言规范），字节码验证（对类方法体进行数据流和控制流分析，保证类的方法在运行时不会做出危害虚拟机的行为）和符号引用验证（发生在将符号引用转化为直接引用的时候，在解析阶段中发生）。</li>
+<li><strong>准备阶段</strong>，正式为类成员变量（被static修饰的变量）（注意，不是实例成员变量，实例变量会在对象实例化时随着对象一起分配在java堆上）分配内存并设置类变量初始值（通常情况下是数据类型的零值，不进行赋值操作）的阶段，这些内存都将在方法区中进行分配。    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">例：public static int value=123;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>则在准备阶段过后，value的初始值为0而不是123，因为这时候尚未开始执行任何Java方法，而把value赋值为123的putstatic指令是程序被编译后，存放于类构造器<client>()方法之中，所以把value赋值为123的动作将在初始化阶段才会执行。</client></p>
+<ul>
+<li><strong>解析阶段</strong>，虚拟机将常量池内的符号引用替换为直接引用的过程。符号引用与内存布局无关，而直接引用的目标必定已经在内存中存在。<strong>解析动作主要针对类或接口、字段、类方法、接口方法，方法类型，方法句柄和调用限定符号期类符号引用进行</strong>。</li>
+<li><strong>初始化阶段</strong>，真正开始执行类中定义的java程序代码（字节码），是执行类构造器<clinit>()方法的过程。</clinit></li>
+</ul>
+<p><clinit>()方法的一些特点：</clinit></p>
+<ol>
+<li><p><clinit>()方法是由编译器自动收集类中的所有类变量的赋值动作和静态语句块（static｛｝）中的语句合并产生的，编译器收集顺序是由语句在源文件中出现的顺序所决定的，静态语句块中只能访问到定义在静态语句块之前的变量，定义在它之后的变量，在前面的静态语句块可以赋值，但是不能访问。</clinit></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public Class test &#123;</div><div class="line">    static &#123;</div><div class="line">        i = 0; //给变量赋值可以正常编译通过</div><div class="line">        System.out.println(i); //这句编译器会提示“非法向前引用”</div><div class="line">    &#125;</div><div class="line">    static int i = 1;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p><clinit>()方法与类的构造函数（或者说实例构造器<init>()方法）不同，它不需要显式地调用父类构造器，虚拟机会保证在子类的<clinit>()方法执行之前完成父类<clinit>()方法的执行。因此在虚拟机中第一个被执行的<client>()方法的类肯定是java.lang.Object。   </client></clinit></clinit></init></clinit></p>
+</li>
+<li>由于父类的<clinit>() 方法先执行，也就意味着父类中定义的静态语句块要优先于子类的变量赋值操作</clinit></li>
+<li><p><clinit>()方法对于类或接口来说并不是必须的，如果一个类中没有静态语句块，也没有对变量的赋值操作，则编译器可以不为这个类生成<clinit>()方法。   </clinit></clinit></p>
+</li>
+<li><p>接口中不能使用静态语句块，但仍然有变量初始化的赋值操作，因此接口与类一样都会生成<clinit>()方法，不同于类的地方是执行接口的<clinit>()方法时不需要先执行父类的<clinit>()方法。只有当父接口中定义的变量使用时，父接口才会初始化。另外，接口的实现类在初始化时也一样不会执行接口的<client>()方法。</client></clinit></clinit></clinit></p>
+</li>
+<li><p>虚拟机会保证一个类的<clinit>()方法在多线程环境中被正确地加锁和同步，如果多个线程同时去初始化一个类，则只有一个线程去执行这个类的<clinit>()方法，其它线程阻塞等待，直到活动线程执行<clinit>()方法完毕。 如果在一个类的<client>()方法中有耗时很长的操作，就可能造成多个进程阻塞，在实际应用中这种阻塞往往是很隐蔽的。</client></clinit></clinit></clinit></p>
+<p> 需要注意的是，其他线程虽然会被阻塞，但如果执行<client>()方法的那条线程退出<client>()方法后，其他线程唤醒之后不会再次进入<client>()方法。同一个类加载器下，一个类型只会初始化一次。</client></client></client></p>
+</li>
+</ol>
+<p>了解完各个类加载机制的阶段后，我们需要进一步了解类加载器这个概念。类加载器只用于实现类的加载动作，即实现通过一个类的全限定名来获取描述此类的二进制字节流。<strong>但对于类来说，要判断两个类是否相等（instanceof，equal），其前提是两个类是由同一个类加载器所加载，否则，无论两个类是否来源于同一个Class文件，这两个类都必定不等，亦即是说，对于任意一个类，都需要由加载它的类加载器和这个类本身一同确立其在java虚拟机的唯一性。</strong>  </p>
+<p>在Java开发人员看来，类加载器可划分为以下三类系统提供的类加载器：启动类加载器（Boostrap ClassLoader，负责将存放在<java_home>\lib目录中的类库加载到虚拟机内存中，其无法被Java程序直接引用），扩展类加载器（Extension ClassLoader，由sun.misc.Launcher$ExtClassLoader实现，负责加载<java_home>\lib\ext目录中的类库，可被开发者直接使用），应用程序类加载器（由sun.misc.Launcher$AppClassLoader来实现，负责加载用户类路径（ClassPath）上指定的类库，可被开发者直接使用，且为默认的类加载器）。  </java_home></java_home></p>
+<p>java中采用<strong>双亲委派模型</strong>（Parents Delegation Model）来实现类的加载模式。双亲委派模型要求除了顶层的启动类加载器外，其余的类加载器都应当有自己的父类加载器，此处的父子关系不以继承来实现，而是采用组合来利用父加载器。    </p>
+<p>双亲委派模型的工作过程：如果一个类加载器收到了类加载的请求，它首先不会自己去尝试加载这个类，而是把这个请求委派给父类加载器去完成，每一个层次的类加载器都是如此，因此所有的加载请求最终都应该传送到顶层的启动类加载器中，只有当父加载器反馈自己无法完成这个加载请求（它的搜索范围中没有找到所需的类）时，子加载器才会自己去加载。</p>
+<p>使用双亲委派模型来组织类加载器之间的关系，有一个显而易见的好处是Java类随着它的类加载器一起具备了一种带有优先级的层次关系。例如类java.lang.Object，它存放在rt.jar之中，无论哪一个类加载器要加载这个类，最终都是委派给处于模型最顶端的启动类加载器进行加载，因此Object类在程序的各种类加载器环境中都是同一个类。相反，如果没有使用双亲委派模型，由各个类加载器自行去加载的话，如果用户自己编写了一个成为java.lang.Object的类，并放在程序的ClassPath之中，那系统中将会出现多个不同的Object类，Java类型体系中最基础的行为也就无法保证。</p>
+<p>其模型如下图所示：<br><img src="http://note.youdao.com/yws/public/resource/ee75e4361b58214a36b4d854bbd3faf1/xmlnote/EEE7B3274550464AB506A63343F42905/7749" alt="image">    </p>
+<h3 id="虚拟机字节码执行引擎"><a href="#虚拟机字节码执行引擎" class="headerlink" title="虚拟机字节码执行引擎"></a>虚拟机字节码执行引擎</h3><p>了解了以上类文件结构和类加载机制后，我们最后再来看看字节码在虚拟机中是如何被执行的。  </p>
+<p>不同的虚拟机实现时硕，执行引擎在执行Java执行的时候可能有解释执行（通过解释器执行）和编译执行（通过即时编译器产生本地代码执行）两种选择，也可能两者兼备，甚至可能包含几个不同级别的编译器执行引擎。  </p>
+<p>在具体了解虚拟机是如何执行字节码之前，我们先来从概念上理解虚拟机是如何执行程序的。程序的执行可以直接解释为是对方法的递归调用，通过一连串的方法链来最终得出执行结果，亦即是说虚拟机对程序的执行，根本上是对方法的调用和执行。</p>
+<p>栈帧（Stack Frame）是用于支持虚拟机进行方法调用和方法执行的数据结构，是虚拟机运行时数据区中的虚拟机栈的栈元素。栈帧存储了方法的局部变量表（最小单位为变量槽Variable Slot）、操作数栈、动态连接和方法返回地址等信息，每一个方法从调用开始到执行完成的过程，就对应着一个栈帧在虚拟机栈里面从入栈到出栈的过程。栈帧的内容在编译时就已经完成确定，不受程序运行期变量数据的影响，仅取决于具体的虚拟机实现。    </p>
+<p>前面说了，对程序的执行就是对方法链的调用和执行，即可能会出现很多方法同时处于执行状态，此时对于执行引擎来说，活动线程中，只有栈顶的栈帧是有效的，称为当前栈帧，其关联的方法称为当前方法，执行引擎所运行的所有字节码指令只针对当前栈帧进行操作。    </p>
+<p>方法调用包含两种方法：<strong>解析和分派</strong>。解析调用一定是个静态过程，在编译期间完全确定，在类装载的解析阶段就会把涉及的符号引用全部转变为可确定的直接引用，不会延迟到运行期再去完成。而分派调用则可能是动态的也可能是静态的，根据分派依据的宗量数可分为单分派和多分派。（具体情形请参考《深入理解java虚拟机》这本书第8章）</p>
+<p>方法执行即是指字节码解释执行引擎，包括解释执行和编译执行。而java编译器输出的指令流，基本上是一种基于栈的指令集架构。即Java虚拟机采用的是基于栈的字节码执行引擎。（具体情形请参考《深入理解java虚拟机》这本书第8章）</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/类加载机制/" data-id="cjei97edy004s89bl5zlf0nzb" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Java/集合/HashSet原理" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/25/Java/集合/HashSet原理/" class="article-date">
   <time datetime="2018-02-25T07:09:45.000Z" itemprop="datePublished">2018-02-25</time>
 </a>
     
@@ -288,7 +409,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/">Hashtable与ConcurrentHashMap区别</a>
+      <a class="article-title" href="/2018/02/25/Java/集合/HashSet原理/">HashSet原理</a>
     </h1>
   
 
@@ -296,260 +417,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><img src="http://note.youdao.com/yws/public/resource/60a3d77c47e4530035e791fad744780f/7194365EC16245ED9B0AAAF1128B2232" alt="image"><br>如上图所示，HashTable每次都要锁住整个结构，而ConcurrentHashMap锁的方式是稍微细粒度的。ConcurrentHashMap将hash表分为16个桶（默认值），诸如get,put,remove等常用操作只锁当前需要用到的桶。 </p>
-<p>试想，原来 只能一个线程进入，现在却能同时16个写线程进入（写线程才需要锁定，而读线程几乎不受限制，之后会提到），并发性的提升是显而易见的。  </p>
-<p>更令人惊讶的是ConcurrentHashMap的读取并发，因为在读取的大多数时候都没有用到锁定，所以读取操作几乎是完全的并发操作，而写操作锁定的粒度又非常细，比起之前又更加快速（这一点在桶更多时表现得更明显些）。<strong>只有在求size等操作时才需要锁定整个表</strong>。    </p>
-<p>在迭代时，ConcurrentHashMap使用了不同于传统集合的快速失败迭代器的另一种迭代方式，我们称为弱一致迭代器。在这种迭代方式中，当iterator被创建后集合再发生改变就不再是抛出 ConcurrentModificationException，取而代之的是在改变时new新的数据从而不影响原有的数 据，iterator完成后再将头指针替换为新的数据，这样iterator线程可以使用原来老的数据，而写线程也可以并发的完成改变，更重要的，这保证了多个线程并发执行的连续性和扩展性，是性能提升的关键。  </p>
-<h4 id="相同点"><a href="#相同点" class="headerlink" title="相同点"></a>相同点</h4><ol>
-<li>Hashtable 和 ConcurrentHashMap都是线程安全的，可以在多线程环境中运行；<br>ConcurrentHashMap 是设计为非阻塞的。在更新时会局部锁住某部分数据，但不会把整个表都锁住。同步读取操作则是完全非阻塞的。好处是在保证合理的同步前提下，效率很高。坏处 是严格来说读取操作不能保证反映最近的更新。例如线程A调用putAll写入大量数据，期间线程B调用get，则只能get到目前为止已经顺利插入的部分 数据。此外，使用默认构造器创建的ConcurrentHashMap比较占内存，如果程序需要创建巨量ConcurrentHashMap，应该在构造 时指定concurrencyLevel </li>
-<li>key跟value都不能是null</li>
+        <h2 id="HashSet的实现原理"><a href="#HashSet的实现原理" class="headerlink" title="HashSet的实现原理"></a>HashSet的实现原理</h2><ol>
+<li>HashSet是基于HashMap实现的，默认构造函数是构建一个初始容量为16，负载因子为0.75 的HashMap。封装了一个 HashMap 对象来存储所有的集合元素，所有放入 HashSet 中的集合元素实际上由 HashMap 的 key 来保存，而 HashMap 的 value 则存储了一个 PRESENT，它是一个静态的 Object 对象。</li>
+<li>当我们试图把某个类的对象当成 HashMap的 key，或试图将这个类的对象放入 HashSet中保存时，重写该类的equals(Object obj)方法和 hashCode() 方法很重要，而且这两个方法的返回值必须保持一致：当该类的两个的 hashCode() 返回值相同时，它们通过 equals() 方法比较也应该返回 true。通常来说，所有参与计算 hashCode()返回值的关键属性，都应该用于作为 equals() 比较的标准。</li>
+<li>HashSet的其他操作都是基于HashMap的。</li>
 </ol>
-<h4 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h4><ol>
-<li><p>两者主要是性能上的差异，Hashtable的所有操作都会锁住整个对象，，是阻塞的,虽然能够保证线程安全，但是性能较差；好处是总能获取最实时的更新，比如说线程A调用putAll写入大量数据，期间线程B调用get，线程B就会被阻塞，直到线程A完成putAll，因此线程B肯定能获取到线程A写入的完整数据。坏处是所有调用都要排队，效率较低。</p>
-</li>
-<li><p>ConcurrentHashMap内部使用Segment数组，每个Segment类似于Hashtable，在“写”线程或者部分特殊的“读”线程中锁住的是某个Segment对象，其它的线程能够并发执行其它的Segment对象。 ConcurrentHashMap 是设计为非阻塞的。在更新时会局部锁住某部分数据，但不会把整个表都锁住。同步读取操作则是完全非阻塞的。好处是在保证合理的同步前提下，效率很高。坏处 是严格来说读取操作不能保证反映最近的更新。例如线程A调用putAll写入大量数据，期间线程B调用get，则只能get到目前为止已经顺利插入的部分 数据。此外，使用默认构造器创建的ConcurrentHashMap比较占内存，如果程序需要创建巨量ConcurrentHashMap，应该在构造 时指定concurrencyLevel  </p>
-</li>
-</ol>
+<p>HashSet实现Set接口，由哈希表（实际上是一个HashMap实例）支持。它不保证set 的迭代顺序；特别是它不保证该顺序恒久不变。此类允许使用null元素，但是HashSet中不允许有重复元素</p>
+<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><p>对于HashSet而言，它是基于HashMap实现的，HashSet底层使用HashMap来保存所有元素，因此HashSet 的实现比较简单，相关HashSet的操作，基本上都是直接调用底层HashMap的相关方法来完成， HashSet的源代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div></pre></td><td class="code"><pre><div class="line">public class HashSet&lt;E&gt;  </div><div class="line">    extends AbstractSet&lt;E&gt;  </div><div class="line">    implements Set&lt;E&gt;, Cloneable, java.io.Serializable  </div><div class="line">&#123;  </div><div class="line">    static final long serialVersionUID = -5024744406713321676L;  </div><div class="line">  </div><div class="line">    // 底层使用HashMap来保存HashSet中所有元素。  </div><div class="line">    private transient HashMap&lt;E,Object&gt; map;  </div><div class="line">      </div><div class="line">    // 定义一个虚拟的Object对象作为HashMap的value，将此对象定义为static final。  </div><div class="line">    private static final Object PRESENT = new Object();  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 默认的无参构造器，构造一个空的HashSet。 </div><div class="line">     *  </div><div class="line">     * 实际底层会初始化一个空的HashMap，并使用默认初始容量为16和加载因子0.75。 </div><div class="line">     */  </div><div class="line">    public HashSet() &#123;  </div><div class="line">        map = new HashMap&lt;E,Object&gt;();  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 构造一个包含指定collection中的元素的新set。 </div><div class="line">     * </div><div class="line">     * 实际底层使用默认的加载因子0.75和足以包含指定 </div><div class="line">     * collection中所有元素的初始容量来创建一个HashMap。 </div><div class="line">     * @param c 其中的元素将存放在此set中的collection。 </div><div class="line">     */  </div><div class="line">    public HashSet(Collection&lt;? extends E&gt; c) &#123;  </div><div class="line">        map = new HashMap&lt;E,Object&gt;(Math.max((int) (c.size()/.75f) + 1, 16));  </div><div class="line">        addAll(c);  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 以指定的initialCapacity和loadFactor构造一个空的HashSet。 </div><div class="line">     * </div><div class="line">     * 实际底层以相应的参数构造一个空的HashMap。 </div><div class="line">     * @param initialCapacity 初始容量。 </div><div class="line">     * @param loadFactor 加载因子。 </div><div class="line">     */  </div><div class="line">    public HashSet(int initialCapacity, float loadFactor) &#123;  </div><div class="line">        map = new HashMap&lt;E,Object&gt;(initialCapacity, loadFactor);  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 以指定的initialCapacity构造一个空的HashSet。 </div><div class="line">     * </div><div class="line">     * 实际底层以相应的参数及加载因子loadFactor为0.75构造一个空的HashMap。 </div><div class="line">     * @param initialCapacity 初始容量。 </div><div class="line">     */  </div><div class="line">    public HashSet(int initialCapacity) &#123;  </div><div class="line">        map = new HashMap&lt;E,Object&gt;(initialCapacity);  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 以指定的initialCapacity和loadFactor构造一个新的空链接哈希集合。 </div><div class="line">     * 此构造函数为包访问权限，不对外公开，实际只是是对LinkedHashSet的支持。 </div><div class="line">     * </div><div class="line">     * 实际底层会以指定的参数构造一个空LinkedHashMap实例来实现。 </div><div class="line">     * @param initialCapacity 初始容量。 </div><div class="line">     * @param loadFactor 加载因子。 </div><div class="line">     * @param dummy 标记。 </div><div class="line">     */  </div><div class="line">    HashSet(int initialCapacity, float loadFactor, boolean dummy) &#123;  </div><div class="line">        map = new LinkedHashMap&lt;E,Object&gt;(initialCapacity, loadFactor);  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 返回对此set中元素进行迭代的迭代器。返回元素的顺序并不是特定的。 </div><div class="line">     *  </div><div class="line">     * 底层实际调用底层HashMap的keySet来返回所有的key。 </div><div class="line">     * 可见HashSet中的元素，只是存放在了底层HashMap的key上， </div><div class="line">     * value使用一个static final的Object对象标识。 </div><div class="line">     * @return 对此set中元素进行迭代的Iterator。 </div><div class="line">     */  </div><div class="line">    public Iterator&lt;E&gt; iterator() &#123;  </div><div class="line">        return map.keySet().iterator();  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 返回此set中的元素的数量（set的容量）。 </div><div class="line">     * </div><div class="line">     * 底层实际调用HashMap的size()方法返回Entry的数量，就得到该Set中元素的个数。 </div><div class="line">     * @return 此set中的元素的数量（set的容量）。 </div><div class="line">     */  </div><div class="line">    public int size() &#123;  </div><div class="line">        return map.size();  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 如果此set不包含任何元素，则返回true。 </div><div class="line">     * </div><div class="line">     * 底层实际调用HashMap的isEmpty()判断该HashSet是否为空。 </div><div class="line">     * @return 如果此set不包含任何元素，则返回true。 </div><div class="line">     */  </div><div class="line">    public boolean isEmpty() &#123;  </div><div class="line">        return map.isEmpty();  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 如果此set包含指定元素，则返回true。 </div><div class="line">     * 更确切地讲，当且仅当此set包含一个满足(o==null ? e==null : o.equals(e)) </div><div class="line">     * 的e元素时，返回true。 </div><div class="line">     * </div><div class="line">     * 底层实际调用HashMap的containsKey判断是否包含指定key。 </div><div class="line">     * @param o 在此set中的存在已得到测试的元素。 </div><div class="line">     * @return 如果此set包含指定元素，则返回true。 </div><div class="line">     */  </div><div class="line">    public boolean contains(Object o) &#123;  </div><div class="line">        return map.containsKey(o);  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 如果此set中尚未包含指定元素，则添加指定元素。 </div><div class="line">     * 更确切地讲，如果此 set 没有包含满足(e==null ? e2==null : e.equals(e2)) </div><div class="line">     * 的元素e2，则向此set 添加指定的元素e。 </div><div class="line">     * 如果此set已包含该元素，则该调用不更改set并返回false。 </div><div class="line">     * </div><div class="line">     * 底层实际将将该元素作为key放入HashMap。 </div><div class="line">     * 由于HashMap的put()方法添加key-value对时，当新放入HashMap的Entry中key </div><div class="line">     * 与集合中原有Entry的key相同（hashCode()返回值相等，通过equals比较也返回true）， </div><div class="line">     * 新添加的Entry的value会将覆盖原来Entry的value，但key不会有任何改变， </div><div class="line">     * 因此如果向HashSet中添加一个已经存在的元素时，新添加的集合元素将不会被放入HashMap中， </div><div class="line">     * 原来的元素也不会有任何改变，这也就满足了Set中元素不重复的特性。 </div><div class="line">     * @param e 将添加到此set中的元素。 </div><div class="line">     * @return 如果此set尚未包含指定元素，则返回true。 </div><div class="line">     */  </div><div class="line">    public boolean add(E e) &#123;  </div><div class="line">        return map.put(e, PRESENT)==null;  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 如果指定元素存在于此set中，则将其移除。 </div><div class="line">     * 更确切地讲，如果此set包含一个满足(o==null ? e==null : o.equals(e))的元素e， </div><div class="line">     * 则将其移除。如果此set已包含该元素，则返回true </div><div class="line">     * （或者：如果此set因调用而发生更改，则返回true）。（一旦调用返回，则此set不再包含该元素）。 </div><div class="line">     * </div><div class="line">     * 底层实际调用HashMap的remove方法删除指定Entry。 </div><div class="line">     * @param o 如果存在于此set中则需要将其移除的对象。 </div><div class="line">     * @return 如果set包含指定元素，则返回true。 </div><div class="line">     */  </div><div class="line">    public boolean remove(Object o) &#123;  </div><div class="line">        return map.remove(o)==PRESENT;  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 从此set中移除所有元素。此调用返回后，该set将为空。 </div><div class="line">     * </div><div class="line">     * 底层实际调用HashMap的clear方法清空Entry中所有元素。 </div><div class="line">     */  </div><div class="line">    public void clear() &#123;  </div><div class="line">        map.clear();  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 返回此HashSet实例的浅表副本：并没有复制这些元素本身。 </div><div class="line">     * </div><div class="line">     * 底层实际调用HashMap的clone()方法，获取HashMap的浅表副本，并设置到HashSet中。 </div><div class="line">     */  </div><div class="line">    public Object clone() &#123;  </div><div class="line">        try &#123;  </div><div class="line">            HashSet&lt;E&gt; newSet = (HashSet&lt;E&gt;) super.clone();  </div><div class="line">            newSet.map = (HashMap&lt;E, Object&gt;) map.clone();  </div><div class="line">            return newSet;  </div><div class="line">        &#125; catch (CloneNotSupportedException e) &#123;  </div><div class="line">            throw new InternalError();  </div><div class="line">        &#125;  </div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/" data-id="cjei8ydhp007u7oblgm3q91hw" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Java/分布式/分布式事务" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/02/25/Java/分布式/分布式事务/" class="article-date">
-  <time datetime="2018-02-25T07:09:45.000Z" itemprop="datePublished">2018-02-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/分布式/">分布式</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/25/Java/分布式/分布式事务/">分布式事务</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="分布式事务概述"><a href="#分布式事务概述" class="headerlink" title="分布式事务概述"></a>分布式事务概述</h3><p>分布式事务就是指事务的参与者、支持事务的服务器、资源服务器以及事务管理器分别位于不同的分布式系统的不同节点之上。以上是百度百科的解释，简单的说，就是一次大的操作由不同的小操作组成，这些小的操作分布在不同的服务器上，且属于不同的应用，分布式事务需要保证这些小操作要么全部成功，要么全部失败。本质上来说，分布式事务就是为了保证不同数据库的数据一致性。</p>
-<h3 id="分布式事务的产生的原因"><a href="#分布式事务的产生的原因" class="headerlink" title="分布式事务的产生的原因"></a>分布式事务的产生的原因</h3><h5 id="1-数据库分库分表"><a href="#1-数据库分库分表" class="headerlink" title="1.数据库分库分表"></a>1.数据库分库分表</h5><p>当数据库单表一年产生的数据超过1000W，那么就要考虑分库分表，具体分库分表的原理在此不做解释，以后有空详细说，简单的说就是原来的一个数据库变成了多个数据库。这时候，如果一个操作既访问01库，又访问02库，而且要保证数据的一致性，那么就要用到分布式事务。<br><img src="http://img.blog.csdn.net/20170320083203650?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbWluZV9zb25n/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="image">    </p>
-<h5 id="2-应用SOA化"><a href="#2-应用SOA化" class="headerlink" title="2.应用SOA化"></a>2.应用SOA化</h5><p>所谓的SOA化，就是业务的服务化。比如原来单机支撑了整个电商网站，现在对整个网站进行拆解，分离出了订单中心、用户中心、库存中心。对于订单中心，有专门的数据库存储订单信息，用户中心也有专门的数据库存储用户信息，库存中心也会有专门的数据库存储库存信息。这时候如果要同时对订单和库存进行操作，那么就会涉及到订单数据库和库存数据库，为了保证数据一致性，就需要用到分布式事务。<br><img src="http://img.blog.csdn.net/20170320083209525?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbWluZV9zb25n/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="image"><br>以上两种情况表象不同，但是本质相同，都是因为要操作的数据库变多了！    </p>
-<h3 id="分布式事务的应用场景"><a href="#分布式事务的应用场景" class="headerlink" title="分布式事务的应用场景"></a>分布式事务的应用场景</h3><h5 id="1-支付"><a href="#1-支付" class="headerlink" title="1.支付"></a>1.支付</h5><p>最经典的场景就是支付了，一笔支付，是对买家账户进行扣款，同时对卖家账户进行加钱，这些操作必须在一个事务里执行，要么全部成功，要么全部失败。而对于买家账户属于买家中心，对应的是买家数据库，而卖家账户属于卖家中心，对应的是卖家数据库，对不同数据库的操作必然需要引入分布式事务。</p>
-<h5 id="2-在线下单"><a href="#2-在线下单" class="headerlink" title="2.在线下单"></a>2.在线下单</h5><p>买家在电商平台下单，往往会涉及到两个动作，一个是扣库存，第二个是更新订单状态，库存和订单一般属于不同的数据库，需要使用分布式事务保证数据一致性。</p>
-<h3 id="常见的分布式事务解决方案"><a href="#常见的分布式事务解决方案" class="headerlink" title="常见的分布式事务解决方案"></a>常见的分布式事务解决方案</h3><h4 id="基于XA协议的两阶段提交"><a href="#基于XA协议的两阶段提交" class="headerlink" title="基于XA协议的两阶段提交"></a>基于XA协议的两阶段提交</h4><p>XA是一个分布式事务协议，由Tuxedo提出。XA中大致分为两部分：事务管理器和本地资源管理器。其中本地资源管理器往往由数据库实现，比如Oracle、DB2这些商业数据库都实现了XA接口，而事务管理器作为全局的调度者，负责各个本地资源的提交和回滚。XA实现分布式事务的原理如下：<br><img src="http://img.blog.csdn.net/20170320083214850?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbWluZV9zb25n/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="image">    </p>
-<p>总的来说，XA协议比较简单，而且一旦商业数据库实现了XA协议，使用分布式事务的成本也比较低。但是，XA也有致命的缺点，那就是性能不理想，特别是在交易下单链路，往往并发量很高，XA无法满足高并发场景。XA目前在商业数据库支持的比较理想，在mysql数据库中支持的不太理想，mysql的XA实现，没有记录prepare阶段日志，主备切换回导致主库与备库数据不一致。许多nosql也没有支持XA，这让XA的应用场景变得非常狭隘。  </p>
-<p>两阶段提交协议（Two-phase Commit，2PC）经常被用来实现分布式事务。一般分为协调器C和若干事务执行者Si两种角色，这里的事务执行者就是具体的数据库，协调器可以和事务执行器在一台机器上。<br><img src="http://ww2.sinaimg.cn/large/7cc829d3gw1eux5nfbny7j20l908xta6.jpg" alt="image">  </p>
-<ol>
-<li><p>我们的应用程序（client）发起一个开始请求到TC；</p>
-</li>
-<li><p>TC先将<prepare>消息写到本地日志，之后向所有的Si发起<prepare>消息。以支付宝转账到余额宝为例，TC给A的prepare消息是通知支付宝数据库相应账目扣款1万，TC给B的prepare消息是通知余额宝数据库相应账目增加1w。为什么在执行任务前需要先写本地日志，主要是为了故障后恢复用，本地日志起到现实生活中凭证 的效果，如果没有本地日志（凭证），出问题容易死无对证；</prepare></prepare></p>
-</li>
-<li><p>Si收到<prepare>消息后，执行具体本机事务，但不会进行commit，如果成功返回<yes>，不成功返回<no>。同理，返回前都应把要返回的消息写到日志里，当作凭证。</no></yes></prepare></p>
-</li>
-<li><p>TC收集所有执行器返回的消息，如果所有执行器都返回yes，那么给所有执行器发生送commit消息，执行器收到commit后执行本地事务的commit操作；如果有任一个执行器返回no，那么给所有执行器发送abort消息，执行器收到abort消息后执行事务abort操作。</p>
-</li>
-</ol>
-<p>注：TC或Si把发送或接收到的消息先写到日志里，主要是为了故障后恢复用。如某一Si从故障中恢复后，先检查本机的日志，如果已收到<commit>，则提交，如果<abort>则回滚。如果是<yes>，则再向TC询问一下，确定下一步。如果什么都没有，则很可能在<prepare>阶段Si就崩溃了，因此需要回滚。</prepare></yes></abort></commit></p>
-<p>现如今实现基于两阶段提交的分布式事务也没那么困难了，如果使用java，那么可以使用开源软件atomikos(<a href="http://www.atomikos.com/)来快速实现。" target="_blank" rel="external">http://www.atomikos.com/)来快速实现。</a><br>​<br>不过但凡使用过的上述两阶段提交的同学都可以发现性能实在是太差，根本不适合高并发的系统。为什么？</p>
-<ol>
-<li>两阶段提交涉及多次节点间的网络通信，通信时间太长！</li>
-<li>事务时间相对于变长了，锁定的资源的时间也变长了，造成资源等待时间也增加好多！</li>
-</ol>
-<p>正是由于分布式事务存在很严重的性能问题，大部分高并发服务都在避免使用，往往通过其他途径来解决数据一致性问题。</p>
-<h4 id="消息事务-最终一致性"><a href="#消息事务-最终一致性" class="headerlink" title="消息事务+最终一致性"></a>消息事务+最终一致性</h4><p>如果仔细观察生活的话，生活的很多场景已经给了我们提示。</p>
-<p>比如在北京很有名的姚记炒肝点了炒肝并付了钱后，他们并不会直接把你点的炒肝给你，而是给你一张小票，然后让你拿着小票到出货区排队去取。为什么他们要将付钱和取货两个动作分开呢？原因很多，其中一个很重要的原因是为了使他们接待能力增强（并发量更高）。</p>
-<p>所谓的消息事务就是基于消息中间件的两阶段提交，本质上是对消息中间件的一种特殊利用，它是将本地事务和发消息放在了一个分布式事务里，保证要么本地操作成功成功并且对外发消息成功，要么两者都失败，开源的RocketMQ就支持这一特性，具体原理如下： </p>
-<p><img src="http://img.blog.csdn.net/20170320083222287?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbWluZV9zb25n/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="image">    </p>
-<ol>
-<li>A系统向消息中间件发送一条预备消息</li>
-<li>消息中间件保存预备消息并返回成功</li>
-<li>A执行本地事务</li>
-<li>A发送提交消息给消息中间件</li>
-</ol>
-<p>通过以上4步完成了一个消息事务。对于以上的4个步骤，每个步骤都可能产生错误，下面一一分析：</p>
-<ul>
-<li>步骤一出错，则整个事务失败，不会执行A的本地操作</li>
-<li>步骤二出错，则整个事务失败，不会执行A的本地操作</li>
-<li>步骤三出错，这时候需要回滚预备消息，怎么回滚？答案是A系统实现一个消息中间件的回调接口，消息中间件会去不断执行回调接口，检查A事务执行是否执行成功，如果失败则回滚预备消息</li>
-<li>步骤四出错，这时候A的本地事务是成功的，那么消息中间件要回滚A吗？答案是不需要，其实通过回调接口，消息中间件能够检查到A执行成功了，这时候其实不需要A发提交消息了，消息中间件可以自己对消息进行提交，从而完成整个消息事务</li>
-</ul>
-<p>基于消息中间件的两阶段提交往往用在高并发场景下，将一个分布式事务拆成一个消息事务（A系统的本地操作+发消息）+B系统的本地操作，其中B系统的操作由消息驱动，只要消息事务成功，那么A操作一定成功，消息也一定发出来了，这时候B会收到消息去执行本地操作，如果本地操作失败，消息会重投，直到B操作成功，这样就变相地实现了A与B的分布式事务。原理如下：<br><img src="http://img.blog.csdn.net/20170320083228100?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbWluZV9zb25n/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="image"><br>虽然上面的方案能够完成A和B的操作，但是A和B并不是严格一致的，而是最终一致的，我们在这里牺牲了一致性，换来了性能的大幅度提升。当然，这种玩法也是有风险的，如果B一直执行不成功，那么一致性会被破坏，具体要不要玩，还是得看业务能够承担多少风险。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/分布式/分布式事务/" data-id="cjei8ydfo00317oblqnwco8cq" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Java/分布式/分布式锁" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/02/25/Java/分布式/分布式锁/" class="article-date">
-  <time datetime="2018-02-25T07:09:45.000Z" itemprop="datePublished">2018-02-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/分布式/">分布式</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/25/Java/分布式/分布式锁/">分布式锁</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>目前几乎很多大型网站及应用都是分布式部署的，分布式场景中的数据一致性问题一直是一个比较重要的话题。</p>
-<p>分布式的<code>CAP理论</code>告诉我们“任何一个分布式系统都无法同时满足<code>一致性（Consistency）</code>、<code>可用性（Availability）</code>和<code>分区容错性（Partition tolerance）</code>，最多只能同时满足两项。”所以，很多系统在设计之初就要对这三者做出取舍。在互联网领域的绝大多数的场景中，都需要牺牲强一致性来换取系统的高可用性，系统往往只需要保证“最终一致性”，只要这个最终时间是在用户可以接受的范围内即可。</p>
-<p>在很多场景中，我们为了保证数据的最终一致性，需要很多的技术方案来支持，比如分布式事务、分布式锁等。有的时候，我们需要保证一个方法在同一时间内只能被同一个线程执行。在单机环境中，Java中其实提供了很多并发处理相关的API，但是这些API在分布式场景中就无能为力了。也就是说单纯的Java Api并不能提供分布式锁的能力。所以针对分布式锁的实现目前有多种方案：</p>
-<ul>
-<li>基于数据库实现分布式锁</li>
-<li>基于缓存（redis，memcached）实现分布式锁</li>
-<li>基于Zookeeper实现分布式锁</li>
-</ul>
-<h3 id="分布式情况"><a href="#分布式情况" class="headerlink" title="分布式情况"></a>分布式情况</h3><ul>
-<li>分布式与单机情况下最大的不同在于其不是多线程而是多进程。</li>
-<li>多线程由于可以共享堆内存，因此可以简单的采取内存作为标记存储位置。而进程之间甚至可能都不在同一台物理机上，因此需要将标记存储在一个所有进程都能看到的地方。</li>
-</ul>
-<h3 id="分布式锁"><a href="#分布式锁" class="headerlink" title="分布式锁"></a>分布式锁</h3><ul>
-<li>当在分布式模型下，数据只有一份（或有限制），此时需要利用锁的技术控制某一时刻修改数据的进程数。</li>
-<li>与单机模式下的锁不仅需要保证进程可见，还需要考虑进程与锁之间的网络问题。（我觉得分布式情况下之所以问题变得复杂，主要就是需要考虑到网络的延时和不可靠）</li>
-<li>分布式锁还是可以将标记存在内存，只是该内存不是某个进程分配的内存而是公共内存如Redis、Memcache。至于利用数据库、文件等做锁与单机的实现是一样的，只要保证标记能互斥就行。</li>
-</ul>
-<h3 id="单机Redis锁"><a href="#单机Redis锁" class="headerlink" title="单机Redis锁"></a>单机Redis锁</h3><h5 id="基本锁"><a href="#基本锁" class="headerlink" title="基本锁"></a>基本锁</h5><p><strong>原理</strong>：利用Redis的setnx如果不存在某个key则设置值，设置成功则表示取得锁成功。<br><strong>缺点</strong>：如果获取锁后的进程，在还没执行完的时候挂调了，则锁永远不会释放。</p>
-<h5 id="改进型"><a href="#改进型" class="headerlink" title="改进型"></a>改进型</h5><p><strong>改进</strong>：在基本型是锁上的setnx后设置expire，保证即使获取锁的进程不主动释放锁，过一段时间后也能自动释放。<br><strong>缺点</strong>：setnx与expire不是一个原子操作，可能执行完setnx该进程就挂了。<br>当锁过期后，该进程还没执行完，可能造成同时多个进程取得锁。（貌似这个问题目前还没有很优雅的解决方案）</p>
-<h5 id="再改进"><a href="#再改进" class="headerlink" title="再改进"></a>再改进</h5><p><strong>改进</strong>：利用Lua脚本，将setnx与expire变成一个原子操作，可解决一部分问题。<br><strong>缺点</strong>：还是锁过期的问题。</p>
-<h5 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h5><ol>
-<li>直接调用Lua脚本原子setnx同时expire，设置一个随机值。</li>
-<li>获取到锁则执行同步代码块，没获取则根据业务场景可以选择自旋、休眠、或做一个等待队列等拥有锁进程来唤醒（类似Synchronize的同步队列）。</li>
-<li>当同步代码块执行完成，先判断锁的key是否是自己设置的，如果是则删除key（可利用Lua做成原子操作），不是则表明自己的锁已经过期，不需要删除。（这时候就出现了多进程同时有锁的问题了）</li>
-</ol>
-<h5 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h5><p>一般情况下直接用setnx加expire就够了，但从安全性的角度看还是存在一下几个问题：</p>
-<ol>
-<li>单点问题。单机Redis只在单机上，如果单机down了，那么所有需要用分布式锁的地方均获取不到锁，全部阻塞。需要做好降级的处理。</li>
-<li>可能出现多进程同时拥有锁。</li>
-</ol>
-<h3 id="集群Rides锁"><a href="#集群Rides锁" class="headerlink" title="集群Rides锁"></a>集群Rides锁</h3><h4 id="Redlock"><a href="#Redlock" class="headerlink" title="Redlock"></a>Redlock</h4><p>Redlock是Redis的作者antirez给出的集群模式的Redis分布式锁，它基于N个完全独立的Redis节点（通常情况下N可以设置成5）。</p>
-<h5 id="步骤-1"><a href="#步骤-1" class="headerlink" title="步骤"></a>步骤</h5><ol>
-<li>获取当前时间（毫秒数）。</li>
-<li>按顺序依次向N个Redis节点执行获取锁的操作。获取锁的操作与单机锁一样。</li>
-<li>如果获取锁成功的节点数&gt;=N/2+1，则再计算获取锁的时间有没有超过锁过期时间（可考虑设置一个必须留多长的时间给代码块执行），如果超过了则认为取锁失败。</li>
-<li>如果取锁失败则应该对所有节点进行释放锁的操作。<h5 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h5></li>
-</ol>
-<p>当有5个节点，某次上锁对a,b,c三个节点上锁成功，而后c马上down了，此时还没通过AOF或RDB写入磁盘。而后c又马上恢复，此时c没有上锁数据，因此此时可能出现c,d,e三个节点被别的进程上锁。所以在节点恢复时应该延时起码一个锁的过期时间。</p>
-<h3 id="Zookeeper锁"><a href="#Zookeeper锁" class="headerlink" title="Zookeeper锁"></a>Zookeeper锁</h3><h5 id="zookeeper锁相关基础知识"><a href="#zookeeper锁相关基础知识" class="headerlink" title="zookeeper锁相关基础知识"></a>zookeeper锁相关基础知识</h5><ul>
-<li>zk一般由多个节点构成（单数），采用zab一致性协议。因此可以将zk看成一个单点结构，对其修改数据其内部自动将所有节点数据进行修改而后才提供查询服务。</li>
-<li>zk的数据以目录树的形式，每个目录称为 znode， znode中可存储数据（一般不超过1M），还可以在其中增加子节点。</li>
-<li>子节点有三种类型。序列化节点，每在该节点下增加一个节点自动给该节点的名称上自增。临时节点，一旦创建这个 znode 的客户端与服务器失去联系，这个 znode 也将自动删除。最后就是普通节点。</li>
-<li>Watch机制，client可以监控每个节点的变化，当产生变化会给client产生一个事件。</li>
-</ul>
-<h5 id="zk基本锁"><a href="#zk基本锁" class="headerlink" title="zk基本锁"></a>zk基本锁</h5><p><strong>原理</strong>：利用临时节点与watch机制。每个锁占用一个普通节点/lock，当需要获取锁时在/lock下创建一个临时节点，创建成功则表示获取锁成功，失败则watch/lock节点，有删除操作后再去争锁。临时节点好处在于当进程挂掉后能自动上锁的节点自动删除即取消锁。</p>
-<p><strong>缺点</strong>：所有取锁失败的进程都监听父节点，很容易发生羊群效应，即当释放锁后所有等待进程一起来创建节点，并发量很大。</p>
-<h5 id="zk锁优化"><a href="#zk锁优化" class="headerlink" title="zk锁优化"></a>zk锁优化</h5><p><strong>原理</strong>：上锁改为创建临时有序节点，每个上锁的节点均能创建节点成功，知识其序号不同。只有序号最小的可以拥有锁，当需要不是最小的则watch序号排在前面的一个节点(公平锁)。</p>
-<p><strong>步骤</strong>：</p>
-<ol>
-<li>在/lock节点下创建一个有序临时节点(EPHEMERAL_SEQUENTIAL)。</li>
-<li>判断创建的节点序号是否最小，如果是最小则获取锁成功。不是则取锁失败，然后watch序号比本身小的前一个节点。</li>
-<li>当取锁失败，设置watch后则等待watch事件到来后，再次判断是否序号最小。</li>
-<li>取锁成功则执行代码，最后删除本身节点，释放了锁。</li>
-</ol>
-<h3 id="分布式锁总结"><a href="#分布式锁总结" class="headerlink" title="分布式锁总结"></a>分布式锁总结</h3><h5 id="分布式锁存在的问题"><a href="#分布式锁存在的问题" class="headerlink" title="分布式锁存在的问题"></a>分布式锁存在的问题</h5><ol>
-<li>均可能存在多进程拥有锁的情况。redis锁主要是expire时间与代码执行时间的问题，zk锁的问题在于zk是通过心跳监控进程存活状态，如果进程进行GC pause或者因为网络原因导致很长时间没与zk联系，则将导致zk认为进程已挂，而后锁自动释放，而此时进程并未挂任然在执行。</li>
-<li>Redlock锁的时间问题。由于redis的expire的实现是通过pexpireat，如果某个节点发生时钟跳跃，则该节点可能过早释放锁导致一系列问题。</li>
-</ol>
-<h5 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h5><ol>
-<li>获取锁时提供一个fencing token(两种说法，一种说需要有序，一种说随机值就可以，我觉得随机值就可以)，在进程获取锁后对数据进行操作时，数据所在的资源服务器需要去锁中查看当前token，如果token对的才执行，不对则放弃执行。</li>
-<li>我觉得对于放弃执行的应该在我们的代码块中增加类似事物的rollback的操作。因此如果资源服务器拒绝了我们的操作则表明此时起码已经存在了另外一个进程拥有锁了，为了保证数据安全性不能继续执行，因此需要回滚到执行代码块之前而继续去竞争锁。</li>
-<li>至于Redis锁的时间问题，Antirez说在运维层面是可以控制时钟跳跃的区间的，只要能控制跳跃区间与expire的比例就没问题，详细可看《基于Redis的分布式锁真的安全吗？》</li>
-</ol>
-<h5 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h5><ol>
-<li>大多数时候采用zk锁就好了，没必要再考虑安全性的问题。其实也可以通过zk锁+幂等校验来达到双层保障。</li>
-<li>fencing 机制需要对数据服务进行修改适配，个人觉得没这个必要吧。。。</li>
-</ol>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/分布式/分布式锁/" data-id="cjei8ydfr00347obl85r62c8q" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Java/集合/在List循环中删除元素" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/02/25/Java/集合/在List循环中删除元素/" class="article-date">
-  <time datetime="2018-02-25T07:09:45.000Z" itemprop="datePublished">2018-02-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/集合/">集合</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/25/Java/集合/在List循环中删除元素/">在List循环中删除元素</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="测试list"><a href="#测试list" class="headerlink" title="测试list"></a>测试list</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">List&lt;String&gt; list = new ArrayList&lt;String&gt;();</div><div class="line">list.add(&quot;a&quot;);</div><div class="line">list.add(&quot;b&quot;);</div><div class="line">list.add(&quot;c&quot;);</div></pre></td></tr></table></figure>
-<h3 id="普通下标方式一"><a href="#普通下标方式一" class="headerlink" title="普通下标方式一"></a>普通下标方式一</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">for(int i=0; i&lt;3;i++) &#123;</div><div class="line">	for(int j=0;j&lt;list.size(); j++) &#123;</div><div class="line">        if (list.get(j).equals(&quot;b&quot;)) &#123;</div><div class="line">        		list.remove(j);</div><div class="line">            System.out.println(&quot;delete&quot;);</div><div class="line">            j--;//关键</div><div class="line">            continue;</div><div class="line">        &#125;</div><div class="line">        System.out.println(list.get(j));</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="迭代方式"><a href="#迭代方式" class="headerlink" title="迭代方式"></a>迭代方式</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">for(int i=0; i&lt;3;i++) &#123;</div><div class="line">	Iterator&lt;String&gt; iter = list.iterator();</div><div class="line">    while (iter.hasNext()) &#123;</div><div class="line">        String item = iter.next();</div><div class="line">        if (item.equals(&quot;b&quot;)) &#123;</div><div class="line">            iter.remove();</div><div class="line">            System.out.println(&quot;delete&quot;);</div><div class="line">            continue;</div><div class="line">        &#125;</div><div class="line">        System.out.println(item);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="CopyOnWriteArrayList方式"><a href="#CopyOnWriteArrayList方式" class="headerlink" title="CopyOnWriteArrayList方式"></a>CopyOnWriteArrayList方式</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">final CopyOnWriteArrayList&lt;String&gt; cowList = new CopyOnWriteArrayList&lt;String&gt;(list);</div><div class="line">for(int i=0; i&lt;3;i++) &#123;</div><div class="line">	for (String item : cowList) &#123;</div><div class="line">        if (item.equals(&quot;b&quot;)) &#123;</div><div class="line">            cowList.remove(item);</div><div class="line">            System.out.println(&quot;delete&quot;);</div><div class="line">            continue;</div><div class="line">        &#125;</div><div class="line">        System.out.println(item);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="统一输出"><a href="#统一输出" class="headerlink" title="统一输出"></a>统一输出</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">a</div><div class="line">delete</div><div class="line">c</div><div class="line">a</div><div class="line">c</div><div class="line">a</div><div class="line">c</div></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/集合/在List循环中删除元素/" data-id="cjei8ydhr007z7obl2904nrkr" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/集合/HashSet原理/" data-id="cjei97efb007u89bl6brqoauf" class="article-share-link">Share</a>
       
       
     </footer>
@@ -609,7 +488,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/集合/几种常见的map/" data-id="cjei8ydhq007x7oblj57m6oq8" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/集合/几种常见的map/" data-id="cjei97efd007z89blk3lcjpdh" class="article-share-link">Share</a>
       
       
     </footer>
@@ -619,9 +498,9 @@
 
 
   
-    <article id="post-Java/集合/HashSet原理" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/集合/Hashtable与ConcurrentHashMap区别" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2018/02/25/Java/集合/HashSet原理/" class="article-date">
+    <a href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/" class="article-date">
   <time datetime="2018-02-25T07:09:45.000Z" itemprop="datePublished">2018-02-25</time>
 </a>
     
@@ -637,7 +516,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/25/Java/集合/HashSet原理/">HashSet原理</a>
+      <a class="article-title" href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/">Hashtable与ConcurrentHashMap区别</a>
     </h1>
   
 
@@ -645,18 +524,25 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="HashSet的实现原理"><a href="#HashSet的实现原理" class="headerlink" title="HashSet的实现原理"></a>HashSet的实现原理</h2><ol>
-<li>HashSet是基于HashMap实现的，默认构造函数是构建一个初始容量为16，负载因子为0.75 的HashMap。封装了一个 HashMap 对象来存储所有的集合元素，所有放入 HashSet 中的集合元素实际上由 HashMap 的 key 来保存，而 HashMap 的 value 则存储了一个 PRESENT，它是一个静态的 Object 对象。</li>
-<li>当我们试图把某个类的对象当成 HashMap的 key，或试图将这个类的对象放入 HashSet中保存时，重写该类的equals(Object obj)方法和 hashCode() 方法很重要，而且这两个方法的返回值必须保持一致：当该类的两个的 hashCode() 返回值相同时，它们通过 equals() 方法比较也应该返回 true。通常来说，所有参与计算 hashCode()返回值的关键属性，都应该用于作为 equals() 比较的标准。</li>
-<li>HashSet的其他操作都是基于HashMap的。</li>
+        <p><img src="http://note.youdao.com/yws/public/resource/60a3d77c47e4530035e791fad744780f/7194365EC16245ED9B0AAAF1128B2232" alt="image"><br>如上图所示，HashTable每次都要锁住整个结构，而ConcurrentHashMap锁的方式是稍微细粒度的。ConcurrentHashMap将hash表分为16个桶（默认值），诸如get,put,remove等常用操作只锁当前需要用到的桶。 </p>
+<p>试想，原来 只能一个线程进入，现在却能同时16个写线程进入（写线程才需要锁定，而读线程几乎不受限制，之后会提到），并发性的提升是显而易见的。  </p>
+<p>更令人惊讶的是ConcurrentHashMap的读取并发，因为在读取的大多数时候都没有用到锁定，所以读取操作几乎是完全的并发操作，而写操作锁定的粒度又非常细，比起之前又更加快速（这一点在桶更多时表现得更明显些）。<strong>只有在求size等操作时才需要锁定整个表</strong>。    </p>
+<p>在迭代时，ConcurrentHashMap使用了不同于传统集合的快速失败迭代器的另一种迭代方式，我们称为弱一致迭代器。在这种迭代方式中，当iterator被创建后集合再发生改变就不再是抛出 ConcurrentModificationException，取而代之的是在改变时new新的数据从而不影响原有的数 据，iterator完成后再将头指针替换为新的数据，这样iterator线程可以使用原来老的数据，而写线程也可以并发的完成改变，更重要的，这保证了多个线程并发执行的连续性和扩展性，是性能提升的关键。  </p>
+<h4 id="相同点"><a href="#相同点" class="headerlink" title="相同点"></a>相同点</h4><ol>
+<li>Hashtable 和 ConcurrentHashMap都是线程安全的，可以在多线程环境中运行；<br>ConcurrentHashMap 是设计为非阻塞的。在更新时会局部锁住某部分数据，但不会把整个表都锁住。同步读取操作则是完全非阻塞的。好处是在保证合理的同步前提下，效率很高。坏处 是严格来说读取操作不能保证反映最近的更新。例如线程A调用putAll写入大量数据，期间线程B调用get，则只能get到目前为止已经顺利插入的部分 数据。此外，使用默认构造器创建的ConcurrentHashMap比较占内存，如果程序需要创建巨量ConcurrentHashMap，应该在构造 时指定concurrencyLevel </li>
+<li>key跟value都不能是null</li>
 </ol>
-<p>HashSet实现Set接口，由哈希表（实际上是一个HashMap实例）支持。它不保证set 的迭代顺序；特别是它不保证该顺序恒久不变。此类允许使用null元素，但是HashSet中不允许有重复元素</p>
-<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><p>对于HashSet而言，它是基于HashMap实现的，HashSet底层使用HashMap来保存所有元素，因此HashSet 的实现比较简单，相关HashSet的操作，基本上都是直接调用底层HashMap的相关方法来完成， HashSet的源代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div></pre></td><td class="code"><pre><div class="line">public class HashSet&lt;E&gt;  </div><div class="line">    extends AbstractSet&lt;E&gt;  </div><div class="line">    implements Set&lt;E&gt;, Cloneable, java.io.Serializable  </div><div class="line">&#123;  </div><div class="line">    static final long serialVersionUID = -5024744406713321676L;  </div><div class="line">  </div><div class="line">    // 底层使用HashMap来保存HashSet中所有元素。  </div><div class="line">    private transient HashMap&lt;E,Object&gt; map;  </div><div class="line">      </div><div class="line">    // 定义一个虚拟的Object对象作为HashMap的value，将此对象定义为static final。  </div><div class="line">    private static final Object PRESENT = new Object();  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 默认的无参构造器，构造一个空的HashSet。 </div><div class="line">     *  </div><div class="line">     * 实际底层会初始化一个空的HashMap，并使用默认初始容量为16和加载因子0.75。 </div><div class="line">     */  </div><div class="line">    public HashSet() &#123;  </div><div class="line">        map = new HashMap&lt;E,Object&gt;();  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 构造一个包含指定collection中的元素的新set。 </div><div class="line">     * </div><div class="line">     * 实际底层使用默认的加载因子0.75和足以包含指定 </div><div class="line">     * collection中所有元素的初始容量来创建一个HashMap。 </div><div class="line">     * @param c 其中的元素将存放在此set中的collection。 </div><div class="line">     */  </div><div class="line">    public HashSet(Collection&lt;? extends E&gt; c) &#123;  </div><div class="line">        map = new HashMap&lt;E,Object&gt;(Math.max((int) (c.size()/.75f) + 1, 16));  </div><div class="line">        addAll(c);  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 以指定的initialCapacity和loadFactor构造一个空的HashSet。 </div><div class="line">     * </div><div class="line">     * 实际底层以相应的参数构造一个空的HashMap。 </div><div class="line">     * @param initialCapacity 初始容量。 </div><div class="line">     * @param loadFactor 加载因子。 </div><div class="line">     */  </div><div class="line">    public HashSet(int initialCapacity, float loadFactor) &#123;  </div><div class="line">        map = new HashMap&lt;E,Object&gt;(initialCapacity, loadFactor);  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 以指定的initialCapacity构造一个空的HashSet。 </div><div class="line">     * </div><div class="line">     * 实际底层以相应的参数及加载因子loadFactor为0.75构造一个空的HashMap。 </div><div class="line">     * @param initialCapacity 初始容量。 </div><div class="line">     */  </div><div class="line">    public HashSet(int initialCapacity) &#123;  </div><div class="line">        map = new HashMap&lt;E,Object&gt;(initialCapacity);  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 以指定的initialCapacity和loadFactor构造一个新的空链接哈希集合。 </div><div class="line">     * 此构造函数为包访问权限，不对外公开，实际只是是对LinkedHashSet的支持。 </div><div class="line">     * </div><div class="line">     * 实际底层会以指定的参数构造一个空LinkedHashMap实例来实现。 </div><div class="line">     * @param initialCapacity 初始容量。 </div><div class="line">     * @param loadFactor 加载因子。 </div><div class="line">     * @param dummy 标记。 </div><div class="line">     */  </div><div class="line">    HashSet(int initialCapacity, float loadFactor, boolean dummy) &#123;  </div><div class="line">        map = new LinkedHashMap&lt;E,Object&gt;(initialCapacity, loadFactor);  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 返回对此set中元素进行迭代的迭代器。返回元素的顺序并不是特定的。 </div><div class="line">     *  </div><div class="line">     * 底层实际调用底层HashMap的keySet来返回所有的key。 </div><div class="line">     * 可见HashSet中的元素，只是存放在了底层HashMap的key上， </div><div class="line">     * value使用一个static final的Object对象标识。 </div><div class="line">     * @return 对此set中元素进行迭代的Iterator。 </div><div class="line">     */  </div><div class="line">    public Iterator&lt;E&gt; iterator() &#123;  </div><div class="line">        return map.keySet().iterator();  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 返回此set中的元素的数量（set的容量）。 </div><div class="line">     * </div><div class="line">     * 底层实际调用HashMap的size()方法返回Entry的数量，就得到该Set中元素的个数。 </div><div class="line">     * @return 此set中的元素的数量（set的容量）。 </div><div class="line">     */  </div><div class="line">    public int size() &#123;  </div><div class="line">        return map.size();  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 如果此set不包含任何元素，则返回true。 </div><div class="line">     * </div><div class="line">     * 底层实际调用HashMap的isEmpty()判断该HashSet是否为空。 </div><div class="line">     * @return 如果此set不包含任何元素，则返回true。 </div><div class="line">     */  </div><div class="line">    public boolean isEmpty() &#123;  </div><div class="line">        return map.isEmpty();  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 如果此set包含指定元素，则返回true。 </div><div class="line">     * 更确切地讲，当且仅当此set包含一个满足(o==null ? e==null : o.equals(e)) </div><div class="line">     * 的e元素时，返回true。 </div><div class="line">     * </div><div class="line">     * 底层实际调用HashMap的containsKey判断是否包含指定key。 </div><div class="line">     * @param o 在此set中的存在已得到测试的元素。 </div><div class="line">     * @return 如果此set包含指定元素，则返回true。 </div><div class="line">     */  </div><div class="line">    public boolean contains(Object o) &#123;  </div><div class="line">        return map.containsKey(o);  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 如果此set中尚未包含指定元素，则添加指定元素。 </div><div class="line">     * 更确切地讲，如果此 set 没有包含满足(e==null ? e2==null : e.equals(e2)) </div><div class="line">     * 的元素e2，则向此set 添加指定的元素e。 </div><div class="line">     * 如果此set已包含该元素，则该调用不更改set并返回false。 </div><div class="line">     * </div><div class="line">     * 底层实际将将该元素作为key放入HashMap。 </div><div class="line">     * 由于HashMap的put()方法添加key-value对时，当新放入HashMap的Entry中key </div><div class="line">     * 与集合中原有Entry的key相同（hashCode()返回值相等，通过equals比较也返回true）， </div><div class="line">     * 新添加的Entry的value会将覆盖原来Entry的value，但key不会有任何改变， </div><div class="line">     * 因此如果向HashSet中添加一个已经存在的元素时，新添加的集合元素将不会被放入HashMap中， </div><div class="line">     * 原来的元素也不会有任何改变，这也就满足了Set中元素不重复的特性。 </div><div class="line">     * @param e 将添加到此set中的元素。 </div><div class="line">     * @return 如果此set尚未包含指定元素，则返回true。 </div><div class="line">     */  </div><div class="line">    public boolean add(E e) &#123;  </div><div class="line">        return map.put(e, PRESENT)==null;  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 如果指定元素存在于此set中，则将其移除。 </div><div class="line">     * 更确切地讲，如果此set包含一个满足(o==null ? e==null : o.equals(e))的元素e， </div><div class="line">     * 则将其移除。如果此set已包含该元素，则返回true </div><div class="line">     * （或者：如果此set因调用而发生更改，则返回true）。（一旦调用返回，则此set不再包含该元素）。 </div><div class="line">     * </div><div class="line">     * 底层实际调用HashMap的remove方法删除指定Entry。 </div><div class="line">     * @param o 如果存在于此set中则需要将其移除的对象。 </div><div class="line">     * @return 如果set包含指定元素，则返回true。 </div><div class="line">     */  </div><div class="line">    public boolean remove(Object o) &#123;  </div><div class="line">        return map.remove(o)==PRESENT;  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 从此set中移除所有元素。此调用返回后，该set将为空。 </div><div class="line">     * </div><div class="line">     * 底层实际调用HashMap的clear方法清空Entry中所有元素。 </div><div class="line">     */  </div><div class="line">    public void clear() &#123;  </div><div class="line">        map.clear();  </div><div class="line">    &#125;  </div><div class="line">  </div><div class="line">    /** </div><div class="line">     * 返回此HashSet实例的浅表副本：并没有复制这些元素本身。 </div><div class="line">     * </div><div class="line">     * 底层实际调用HashMap的clone()方法，获取HashMap的浅表副本，并设置到HashSet中。 </div><div class="line">     */  </div><div class="line">    public Object clone() &#123;  </div><div class="line">        try &#123;  </div><div class="line">            HashSet&lt;E&gt; newSet = (HashSet&lt;E&gt;) super.clone();  </div><div class="line">            newSet.map = (HashMap&lt;E, Object&gt;) map.clone();  </div><div class="line">            return newSet;  </div><div class="line">        &#125; catch (CloneNotSupportedException e) &#123;  </div><div class="line">            throw new InternalError();  </div><div class="line">        &#125;  </div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h4 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h4><ol>
+<li><p>两者主要是性能上的差异，Hashtable的所有操作都会锁住整个对象，，是阻塞的,虽然能够保证线程安全，但是性能较差；好处是总能获取最实时的更新，比如说线程A调用putAll写入大量数据，期间线程B调用get，线程B就会被阻塞，直到线程A完成putAll，因此线程B肯定能获取到线程A写入的完整数据。坏处是所有调用都要排队，效率较低。</p>
+</li>
+<li><p>ConcurrentHashMap内部使用Segment数组，每个Segment类似于Hashtable，在“写”线程或者部分特殊的“读”线程中锁住的是某个Segment对象，其它的线程能够并发执行其它的Segment对象。 ConcurrentHashMap 是设计为非阻塞的。在更新时会局部锁住某部分数据，但不会把整个表都锁住。同步读取操作则是完全非阻塞的。好处是在保证合理的同步前提下，效率很高。坏处 是严格来说读取操作不能保证反映最近的更新。例如线程A调用putAll写入大量数据，期间线程B调用get，则只能get到目前为止已经顺利插入的部分 数据。此外，使用默认构造器创建的ConcurrentHashMap比较占内存，如果程序需要创建巨量ConcurrentHashMap，应该在构造 时指定concurrencyLevel  </p>
+</li>
+</ol>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/集合/HashSet原理/" data-id="cjei8ydhp007s7oblefgb6mnw" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/" data-id="cjei97efc007w89blra5sbiks" class="article-share-link">Share</a>
       
       
     </footer>
@@ -714,7 +600,166 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/集合/CopyOnWrite容器/" data-id="cjei8ydho007p7obldorl7p9a" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/集合/CopyOnWrite容器/" data-id="cjei97ef8007r89bl3z4dab54" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Java/集合/在List循环中删除元素" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/25/Java/集合/在List循环中删除元素/" class="article-date">
+  <time datetime="2018-02-25T07:09:45.000Z" itemprop="datePublished">2018-02-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/集合/">集合</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/02/25/Java/集合/在List循环中删除元素/">在List循环中删除元素</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="测试list"><a href="#测试list" class="headerlink" title="测试list"></a>测试list</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">List&lt;String&gt; list = new ArrayList&lt;String&gt;();</div><div class="line">list.add(&quot;a&quot;);</div><div class="line">list.add(&quot;b&quot;);</div><div class="line">list.add(&quot;c&quot;);</div></pre></td></tr></table></figure>
+<h3 id="普通下标方式一"><a href="#普通下标方式一" class="headerlink" title="普通下标方式一"></a>普通下标方式一</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">for(int i=0; i&lt;3;i++) &#123;</div><div class="line">	for(int j=0;j&lt;list.size(); j++) &#123;</div><div class="line">        if (list.get(j).equals(&quot;b&quot;)) &#123;</div><div class="line">        		list.remove(j);</div><div class="line">            System.out.println(&quot;delete&quot;);</div><div class="line">            j--;//关键</div><div class="line">            continue;</div><div class="line">        &#125;</div><div class="line">        System.out.println(list.get(j));</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="迭代方式"><a href="#迭代方式" class="headerlink" title="迭代方式"></a>迭代方式</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">for(int i=0; i&lt;3;i++) &#123;</div><div class="line">	Iterator&lt;String&gt; iter = list.iterator();</div><div class="line">    while (iter.hasNext()) &#123;</div><div class="line">        String item = iter.next();</div><div class="line">        if (item.equals(&quot;b&quot;)) &#123;</div><div class="line">            iter.remove();</div><div class="line">            System.out.println(&quot;delete&quot;);</div><div class="line">            continue;</div><div class="line">        &#125;</div><div class="line">        System.out.println(item);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="CopyOnWriteArrayList方式"><a href="#CopyOnWriteArrayList方式" class="headerlink" title="CopyOnWriteArrayList方式"></a>CopyOnWriteArrayList方式</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">final CopyOnWriteArrayList&lt;String&gt; cowList = new CopyOnWriteArrayList&lt;String&gt;(list);</div><div class="line">for(int i=0; i&lt;3;i++) &#123;</div><div class="line">	for (String item : cowList) &#123;</div><div class="line">        if (item.equals(&quot;b&quot;)) &#123;</div><div class="line">            cowList.remove(item);</div><div class="line">            System.out.println(&quot;delete&quot;);</div><div class="line">            continue;</div><div class="line">        &#125;</div><div class="line">        System.out.println(item);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="统一输出"><a href="#统一输出" class="headerlink" title="统一输出"></a>统一输出</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">a</div><div class="line">delete</div><div class="line">c</div><div class="line">a</div><div class="line">c</div><div class="line">a</div><div class="line">c</div></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/集合/在List循环中删除元素/" data-id="cjei97efe008189blry00h32l" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Java/基础/序列化和反序列化" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/25/Java/基础/序列化和反序列化/" class="article-date">
+  <time datetime="2018-02-25T07:09:45.000Z" itemprop="datePublished">2018-02-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/基础/">基础</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/02/25/Java/基础/序列化和反序列化/">序列化和反序列化</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>将 Java 对象序列化为二进制文件的 Java 序列化技术是 Java 系列技术中一个较为重要的技术点，在大部分情况下，开发人员只需要了解被序列化的类需要实现Serializable接口，使用 ObjectInputStream和ObjectOutputStream 进行对象的读写。然而在有些情况下，光知道这些还远远不够</p>
+</blockquote>
+<h2 id="java序列化简介"><a href="#java序列化简介" class="headerlink" title="java序列化简介"></a>java序列化简介</h2><p>序列化就是指对象通过写出描述自己状态的数值来记录自己的过程，即将对象表示成一系列有序字节，java提供了将对象写入流和从流中恢复对象的方法。对象能包含其它的对象，而其它的对象又可以包含另外的对象。JAVA序列化能够自动的处理嵌套的对象。对于一个对象的简单域，writeObject()直接将其值写入流中。当遇到一个对象域时，writeObject()被再次调用，如果这个对象内嵌另一个对象，那么，writeObject()又被调用，直到对象能被直接写入流为止。程序员所需要做的是将对象传入ObjectOutputStream的writeObject()方法，剩下的将有系统自动完成。    </p>
+<p>要实现序列化的类必须实现的java.io.Serializable或java.io.Externalizable接口，否则将产生一个NotSerializableException。该接口内部并没有任何方法，它只是一个”tagging interface”，仅仅”tags”它自己的对象是一个特殊的类型。类通过实现 java.io.Serializable接口以启用其序列化功能。未实现此接口的类将无法使其任何状态序列化或反序列化。可序列化类的所有子类型本身都是可序列化的。序列化接口没有方法或字段，仅用于标识可序列化的语义。Java的”对象序列化”能让你将一个实现了Serializable接口的对象转换成一组byte，这样日后要用这个对象时候，你就能把这些byte数据恢复出来，并据此重新构建那个对象了。</p>
+<h2 id="序列化的必要性及目的"><a href="#序列化的必要性及目的" class="headerlink" title="序列化的必要性及目的"></a>序列化的必要性及目的</h2><p>Java中，一切都是对象，在分布式环境中经常需要将Object从这一端网络或设备传递到另一端。这就需要有一种可以在两端传输数据的协议。Java序列化机制就是为了解决这个问题而产生。</p>
+<p>Java序列化支持的两种主要特性：</p>
+<ul>
+<li>Java 的RMI使本来存在于其他机器的对象可以表现出就象本地机器上的行为。</li>
+<li>将消息发给远程对象时，需要通过对象序列化来传输参数和返回值.</li>
+</ul>
+<p>Java序列化的目的：</p>
+<ul>
+<li>支持运行在不同虚拟机上不同版本类之间的双向通讯；</li>
+<li>定义允许JAVA类读取用相同类较老版本写入的数据流的机制；</li>
+<li>定义允许JAVA类写用相同类较老版本读取的数据流的机制；</li>
+<li>提供对持久性和RMI的序列化；</li>
+<li>产生压缩流且运行良好以使RMI能序列化；</li>
+<li>辨别写入的是否是本地流；</li>
+<li>保持非版本化类的低负载；</li>
+</ul>
+<h2 id="序列化异常"><a href="#序列化异常" class="headerlink" title="序列化异常"></a>序列化异常</h2><p>序列化对象期间可能抛出6种异常：</p>
+<ul>
+<li>InvalidClassException 通常在重序列化流无法确定类型时或返回的类无法在取得对象的系统中表示时抛出此异常。异常也在恢复的类不声明为public时或没有public缺省（无变元）构造器时抛出。</li>
+<li>NotSerializableException 通常由具体化对象（负责自身的重序列化）探测到输入流错误时抛出。错误通常由意外不变量值指示，或者表示要序列化的对象不可序列化。</li>
+<li>StreamCorruptedException 在存放对象的头或控制数据无效时抛出。</li>
+<li>OptionalDataException 流中应包含对象但实际只包含原型数据时抛出。</li>
+<li>ClassNotFoundException 流的读取端找不到反序列化对象的类时抛出。</li>
+<li>IOException  要读取或写入的对象发生与流有关的错误时抛出。</li>
+</ul>
+<h2 id="序列化一个对象"><a href="#序列化一个对象" class="headerlink" title="序列化一个对象"></a>序列化一个对象</h2><p>序列化一个对象，以及对序列化后的对象进行操作，需要遵循以下3点：</p>
+<ol>
+<li>一个对象能够序列化的前提是实现Serializable接口或Externalizable接口，Serializable接口没有方法，更像是个标记。有了这个标记的Class就能被序列化机制处理。</li>
+<li>写个程序将对象序列化并输出。ObjectOutputStream能把Object输出成Byte流。</li>
+<li>要从持久的文件中读取Bytes重建对象，我们可以使用ObjectInputStream。</li>
+</ol>
+<p>在序列化时，有几点要注意的：</p>
+<ul>
+<li>当一个对象被序列化时，只序列化对象的非静态成员变量，不能序列化任何成员方法和静态成员变量。</li>
+<li>如果一个对象的成员变量是一个对象，那么这个对象的数据成员也会被保存。</li>
+<li>如果一个可序列化的对象包含对某个不可序列化的对象的引用，那么整个序列化操作将会失败，并且会抛出一个NotSerializableException。可以通过将这个引用标记为transient，那么对象仍然可以序列化。对于一些比较敏感的不想序列化的数据，也可以采用该标识进行修饰。</li>
+</ul>
+<h2 id="Java的序列化算法"><a href="#Java的序列化算法" class="headerlink" title="Java的序列化算法"></a>Java的序列化算法</h2><p>序列化算法一般会按步骤做如下事情：</p>
+<ul>
+<li>将对象实例相关的类元数据输出。</li>
+<li>递归地输出类的超类描述直到不再有超类。</li>
+<li>类元数据完了以后，开始从最顶层的超类开始输出对象实例的实际数据值。</li>
+<li>从上至下递归输出实例的数据</li>
+</ul>
+<h2 id="高级特性"><a href="#高级特性" class="headerlink" title="高级特性"></a>高级特性</h2><h3 id="序列化-ID-问题"><a href="#序列化-ID-问题" class="headerlink" title="序列化 ID 问题"></a>序列化 ID 问题</h3><p>情境：两个客户端 A 和 B 试图通过网络传递对象数据，A 端将对象 C 序列化为二进制数据再传给 B，B 反序列化得到 C。    </p>
+<p>问题：C 对象的全类路径假设为 com.inout.Test，在 A 和 B 端都有这么一个类文件，功能代码完全一致。也都实现了 Serializable 接口，但是反序列化时总是提示不成功。</p>
+<p>解决：虚拟机是否允许反序列化，不仅取决于类路径和功能代码是否一致，一个非常重要的一点是两个类的序列化 ID 是否一致（就是 private static final long serialVersionUID = 1L）。清单1中，虽然两个类的功能代码完全一致，但是序列化 ID 不同，他们无法相互序列化和反序列化。</p>
+<p>简单来说，Java的序列化机制是通过在运行时判断类的serialVersionUID来验证版本一致性的。在进行反序列化时，JVM会把传来的字节流中的serialVersionUID与本地相应实体（类）的serialVersionUID进行比较，如果相同就认为是一致的，可以进行反序列化，否则就会出现序列化版本不一致的异常。</p>
+<p>当实现java.io.Serializable接口的实体（类）没有显式地定义一个名为serialVersionUID，类型为long的变量时，Java序列化机制会根据编译的class自动生成一个serialVersionUID作序列化版本比较用，这种情况下，只有同一次编译生成的class才会生成相同的serialVersionUID 。  </p>
+<p>如果我们不希望通过编译来强制划分软件版本，即实现序列化接口的实体能够兼容先前版本，未作更改的类，就需要显式地定义一个名为serialVersionUID，类型为long的变量，不修改这个变量值的序列化实体都可以相互进行串行化和反串行化。</p>
+<p>清单 1. 相同功能代码不同序列化 ID 的类对比<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line">package com.inout; </div><div class="line"></div><div class="line"> import java.io.Serializable; </div><div class="line"></div><div class="line"> public class A implements Serializable &#123; </div><div class="line"></div><div class="line">	 private static final long serialVersionUID = 1L; </div><div class="line"></div><div class="line">	 private String name; </div><div class="line">	</div><div class="line">	 public String getName() </div><div class="line">	 &#123; </div><div class="line">		 return name; </div><div class="line">	 &#125; </div><div class="line">	</div><div class="line">	 public void setName(String name) </div><div class="line">	 &#123; </div><div class="line">		 this.name = name; </div><div class="line">	 &#125; </div><div class="line"> &#125; </div><div class="line"></div><div class="line"> package com.inout; </div><div class="line"></div><div class="line"> import java.io.Serializable; </div><div class="line"></div><div class="line"> public class A implements Serializable &#123; </div><div class="line"></div><div class="line">	 private static final long serialVersionUID = 2L; </div><div class="line">	</div><div class="line">	 private String name; </div><div class="line">	</div><div class="line">	 public String getName() </div><div class="line">	 &#123; </div><div class="line">		 return name; </div><div class="line">	 &#125; </div><div class="line">	</div><div class="line">	 public void setName(String name) </div><div class="line">	 &#123; </div><div class="line">		 this.name = name; </div><div class="line">	 &#125; </div><div class="line"> &#125;</div></pre></td></tr></table></figure></p>
+<p>序列化 ID 在 Eclipse 下提供了两种生成策略，一个是固定的 1L，一个是随机生成一个不重复的 long 类型数据（实际上是使用 JDK 工具生成），在这里有一个建议，如果没有特殊需求，就是用默认的 1L 就可以，这样可以确保代码一致时反序列化成功。那么随机生成的序列化 ID 有什么作用呢，有些时候，通过改变序列化 ID 可以用来限制某些用户的使用。  </p>
+<h4 id="特性使用案例"><a href="#特性使用案例" class="headerlink" title="特性使用案例"></a>特性使用案例</h4><p>读者应该听过 Façade 模式，它是为应用程序提供统一的访问接口，案例程序中的 Client 客户端使用了该模式，案例程序结构图如图 1 所示。<br><img src="http://www.ibm.com/developerworks/cn/java/j-lo-serial/image003.gif" alt="image"><br>Client 端通过 Façade Object 才可以与业务逻辑对象进行交互。而客户端的 Façade Object 不能直接由 Client 生成，而是需要 Server 端生成，然后序列化后通过网络将二进制对象数据传给 Client，Client 负责反序列化得到 Façade 对象。该模式可以使得 Client 端程序的使用需要服务器端的许可，同时 Client 端和服务器端的 Façade Object 类需要保持一致。当服务器端想要进行版本更新时，只要将服务器端的 Façade Object 类的序列化 ID 再次生成，当 Client 端反序列化 Façade Object 就会失败，也就是强制 Client 端从服务器端获取最新程序。</p>
+<h3 id="静态变量序列化"><a href="#静态变量序列化" class="headerlink" title="静态变量序列化"></a>静态变量序列化</h3><p>清单 2. 静态变量序列化问题代码<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line">public class Test implements Serializable &#123;</div><div class="line"></div><div class="line">	private static final long serialVersionUID = 1L;</div><div class="line"></div><div class="line">	public static int staticVar = 5;</div><div class="line"></div><div class="line">	public static void main(String[] args) &#123;</div><div class="line">		try &#123;</div><div class="line">			//初始时staticVar为5</div><div class="line">			ObjectOutputStream out = new ObjectOutputStream(</div><div class="line">					new FileOutputStream(&quot;result.obj&quot;));</div><div class="line">			out.writeObject(new Test());</div><div class="line">			out.close();</div><div class="line"></div><div class="line">			//序列化后修改为10</div><div class="line">			Test.staticVar = 10;</div><div class="line"></div><div class="line">			ObjectInputStream oin = new ObjectInputStream(new FileInputStream(</div><div class="line">					&quot;result.obj&quot;));</div><div class="line">			Test t = (Test) oin.readObject();</div><div class="line">			oin.close();</div><div class="line">			</div><div class="line">			//再读取，通过t.staticVar打印新的值</div><div class="line">			System.out.println(t.staticVar);</div><div class="line">			</div><div class="line">		&#125; catch (FileNotFoundException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">		&#125; catch (IOException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">		&#125; catch (ClassNotFoundException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>清单 2 中的 main 方法，将对象序列化后，修改静态变量的数值，再将序列化对象读取出来，然后通过读取出来的对象获得静态变量的数值并打印出来。依照清单 2，这个 System.out.println(t.staticVar) 语句输出的是 10 还是 5 呢？</p>
+<p>最后的输出是 10，对于无法理解的读者认为，打印的 staticVar 是从读取的对象里获得的，应该是保存时的状态才对。之所以打印 10 的原因在于序列化时，并不保存静态变量，这其实比较容易理解，<strong>序列化保存的是对象的状态，静态变量属于类的状态</strong>，因此 序列化并不保存静态变量。</p>
+<h3 id="父类的序列化与-Transient-关键字"><a href="#父类的序列化与-Transient-关键字" class="headerlink" title="父类的序列化与 Transient 关键字"></a>父类的序列化与 Transient 关键字</h3><p>情境：一个子类实现了 Serializable 接口，它的父类都没有实现 Serializable 接口，序列化该子类对象，然后反序列化后输出父类定义的某变量的数值，该变量数值与序列化时的数值不同。  </p>
+<p>解决：要想将父类对象也序列化，就需要让父类也实现Serializable 接口。如果父类不实现的话的，就 需要有默认的无参的构造函数。在父类没有实现 Serializable 接口时，虚拟机是不会序列化父对象的，而一个 Java 对象的构造必须先有父对象，才有子对象，反序列化也不例外。所以反序列化时，为了构造父对象，只能调用父类的无参构造函数作为默认的父对象。因此当我们取父对象的变量值时，它的值是调用父类无参构造函数后的值。如果你考虑到这种序列化的情况，在父类无参构造函数中对变量进行初始化，否则的话，父类变量值都是默认声明的值，如 int 型的默认是 0，string 型的默认是 null。  </p>
+<p>Transient 关键字的作用是控制变量的序列化，在变量声明前加上该关键字，可以阻止该变量被序列化到文件中，在被反序列化后，transient 变量的值被设为初始值，如 int 型的是 0，对象型的是 null。 </p>
+<h4 id="特性使用案例-1"><a href="#特性使用案例-1" class="headerlink" title="特性使用案例"></a>特性使用案例</h4><p>我们熟悉使用 Transient 关键字可以使得字段不被序列化，那么还有别的方法吗？根据父类对象序列化的规则，我们可以将不需要被序列化的字段抽取出来放到父类中，子类实现 Serializable 接口，父类不实现，根据父类序列化规则，父类的字段数据将不被序列化，形成类图如图 2 所示。<br><img src="http://www.ibm.com/developerworks/cn/java/j-lo-serial/image005.gif" alt="image"><br>上图中可以看出，attr1、attr2、attr3、attr5 都不会被序列化，放在父类中的好处在于当有另外一个 Child 类时，attr1、attr2、attr3 依然不会被序列化，不用重复抒写 transient，代码简洁。   </p>
+<h3 id="对敏感字段加密"><a href="#对敏感字段加密" class="headerlink" title="对敏感字段加密"></a>对敏感字段加密</h3><p>情境：服务器端给客户端发送序列化对象数据，对象中有一些数据是敏感的，比如密码字符串等，希望对该密码字段在序列化时，进行加密，而客户端如果拥有解密的密钥，只有在客户端进行反序列化时，才可以对密码进行读取，这样可以一定程度保证序列化对象的数据安全。    </p>
+<p>解决：在序列化过程中，虚拟机会试图调用对象类里的 writeObject 和 readObject 方法，进行用户自定义的序列化和反序列化，如果没有这样的方法，则默认调用是 ObjectOutputStream 的 defaultWriteObject 方法以及 ObjectInputStream 的 defaultReadObject 方法。用户自定义的 writeObject 和 readObject 方法可以允许用户控制序列化的过程，比如可以在序列化的过程中动态改变序列化的数值。基于这个原理，可以在实际应用中得到使用，用于敏感字段的加密工作，清单 3 展示了这个过程。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div></pre></td><td class="code"><pre><div class="line">private static final long serialVersionUID = 1L;</div><div class="line"></div><div class="line">	private String password = &quot;pass&quot;;</div><div class="line"></div><div class="line">	public String getPassword() &#123;</div><div class="line">		return password;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public void setPassword(String password) &#123;</div><div class="line">		this.password = password;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	private void writeObject(ObjectOutputStream out) &#123;</div><div class="line">		try &#123;</div><div class="line">			PutField putFields = out.putFields();</div><div class="line">			System.out.println(&quot;原密码:&quot; + password);</div><div class="line">			password = &quot;encryption&quot;;//模拟加密</div><div class="line">			putFields.put(&quot;password&quot;, password);</div><div class="line">			System.out.println(&quot;加密后的密码&quot; + password);</div><div class="line">			out.writeFields();</div><div class="line">		&#125; catch (IOException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	private void readObject(ObjectInputStream in) &#123;</div><div class="line">		try &#123;</div><div class="line">			GetField readFields = in.readFields();</div><div class="line">			Object object = readFields.get(&quot;password&quot;, &quot;&quot;);</div><div class="line">			System.out.println(&quot;要解密的字符串:&quot; + object.toString());</div><div class="line">			password = &quot;pass&quot;;//模拟解密,需要获得本地的密钥</div><div class="line">		&#125; catch (IOException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">		&#125; catch (ClassNotFoundException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">		&#125;</div><div class="line"></div><div class="line">	&#125;</div><div class="line"></div><div class="line">	public static void main(String[] args) &#123;</div><div class="line">		try &#123;</div><div class="line">			ObjectOutputStream out = new ObjectOutputStream(</div><div class="line">					new FileOutputStream(&quot;result.obj&quot;));</div><div class="line">			out.writeObject(new Test());</div><div class="line">			out.close();</div><div class="line"></div><div class="line">			ObjectInputStream oin = new ObjectInputStream(new FileInputStream(</div><div class="line">					&quot;result.obj&quot;));</div><div class="line">			Test t = (Test) oin.readObject();</div><div class="line">			System.out.println(&quot;解密后的字符串:&quot; + t.getPassword());</div><div class="line">			oin.close();</div><div class="line">		&#125; catch (FileNotFoundException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">		&#125; catch (IOException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">		&#125; catch (ClassNotFoundException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在清单 3 的 writeObject 方法中，对密码进行了加密，在 readObject 中则对 password 进行解密，只有拥有密钥的客户端，才可以正确的解析出密码，确保了数据的安全。执行清单 3 后控制台输出如图 3 所示。<br><img src="http://www.ibm.com/developerworks/cn/java/j-lo-serial/image007.jpg" alt="image">    </p>
+<h4 id="特性使用案例-2"><a href="#特性使用案例-2" class="headerlink" title="特性使用案例"></a>特性使用案例</h4><p>RMI 技术是完全基于 Java 序列化技术的，服务器端接口调用所需要的参数对象来至于客户端，它们通过网络相互传输。这就涉及 RMI 的安全传输的问题。一些敏感的字段，如用户名密码（用户登录时需要对密码进行传输），我们希望对其进行加密，这时，就可以采用本节介绍的方法在客户端对密码进行加密，服务器端进行解密，确保数据传输的安全性。</p>
+<h3 id="序列化存储规则"><a href="#序列化存储规则" class="headerlink" title="序列化存储规则"></a>序列化存储规则</h3><p>清单 4. 存储规则问题代码<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">ObjectOutputStream out = new ObjectOutputStream(</div><div class="line">					new FileOutputStream(&quot;result.obj&quot;));</div><div class="line">Test test = new Test();</div><div class="line">//试图将对象两次写入文件</div><div class="line">out.writeObject(test);</div><div class="line">out.flush();</div><div class="line">System.out.println(new File(&quot;result.obj&quot;).length());</div><div class="line">out.writeObject(test);</div><div class="line">out.close();</div><div class="line">System.out.println(new File(&quot;result.obj&quot;).length());</div><div class="line"></div><div class="line">ObjectInputStream oin = new ObjectInputStream(new FileInputStream(</div><div class="line">		&quot;result.obj&quot;));</div><div class="line">//从文件依次读出两个文件</div><div class="line">Test t1 = (Test) oin.readObject();</div><div class="line">Test t2 = (Test) oin.readObject();</div><div class="line">oin.close();</div><div class="line">		</div><div class="line">//判断两个引用是否指向同一个对象</div><div class="line">System.out.println(t1 == t2);</div></pre></td></tr></table></figure></p>
+<p>清单 4 中对同一对象两次写入文件，打印出写入一次对象后的存储大小和写入两次后的存储大小，然后从文件中反序列化出两个对象，比较这两个对象是否为同一对象。一般的思维是，两次写入对象，文件大小会变为两倍的大小，反序列化时，由于从文件读取，生成了两个对象，判断相等时应该是输入 false 才对，但是最后结果输出如图 4 所示。<br><img src="http://www.ibm.com/developerworks/cn/java/j-lo-serial/image009.jpg" alt="image"><br>我们看到，第二次写入对象时文件只增加了 5 字节，并且两个对象是相等的，这是为什么呢？    </p>
+<p>解答：Java 序列化机制为了节省磁盘空间，具有特定的存储规则，当写入文件的为同一对象时，并不会再将对象的内容进行存储，而只是再次存储一份引用，上面增加的 5 字节的存储空间就是新增引用和一些控制信息的空间。反序列化时，恢复引用关系，使得清单 3 中的 t1 和 t2 指向唯一的对象，二者相等，输出 true。该存储规则极大的节省了存储空间。</p>
+<h4 id="特性案例分析"><a href="#特性案例分析" class="headerlink" title="特性案例分析"></a>特性案例分析</h4><p>清单 5. 案例代码<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(&quot;result.obj&quot;));</div><div class="line">Test test = new Test();</div><div class="line">test.i = 1;</div><div class="line">out.writeObject(test);</div><div class="line">out.flush();</div><div class="line">test.i = 2;</div><div class="line">out.writeObject(test);</div><div class="line">out.close();</div><div class="line">ObjectInputStream oin = new ObjectInputStream(new FileInputStream(</div><div class="line">					&quot;result.obj&quot;));</div><div class="line">Test t1 = (Test) oin.readObject();</div><div class="line">Test t2 = (Test) oin.readObject();</div><div class="line">System.out.println(t1.i);</div><div class="line">System.out.println(t2.i);</div></pre></td></tr></table></figure></p>
+<p>清单 5 的目的是希望将 test 对象两次保存到 result.obj 文件中，写入一次以后修改对象属性值再次保存第二次，然后从 result.obj 中再依次读出两个对象，输出这两个对象的 i 属性值。案例代码的目的原本是希望一次性传输对象修改前后的状态。<br>结果两个输出的都是 1， 原因就是第一次写入对象以后，第二次再试图写的时候，虚拟机根据引用关系知道已经有一个相同对象已经写入文件，因此只保存第二次写的引用，所以读取时，都是第一次保存的对象。读者在使用一个文件多次 writeObject 需要特别注意这个问题。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/序列化和反序列化/" data-id="cjei97edv004k89blbh2nhmzd" class="article-share-link">Share</a>
       
       
     </footer>
@@ -774,7 +819,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/对象存活/" data-id="cjei8ydg500477obl1ootflc0" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/对象存活/" data-id="cjei97edt004e89blmoqs4l3r" class="article-share-link">Share</a>
       
       
     </footer>
@@ -910,7 +955,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/java运行期优化/" data-id="cjei8ydg6004c7oblud4egmwb" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/java运行期优化/" data-id="cjei97eds004b89blft2hkhaq" class="article-share-link">Share</a>
       
       
     </footer>
@@ -965,19 +1010,19 @@
           </li>
         
           <li>
+            <a href="/2018/02/25/Java/基础/类加载机制/">类加载机制</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/25/Java/集合/HashSet原理/">HashSet原理</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/25/Java/集合/几种常见的map/">几种常见的map</a>
+          </li>
+        
+          <li>
             <a href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/">Hashtable与ConcurrentHashMap区别</a>
-          </li>
-        
-          <li>
-            <a href="/2018/02/25/Java/分布式/分布式事务/">分布式事务</a>
-          </li>
-        
-          <li>
-            <a href="/2018/02/25/Java/分布式/分布式锁/">分布式锁</a>
-          </li>
-        
-          <li>
-            <a href="/2018/02/25/Java/集合/在List循环中删除元素/">在List循环中删除元素</a>
           </li>
         
       </ul>

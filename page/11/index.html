@@ -68,134 +68,6 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-服务器相关/Hessian/spring支持的几种远程调用方式" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/08/02/服务器相关/Hessian/spring支持的几种远程调用方式/" class="article-date">
-  <time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a>►<a class="article-category-link" href="/categories/服务器相关/Hessian/">Hessian</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/服务器相关/Hessian/spring支持的几种远程调用方式/">spring支持的几种远程调用方式</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <ol>
-<li><blockquote>
-<p>spring 官方文档：<a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#remoting" target="_blank" rel="external">http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#remoting</a></p>
-<h2 id="传输对象，接口，接口实现类"><a href="#传输对象，接口，接口实现类" class="headerlink" title="传输对象，接口，接口实现类"></a>传输对象，接口，接口实现类</h2><h4 id="传输对象DTO"><a href="#传输对象DTO" class="headerlink" title="传输对象DTO"></a>传输对象DTO</h4><p>必须实现Serializable接口</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">public class Account implements Serializable&#123;</div><div class="line"></div><div class="line">    private String name;</div><div class="line"></div><div class="line">    public String getName()&#123;</div><div class="line">        return name;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public void setName(String name) &#123;</div><div class="line">        this.name = name;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</blockquote>
-<h4 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public interface AccountService &#123;</div><div class="line"></div><div class="line">    public void insertAccount(Account account);</div><div class="line"></div><div class="line">    public List&lt;Account&gt; getAccounts(String name);</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h4 id="实现类"><a href="#实现类" class="headerlink" title="实现类"></a>实现类</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">// the implementation doing nothing at the moment</div><div class="line">public class AccountServiceImpl implements AccountService &#123;</div><div class="line"></div><div class="line">    public void insertAccount(Account acc) &#123;</div><div class="line">        // do something...</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public List&lt;Account&gt; getAccounts(String name) &#123;</div><div class="line">        // do something...</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="Remote-Method-Invocation-RMI"><a href="#Remote-Method-Invocation-RMI" class="headerlink" title="Remote Method Invocation (RMI)"></a>Remote Method Invocation (RMI)</h2><h4 id="服务端（远程调用提供端）"><a href="#服务端（远程调用提供端）" class="headerlink" title="服务端（远程调用提供端）"></a>服务端（远程调用提供端）</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;example.AccountServiceImpl&quot;&gt;</div><div class="line">    &lt;!-- any additional properties, maybe a DAO? --&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean class=&quot;org.springframework.remoting.rmi.RmiServiceExporter&quot;&gt;</div><div class="line">    &lt;!-- does not necessarily have to be the same name as the bean to be exported --&gt;</div><div class="line">    &lt;property name=&quot;serviceName&quot; value=&quot;AccountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;service&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">    &lt;!-- defaults to 1099 --&gt;</div><div class="line">    &lt;property name=&quot;registryPort&quot; value=&quot;1199&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<p>这样，远程服务就会绑定到<code>rmi://HOST:1199/AccountService</code></p>
-<h4 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean class=&quot;example.SimpleObject&quot;&gt;</div><div class="line">    &lt;property name=&quot;accountService&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;org.springframework.remoting.rmi.RmiProxyFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;serviceUrl&quot; value=&quot;rmi://HOST:1199/AccountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<p>使用远程接口：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public class SimpleObject &#123;</div><div class="line"></div><div class="line">    private AccountService accountService;</div><div class="line"></div><div class="line">    public void setAccountService(AccountService accountService) &#123;</div><div class="line">        this.accountService = accountService;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // additional methods using the accountService</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="Hessian-or-Burlap"><a href="#Hessian-or-Burlap" class="headerlink" title="Hessian or Burlap"></a>Hessian or Burlap</h2><p>Hessian使用的是二进制方式的远程调用协议，官网：<a href="http://www.caucho.com" target="_blank" rel="external">http://www.caucho.com</a>   </p>
-<h4 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h4><p>web.xml配置</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">&lt;servlet&gt;</div><div class="line">    &lt;servlet-name&gt;remoting&lt;/servlet-name&gt;</div><div class="line">    &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;</div><div class="line">    &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;</div><div class="line">&lt;/servlet&gt;</div><div class="line"></div><div class="line">&lt;servlet-mapping&gt;</div><div class="line">    &lt;servlet-name&gt;remoting&lt;/servlet-name&gt;</div><div class="line">    &lt;url-pattern&gt;/remoting/*&lt;/url-pattern&gt;</div><div class="line">&lt;/servlet-mapping&gt;</div></pre></td></tr></table></figure>
-<p>需要在<code>WEB-INF</code>目录下添加<code>remoting-servlet.xml</code>配置文件,事实上，如果你的配置为<code>&lt;servlet-name&gt;hessian&lt;/servlet-name&gt;</code>,那么你的配置文件名就应该为<code>hessian-servlet.xml</code>   </p>
-<p>remoting-servlet.xml配置：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;example.AccountServiceImpl&quot;&gt;</div><div class="line">    &lt;!-- any additional properties, maybe a DAO? --&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean name=&quot;/AccountService&quot; class=&quot;org.springframework.remoting.caucho.HessianServiceExporter&quot;&gt;</div><div class="line">    &lt;property name=&quot;service&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<p>这样，远程服务就绑定到地址：<a href="http://HOST:8080/remoting/AccountService" target="_blank" rel="external">http://HOST:8080/remoting/AccountService</a></p>
-<h4 id="客户端-1"><a href="#客户端-1" class="headerlink" title="客户端"></a>客户端</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean class=&quot;example.SimpleObject&quot;&gt;</div><div class="line">    &lt;property name=&quot;accountService&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;org.springframework.remoting.caucho.HessianProxyFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;serviceUrl&quot; value=&quot;http://remotehost:8080/remoting/AccountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<p>Burlap 与 Hessian配置类似，只需要替换<code>org.springframework.remoting.caucho.HessianServiceExporter</code>和<code>org.springframework.remoting.caucho.HessianProxyFactoryBean</code>即可</p>
-</li>
-</ol>
-<h2 id="HTTP-invokers-推荐"><a href="#HTTP-invokers-推荐" class="headerlink" title="HTTP invokers(推荐)"></a>HTTP invokers(推荐)</h2><h4 id="服务端-1"><a href="#服务端-1" class="headerlink" title="服务端"></a>服务端</h4><p>   HTTP invokers与Hessian配置类似，将<code>org.springframework.remoting.caucho.HessianServiceExporter</code>替换为<code>org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter</code>即可<br>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;bean name=&quot;accountExporter&quot; class=&quot;org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter&quot;&gt;</div><div class="line">    &lt;property name=&quot;service&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
-<p>   HTTP invokers默认使用JDK’s HTTP functionality作为HTTP客户端，你可以更改为使用<code>Apache HttpComponents client</code><br>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;property name=&quot;httpInvokerRequestExecutor&quot;&gt;</div><div class="line">    &lt;bean class=&quot;org.springframework.remoting.httpinvoker.HttpComponentsHttpInvokerRequestExecutor&quot;/&gt;</div><div class="line">&lt;/property&gt;</div></pre></td></tr></table></figure></p>
-<h4 id="客户端-2"><a href="#客户端-2" class="headerlink" title="客户端"></a>客户端</h4><p>   将<code>org.springframework.remoting.caucho.HessianProxyFactoryBean</code>替换为<code>org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean</code><br>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;httpInvokerProxy&quot; class=&quot;org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;serviceUrl&quot; value=&quot;http://remotehost:8080/remoting/AccountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/服务器相关/Hessian/spring支持的几种远程调用方式/" data-id="cjei8ydkl00dv7obluce32p48" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-服务器相关/Hessian/整合spring" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/08/02/服务器相关/Hessian/整合spring/" class="article-date">
-  <time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a>►<a class="article-category-link" href="/categories/服务器相关/Hessian/">Hessian</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/服务器相关/Hessian/整合spring/">整合spring</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <ol>
-<li><blockquote>
-<p>hessian是一个采用二进制格式传输的服务框架，相对传统soap web service，更轻量，更快速。官网地址：<a href="http://hessian.caucho.com/" target="_blank" rel="external">http://hessian.caucho.com/</a></p>
-<h2 id="加入依赖包"><a href="#加入依赖包" class="headerlink" title="加入依赖包"></a>加入依赖包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;com.caucho&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;hessian&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;4.0.37&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
-</blockquote>
-<h2 id="web-xml加入拦截"><a href="#web-xml加入拦截" class="headerlink" title="web.xml加入拦截"></a>web.xml加入拦截</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">&lt;servlet&gt;</div><div class="line">    &lt;servlet-name&gt;hessian&lt;/servlet-name&gt;</div><div class="line">    &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;</div><div class="line">    &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;</div><div class="line">&lt;/servlet&gt;</div><div class="line">&lt;servlet-mapping&gt;</div><div class="line">    &lt;servlet-name&gt;hessian&lt;/servlet-name&gt;</div><div class="line">    &lt;url-pattern&gt;*.http&lt;/url-pattern&gt;</div><div class="line">&lt;/servlet-mapping&gt;</div></pre></td></tr></table></figure>
-<p>这样，以<code>.http</code>结尾的url都会转为远程服务</p>
-</li>
-</ol>
-<h2 id="hessian-servlet-xml"><a href="#hessian-servlet-xml" class="headerlink" title="hessian-servlet.xml"></a>hessian-servlet.xml</h2><p>   发布远程调用接口<br>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;bean name=&quot;/services/whRemoteService.http&quot; class=&quot;org.springframework.remoting.caucho.HessianServiceExporter&quot;&gt;</div><div class="line">    &lt;property name=&quot;service&quot; ref=&quot;whRemoteService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;com.xx.remote.service.WhRemoteService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
-<ul>
-<li>调用地址:<a href="http://host/services/whRemoteService.http" target="_blank" rel="external">http://host/services/whRemoteService.http</a></li>
-<li>service:远程调用接口名称</li>
-<li>serviceInterface:远程调用接口地址</li>
-</ul>
-<h2 id="调用方配置：applicationContext-remoting-xml"><a href="#调用方配置：applicationContext-remoting-xml" class="headerlink" title="调用方配置：applicationContext-remoting.xml"></a>调用方配置：applicationContext-remoting.xml</h2>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;whRemoteService&quot; class=&quot;org.springframework.remoting.caucho.HessianProxyFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;serviceUrl&quot; value=&quot;http://host/services/whRemoteService.http&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;com.xx.remote.service.WhRemoteService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>   传输的对象必须是序列化的，也就是要implements Serializable接口</p>
-<h4 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h4>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">public interface OssPaymentRemoteService &#123;</div><div class="line"></div><div class="line">	public List&lt;TransactionRecordDTO&gt; majorAccountSearch(Map&lt;String, Object&gt; params, Integer pageNo, Integer pageSize);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h4 id="传输对象dto"><a href="#传输对象dto" class="headerlink" title="传输对象dto"></a>传输对象dto</h4>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public class TransactionRecordDTO  implements Serializable &#123;</div><div class="line">	private static final long serialVersionUID = 1L;</div><div class="line"></div><div class="line">    private Byte type;</div><div class="line">    </div><div class="line">    //getter and setter</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h4 id="接口实现类"><a href="#接口实现类" class="headerlink" title="接口实现类"></a>接口实现类</h4>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public class OssPaymentRemoteServiceImpl  implements OssPaymentRemoteService &#123;</div><div class="line">	private Logger logger = LoggerFactory.getLogger(OssPaymentRemoteServiceImpl.class);</div><div class="line"></div><div class="line"></div><div class="line">	@Override</div><div class="line">	public List&lt;TransactionRecordDTO&gt; majorAccountSearch(Map&lt;String, Object&gt; params, Integer pageNo, Integer pageSize) &#123;</div><div class="line">	    //实现逻辑</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/服务器相关/Hessian/整合spring/" data-id="cjei8ydkn00e07obleeapxxag" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
     <article id="post-网络/HTTP请求方法" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2017/08/02/网络/HTTP请求方法/" class="article-date">
@@ -280,155 +152,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/HTTP请求方法/" data-id="cjei8yde100287oblq9by23dm" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-网络/TCP和UDP的区别" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/08/02/网络/TCP和UDP的区别/" class="article-date">
-  <time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/网络/">网络</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/网络/TCP和UDP的区别/">TCP和UDP的区别</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="TCP与UDP区别总结："><a href="#TCP与UDP区别总结：" class="headerlink" title="TCP与UDP区别总结："></a>TCP与UDP区别总结：</h3><ol>
-<li>TCP面向连接（如打电话要先拨号建立连接）;UDP是无连接的，即发送数据之前不需要建立连接</li>
-<li>TCP提供可靠的服务。也就是说，通过TCP连接传送的数据，无差错，不丢失，不重复，且按序到达;UDP尽最大努力交付，即不保证可靠交付</li>
-<li>TCP面向字节流，实际上是TCP把数据看成一连串无结构的字节流;UDP是面向报文的<br>UDP没有拥塞控制，因此网络出现拥塞不会使源主机的发送速率降低（对实时应用很有用，如IP电话，实时视频会议等）</li>
-<li>每一条TCP连接只能是点到点的;UDP支持一对一，一对多，多对一和多对多的交互通信</li>
-<li>TCP首部开销20字节;UDP的首部开销小，只有8个字节</li>
-<li>TCP的逻辑通信信道是全双工的可靠信道，UDP则是不可靠信道</li>
-</ol>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/TCP和UDP的区别/" data-id="cjei8yde2002a7oblclvoqs2r" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-网络/http 消息头" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/08/02/网络/http 消息头/" class="article-date">
-  <time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/网络/">网络</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/网络/http 消息头/">http 消息头</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="四种不同类型的头标："><a href="#四种不同类型的头标：" class="headerlink" title="四种不同类型的头标："></a>四种不同类型的头标：</h3><ol>
-<li>通用头标：即可用于请求，也可用于响应，是作为一个整体而不是特定资源与事务相关联。</li>
-<li>请求头标：允许客户端传递关于自身的信息和希望的响应形式。</li>
-<li>响应头标：服务器和于传递自身信息的响应。</li>
-<li>实体头标：定义被传送资源的信息。即可用于请求，也可用于响应。 </li>
-</ol>
-<h3 id="一般头字段"><a href="#一般头字段" class="headerlink" title="一般头字段"></a>一般头字段</h3><p>一般头字段可用于请求消息和响应消息。<br>| 名称                | 示例值                                |<br>| —————– | ———————————- |<br>| Cache-Control     | “max-age=10”                       |<br>| Connection        | “close”                            |<br>| Date              | “Tue, 11 Jul 2000 18:23:51 GMT”    |<br>| Pragma            | “no-cache”                         |<br>| Trailer           | “Date”                             |<br>| Transfer-Encoding | “chunked”                          |<br>| Upgrade           | “SHTTP/1.3”                        |<br>| Via               | “HTTP/1.1 Proxy1, HTTP/1.1 Proxy2” |<br>| Warning           | “112 Disconnected Operation”       |</p>
-<h3 id="请求头字段"><a href="#请求头字段" class="headerlink" title="请求头字段"></a>请求头字段</h3><p>请求头字段仅用于请求消息。<br>| 名称                  | 示例值                                      |<br>| ——————- | —————————————- |<br>| Accept              | “text/html, image/*”                     |<br>| Accept-Charset      | “iso8859-5”                              |<br>| Accept-Encoding     | “gzip, compress”                         |<br>| Accept-Language     | “en, fr”                                 |<br>| Authorization       | [credentials]                            |<br>| Content-Encoding    | “gzip”                                   |<br>| Expect              | “100-continue”                           |<br>| From                | “user@microsoft.com”                     |<br>| Host                | “www.microsoft.com”                      |<br>| If-Match            | “entity_tag001”                          |<br>| If-Modified-Since   | “Tue, 11 Jul 2000 18:23:51 GMT”          |<br>| If-None-Match       | “entity_tag001”                          |<br>| If-Range            | “entity_tag001” or “Tue, 11 Jul 2000 18:23:51 GMT” |<br>| If-Unmodified-Since | “Tue, 11 Jul 2000 18:23:51 GMT”          |<br>| Max-Forwards        | “3”                                      |<br>| Proxy-Authorization | [credentials]                            |<br>| Range               | “bytes=100-599”                          |<br>| Referer             | “<a href="http://www.microsoft.com/resources.asp" target="_blank" rel="external">http://www.microsoft.com/resources.asp</a>“ |<br>| TE                  | “trailers”                               |<br>| User-Agent          | “Mozilla/4.0 (compatible; MSIE 5.5; Windows NT 5.0)” |</p>
-<h3 id="响应头字段"><a href="#响应头字段" class="headerlink" title="响应头字段"></a>响应头字段</h3><p>响应头字段仅用于响应消息。<br>| 名称                 | 示例值                                     |<br>| —————— | ————————————— |<br>| Accept-Ranges      | “none”                                  |<br>| Age                | “2147483648(2^31)”                      |<br>| ETag               | “b38b9-17dd-367c5dcd”                   |<br>| Last-Modified      | “Tue, 11 Jul 2000 18:23:51 GMT”         |<br>| Location           | “<a href="http://localhost/redirecttarget.asp" target="_blank" rel="external">http://localhost/redirecttarget.asp</a>“   |<br>| Proxy-Authenticate | [challenge]                             |<br>| Retry-After        | “Tue, 11 Jul 2000 18:23:51 GMT” or “60” |<br>| Server             | “Microsoft-IIS/5.0”                     |<br>| Vary               | “Date”                                  |<br>| WWW-Authenticate   | [challenge]                             |</p>
-<h3 id="实体头字段"><a href="#实体头字段" class="headerlink" title="实体头字段"></a>实体头字段</h3><p>实体头字段可以用于请求消息或响应消息。实体头字段中包含消息实体正文的有关信息，如使用的编码格式。<br>| 名称               | 示例值                             |<br>| —————- | ——————————- |<br>| Allow            | “GET, HEAD”                     |<br>| Content-Encoding | “gzip”                          |<br>| Content-Language | “en”                            |<br>| Content-Length   | “8445”                          |<br>| Content-Location | “<a href="http://localhost/page.asp" target="_blank" rel="external">http://localhost/page.asp</a>“     |<br>| Content-MD5      | [md5-digest]                    |<br>| Content-Range    | “bytes 2543-4532/7898”          |<br>| Content-Type     | “text/html”                     |<br>| Expires          | “Tue, 11 Jul 2000 18:23:51 GMT” |<br>| Last-Modified    | “Tue, 11 Jul 2000 18:23:51 GMT” |</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/http 消息头/" data-id="cjei8yde3002d7obljn4doac1" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-网络/状态码" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/08/02/网络/状态码/" class="article-date">
-  <time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/网络/">网络</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/网络/状态码/">状态码</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>当浏览者访问一个网页时，浏览者的浏览器会向网页所在服务器发出请求。当浏览器接收并显示网页前，此网页所在的服务器会返回一个包含HTTP状态码的信息头（server header）用以响应浏览器的请求。<br>HTTP状态码的英文为HTTP Status Code。</p>
-<p>下面是常见的HTTP状态码：</p>
-<ul>
-<li>200 - 请求成功</li>
-<li>301 - 资源（网页等）被永久转移到其它URL</li>
-<li>404 - 请求的资源（网页等）不存在</li>
-<li>500 - 内部服务器错误</li>
-</ul>
-<h2 id="HTTP状态码分类"><a href="#HTTP状态码分类" class="headerlink" title="HTTP状态码分类"></a>HTTP状态码分类</h2><p>HTTP状态码由三个十进制数字组成，第一个十进制数字定义了状态码的类型，后两个数字没有分类的作用。HTTP状态码共分为5种类型：<br>| 分类   | 分类描述                    |<br>| —- | ———————– |<br>| 1<strong>  | 信息，服务器收到请求，需要请求者继续执行操作  |<br>| 2</strong>  | 成功，操作被成功接收并处理           |<br>| 3<strong>  | 重定向，需要进一步的操作以完成请求       |<br>| 4</strong>  | 客户端错误，请求包含语法错误或无法完成请求   |<br>| 5**  | 服务器错误，服务器在处理请求的过程中发生了错误 |</p>
-<p>HTTP状态码列表:<br>| 状态码  |             状态码英文名称             |                   中文描述                   |<br>| :–: | :—————————–: | :————————————–: |<br>| 100  |            Continue             |               继续。客户端应继续其请求               |<br>| 101  |       Switching Protocols       | 切换协议。服务器根据客户端的请求切换协议。只能切换到更高级的协议，例如，切换到HTTP的新版本协议 |<br>|      |                                 |                                          |<br>| 200  |               OK                |           请求成功。一般用于GET与POST请求            |<br>| 201  |             Created             |             已创建。成功请求并创建了新的资源             |<br>| 202  |            Accepted             |            已接受。已经接受请求，但未处理完成             |<br>| 203  |  Non-Authoritative Information  |   非授权信息。请求成功。但返回的meta信息不在原始的服务器，而是一个副本   |<br>| 204  |           No Content            | 无内容。服务器成功处理，但未返回内容。在未更新网页的情况下，可确保浏览器继续显示当前文档 |<br>| 205  |          Reset Content          | 重置内容。服务器处理成功，用户终端（例如：浏览器）应重置文档视图。可通过此返回码清除浏览器的表单域 |<br>| 206  |         Partial Content         |           部分内容。服务器成功处理了部分GET请求           |<br>|      |                                 |                                          |<br>| 300  |        Multiple Choices         | 多种选择。请求的资源可包括多个位置，相应可返回一个资源特征与地址的列表用于用户终端（例如：浏览器）选择 |<br>| 301  |        Moved Permanently        | 永久移动。请求的资源已被永久的移动到新URI，返回信息会包括新的URI，浏览器会自动定向到新URI。今后任何新的请求都应使用新的URI代替 |<br>| 302  |              Found              |   临时移动。与301类似。但资源只是临时被移动。客户端应继续使用原有URI   |<br>| 303  |            See Other            |       查看其它地址。与301类似。使用GET和POST请求查看       |<br>| 304  |          Not Modified           | 未修改。所请求的资源未修改，服务器返回此状态码时，不会返回任何资源。客户端通常会缓存访问过的资源，通过提供一个头信息指出客户端希望只返回在指定日期之后修改的资源 |<br>| 305  |            Use Proxy            |           使用代理。所请求的资源必须通过代理访问            |<br>| 306  |             Unused              |              已经被废弃的HTTP状态码               |<br>| 307  |       Temporary Redirect        |         临时重定向。与302类似。使用GET请求重定向          |<br>|      |                                 |                                          |<br>| 400  |           Bad Request           |            客户端请求的语法错误，服务器无法理解            |<br>| 401  |          Unauthorized           |               请求要求用户的身份认证                |<br>| 402  |        Payment Required         |                 保留，将来使用                  |<br>| 403  |            Forbidden            |         服务器理解请求客户端的请求，但是拒绝执行此请求          |<br>| 404  |            Not Found            | 服务器无法根据客户端的请求找到资源（网页）。通过此代码，网站设计人员可设置”您所请求的资源无法找到”的个性页面 |<br>| 405  |       Method Not Allowed        |               客户端请求中的方法被禁止               |<br>| 406  |         Not Acceptable          |          服务器无法根据客户端请求的内容特性完成请求           |<br>| 407  |  Proxy Authentication Required  |    请求要求代理的身份认证，与401类似，但请求者应当使用代理进行授权     |<br>| 408  |        Request Time-out         |           服务器等待客户端发送的请求时间过长，超时           |<br>| 409  |            Conflict             |   服务器完成客户端的PUT请求是可能返回此代码，服务器处理请求时发生了冲突   |<br>| 410  |              Gone               | 客户端请求的资源已经不存在。410不同于404，如果资源以前有现在被永久删除了可使用410代码，网站设计人员可通过301代码指定资源的新位置 |<br>| 411  |         Length Required         |    服务器无法处理客户端发送的不带Content-Length的请求信息    |<br>| 412  |       Precondition Failed       |              客户端请求信息的先决条件错误              |<br>| 413  |    Request Entity Too Large     | 由于请求的实体过大，服务器无法处理，因此拒绝请求。为防止客户端的连续请求，服务器可能会关闭连接。如果只是服务器暂时无法处理，则会包含一个Retry-After的响应信息 |<br>| 414  |      Request-URI Too Large      |        请求的URI过长（URI通常为网址），服务器无法处理        |<br>| 415  |     Unsupported Media Type      |             服务器无法处理请求附带的媒体格式             |<br>| 416  | Requested range not satisfiable |                客户端请求的范围无效                |<br>| 417  |       Expectation Failed        |           服务器无法满足Expect的请求头信息            |<br>|      |                                 |                                          |<br>| 500  |      Internal Server Error      |              服务器内部错误，无法完成请求              |<br>| 501  |         Not Implemented         |            服务器不支持请求的功能，无法完成请求            |<br>| 502  |           Bad Gateway           |      充当网关或代理的服务器，从远端服务器接收到了一个无效的请求       |<br>| 503  |       Service Unavailable       | 由于超载或系统维护，服务器暂时的无法处理客户端的请求。延时的长度可包含在服务器的Retry-After头信息中 |<br>| 504  |        Gateway Time-out         |        充当网关或代理的服务器，未及时从远端服务器获取请求         |<br>| 505  |   HTTP Version not supported    |        服务器不支持请求的HTTP协议的版本，无法完成处理         |</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/状态码/" data-id="cjei8yde4002f7obldrc3hh0b" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/HTTP请求方法/" data-id="cjei97ebk002589bl6gprb7uz" class="article-share-link">Share</a>
       
       
     </footer>
@@ -598,7 +322,209 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/HTTP 消息结构/" data-id="cjei8yddy00217oblmh7zm93w" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/HTTP 消息结构/" data-id="cjei97ebi002189bldyetvnfl" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-网络/7层网络协议" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/08/02/网络/7层网络协议/" class="article-date">
+  <time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/网络/">网络</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/02/网络/7层网络协议/">7层网络协议</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <table>
+<thead>
+<tr>
+<th>OSI中的层</th>
+<th>功能</th>
+<th>TCP/IP协议族</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>应用层</td>
+<td>文件传输，电子邮件，文件服务，虚拟终端</td>
+<td>TFTP，HTTP，SNMP，FTP，SMTP，DNS，Telnet</td>
+</tr>
+<tr>
+<td>表示层</td>
+<td>数据格式化，代码转换，数据加密</td>
+<td>没有协议</td>
+</tr>
+<tr>
+<td>会话层</td>
+<td>解除或建立与别的接点的联系</td>
+<td>没有协议</td>
+</tr>
+<tr>
+<td>传输层</td>
+<td>提供端对端的接口</td>
+<td>TCP，UDP</td>
+</tr>
+<tr>
+<td>网络层</td>
+<td>为数据包选择路由</td>
+<td>IP，ICMP，RIP，OSPF，BGP，IGMP</td>
+</tr>
+<tr>
+<td>数据链路层</td>
+<td>传输有地址的帧以及错误检测功能</td>
+<td>SLIP，CSLIP，PPP，ARP，RARP，MTU</td>
+</tr>
+<tr>
+<td>物理层</td>
+<td>以二进制数据形式在物理媒体上传输数据</td>
+<td>ISO2110，IEEE802。IEEE802.2</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><p><strong>物理层</strong> 为数据链路层提供物理连接，在其上串行传送比特流，即所传送数据的单位是比特。此外，该层中还具有确定连接设备的电气特性和物理特性等功能。</p>
+</li>
+<li><p><strong>数据链路层</strong> 负责在网络节点间的线路上通过检测、流量控制和重发等手段，无差错地传送以帧为单位的数据。为做到这一点，在每一帧中必须同时带有同步、地址、差错控制及流量控制等控制信息。</p>
+</li>
+<li><p><strong>网络层</strong> 为了将数据分组从源（源端系统）送到目的地（目标端系统），网络层的任务就是选择合适的路由和交换节点，使源的传输层传下来的分组信息能够正确无误地按照地址找到目的地，并交付给相应的传输层，即完成网络的寻址功能。</p>
+</li>
+<li><p><strong>传输层</strong> 传输层是高低层之间衔接的接口层。数据传输的单位是报文，当报文较长时将它分割成若干分组,然后交给网络层进行传输。传输层是计算机网络协议分层中的最关键一层，该层以上各层将不再管理信息传输问题。</p>
+</li>
+<li><p><strong>会话层</strong> 该层对传输的报文提供同步管理服务。在两个不同系统的互相通信的应用进程之间建立、组织和协调交互。例如，确定是双工还是半双工工作。</p>
+</li>
+<li><p><strong>表示层</strong> 该层的主要任务是把所传送的数据的抽象语法变换为传送语法，即把不同计算机内部的不同表示形式转换成网络通信中的标准表示形式。此外，对传送的数据加密（或解密）、正文压缩（或还原）也是表示层的任务。</p>
+</li>
+<li><p><strong>应用层</strong> 该层直接面向用户，是OSI中的最高层。它的主要任务是为用户提供应用的接口，即提供不同计算机间的文件传送、访问与管理，电子邮件的内容处理，不同计算机通过网络交互访问的虚拟终端功能等。</p>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/7层网络协议/" data-id="cjei97ebg001w89blqu8pi4o1" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-网络/状态码" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/08/02/网络/状态码/" class="article-date">
+  <time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/网络/">网络</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/02/网络/状态码/">状态码</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>当浏览者访问一个网页时，浏览者的浏览器会向网页所在服务器发出请求。当浏览器接收并显示网页前，此网页所在的服务器会返回一个包含HTTP状态码的信息头（server header）用以响应浏览器的请求。<br>HTTP状态码的英文为HTTP Status Code。</p>
+<p>下面是常见的HTTP状态码：</p>
+<ul>
+<li>200 - 请求成功</li>
+<li>301 - 资源（网页等）被永久转移到其它URL</li>
+<li>404 - 请求的资源（网页等）不存在</li>
+<li>500 - 内部服务器错误</li>
+</ul>
+<h2 id="HTTP状态码分类"><a href="#HTTP状态码分类" class="headerlink" title="HTTP状态码分类"></a>HTTP状态码分类</h2><p>HTTP状态码由三个十进制数字组成，第一个十进制数字定义了状态码的类型，后两个数字没有分类的作用。HTTP状态码共分为5种类型：<br>| 分类   | 分类描述                    |<br>| —- | ———————– |<br>| 1<strong>  | 信息，服务器收到请求，需要请求者继续执行操作  |<br>| 2</strong>  | 成功，操作被成功接收并处理           |<br>| 3<strong>  | 重定向，需要进一步的操作以完成请求       |<br>| 4</strong>  | 客户端错误，请求包含语法错误或无法完成请求   |<br>| 5**  | 服务器错误，服务器在处理请求的过程中发生了错误 |</p>
+<p>HTTP状态码列表:<br>| 状态码  |             状态码英文名称             |                   中文描述                   |<br>| :–: | :—————————–: | :————————————–: |<br>| 100  |            Continue             |               继续。客户端应继续其请求               |<br>| 101  |       Switching Protocols       | 切换协议。服务器根据客户端的请求切换协议。只能切换到更高级的协议，例如，切换到HTTP的新版本协议 |<br>|      |                                 |                                          |<br>| 200  |               OK                |           请求成功。一般用于GET与POST请求            |<br>| 201  |             Created             |             已创建。成功请求并创建了新的资源             |<br>| 202  |            Accepted             |            已接受。已经接受请求，但未处理完成             |<br>| 203  |  Non-Authoritative Information  |   非授权信息。请求成功。但返回的meta信息不在原始的服务器，而是一个副本   |<br>| 204  |           No Content            | 无内容。服务器成功处理，但未返回内容。在未更新网页的情况下，可确保浏览器继续显示当前文档 |<br>| 205  |          Reset Content          | 重置内容。服务器处理成功，用户终端（例如：浏览器）应重置文档视图。可通过此返回码清除浏览器的表单域 |<br>| 206  |         Partial Content         |           部分内容。服务器成功处理了部分GET请求           |<br>|      |                                 |                                          |<br>| 300  |        Multiple Choices         | 多种选择。请求的资源可包括多个位置，相应可返回一个资源特征与地址的列表用于用户终端（例如：浏览器）选择 |<br>| 301  |        Moved Permanently        | 永久移动。请求的资源已被永久的移动到新URI，返回信息会包括新的URI，浏览器会自动定向到新URI。今后任何新的请求都应使用新的URI代替 |<br>| 302  |              Found              |   临时移动。与301类似。但资源只是临时被移动。客户端应继续使用原有URI   |<br>| 303  |            See Other            |       查看其它地址。与301类似。使用GET和POST请求查看       |<br>| 304  |          Not Modified           | 未修改。所请求的资源未修改，服务器返回此状态码时，不会返回任何资源。客户端通常会缓存访问过的资源，通过提供一个头信息指出客户端希望只返回在指定日期之后修改的资源 |<br>| 305  |            Use Proxy            |           使用代理。所请求的资源必须通过代理访问            |<br>| 306  |             Unused              |              已经被废弃的HTTP状态码               |<br>| 307  |       Temporary Redirect        |         临时重定向。与302类似。使用GET请求重定向          |<br>|      |                                 |                                          |<br>| 400  |           Bad Request           |            客户端请求的语法错误，服务器无法理解            |<br>| 401  |          Unauthorized           |               请求要求用户的身份认证                |<br>| 402  |        Payment Required         |                 保留，将来使用                  |<br>| 403  |            Forbidden            |         服务器理解请求客户端的请求，但是拒绝执行此请求          |<br>| 404  |            Not Found            | 服务器无法根据客户端的请求找到资源（网页）。通过此代码，网站设计人员可设置”您所请求的资源无法找到”的个性页面 |<br>| 405  |       Method Not Allowed        |               客户端请求中的方法被禁止               |<br>| 406  |         Not Acceptable          |          服务器无法根据客户端请求的内容特性完成请求           |<br>| 407  |  Proxy Authentication Required  |    请求要求代理的身份认证，与401类似，但请求者应当使用代理进行授权     |<br>| 408  |        Request Time-out         |           服务器等待客户端发送的请求时间过长，超时           |<br>| 409  |            Conflict             |   服务器完成客户端的PUT请求是可能返回此代码，服务器处理请求时发生了冲突   |<br>| 410  |              Gone               | 客户端请求的资源已经不存在。410不同于404，如果资源以前有现在被永久删除了可使用410代码，网站设计人员可通过301代码指定资源的新位置 |<br>| 411  |         Length Required         |    服务器无法处理客户端发送的不带Content-Length的请求信息    |<br>| 412  |       Precondition Failed       |              客户端请求信息的先决条件错误              |<br>| 413  |    Request Entity Too Large     | 由于请求的实体过大，服务器无法处理，因此拒绝请求。为防止客户端的连续请求，服务器可能会关闭连接。如果只是服务器暂时无法处理，则会包含一个Retry-After的响应信息 |<br>| 414  |      Request-URI Too Large      |        请求的URI过长（URI通常为网址），服务器无法处理        |<br>| 415  |     Unsupported Media Type      |             服务器无法处理请求附带的媒体格式             |<br>| 416  | Requested range not satisfiable |                客户端请求的范围无效                |<br>| 417  |       Expectation Failed        |           服务器无法满足Expect的请求头信息            |<br>|      |                                 |                                          |<br>| 500  |      Internal Server Error      |              服务器内部错误，无法完成请求              |<br>| 501  |         Not Implemented         |            服务器不支持请求的功能，无法完成请求            |<br>| 502  |           Bad Gateway           |      充当网关或代理的服务器，从远端服务器接收到了一个无效的请求       |<br>| 503  |       Service Unavailable       | 由于超载或系统维护，服务器暂时的无法处理客户端的请求。延时的长度可包含在服务器的Retry-After头信息中 |<br>| 504  |        Gateway Time-out         |        充当网关或代理的服务器，未及时从远端服务器获取请求         |<br>| 505  |   HTTP Version not supported    |        服务器不支持请求的HTTP协议的版本，无法完成处理         |</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/状态码/" data-id="cjei97ebo002f89bl6q38j2io" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-网络/http 消息头" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/08/02/网络/http 消息头/" class="article-date">
+  <time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/网络/">网络</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/02/网络/http 消息头/">http 消息头</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="四种不同类型的头标："><a href="#四种不同类型的头标：" class="headerlink" title="四种不同类型的头标："></a>四种不同类型的头标：</h3><ol>
+<li>通用头标：即可用于请求，也可用于响应，是作为一个整体而不是特定资源与事务相关联。</li>
+<li>请求头标：允许客户端传递关于自身的信息和希望的响应形式。</li>
+<li>响应头标：服务器和于传递自身信息的响应。</li>
+<li>实体头标：定义被传送资源的信息。即可用于请求，也可用于响应。 </li>
+</ol>
+<h3 id="一般头字段"><a href="#一般头字段" class="headerlink" title="一般头字段"></a>一般头字段</h3><p>一般头字段可用于请求消息和响应消息。<br>| 名称                | 示例值                                |<br>| —————– | ———————————- |<br>| Cache-Control     | “max-age=10”                       |<br>| Connection        | “close”                            |<br>| Date              | “Tue, 11 Jul 2000 18:23:51 GMT”    |<br>| Pragma            | “no-cache”                         |<br>| Trailer           | “Date”                             |<br>| Transfer-Encoding | “chunked”                          |<br>| Upgrade           | “SHTTP/1.3”                        |<br>| Via               | “HTTP/1.1 Proxy1, HTTP/1.1 Proxy2” |<br>| Warning           | “112 Disconnected Operation”       |</p>
+<h3 id="请求头字段"><a href="#请求头字段" class="headerlink" title="请求头字段"></a>请求头字段</h3><p>请求头字段仅用于请求消息。<br>| 名称                  | 示例值                                      |<br>| ——————- | —————————————- |<br>| Accept              | “text/html, image/*”                     |<br>| Accept-Charset      | “iso8859-5”                              |<br>| Accept-Encoding     | “gzip, compress”                         |<br>| Accept-Language     | “en, fr”                                 |<br>| Authorization       | [credentials]                            |<br>| Content-Encoding    | “gzip”                                   |<br>| Expect              | “100-continue”                           |<br>| From                | “user@microsoft.com”                     |<br>| Host                | “www.microsoft.com”                      |<br>| If-Match            | “entity_tag001”                          |<br>| If-Modified-Since   | “Tue, 11 Jul 2000 18:23:51 GMT”          |<br>| If-None-Match       | “entity_tag001”                          |<br>| If-Range            | “entity_tag001” or “Tue, 11 Jul 2000 18:23:51 GMT” |<br>| If-Unmodified-Since | “Tue, 11 Jul 2000 18:23:51 GMT”          |<br>| Max-Forwards        | “3”                                      |<br>| Proxy-Authorization | [credentials]                            |<br>| Range               | “bytes=100-599”                          |<br>| Referer             | “<a href="http://www.microsoft.com/resources.asp" target="_blank" rel="external">http://www.microsoft.com/resources.asp</a>“ |<br>| TE                  | “trailers”                               |<br>| User-Agent          | “Mozilla/4.0 (compatible; MSIE 5.5; Windows NT 5.0)” |</p>
+<h3 id="响应头字段"><a href="#响应头字段" class="headerlink" title="响应头字段"></a>响应头字段</h3><p>响应头字段仅用于响应消息。<br>| 名称                 | 示例值                                     |<br>| —————— | ————————————— |<br>| Accept-Ranges      | “none”                                  |<br>| Age                | “2147483648(2^31)”                      |<br>| ETag               | “b38b9-17dd-367c5dcd”                   |<br>| Last-Modified      | “Tue, 11 Jul 2000 18:23:51 GMT”         |<br>| Location           | “<a href="http://localhost/redirecttarget.asp" target="_blank" rel="external">http://localhost/redirecttarget.asp</a>“   |<br>| Proxy-Authenticate | [challenge]                             |<br>| Retry-After        | “Tue, 11 Jul 2000 18:23:51 GMT” or “60” |<br>| Server             | “Microsoft-IIS/5.0”                     |<br>| Vary               | “Date”                                  |<br>| WWW-Authenticate   | [challenge]                             |</p>
+<h3 id="实体头字段"><a href="#实体头字段" class="headerlink" title="实体头字段"></a>实体头字段</h3><p>实体头字段可以用于请求消息或响应消息。实体头字段中包含消息实体正文的有关信息，如使用的编码格式。<br>| 名称               | 示例值                             |<br>| —————- | ——————————- |<br>| Allow            | “GET, HEAD”                     |<br>| Content-Encoding | “gzip”                          |<br>| Content-Language | “en”                            |<br>| Content-Length   | “8445”                          |<br>| Content-Location | “<a href="http://localhost/page.asp" target="_blank" rel="external">http://localhost/page.asp</a>“     |<br>| Content-MD5      | [md5-digest]                    |<br>| Content-Range    | “bytes 2543-4532/7898”          |<br>| Content-Type     | “text/html”                     |<br>| Expires          | “Tue, 11 Jul 2000 18:23:51 GMT” |<br>| Last-Modified    | “Tue, 11 Jul 2000 18:23:51 GMT” |</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/http 消息头/" data-id="cjei97ebn002d89blvjuhag4u" class="article-share-link">Share</a>
       
       
     </footer>
@@ -706,7 +632,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/CDN/" data-id="cjei8yddx001y7obljfnvgdwa" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/CDN/" data-id="cjei97ebh001y89bltswd8m51" class="article-share-link">Share</a>
       
       
     </footer>
@@ -716,9 +642,137 @@
 
 
   
-    <article id="post-网络/7层网络协议" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-服务器相关/Hessian/整合spring" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/08/02/网络/7层网络协议/" class="article-date">
+    <a href="/2017/08/02/服务器相关/Hessian/整合spring/" class="article-date">
+  <time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a>►<a class="article-category-link" href="/categories/服务器相关/Hessian/">Hessian</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/02/服务器相关/Hessian/整合spring/">整合spring</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ol>
+<li><blockquote>
+<p>hessian是一个采用二进制格式传输的服务框架，相对传统soap web service，更轻量，更快速。官网地址：<a href="http://hessian.caucho.com/" target="_blank" rel="external">http://hessian.caucho.com/</a></p>
+<h2 id="加入依赖包"><a href="#加入依赖包" class="headerlink" title="加入依赖包"></a>加入依赖包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;com.caucho&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;hessian&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;4.0.37&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
+</blockquote>
+<h2 id="web-xml加入拦截"><a href="#web-xml加入拦截" class="headerlink" title="web.xml加入拦截"></a>web.xml加入拦截</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">&lt;servlet&gt;</div><div class="line">    &lt;servlet-name&gt;hessian&lt;/servlet-name&gt;</div><div class="line">    &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;</div><div class="line">    &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;</div><div class="line">&lt;/servlet&gt;</div><div class="line">&lt;servlet-mapping&gt;</div><div class="line">    &lt;servlet-name&gt;hessian&lt;/servlet-name&gt;</div><div class="line">    &lt;url-pattern&gt;*.http&lt;/url-pattern&gt;</div><div class="line">&lt;/servlet-mapping&gt;</div></pre></td></tr></table></figure>
+<p>这样，以<code>.http</code>结尾的url都会转为远程服务</p>
+</li>
+</ol>
+<h2 id="hessian-servlet-xml"><a href="#hessian-servlet-xml" class="headerlink" title="hessian-servlet.xml"></a>hessian-servlet.xml</h2><p>   发布远程调用接口<br>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;bean name=&quot;/services/whRemoteService.http&quot; class=&quot;org.springframework.remoting.caucho.HessianServiceExporter&quot;&gt;</div><div class="line">    &lt;property name=&quot;service&quot; ref=&quot;whRemoteService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;com.xx.remote.service.WhRemoteService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>调用地址:<a href="http://host/services/whRemoteService.http" target="_blank" rel="external">http://host/services/whRemoteService.http</a></li>
+<li>service:远程调用接口名称</li>
+<li>serviceInterface:远程调用接口地址</li>
+</ul>
+<h2 id="调用方配置：applicationContext-remoting-xml"><a href="#调用方配置：applicationContext-remoting-xml" class="headerlink" title="调用方配置：applicationContext-remoting.xml"></a>调用方配置：applicationContext-remoting.xml</h2>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;whRemoteService&quot; class=&quot;org.springframework.remoting.caucho.HessianProxyFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;serviceUrl&quot; value=&quot;http://host/services/whRemoteService.http&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;com.xx.remote.service.WhRemoteService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
+<h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>   传输的对象必须是序列化的，也就是要implements Serializable接口</p>
+<h4 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h4>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">public interface OssPaymentRemoteService &#123;</div><div class="line"></div><div class="line">	public List&lt;TransactionRecordDTO&gt; majorAccountSearch(Map&lt;String, Object&gt; params, Integer pageNo, Integer pageSize);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h4 id="传输对象dto"><a href="#传输对象dto" class="headerlink" title="传输对象dto"></a>传输对象dto</h4>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public class TransactionRecordDTO  implements Serializable &#123;</div><div class="line">	private static final long serialVersionUID = 1L;</div><div class="line"></div><div class="line">    private Byte type;</div><div class="line">    </div><div class="line">    //getter and setter</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h4 id="接口实现类"><a href="#接口实现类" class="headerlink" title="接口实现类"></a>接口实现类</h4>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public class OssPaymentRemoteServiceImpl  implements OssPaymentRemoteService &#123;</div><div class="line">	private Logger logger = LoggerFactory.getLogger(OssPaymentRemoteServiceImpl.class);</div><div class="line"></div><div class="line"></div><div class="line">	@Override</div><div class="line">	public List&lt;TransactionRecordDTO&gt; majorAccountSearch(Map&lt;String, Object&gt; params, Integer pageNo, Integer pageSize) &#123;</div><div class="line">	    //实现逻辑</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/02/服务器相关/Hessian/整合spring/" data-id="cjei97ei300dw89blqc7s07vw" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-服务器相关/Hessian/spring支持的几种远程调用方式" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/08/02/服务器相关/Hessian/spring支持的几种远程调用方式/" class="article-date">
+  <time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a>►<a class="article-category-link" href="/categories/服务器相关/Hessian/">Hessian</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/08/02/服务器相关/Hessian/spring支持的几种远程调用方式/">spring支持的几种远程调用方式</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ol>
+<li><blockquote>
+<p>spring 官方文档：<a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#remoting" target="_blank" rel="external">http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#remoting</a></p>
+<h2 id="传输对象，接口，接口实现类"><a href="#传输对象，接口，接口实现类" class="headerlink" title="传输对象，接口，接口实现类"></a>传输对象，接口，接口实现类</h2><h4 id="传输对象DTO"><a href="#传输对象DTO" class="headerlink" title="传输对象DTO"></a>传输对象DTO</h4><p>必须实现Serializable接口</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">public class Account implements Serializable&#123;</div><div class="line"></div><div class="line">    private String name;</div><div class="line"></div><div class="line">    public String getName()&#123;</div><div class="line">        return name;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public void setName(String name) &#123;</div><div class="line">        this.name = name;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</blockquote>
+<h4 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public interface AccountService &#123;</div><div class="line"></div><div class="line">    public void insertAccount(Account account);</div><div class="line"></div><div class="line">    public List&lt;Account&gt; getAccounts(String name);</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h4 id="实现类"><a href="#实现类" class="headerlink" title="实现类"></a>实现类</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">// the implementation doing nothing at the moment</div><div class="line">public class AccountServiceImpl implements AccountService &#123;</div><div class="line"></div><div class="line">    public void insertAccount(Account acc) &#123;</div><div class="line">        // do something...</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public List&lt;Account&gt; getAccounts(String name) &#123;</div><div class="line">        // do something...</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="Remote-Method-Invocation-RMI"><a href="#Remote-Method-Invocation-RMI" class="headerlink" title="Remote Method Invocation (RMI)"></a>Remote Method Invocation (RMI)</h2><h4 id="服务端（远程调用提供端）"><a href="#服务端（远程调用提供端）" class="headerlink" title="服务端（远程调用提供端）"></a>服务端（远程调用提供端）</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;example.AccountServiceImpl&quot;&gt;</div><div class="line">    &lt;!-- any additional properties, maybe a DAO? --&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean class=&quot;org.springframework.remoting.rmi.RmiServiceExporter&quot;&gt;</div><div class="line">    &lt;!-- does not necessarily have to be the same name as the bean to be exported --&gt;</div><div class="line">    &lt;property name=&quot;serviceName&quot; value=&quot;AccountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;service&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">    &lt;!-- defaults to 1099 --&gt;</div><div class="line">    &lt;property name=&quot;registryPort&quot; value=&quot;1199&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
+<p>这样，远程服务就会绑定到<code>rmi://HOST:1199/AccountService</code></p>
+<h4 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean class=&quot;example.SimpleObject&quot;&gt;</div><div class="line">    &lt;property name=&quot;accountService&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;org.springframework.remoting.rmi.RmiProxyFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;serviceUrl&quot; value=&quot;rmi://HOST:1199/AccountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
+<p>使用远程接口：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public class SimpleObject &#123;</div><div class="line"></div><div class="line">    private AccountService accountService;</div><div class="line"></div><div class="line">    public void setAccountService(AccountService accountService) &#123;</div><div class="line">        this.accountService = accountService;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // additional methods using the accountService</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="Hessian-or-Burlap"><a href="#Hessian-or-Burlap" class="headerlink" title="Hessian or Burlap"></a>Hessian or Burlap</h2><p>Hessian使用的是二进制方式的远程调用协议，官网：<a href="http://www.caucho.com" target="_blank" rel="external">http://www.caucho.com</a>   </p>
+<h4 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h4><p>web.xml配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">&lt;servlet&gt;</div><div class="line">    &lt;servlet-name&gt;remoting&lt;/servlet-name&gt;</div><div class="line">    &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;</div><div class="line">    &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;</div><div class="line">&lt;/servlet&gt;</div><div class="line"></div><div class="line">&lt;servlet-mapping&gt;</div><div class="line">    &lt;servlet-name&gt;remoting&lt;/servlet-name&gt;</div><div class="line">    &lt;url-pattern&gt;/remoting/*&lt;/url-pattern&gt;</div><div class="line">&lt;/servlet-mapping&gt;</div></pre></td></tr></table></figure>
+<p>需要在<code>WEB-INF</code>目录下添加<code>remoting-servlet.xml</code>配置文件,事实上，如果你的配置为<code>&lt;servlet-name&gt;hessian&lt;/servlet-name&gt;</code>,那么你的配置文件名就应该为<code>hessian-servlet.xml</code>   </p>
+<p>remoting-servlet.xml配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;example.AccountServiceImpl&quot;&gt;</div><div class="line">    &lt;!-- any additional properties, maybe a DAO? --&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean name=&quot;/AccountService&quot; class=&quot;org.springframework.remoting.caucho.HessianServiceExporter&quot;&gt;</div><div class="line">    &lt;property name=&quot;service&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
+<p>这样，远程服务就绑定到地址：<a href="http://HOST:8080/remoting/AccountService" target="_blank" rel="external">http://HOST:8080/remoting/AccountService</a></p>
+<h4 id="客户端-1"><a href="#客户端-1" class="headerlink" title="客户端"></a>客户端</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;bean class=&quot;example.SimpleObject&quot;&gt;</div><div class="line">    &lt;property name=&quot;accountService&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div><div class="line"></div><div class="line">&lt;bean id=&quot;accountService&quot; class=&quot;org.springframework.remoting.caucho.HessianProxyFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;serviceUrl&quot; value=&quot;http://remotehost:8080/remoting/AccountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
+<p>Burlap 与 Hessian配置类似，只需要替换<code>org.springframework.remoting.caucho.HessianServiceExporter</code>和<code>org.springframework.remoting.caucho.HessianProxyFactoryBean</code>即可</p>
+</li>
+</ol>
+<h2 id="HTTP-invokers-推荐"><a href="#HTTP-invokers-推荐" class="headerlink" title="HTTP invokers(推荐)"></a>HTTP invokers(推荐)</h2><h4 id="服务端-1"><a href="#服务端-1" class="headerlink" title="服务端"></a>服务端</h4><p>   HTTP invokers与Hessian配置类似，将<code>org.springframework.remoting.caucho.HessianServiceExporter</code>替换为<code>org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter</code>即可<br>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;bean name=&quot;accountExporter&quot; class=&quot;org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter&quot;&gt;</div><div class="line">    &lt;property name=&quot;service&quot; ref=&quot;accountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
+<p>   HTTP invokers默认使用JDK’s HTTP functionality作为HTTP客户端，你可以更改为使用<code>Apache HttpComponents client</code><br>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;property name=&quot;httpInvokerRequestExecutor&quot;&gt;</div><div class="line">    &lt;bean class=&quot;org.springframework.remoting.httpinvoker.HttpComponentsHttpInvokerRequestExecutor&quot;/&gt;</div><div class="line">&lt;/property&gt;</div></pre></td></tr></table></figure></p>
+<h4 id="客户端-2"><a href="#客户端-2" class="headerlink" title="客户端"></a>客户端</h4><p>   将<code>org.springframework.remoting.caucho.HessianProxyFactoryBean</code>替换为<code>org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean</code><br>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;httpInvokerProxy&quot; class=&quot;org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean&quot;&gt;</div><div class="line">    &lt;property name=&quot;serviceUrl&quot; value=&quot;http://remotehost:8080/remoting/AccountService&quot;/&gt;</div><div class="line">    &lt;property name=&quot;serviceInterface&quot; value=&quot;example.AccountService&quot;/&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/08/02/服务器相关/Hessian/spring支持的几种远程调用方式/" data-id="cjei97ehz00do89bl1d8eivnc" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-网络/HTTP 简介" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/08/02/网络/HTTP 简介/" class="article-date">
   <time datetime="2017-08-02T02:09:45.000Z" itemprop="datePublished">2017-08-02</time>
 </a>
     
@@ -734,7 +788,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/02/网络/7层网络协议/">7层网络协议</a>
+      <a class="article-title" href="/2017/08/02/网络/HTTP 简介/">HTTP 简介</a>
     </h1>
   
 
@@ -742,73 +796,19 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <table>
-<thead>
-<tr>
-<th>OSI中的层</th>
-<th>功能</th>
-<th>TCP/IP协议族</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>应用层</td>
-<td>文件传输，电子邮件，文件服务，虚拟终端</td>
-<td>TFTP，HTTP，SNMP，FTP，SMTP，DNS，Telnet</td>
-</tr>
-<tr>
-<td>表示层</td>
-<td>数据格式化，代码转换，数据加密</td>
-<td>没有协议</td>
-</tr>
-<tr>
-<td>会话层</td>
-<td>解除或建立与别的接点的联系</td>
-<td>没有协议</td>
-</tr>
-<tr>
-<td>传输层</td>
-<td>提供端对端的接口</td>
-<td>TCP，UDP</td>
-</tr>
-<tr>
-<td>网络层</td>
-<td>为数据包选择路由</td>
-<td>IP，ICMP，RIP，OSPF，BGP，IGMP</td>
-</tr>
-<tr>
-<td>数据链路层</td>
-<td>传输有地址的帧以及错误检测功能</td>
-<td>SLIP，CSLIP，PPP，ARP，RARP，MTU</td>
-</tr>
-<tr>
-<td>物理层</td>
-<td>以二进制数据形式在物理媒体上传输数据</td>
-<td>ISO2110，IEEE802。IEEE802.2</td>
-</tr>
-</tbody>
-</table>
-<ul>
-<li><p><strong>物理层</strong> 为数据链路层提供物理连接，在其上串行传送比特流，即所传送数据的单位是比特。此外，该层中还具有确定连接设备的电气特性和物理特性等功能。</p>
-</li>
-<li><p><strong>数据链路层</strong> 负责在网络节点间的线路上通过检测、流量控制和重发等手段，无差错地传送以帧为单位的数据。为做到这一点，在每一帧中必须同时带有同步、地址、差错控制及流量控制等控制信息。</p>
-</li>
-<li><p><strong>网络层</strong> 为了将数据分组从源（源端系统）送到目的地（目标端系统），网络层的任务就是选择合适的路由和交换节点，使源的传输层传下来的分组信息能够正确无误地按照地址找到目的地，并交付给相应的传输层，即完成网络的寻址功能。</p>
-</li>
-<li><p><strong>传输层</strong> 传输层是高低层之间衔接的接口层。数据传输的单位是报文，当报文较长时将它分割成若干分组,然后交给网络层进行传输。传输层是计算机网络协议分层中的最关键一层，该层以上各层将不再管理信息传输问题。</p>
-</li>
-<li><p><strong>会话层</strong> 该层对传输的报文提供同步管理服务。在两个不同系统的互相通信的应用进程之间建立、组织和协调交互。例如，确定是双工还是半双工工作。</p>
-</li>
-<li><p><strong>表示层</strong> 该层的主要任务是把所传送的数据的抽象语法变换为传送语法，即把不同计算机内部的不同表示形式转换成网络通信中的标准表示形式。此外，对传送的数据加密（或解密）、正文压缩（或还原）也是表示层的任务。</p>
-</li>
-<li><p><strong>应用层</strong> 该层直接面向用户，是OSI中的最高层。它的主要任务是为用户提供应用的接口，即提供不同计算机间的文件传送、访问与管理，电子邮件的内容处理，不同计算机通过网络交互访问的虚拟终端功能等。</p>
-</li>
+        <h3 id="HTTP-简介"><a href="#HTTP-简介" class="headerlink" title="HTTP 简介"></a>HTTP 简介</h3><p>HTTP协议是Hyper Text Transfer Protocol（超文本传输协议）的缩写,是用于从万维网（WWW:World Wide Web ）服务器传输超文本到本地浏览器的传送协议。。<br>HTTP是一个基于TCP/IP通信协议来传递数据（HTML 文件, 图片文件, 查询结果等）。</p>
+<h3 id="HTTP-工作原理"><a href="#HTTP-工作原理" class="headerlink" title="HTTP 工作原理"></a>HTTP 工作原理</h3><p>HTTP协议工作于客户端-服务端架构为上。   浏览器作为HTTP客户端通过URL向HTTP服务端即WEB服务器发送所有请求。<br>Web服务器有：Apache服务器，IIS服务器（Internet Information Services）等。<br>Web服务器根据接收到的请求后，向客户端发送响应信息。<br>HTTP默认端口号为80，但是你也可以改为8080或者其他端口。  </p>
+<h3 id="HTTP三点注意事项："><a href="#HTTP三点注意事项：" class="headerlink" title="HTTP三点注意事项："></a>HTTP三点注意事项：</h3><ul>
+<li>HTTP是无连接：无连接的含义是限制每次连接只处理一个请求。服务器处理完客户的请求，并收到客户的应答后，即断开连接。采用这种方式可以节省传输时间。</li>
+<li>HTTP是媒体独立的：这意味着，只要客户端和服务器知道如何处理的数据内容，任何类型的数据都可以通过HTTP发送。客户端以及服务器指定使用适合的MIME-type内容类型。</li>
+<li>HTTP是无状态：HTTP协议是无状态协议。无状态是指协议对于事务处理没有记忆能力。缺少状态意味着如果后续处理需要前面的信息，则它必须重传，这样可能导致每次连接传送的数据量增大。另一方面，在服务器不需要先前信息时它的应答就较快。</li>
 </ul>
+<p>以下图表展示了HTTP协议通信流程：<br><img src="http://www.runoob.com/wp-content/uploads/2013/11/cgiarch.gif" alt="image"></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/7层网络协议/" data-id="cjei8yddv001t7obljpz7rgqr" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/08/02/网络/HTTP 简介/" data-id="cjei97ebj002389blz4h8a7ap" class="article-share-link">Share</a>
       
       
     </footer>
@@ -818,9 +818,9 @@
 
 
   
-    <article id="post-数据库相关/mysql/设置mysql可以远程登录" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-数据库相关/mysql/分页时计算总页数的方法" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/" class="article-date">
+    <a href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" class="article-date">
   <time datetime="2017-07-29T02:09:45.000Z" itemprop="datePublished">2017-07-29</time>
 </a>
     
@@ -836,7 +836,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/">设置mysql可以远程登录</a>
+      <a class="article-title" href="/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/">分页时计算总页数的方法</a>
     </h1>
   
 
@@ -844,20 +844,16 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="打开远程连接"><a href="#打开远程连接" class="headerlink" title="打开远程连接"></a>打开远程连接</h1><h3 id="登陆"><a href="#登陆" class="headerlink" title="登陆"></a>登陆</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql -u root -h localhost -p</div></pre></td></tr></table></figure>
-<h3 id="使用mysql数据库"><a href="#使用mysql数据库" class="headerlink" title="使用mysql数据库"></a>使用mysql数据库</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">use mysql  #打开mysql数据库</div></pre></td></tr></table></figure>
-<h3 id="更改用户连接的地址"><a href="#更改用户连接的地址" class="headerlink" title="更改用户连接的地址"></a>更改用户连接的地址</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">#将host设置为%表示任何ip都能连接mysql，当然您也可以将host指定为某个ip</div><div class="line"></div><div class="line"></div><div class="line">update user set host=&apos;%&apos; where user=&apos;root&apos; and host=&apos;localhost&apos;;</div><div class="line"></div><div class="line">flush privileges;        #刷新权限表，使配置生效</div><div class="line"></div><div class="line">然后我们就能远程连接我们的mysql了。</div></pre></td></tr></table></figure>
-<h1 id="关闭远程连接"><a href="#关闭远程连接" class="headerlink" title="关闭远程连接"></a>关闭远程连接</h1><p>如果您想关闭远程连接，恢复mysql的默认设置（只能本地连接），您可以通过以下步骤操作：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">use mysql  #打开mysql数据库</div><div class="line"></div><div class="line">#将host设置为localhost表示只能本地连接mysql</div><div class="line"></div><div class="line">update user set host=&apos;localhost&apos; where user=&apos;root&apos;;</div><div class="line"></div><div class="line">flush privileges;        #刷新权限表，使配置生效</div></pre></td></tr></table></figure></p>
-<h1 id="添加可以远程连接的用户"><a href="#添加可以远程连接的用户" class="headerlink" title="添加可以远程连接的用户"></a>添加可以远程连接的用户</h1><p>您也可以添加一个用户名为yuancheng，密码为123456，权限为%（表示任意ip都能连接）的远程连接用户。命令参考如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">grant all on *.* to &apos;yuancheng&apos;@&apos;%&apos; identified by &apos;123456&apos;;</div><div class="line"></div><div class="line">flush privileges;</div></pre></td></tr></table></figure></p>
-<h1 id="更改3306端口监听所有地址（默认只监听127-0-0-1）"><a href="#更改3306端口监听所有地址（默认只监听127-0-0-1）" class="headerlink" title="更改3306端口监听所有地址（默认只监听127.0.0.1）"></a>更改3306端口监听所有地址（默认只监听127.0.0.1）</h1><h3 id="第一步：查看是都3306端口开启"><a href="#第一步：查看是都3306端口开启" class="headerlink" title="第一步：查看是都3306端口开启"></a>第一步：查看是都3306端口开启</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">netstat -an | grep 3306</div></pre></td></tr></table></figure>
-<p>如果结果显示类似：tcp        0      0 127.0.0.1:3306          0.0.0.0:*               LISTEN<br>从结果可以看出3306端口只是在IP 127.0.0.1上监听，所以拒绝了其他IP的访问。</p>
-<h3 id="第二步：修改配置文件"><a href="#第二步：修改配置文件" class="headerlink" title="第二步：修改配置文件"></a>第二步：修改配置文件</h3><p>修改文件 /etc/mysql/my.cnf文件，打开文件，找到下面内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"># Instead of skip-networking the default is now to listen only on</div><div class="line"># localhost which is more compatible and is not less secure.</div><div class="line">bind-address  = 127.0.0.1</div></pre></td></tr></table></figure></p>
-<p>把上面这一行注释掉或者把127.0.0.1换成合适的IP，建议注释掉。<br>重新启动后，重新使用netstat检测：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">~# netstat -an | grep 3306</div><div class="line">tcp        0      0 0.0.0.0:3306            0.0.0.0:*               LISTEN</div></pre></td></tr></table></figure></p>
+        <p>我们一般分页是这样来计算页码的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">int row=200; //记录总数     </div><div class="line">int page=5;//每页数量   </div><div class="line">int count = (row%5==0?row/page:row/page+1);</div></pre></td></tr></table></figure>
+<p>上面这种是用的最多的!</p>
+<p>那么下面我们来一种最简单的，不用任何判断！<br>看代码：    </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">int row=21;</div><div class="line">int pageCount=5;</div><div class="line">int sum=(row-1)/pageCount+1;//这样就计算好了页码数量，逢1进1</div><div class="line">System.out.println(sum);</div></pre></td></tr></table></figure>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/设置mysql可以远程登录/" data-id="cjei8ydkj00dr7oblriwqwr4b" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/07/29/数据库相关/mysql/分页时计算总页数的方法/" data-id="cjei97ehq00d289blwerwhiff" class="article-share-link">Share</a>
       
       
     </footer>
@@ -912,19 +908,19 @@
           </li>
         
           <li>
+            <a href="/2018/02/25/Java/基础/类加载机制/">类加载机制</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/25/Java/集合/HashSet原理/">HashSet原理</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/25/Java/集合/几种常见的map/">几种常见的map</a>
+          </li>
+        
+          <li>
             <a href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/">Hashtable与ConcurrentHashMap区别</a>
-          </li>
-        
-          <li>
-            <a href="/2018/02/25/Java/分布式/分布式事务/">分布式事务</a>
-          </li>
-        
-          <li>
-            <a href="/2018/02/25/Java/分布式/分布式锁/">分布式锁</a>
-          </li>
-        
-          <li>
-            <a href="/2018/02/25/Java/集合/在List循环中删除元素/">在List循环中删除元素</a>
           </li>
         
       </ul>
