@@ -68,66 +68,6 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-Java/基础/对象存活" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/02/25/Java/基础/对象存活/" class="article-date">
-  <time datetime="2018-02-25T07:09:45.000Z" itemprop="datePublished">2018-02-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/基础/">基础</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/25/Java/基础/对象存活/">对象存活</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="引用计数算法"><a href="#引用计数算法" class="headerlink" title="引用计数算法"></a>引用计数算法</h3><p>很多教科书判断对象是否存活的算法是这样的：给对象中添加一个引用计数器，每当有一个地方引用它时，计数器值就加1；当引用失效时，计数器就减1；任何时刻计数器为0的对象就是不可能再被使用的</p>
-<p>目前主流的java虚拟机里面没有选用引用计数器算法来管理内存，其中主要的原因是它很难解决对象之间相互循环引用的问题</p>
-<h3 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h3><p><strong>这个算法的基本思路就是通过一系列的称为“GC Roots”的对象为起始点，从这些节点开始向下搜索，搜索所走过的路径称为引用链（Reference Chain），当一个对象到GC Roots没有任何引用链相连（用图论的话来说，就是从GC Roots到这个对象不可达）时，则证明此对象是不可用的</strong>。<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/obj.png" alt="image"><br>如图，object5，object6，object7就是不可用的，可以清除的</p>
-<p>在java语言中，可作为GC Roots的对象包括下面几种：</p>
-<ul>
-<li>虚拟机栈（栈帧中的本地变量表）中引用的对象</li>
-<li>方法区中类静态属性引用的对象</li>
-<li>方法区中常量引用的对象</li>
-<li>本地方法栈中JNI（即一般说的Native方法）引用的对象</li>
-</ul>
-<h3 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h3><p>无论是通过引用计数算法判断对象的引用数量，还是通过可达性分析算法判断对象的引用链是否可达，判定对象是否存活都与“引用”有关</p>
-<p>在JDK1.2之后，java对引用的概念进行了扩充，将引用分为<code>强引用（Strong Reference）</code>，<code>软引用（Soft Reference）</code>，<code>弱引用（Weak Reference）</code>，<code>虚引用（Phantom Reference）</code>4种，这4种引用强度依次逐渐减弱</p>
-<ul>
-<li>强引用就是指在程序代码之中普遍存在的，类似“Object obj = new Object()”这类的引用，只要强引用还存在，垃圾收集器永远不会回收被引用的对象</li>
-<li><strong>软引用是用来描述一些还有用但并非必需的对象</strong>。对于软引用关联着的对象，在系统将要发生内存溢出异常之前，将会把这些对象列进回收范围之中进行第二次回收。如果这次回收还没有足够的内存，才会抛出内存溢出的异常。在JDK1.2之后，提供了SoftReference类来实现软引用</li>
-<li><strong>弱引用也是用来描述非必需对象的，但是它的强度比软引用更弱一些，被弱引用关联的对象只能生存到下一次垃圾收集发生之前</strong>。当垃圾收集器工作时，无论当前内存是否足够，都会回收掉只被弱引用关联的对象。在JDK1.2之后，提供了WeakReference类来实现弱引用</li>
-<li>虚引用也称为幽灵引用或者幻影引用，他是最弱的一种引用关系。一个对象是否有虚引用的存在，完全不会对其生存时间构成影响，也无法通过虚引用来取得一个对象实例。<strong>为一个对象设置虚引用关联的唯一目的就是能在这个对象被收集器回收时收到一个系统通知</strong>。在JDK1.2之后，提供了OhantomReference类实现虚引用</li>
-</ul>
-<h3 id="生存还是死亡"><a href="#生存还是死亡" class="headerlink" title="生存还是死亡"></a>生存还是死亡</h3><p>即使在可达性分析算法中被可达的对象，也并非是“非死不可”的，这时候它们暂时处于“缓刑”阶段，<strong>要真正宣告一个对象死亡，至少要经历两次标识过程：如果对象在进行可达性分析后发现没有与GC Roots相连接的引用链，那它将会被第一次标记并且进行一次筛选，筛选条件是此对象是否有必要执行finalize()方法。当对象没有覆盖finalize()方法，或者finalize()方法已经被虚拟机调用过，虚拟机将这两种情况都视为“没有必要执行”</strong>。</p>
-<p>如果这个对象被判定为有必要执行finalize()方法，那么合格对象将会放置在一个叫做F-Queue的队列之中，并在稍后由一个虚拟机自动建立的，低优先级的Finalizer线程去执行它。这里所谓的“执行”是指虚拟机会触发这个方法，但并不承诺会等待它运行结束，这样做的原因是，如果一个对象在finalize()方法中执行缓慢，或者发生了死循环（更极端的情况），将很可能会导致F-Queue队列中其他对象永久处于等待，甚至导致整个内存回收系统奔溃。finalize()方法是对象逃脱死亡命运的最后一次机会，稍后GC将对F-Queue中的对象进行第二次小规模的标记，如果对象要在finalize()方法中成功拯救自己-只要重新与引用链上的任何一个对象建立关联即可，譬如把自己（this关键字）赋值给某个变量或者对象的成员变量，那在第二次标记时它将被移除出“即将回收”的集合；如果对象这时候还没有逃脱，那基本上它就真的被回收了</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/对象存活/" data-id="cjei8qk4w004g6gblq5070gu4" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
     <article id="post-Java/基础/序列化和反序列化" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/02/25/Java/基础/序列化和反序列化/" class="article-date">
@@ -232,7 +172,269 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/序列化和反序列化/" data-id="cjei8qk4x004j6gblxivh3g1i" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/序列化和反序列化/" data-id="cjei8ydg7004d7obl3gfyepco" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Java/基础/java8新特性" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/25/Java/基础/java8新特性/" class="article-date">
+  <time datetime="2018-02-25T07:09:45.000Z" itemprop="datePublished">2018-02-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/基础/">基础</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/02/25/Java/基础/java8新特性/">java8新特性</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="函数式接口（Functional-Interfaces）"><a href="#函数式接口（Functional-Interfaces）" class="headerlink" title="函数式接口（Functional Interfaces）"></a>函数式接口（Functional Interfaces）</h2><p>Java 8 引入的一个核心概念是函数式接口（<strong>Functional Interfaces</strong>）。通过在接口里面添加一个抽象方法，这些方法可以直接从接口中运行。如果一个接口定义个唯一一个抽象方法，那么这个接口就成为<strong>函数式接口</strong>。</p>
+<p>同时，引入了一个新的注解：<code>@FunctionalInterface</code>。可以把他它放在一个接口前，表示这个接口是一个函数式接口。这个注解是非必须的，只要接口只包含一个方法的接口，虚拟机会自动判断，不过最好在接口上使用注解 @FunctionalInterface 进行声明。在接口中添加了 @FunctionalInterface 的接口，只允许有一个抽象方法，否则编译器也会报错。<br>例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">@FunctionalInterface</div><div class="line">interface Converter&lt;F, T&gt; &#123;</div><div class="line">    T convert(F from);</div><div class="line">&#125;</div><div class="line"></div><div class="line">Converter&lt;String, Integer&gt; converter = (from) -&gt; Integer.valueOf(from);</div><div class="line">Integer converted = converter.convert(&quot;123&quot;);</div><div class="line">System.out.println(converted);    // 123</div></pre></td></tr></table></figure></p>
+<p>java.lang.Runnable 就是一个函数式接口。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@FunctionalInterface</div><div class="line">public interface Runnable &#123;</div><div class="line">    public abstract void run();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>我们要记住默认的方法和静态方法不会违反函数接口的约定，例子如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">@FunctionalInterface</div><div class="line">public interface FunctionalDefaultMethods &#123;</div><div class="line">    void method();</div><div class="line"> </div><div class="line">    default void defaultMethod() &#123;</div><div class="line">        //相关代码</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    static void staticMethod() &#123;</div><div class="line">        //相关代码</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="方法和构造函数引用"><a href="#方法和构造函数引用" class="headerlink" title="方法和构造函数引用"></a>方法和构造函数引用</h2><p>上面的示例代码可以通过使用静态方法引用进一步简化:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Converter&lt;String, Integer&gt; converter = Integer::valueOf;</div><div class="line">Integer converted = converter.convert(&quot;123&quot;);</div><div class="line">System.out.println(converted);   // 123</div></pre></td></tr></table></figure></p>
+<p>Java 8允许您通过<code>::</code>关键字来传递方法或构造函数的引用。上面的示例展示了如何引用静态方法。但是我们也可以引用对象方法:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">class Something &#123;</div><div class="line">    String startsWith(String s) &#123;</div><div class="line">        return String.valueOf(s.charAt(0));</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">Something something = new Something();</div><div class="line">Converter&lt;String, String&gt; converter = something::startsWith;</div><div class="line">String converted = converter.convert(&quot;Java&quot;);</div><div class="line">System.out.println(converted);    // &quot;J&quot;</div></pre></td></tr></table></figure></p>
+<p>让我们看看<code>::</code>关键字如何对构造函数有效。首先，我们定义了一个不同构造函数的示例bean:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">class Person &#123;</div><div class="line">    String firstName;</div><div class="line">    String lastName;</div><div class="line"></div><div class="line">    Person() &#123;&#125;</div><div class="line"></div><div class="line">    Person(String firstName, String lastName) &#123;</div><div class="line">        this.firstName = firstName;</div><div class="line">        this.lastName = lastName;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>接下来，我们指定一个人工厂接口用于创建新人员:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">interface PersonFactory&lt;P extends Person&gt; &#123;</div><div class="line">    P create(String firstName, String lastName);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>我们没有手工地实现工厂，而是通过构造函数引用将所有内容粘在一起:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">PersonFactory&lt;Person&gt; personFactory = Person::new;</div><div class="line">Person person = personFactory.create(&quot;Peter&quot;, &quot;Parker&quot;);</div></pre></td></tr></table></figure></p>
+<p>我们通过<code>Person::new</code>创建一个Person构造函数的引用。Java编译器会通过匹配PersonFactory.create的签名来自动选择正确的构造函数。</p>
+<p>方法引用提供了一个很有用的语义来直接访问类或者实例的已经存在的方法或者构造方法。结合Lambda表达式，方法引用使语法结构紧凑简明。不需要复杂的引用。</p>
+<p>下面我们用Car 这个类来做示例，Car这个类有不同的方法定义。让我们来看看java 8支持的4种方法引用。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">public static class Car &#123;</div><div class="line">    public static Car create( final Supplier&lt; Car &gt; supplier ) &#123;</div><div class="line">        return supplier.get();</div><div class="line">    &#125;              </div><div class="line"> </div><div class="line">    public static void collide( final Car car ) &#123;</div><div class="line">        System.out.println( &quot;Collided &quot; + car.toString() );</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    public void follow( final Car another ) &#123;</div><div class="line">        System.out.println( &quot;Following the &quot; + another.toString() );</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    public void repair() &#123;</div><div class="line">        System.out.println( &quot;Repaired &quot; + this.toString() );</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ol>
+<li><p>第一种方法引用是构造方法引用，语法是：<code>Class::new</code> ，对于泛型来说语法是：<code>Class&lt;T &gt;::new</code>，请注意构造方法没有参数:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">final Car car = Car.create( Car::new );</div><div class="line">final List&lt; Car &gt; cars = Arrays.asList( car );</div></pre></td></tr></table></figure>
+</li>
+<li><p>第二种方法引用是静态方法引用，语法是：<code>Class::static_method</code>请注意这个静态方法只支持一个类型为Car的参数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cars.forEach( Car::collide );</div></pre></td></tr></table></figure>
+</li>
+<li><p>第三种方法引用是类实例的方法引用，语法是：<code>Class::method</code>请注意方法没有参数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cars.forEach( Car::repair );</div></pre></td></tr></table></figure>
+</li>
+<li><p>最后一种方法引用是引用特殊类的方法，语法是：<code>instance::method</code>，请注意只接受Car类型的一个参数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">final Car police = Car.create( Car::new );</div><div class="line">cars.forEach( police::follow );</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>运行这些例子我们将会在控制台得到如下信息（Car的实例可能会不一样）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Collided com.javacodegeeks.java8.method.references.MethodReferences$Car@7a81197d</div><div class="line">Repaired com.javacodegeeks.java8.method.references.MethodReferences$Car@7a81197d</div><div class="line">Following the com.javacodegeeks.java8.method.references.MethodReferences$Car@7a81197d</div></pre></td></tr></table></figure></p>
+<h2 id="Lambda-表达式"><a href="#Lambda-表达式" class="headerlink" title="Lambda 表达式"></a>Lambda 表达式</h2><p>从lambda表达式访问外部范围变量非常类似于匿名对象。您可以从本地外部范围访问最终变量，以及实例字段和静态变量。</p>
+<h3 id="访问局部变量"><a href="#访问局部变量" class="headerlink" title="访问局部变量"></a>访问局部变量</h3><p>我们可以从lambda表达式的外部范围读取最终的局部变量:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">final int num = 1;</div><div class="line">Converter&lt;Integer, String&gt; stringConverter =</div><div class="line">        (from) -&gt; String.valueOf(from + num);</div><div class="line"></div><div class="line">stringConverter.convert(2);     // 3</div></pre></td></tr></table></figure></p>
+<p>但与匿名对象不同的是，变量num不必被声明为final。这段代码也是有效的:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">int num = 1;</div><div class="line">Converter&lt;Integer, String&gt; stringConverter =</div><div class="line">        (from) -&gt; String.valueOf(from + num);</div><div class="line"></div><div class="line">stringConverter.convert(2);     // 3</div></pre></td></tr></table></figure></p>
+<p>但是，对于要编译的代码，num必须是隐式的final。以下代码不编译:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">int num = 1;</div><div class="line">Converter&lt;Integer, String&gt; stringConverter =</div><div class="line">        (from) -&gt; String.valueOf(from + num);</div><div class="line">num = 3;</div></pre></td></tr></table></figure></p>
+<p>也禁止在lambda表达式中写入num。</p>
+<h3 id="访问字段和静态变量"><a href="#访问字段和静态变量" class="headerlink" title="访问字段和静态变量"></a>访问字段和静态变量</h3><p>在对局部变量的限制中，我们可以从lambda表达式中读取和写入对实例字段和静态变量的访问。这种行为在匿名对象中很常见。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">class Lambda4 &#123;</div><div class="line">    static int outerStaticNum;</div><div class="line">    int outerNum;</div><div class="line"></div><div class="line">    void testScopes() &#123;</div><div class="line">        Converter&lt;Integer, String&gt; stringConverter1 = (from) -&gt; &#123;</div><div class="line">            outerNum = 23;</div><div class="line">            return String.valueOf(from);</div><div class="line">        &#125;;</div><div class="line"></div><div class="line">        Converter&lt;Integer, String&gt; stringConverter2 = (from) -&gt; &#123;</div><div class="line">            outerStaticNum = 72;</div><div class="line">            return String.valueOf(from);</div><div class="line">        &#125;;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="访问默认接口方法"><a href="#访问默认接口方法" class="headerlink" title="访问默认接口方法"></a>访问默认接口方法</h3><p>还记得第一部分的公式例子吗?接口公式定义了一个默认的方法sqrt，它可以从每个公式实例(包括匿名对象)访问。这不适用于lambda表达式。</p>
+<p>无法从lambda表达式中访问默认方法。以下代码不编译:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Formula formula = (a) -&gt; sqrt( a * 100);</div></pre></td></tr></table></figure></p>
+<h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p><strong>函数式接口的重要属性是：我们能够使用 Lambda 实例化它们，Lambda 表达式让你能够将函数作为方法参数，或者将代码作为数据对待</strong>。Lambda 表达式的引入给开发者带来了不少优点：在 Java 8 之前，匿名内部类，监听器和事件处理器的使用都显得很冗长，代码可读性很差，Lambda 表达式的应用则使代码变得更加紧凑，可读性增强；Lambda 表达式使并行操作大集合变得很方便，可以充分发挥多核 CPU 的优势，更易于为多核处理器编写代码；</p>
+<p>Lambda 表达式由三个部分组成：</p>
+<ul>
+<li>第一部分为一个括号内用逗号分隔的形式参数，参数是函数式接口里面方法的参数；</li>
+<li>第二部分为一个箭头符号：-&gt;；</li>
+<li>第三部分为方法体，可以是表达式和代码块。</li>
+</ul>
+<p>语法如下：</p>
+<ol>
+<li><p>方法体为表达式，该表达式的值作为返回值返回。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">(parameters) -&gt; expression</div></pre></td></tr></table></figure>
+</li>
+<li><p>方法体为代码块，必须用 {} 来包裹起来，且需要一个 return 返回值，但若函数式接口里面方法返回值是 void，则无需返回值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">(parameters) -&gt; &#123; statements; &#125;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>例如，下面是使用匿名内部类和 Lambda 表达式的代码比较。<br>下面是用匿名内部类的代码：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">button.addActionListener(new ActionListener() &#123;</div><div class="line">    @Override</div><div class="line">    public void actionPerformed(ActionEvent e) &#123;</div><div class="line">        System.out.print(&quot;Helllo Lambda in actionPerformed&quot;);</div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure></p>
+<p>下面是使用 Lambda 表达式后：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">button.addActionListener(</div><div class="line">    //actionPerformed 有一个参数 e 传入，所以用 (ActionEvent e)</div><div class="line">    (ActionEvent e)-&gt; </div><div class="line">    System.out.print(&quot;Helllo Lambda in actionPerformed&quot;);</div><div class="line">);</div></pre></td></tr></table></figure></p>
+<p>上面是方法体包含了参数传入 (ActionEvent e)，如果没有参数则只需 ( )，例如 Thread 中的 run 方法就没有参数传入，当它使用 Lambda 表达式后：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Thread t = new Thread(</div><div class="line">    //run 没有参数传入，所以用 (), 后面用 &#123;&#125; 包起方法体</div><div class="line">    () -&gt; &#123;</div><div class="line">     System.out.println(&quot;Hello from a thread in run&quot;);</div><div class="line">    &#125;</div><div class="line">);</div></pre></td></tr></table></figure></p>
+<p>通过上面两个代码的比较可以发现使用 Lambda 表达式可以简化代码，并提高代码的可读性。<br>为了进一步简化 Lambda 表达式，可以使用方法引用。例如，下面三种分别是使用内部类，使用 Lambda 表示式和使用方法引用方式的比较：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">//1. 使用内部类</div><div class="line">Function&lt;Integer, String&gt; f = new Function&lt;Integer,String&gt;()&#123;</div><div class="line">    @Override</div><div class="line">    public String apply(Integer t) &#123;</div><div class="line">        return null;</div><div class="line">    &#125;</div><div class="line">&#125;;</div><div class="line"></div><div class="line">//2. 使用 Lambda 表达式</div><div class="line">Function&lt;Integer, String&gt; f2 = (t)-&gt;String.valueOf(t); </div><div class="line"></div><div class="line">//3. 使用方法引用的方式</div><div class="line">Function&lt;Integer, String&gt; f1 = String::valueOf;</div></pre></td></tr></table></figure></p>
+<p>要使用 Lambda 表达式，需要定义一个函数式接口，这样往往会让程序充斥着过量的仅为 Lambda 表达式服务的函数式接口。为了减少这样过量的函数式接口，Java 8 在 java.util.function 中增加了不少新的函数式通用接口。例如：</p>
+<ul>
+<li><p><code>Function&lt;T, R&gt;</code>：将 T 作为输入，返回 R 作为输出，他还包含了和其他函数组合的默认方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Function&lt;String, Integer&gt; toInteger = Integer::valueOf;</div><div class="line">Function&lt;String, String&gt; backToString = toInteger.andThen(String::valueOf);</div><div class="line"></div><div class="line">backToString.apply(&quot;123&quot;);     // &quot;123&quot;</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>Predicate&lt;T&gt;</code> ：将 T 作为输入，返回一个布尔值作为输出，该接口包含多种默认方法来将 Predicate 组合成其他复杂的逻辑（与、或、非）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">   Predicate&lt;String&gt; predicate = (s) -&gt; s.length() &gt; 0;</div><div class="line">System.out.println(predicate.test(&quot;foo&quot;));// true   </div><div class="line">System.out.println(predicate.negate().test(&quot;foo&quot;));// false</div><div class="line"></div><div class="line">Predicate&lt;String&gt; nonNull = Objects::nonNull;</div><div class="line">Predicate&lt;String&gt; isNull = Objects::isNull;</div><div class="line">System.out.println(nonNull.test(&quot;aa&quot;));//true</div><div class="line">System.out.println(isNull.test(&quot;aa&quot;));//false</div><div class="line"></div><div class="line">Predicate&lt;String&gt; isEmpty = String::isEmpty;</div><div class="line">Predicate&lt;String&gt; isNotEmpty = isEmpty.negate();</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>Suppliers</code>：生成给定泛型类型的结果</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Supplier&lt;Person&gt; personSupplier = Person::new;</div><div class="line">personSupplier.get();   // new Person</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>Consumer&lt;T&gt;</code> ：将 T 作为输入，不返回任何内容，表示在单个参数上的操作。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Consumer&lt;Person&gt; greeter = (p) -&gt; System.out.println(&quot;Hello, &quot; + p.firstName);</div><div class="line">greeter.accept(new Person(&quot;Luke&quot;, &quot;Skywalker&quot;));</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>Comparators</code>：比较器是较老版本的Java所熟悉的。Java 8向接口添加了各种默认方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">Comparator&lt;Person&gt; comparator = (p1, p2) -&gt; p1.firstName.compareTo(p2.firstName);</div><div class="line"></div><div class="line">Person p1 = new Person(&quot;John&quot;, &quot;Doe&quot;);</div><div class="line">Person p2 = new Person(&quot;Alice&quot;, &quot;Wonderland&quot;);</div><div class="line"></div><div class="line">comparator.compare(p1, p2);             // &gt; 0</div><div class="line">comparator.reversed().compare(p1, p2);  // &lt; 0</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>Optionals</code>：Optionals不是功能性接口，相反，它是一个防止NullPointerException的漂亮工具</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">Optional&lt;String&gt; optional = Optional.of(&quot;bam&quot;);</div><div class="line"></div><div class="line">optional.isPresent();           // true</div><div class="line">optional.get();                 // &quot;bam&quot;</div><div class="line">optional.orElse(&quot;fallback&quot;);    // &quot;bam&quot;</div><div class="line"></div><div class="line">optional.ifPresent((s) -&gt; System.out.println(s.charAt(0)));     // &quot;b&quot;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>著名的NullPointerException 是引起系统失败最常见的原因。很久以前Google Guava项目引入了Optional作为解决空指针异常的一种方式，不赞成代码被null检查的代码污染，期望程序员写整洁的代码。受Google Guava的鼓励，Optional 现在是Java 8库的一部分。</p>
+<p>Optional 只是一个容器，它可以保存一些类型的值或者null。它提供很多有用的方法，所以没有理由不显式地检查null。请参照java 8的<a href="http://docs.oracle.com/javase/8/docs/api/java/util/Optional.html" target="_blank" rel="external">文档</a>查看详细信息。</p>
+<p>让我们看看两个Optional 用法的小例子：一个是允许为空的值，另外一个是不允许为空的值。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Optional&lt; String &gt; fullName = Optional.ofNullable( null );</div><div class="line">System.out.println( &quot;Full Name is set? &quot; + fullName.isPresent() );        </div><div class="line">System.out.println( &quot;Full Name: &quot; + fullName.orElseGet( () -&gt; &quot;[none]&quot; ) ); </div><div class="line">System.out.println( fullName.map( s -&gt; &quot;Hey &quot; + s + &quot;!&quot; ).orElse( &quot;Hey Stranger!&quot; ) );</div></pre></td></tr></table></figure></p>
+<p>如果Optional实例有非空的值，方法 isPresent() 返回true否则返回false。方法orElseGet提供了回退机制，当Optional的值为空时接受一个方法返回默认值。map()方法转化Optional当前的值并且返回一个新的Optional实例。orElse方法和orElseGet类似，但是它不接受一个方法，而是接受一个默认值。上面代码运行结果如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Full Name is set? false</div><div class="line">Full Name: [none]</div><div class="line">Hey Stranger!</div></pre></td></tr></table></figure></p>
+<p>例如，People 类中有一个方法 getMaleList 需要获取男性的列表，这里需要定义一个函数式接口 PersonInterface：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">interface PersonInterface &#123;</div><div class="line">    public boolean test(Person person);</div><div class="line">&#125;</div><div class="line"></div><div class="line">public class People &#123;</div><div class="line">    private List&lt;Person&gt; persons= new ArrayList&lt;Person&gt;();</div><div class="line">    public List&lt;Person&gt; getMaleList(PersonInterface filter) &#123;</div><div class="line">        List&lt;Person&gt; res = new ArrayList&lt;Person&gt;();</div><div class="line">        persons.forEach(</div><div class="line">            (Person person) -&gt; </div><div class="line">                &#123;</div><div class="line">                    if (filter.test(person)) &#123;//调用 PersonInterface 的方法</div><div class="line">                        res.add(person);</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">        );</div><div class="line">        return res;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>为了去除 PersonInterface 这个函数式接口，可以用通用函数式接口 Predicate 替代如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">class People&#123;</div><div class="line">    private List&lt;Person&gt; persons= new ArrayList&lt;Person&gt;();</div><div class="line">    public List&lt;Person&gt; getMaleList(Predicate&lt;Person&gt; predicate) &#123;</div><div class="line">        List&lt;Person&gt; res = new ArrayList&lt;Person&gt;();</div><div class="line">        persons.forEach(</div><div class="line">            person -&gt; &#123;</div><div class="line">                if (predicate.test(person)) &#123;//调用 Predicate 的抽象方法 test</div><div class="line">                    res.add(person);</div><div class="line">                &#125;</div><div class="line">            &#125;);</div><div class="line">        return res;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Arrays.asList( &quot;a&quot;, &quot;b&quot;, &quot;d&quot; ).forEach( e -&gt; System.out.println( e ) );</div></pre></td></tr></table></figure></p>
+<p>请注意到编译器会根据上下文来推测参数的类型，或者你也可以显示地指定参数类型，只需要将类型包在括号里。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Arrays.asList( &quot;a&quot;, &quot;b&quot;, &quot;d&quot; ).forEach( ( String e ) -&gt; System.out.println( e ) );</div></pre></td></tr></table></figure></p>
+<p>如果Lambda的功能语句块太复杂，我们可以用大括号包起来，跟普通的Java方法一样，如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">String separator = &quot;,&quot;;</div><div class="line">Arrays.asList( &quot;a&quot;, &quot;b&quot;, &quot;d&quot; ).forEach(</div><div class="line">    ( String e ) -&gt; System.out.print( e + separator ) );</div></pre></td></tr></table></figure></p>
+<p>Lambda表达式可能会引用类的成员或者局部变量（会被隐式地转变成final类型），下面两种写法的效果是一样的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">String separator = &quot;,&quot;;</div><div class="line">Arrays.asList( &quot;a&quot;, &quot;b&quot;, &quot;d&quot; ).forEach(</div><div class="line">    ( String e ) -&gt; System.out.print( e + separator ) );</div><div class="line">    </div><div class="line">final String separator = &quot;,&quot;;</div><div class="line">Arrays.asList( &quot;a&quot;, &quot;b&quot;, &quot;d&quot; ).forEach(</div><div class="line">    ( String e ) -&gt; System.out.print( e + separator ) );</div></pre></td></tr></table></figure></p>
+<p>Lambda表达式可能会有返回值，编译器会根据上下文推断返回值的类型。如果lambda的语句块只有一行，不需要return关键字。下面两个写法是等价的<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Arrays.asList( &quot;a&quot;, &quot;b&quot;, &quot;d&quot; ).sort( ( e1, e2 ) -&gt; e1.compareTo( e2 ) );</div><div class="line"></div><div class="line">Arrays.asList( &quot;a&quot;, &quot;b&quot;, &quot;d&quot; ).sort( ( e1, e2 ) -&gt; &#123;</div><div class="line">    int result = e1.compareTo( e2 );</div><div class="line">    return result;</div><div class="line">&#125; );</div></pre></td></tr></table></figure></p>
+<h2 id="接口的增强"><a href="#接口的增强" class="headerlink" title="接口的增强"></a>接口的增强</h2><p>Java 8 对接口做了进一步的增强。在接口中可以添加使用 <code>default</code> 关键字修饰的非抽象方法。还可以在接口中定义静态方法。如今，接口看上去与抽象类的功能越来越类似了。</p>
+<h3 id="默认方法"><a href="#默认方法" class="headerlink" title="默认方法"></a>默认方法</h3><p>Java 8 还允许我们给接口添加一个非抽象的方法实现，只需要使用 default 关键字即可，这个特征又叫做<strong>扩展方法</strong>。在实现该接口时，该默认扩展方法在子类上可以直接使用，它的使用方式类似于抽象类中非抽象成员方法。但扩展方法不能够重载 Object 中的方法。例如：toString、equals、 hashCode 不能在接口中被重载。</p>
+<p><strong>一个接口可以包含多个默认方法和静态方法</strong>。</p>
+<p>例如，下面接口中定义了一个默认方法 count()，该方法可以在子类中直接使用。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">public interface DefaultFunInterface &#123;</div><div class="line">    //定义默认方法 count</div><div class="line">    default int count()&#123;</div><div class="line">        return 1;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">public class SubDefaultFunClass implements DefaultFunInterface &#123;</div><div class="line">    public static void main(String[] args)&#123;</div><div class="line">        //实例化一个子类对象，改子类对象可以直接调用父接口中的默认方法 count</div><div class="line">        SubDefaultFunClass sub = new SubDefaultFunClass();</div><div class="line">        sub.count();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>默认方法和抽象方法的区别是抽象方法必须要被实现，默认方法不是。作为替代方式，接口可以提供一个默认的方法实现，所有这个接口的实现类都会通过继承得倒这个方法（如果有需要也可以重写这个方法），让我们来看看下面的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">private interface Defaulable &#123;</div><div class="line">    // Interfaces now allow default methods, the implementer may or</div><div class="line">    // may not implement (override) them.</div><div class="line">    default String notRequired() &#123;</div><div class="line">        return &quot;Default implementation&quot;;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"> </div><div class="line">private static class DefaultableImpl implements Defaulable &#123;</div><div class="line">&#125;</div><div class="line"> </div><div class="line">private static class OverridableImpl implements Defaulable &#123;</div><div class="line">    @Override</div><div class="line">    public String notRequired() &#123;</div><div class="line">        return &quot;Overridden implementation&quot;;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>接口Defaulable使用default关键字声明了一个默认方法notRequired()，类DefaultableImpl实现了Defaulable接口，没有对默认方法做任何修改。另外一个类OverridableImpl重写类默认实现，提供了自己的实现方法。</p>
+<p>JVM平台的接口的默认方法实现是很高效的，并且方法调用的字节码指令支持默认方法。默认方法使已经存在的接口可以修改而不会影响编译的过程。java.util.Collection中添加的额外方法就是最好的例子：stream(), parallelStream(), forEach(), removeIf()</p>
+<h3 id="静态方法"><a href="#静态方法" class="headerlink" title="静态方法"></a>静态方法</h3><p>在接口中，还允许定义静态的方法。接口中的静态方法可以直接用接口来调用。</p>
+<p>例如，下面接口中定义了一个静态方法 find，该方法可以直接用 StaticFunInterface .find() 来调用。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public interface StaticFunInterface &#123;</div><div class="line">    public static int find()&#123;</div><div class="line">        return 1;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">public class TestStaticFun &#123;</div><div class="line">    public static void main(String[] args)&#123;</div><div class="line">        //接口中定义了静态方法 find 直接被调用</div><div class="line">        StaticFunInterface.fine();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="集合之流式操作"><a href="#集合之流式操作" class="headerlink" title="集合之流式操作"></a>集合之流式操作</h2><p>Java 8 引入了流式操作（Stream），通过该操作可以实现对集合（Collection）的并行处理和函数式操作。根据操作返回的结果不同，流式操作分为中间操作和最终操作两种。最终操作返回一特定类型的结果，而中间操作返回流本身，这样就可以将多个操作依次串联起来。根据流的并发性，流又可以分为串行和并行两种。<strong>流式操作实现了集合的过滤、排序、映射等功能</strong>。</p>
+<p><strong>Stream 和 Collection 集合的区别：Collection 是一种静态的内存数据结构，而 Stream 是有关计算的。前者是主要面向内存，存储在内存中，后者主要是面向 CPU，通过 CPU 实现计算</strong>。</p>
+<h3 id="串行和并行的流"><a href="#串行和并行的流" class="headerlink" title="串行和并行的流"></a>串行和并行的流</h3><p>流有串行和并行两种，串行流上的操作是在一个线程中依次完成，而并行流则是在多个线程上同时执行。并行与串行的流可以相互切换：通过 stream.sequential() 返回串行的流，通过 stream.parallel() 返回并行的流。相比较串行的流，并行的流可以很大程度上提高程序的执行效率。</p>
+<p>下面是分别用串行和并行的方式对集合进行排序。</p>
+<h6 id="串行排序："><a href="#串行排序：" class="headerlink" title="串行排序："></a>串行排序：</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">List&lt;String&gt; list = new ArrayList&lt;String&gt;();</div><div class="line">for(int i=0;i&lt;1000000;i++)&#123;</div><div class="line">    double d = Math.random()*1000;</div><div class="line">    list.add(d+&quot;&quot;);</div><div class="line">&#125;</div><div class="line">long start = System.nanoTime();//获取系统开始排序的时间点</div><div class="line">int count= (int) ((Stream) list.stream().sequential()).sorted().count();</div><div class="line">long end = System.nanoTime();//获取系统结束排序的时间点</div><div class="line">long ms = TimeUnit.NANOSECONDS.toMillis(end-start);//得到串行排序所用的时间</div><div class="line">System.out.println(ms+”ms”);</div></pre></td></tr></table></figure>
+<h6 id="并行排序："><a href="#并行排序：" class="headerlink" title="并行排序："></a>并行排序：</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">List&lt;String&gt; list = new ArrayList&lt;String&gt;();</div><div class="line">for(int i=0;i&lt;1000000;i++)&#123;</div><div class="line">    double d = Math.random()*1000;</div><div class="line">    list.add(d+&quot;&quot;);</div><div class="line">&#125;</div><div class="line">long start = System.nanoTime();//获取系统开始排序的时间点</div><div class="line">int count = (int)((Stream) list.stream().parallel()).sorted().count();</div><div class="line">long end = System.nanoTime();//获取系统结束排序的时间点</div><div class="line">long ms = TimeUnit.NANOSECONDS.toMillis(end-start);//得到并行排序所用的时间</div><div class="line">System.out.println(ms+”ms”);</div><div class="line">//串行输出为 1200ms，并行输出为 800ms。可见，并行排序的时间相比较串行排序时间要少不少。</div></pre></td></tr></table></figure>
+<h3 id="中间操作"><a href="#中间操作" class="headerlink" title="中间操作"></a>中间操作</h3><p>该操作会保持 stream 处于中间状态，允许做进一步的操作。它返回的还是的 Stream，允许更多的链式操作。常见的中间操作有：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">List&lt;String&gt; stringCollection = new ArrayList&lt;&gt;();</div><div class="line">stringCollection.add(&quot;ddd2&quot;);</div><div class="line">stringCollection.add(&quot;aaa2&quot;);</div><div class="line">stringCollection.add(&quot;bbb1&quot;);</div><div class="line">stringCollection.add(&quot;aaa1&quot;);</div><div class="line">stringCollection.add(&quot;bbb3&quot;);</div><div class="line">stringCollection.add(&quot;ccc&quot;);</div><div class="line">stringCollection.add(&quot;bbb2&quot;);</div><div class="line">stringCollection.add(&quot;ddd1&quot;);</div></pre></td></tr></table></figure></p>
+<ul>
+<li><p><code>filter()</code>：对元素进行过滤；</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">stringCollection</div><div class="line">    .stream()</div><div class="line">    .filter((s) -&gt; s.startsWith(&quot;a&quot;))</div><div class="line">    .forEach(System.out::println);</div><div class="line"></div><div class="line">// &quot;aaa2&quot;, &quot;aaa1&quot;</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>sorted()</code>：对元素排序,排序只创建流的排序视图，原来集合顺序不变；</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">stringCollection</div><div class="line">    .stream()</div><div class="line">    .sorted()</div><div class="line">    .filter((s) -&gt; s.startsWith(&quot;a&quot;))</div><div class="line">    .forEach(System.out::println);</div><div class="line"></div><div class="line">// &quot;aaa1&quot;, &quot;aaa2&quot;</div><div class="line"></div><div class="line">System.out.println(stringCollection);</div><div class="line">// ddd2, aaa2, bbb1, aaa1, bbb3, ccc, bbb2, ddd1</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>map()</code>：元素的映射,中间操作映射通过给定的函数将每个元素转换成另一个对象。下面的示例将每个字符串转换为一个大写字符串。但是您也可以使用map将每个对象转换成另一个类型。生成的流的泛型类型取决于您传递给映射的函数的泛型类型。原来的集合不受影响；</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">stringCollection</div><div class="line">    .stream()</div><div class="line">    .map(String::toUpperCase)</div><div class="line">    .sorted((a, b) -&gt; b.compareTo(a))</div><div class="line">    .forEach(System.out::println);</div><div class="line"></div><div class="line">// &quot;DDD2&quot;, &quot;DDD1&quot;, &quot;CCC&quot;, &quot;BBB3&quot;, &quot;BBB2&quot;, &quot;AAA2&quot;, &quot;AAA1&quot;</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>distinct()</code>：去除重复元素；</p>
+</li>
+<li><code>subStream()</code>：获取子 Stream 等。</li>
+</ul>
+<p>例如，下面是对一个字符串集合进行过滤，返回以“s”开头的字符串集合，并将该集合依次打印出来：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">list.stream()</div><div class="line">    .filter((s) -&gt; s.startsWith(&quot;s&quot;))</div><div class="line">    .forEach(System.out::println);</div></pre></td></tr></table></figure></p>
+<p>这里的 filter(…) 就是一个中间操作，该中间操作可以链式地应用其他 Stream 操作。</p>
+<h3 id="终止操作"><a href="#终止操作" class="headerlink" title="终止操作"></a>终止操作</h3><p>该操作必须是流的最后一个操作，一旦被调用，Stream 就到了一个终止状态，而且不能再使用了。常见的终止操作有：</p>
+<ul>
+<li><code>forEach()</code>：对每个元素做处理；</li>
+<li><code>toArray()</code>：把元素导出到数组；</li>
+<li><code>findFirst()</code>：返回第一个匹配的元素；</li>
+<li><p><code>Match</code>：可以使用各种匹配操作检查某个谓词是否与流匹配。所有这些操作都是终端，并返回一个布尔结果。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">boolean anyStartsWithA =</div><div class="line">    stringCollection</div><div class="line">        .stream()</div><div class="line">        .anyMatch((s) -&gt; s.startsWith(&quot;a&quot;));</div><div class="line"></div><div class="line">System.out.println(anyStartsWithA);      // true</div><div class="line"></div><div class="line">boolean allStartsWithA =</div><div class="line">    stringCollection</div><div class="line">        .stream()</div><div class="line">        .allMatch((s) -&gt; s.startsWith(&quot;a&quot;));</div><div class="line"></div><div class="line">System.out.println(allStartsWithA);      // false</div><div class="line"></div><div class="line">boolean noneStartsWithZ =</div><div class="line">    stringCollection</div><div class="line">        .stream()</div><div class="line">        .noneMatch((s) -&gt; s.startsWith(&quot;z&quot;));</div><div class="line"></div><div class="line">System.out.println(noneStartsWithZ);      // true</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>Count</code>：返回流中元素的数量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">long startsWithB =</div><div class="line">    stringCollection</div><div class="line">        .stream()</div><div class="line">        .filter((s) -&gt; s.startsWith(&quot;b&quot;))</div><div class="line">        .count();</div><div class="line"></div><div class="line">System.out.println(startsWithB);    // 3</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>Reduce</code>：通过给定的函数对流的元素进行还原。结果是存于Optional中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">Optional&lt;String&gt; reduced =</div><div class="line">    stringCollection</div><div class="line">        .stream()</div><div class="line">        .sorted()</div><div class="line">        .reduce((s1, s2) -&gt; s1 + &quot;#&quot; + s2);</div><div class="line"></div><div class="line">reduced.ifPresent(System.out::println);</div><div class="line">// &quot;aaa1#aaa2#bbb1#bbb2#bbb3#ccc#ddd1#ddd2&quot;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>例如，下面是对一个字符串集合进行过滤，返回以“s”开头的字符串集合，并将该集合依次打印出来：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">list.stream() //获取列表的 stream 操作对象</div><div class="line">    .filter((s) -&gt; s.startsWith(&quot;s&quot;))//对这个流做过滤操作</div><div class="line">    .forEach(System.out::println);</div></pre></td></tr></table></figure></p>
+<p>这里的 forEach(…) 就是一个终止操作，该操作之后不能再链式的添加其他操作了。</p>
+<h2 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h2><p>现在Map支持用于执行常见任务的各种新的和有用的方法。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">Map&lt;Integer, String&gt; map = new HashMap&lt;&gt;();</div><div class="line"></div><div class="line">for (int i = 0; i &lt; 10; i++) &#123;</div><div class="line">    map.putIfAbsent(i, &quot;val&quot; + i);</div><div class="line">&#125;</div><div class="line"></div><div class="line">map.forEach((id, val) -&gt; System.out.println(val));</div></pre></td></tr></table></figure></p>
+<p>map的计算:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">map.computeIfPresent(3, (num, val) -&gt; val + num);</div><div class="line">map.get(3);             // val33</div><div class="line"></div><div class="line">map.computeIfPresent(9, (num, val) -&gt; null);</div><div class="line">map.containsKey(9);     // false</div><div class="line"></div><div class="line">map.computeIfAbsent(23, num -&gt; &quot;val&quot; + num);</div><div class="line">map.containsKey(23);    // true</div><div class="line"></div><div class="line">map.computeIfAbsent(3, num -&gt; &quot;bam&quot;);</div><div class="line">map.get(3);             // val33</div></pre></td></tr></table></figure></p>
+<p>通过给定的key来删除元素，只有value值匹配才会删除<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">map.remove(3, &quot;val3&quot;);</div><div class="line">map.get(3);             // val33</div><div class="line"></div><div class="line">map.remove(3, &quot;val33&quot;);</div><div class="line">map.get(3);             // null</div></pre></td></tr></table></figure></p>
+<p>其他有用的方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">map.getOrDefault(42, &quot;not found&quot;);  // not found</div></pre></td></tr></table></figure></p>
+<p>合并：如果不存在则插入，存在则合并<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">map.merge(9, &quot;val9&quot;, (value, newValue) -&gt; value.concat(newValue));</div><div class="line">map.get(9);             // val9</div><div class="line"></div><div class="line">map.merge(9, &quot;concat&quot;, (value, newValue) -&gt; value.concat(newValue));</div><div class="line">map.get(9);             // val9concat</div></pre></td></tr></table></figure></p>
+<h2 id="注解的更新"><a href="#注解的更新" class="headerlink" title="注解的更新"></a>注解的更新</h2><p>对于注解，Java 8 主要有两点改进：<strong>类型注解</strong>和<strong>重复注解</strong>。</p>
+<p>Java 8 的类型注解扩展了注解使用的范围。在该版本之前，注解只能是在声明的地方使用。现在几乎可以为任何东西添加注解：局部变量、类与接口，就连方法的异常也能添加注解。</p>
+<p>新增的两个注释的程序元素类型： <code>ElementType.TYPE_USE</code> 和 <code>ElementType.TYPE_PARAMETER</code> 用来描述注解的新场合。ElementType.TYPE_PARAMETER 表示该注解能写在类型变量的声明语句中。而 ElementType.TYPE_USE 表示该注解能写在使用类型的任何语句中（例如声明语句、泛型和强制转换语句中的类型）。</p>
+<p>对类型注解的支持，增强了通过静态分析工具发现错误的能力。原先只能在运行时发现的问题可以提前在编译的时候被排查出来。Java 8 本身虽然没有自带类型检测的框架，但可以通过使用 Checker Framework 这样的第三方工具，自动检查和确认软件的缺陷，提高生产效率。</p>
+<p>例如，下面的代码可以通过编译，但是运行时会报 NullPointerException 的异常。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">public class TestAnno &#123;</div><div class="line">    public static void main(String[] args) &#123;</div><div class="line">        Object obj = null;</div><div class="line">        obj.toString();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>为了能在编译期间就自动检查出这类异常，可以通过类型注解结合 Checker Framework 提前排查出来：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">import org.checkerframework.checker.nullness.qual.NonNull;</div><div class="line">public class TestAnno &#123;</div><div class="line">    public static void main(String[] args) &#123;</div><div class="line">        @NonNull Object obj = null;</div><div class="line">        obj.toString();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>编译时自动检测结果如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">C:\workspace\TestJava8\src\TestAnno.java:4: Warning:</div><div class="line">  (assignment.type.incompatible) $$ 2 $$ null $$ @UnknownInitialization @NonNull Object $$ ( 152, 156 )</div><div class="line">  $$ incompatible types in assignment.</div><div class="line">@NonNull Object obj = null;</div><div class="line"> ^</div><div class="line"> found : null</div><div class="line"> required: @UnknownInitialization @NonNull Object</div></pre></td></tr></table></figure></p>
+<p>另外，在该版本之前使用注解的一个限制是相同的注解在同一位置只能声明一次，不能声明多次。Java 8 引入了重复注解机制，这样相同的注解可以在同一地方声明多次。重复注解机制本身必须用 <code>@Repeatable</code> 注解。</p>
+<p>例如，下面就是用 @Repeatable 重复注解的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">@Retention(RetentionPolicy.RUNTIME) \\该注解存在于类文件中并在运行时可以通过反射获取</div><div class="line">@interface Annots &#123;</div><div class="line">    Annot[] value();</div><div class="line">&#125; </div><div class="line"></div><div class="line">@Retention(RetentionPolicy.RUNTIME) \\该注解存在于类文件中并在运行时可以通过反射获取</div><div class="line">@Repeatable(Annots.class)</div><div class="line">@interface Annot &#123;</div><div class="line">    String value();</div><div class="line">&#125;</div><div class="line"></div><div class="line">@Annot(&quot;a1&quot;)</div><div class="line">@Annot(&quot;a2&quot;)</div><div class="line">public class Test &#123;</div><div class="line">    public static void main(String[] args) &#123;</div><div class="line">        Annots annots1 = Test.class.getAnnotation(Annots.class);</div><div class="line">        System.out.println(annots1.value()[0]+&quot;,&quot;+annots1.value()[1]); </div><div class="line">        // 输出: @Annot(value=a1),@Annot(value=a2)</div><div class="line">        Annot[] annots2 = Test.class.getAnnotationsByType(Annot.class);</div><div class="line">        System.out.println(annots2[0]+&quot;,&quot;+annots2[1]); </div><div class="line">        // 输出: @Annot(value=a1),@Annot(value=a2)</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>注释 Annot 被 @Repeatable( Annots.class ) 注解。Annots 只是一个容器，它包含 Annot 数组, 编译器尽力向程序员隐藏它的存在。通过这样的方式，Test 类可以被 Annot 注解两次。重复注释的类型可以通过 getAnnotationsByType() 方法来返回。</p>
+<h2 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h2><p>现今，互联网环境中存在各种各种潜在的威胁，对于 Java 平台来说，安全显得特别重要。为了保证新版本具有更高的安全性，Java 8 在安全性上对许多方面进行了增强，也为此推迟了它的发布日期。下面例举其中几个关于安全性的更新：</p>
+<p>支持更强的基于密码的加密算法。基于 AES 的加密算法，例如 PBEWithSHA256AndAES_128 和 PBEWithSHA512AndAES_256，已经被加入进来。</p>
+<p>在客户端，TLS1.1 和 TLS1.2 被设为默认启动。并且可以通过新的系统属性包 jdk.tls.client.protocols 来对它进行配置。</p>
+<p>Keystore 的增强，包含新的 Keystore 类型 java.security.DomainLoadStoreParameter 和为 Keytool 这个安全钥匙和证书的管理工具添加新的命令行选项-importpassword。同时，添加和更新了一些关于安全性的 API 来支持 KeyStore 的更新。</p>
+<p>支持安全的随机数发生器。如果随机数来源于随机性不高的种子，那么那些用随机数来产生密钥或者散列敏感信息的系统就更易受攻击。SecureRandom 这个类的 getInstanceStrong 方法如今可以获取各个平台最强的随机数对象实例，通过这个实例生成像 RSA 私钥和公钥这样具有较高熵的随机数。</p>
+<p>JSSE（Java(TM) Secure Socket Extension）服务器端开始支持 SSL/TLS 服务器名字识别 SNI（Server Name Indication）扩展。SNI 扩展目的是 SSL/TLS 协议可以通过 SNI 扩展来识别客户端试图通过握手协议连接的服务器名字。在 Java 7 中只在客户端默认启动 SNI 扩展。如今，在 JSSE 服务器端也开始支持 SNI 扩展了。</p>
+<p>安全性比较差的加密方法被默认禁用。默认不支持 DES 相关的 Kerberos 5 加密方法。如果一定要使用这类弱加密方法需要在 krb5.conf 文件中添加 allow_weak_crypto=true。考虑到这类加密方法安全性极差，开发者应该尽量避免使用它。</p>
+<h3 id="Base64"><a href="#Base64" class="headerlink" title="Base64"></a>Base64</h3><p>对Base64的支持最终成了Java 8标准库的一部分，非常简单易用：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">package com.javacodegeeks.java8.base64;</div><div class="line"> </div><div class="line">import java.nio.charset.StandardCharsets;</div><div class="line">import java.util.Base64;</div><div class="line"> </div><div class="line">public class Base64s &#123;</div><div class="line">    public static void main(String[] args) &#123;</div><div class="line">        final String text = &quot;Base64 finally in Java 8!&quot;;</div><div class="line">         </div><div class="line">        final String encoded = Base64</div><div class="line">        .getEncoder()</div><div class="line">        .encodeToString( text.getBytes( StandardCharsets.UTF_8 ) );</div><div class="line">        System.out.println( encoded );</div><div class="line">         </div><div class="line">        final String decoded = new String(</div><div class="line">        Base64.getDecoder().decode( encoded ),</div><div class="line">        StandardCharsets.UTF_8 );</div><div class="line">        System.out.println( decoded );</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>控制台输出的编码和解码的字符串:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">QmFzZTY0IGZpbmFsbHkgaW4gSmF2YSA4IQ==</div><div class="line">Base64 finally in Java 8!</div></pre></td></tr></table></figure></p>
+<p>新的Base64API也支持URL和MINE的编码解码。</p>
+<p><strong>(Base64.getUrlEncoder() / Base64.getUrlDecoder(), Base64.getMimeEncoder() / Base64.getMimeDecoder())</strong></p>
+<h3 id="并发"><a href="#并发" class="headerlink" title="并发"></a>并发</h3><p>在新增Stream机制与lambda的基础之上，在java.util.concurrent.ConcurrentHashMap中加入了一些新方法来支持聚集操作。同时也在java.util.concurrent.ForkJoinPool类中加入了一些新方法来支持共有资源池（common pool）。</p>
+<p>新增的java.util.concurrent.locks.StampedLock类提供一直基于容量的锁，这种锁有三个模型来控制读写操作（它被认为是不太有名的java.util.concurrent.locks.ReadWriteLock类的替代者）。</p>
+<p>在java.util.concurrent.atomic包中还增加了下面这些类：</p>
+<ul>
+<li>DoubleAccumulator</li>
+<li>DoubleAdder</li>
+<li>LongAccumulator</li>
+<li>LongAdder</li>
+</ul>
+<h2 id="IO-NIO-的改进"><a href="#IO-NIO-的改进" class="headerlink" title="IO/NIO 的改进"></a>IO/NIO 的改进</h2><p>Java 8 对 IO/NIO 也做了一些改进。主要包括：改进了 java.nio.charset.Charset 的实现，使编码和解码的效率得以提升，也精简了 jre/lib/charsets.jar 包；优化了 String(byte[],*) 构造方法和 String.getBytes() 方法的性能；还增加了一些新的 IO/NIO 方法，使用这些方法可以从文件或者输入流中获取流（java.util.stream.Stream），通过对流的操作，可以简化文本行处理、目录遍历和文件查找。</p>
+<p>新增的 API 如下：</p>
+<ul>
+<li>BufferedReader.line(): 返回文本行的流 Stream<string></string></li>
+<li>File.lines(Path, Charset):返回文本行的流 Stream<string></string></li>
+<li>File.list(Path): 遍历当前目录下的文件和目录</li>
+<li>File.walk(Path, int, FileVisitOption): 遍历某一个目录下的所有文件和指定深度的子目录</li>
+<li>File.find(Path, int, BiPredicate, FileVisitOption… ): 查找相应的文件</li>
+</ul>
+<p>下面就是用流式操作列出当前目录下的所有文件和目录：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Files.list(new File(&quot;.&quot;).toPath())</div><div class="line">     .forEach(System.out::println);</div></pre></td></tr></table></figure></p>
+<h2 id="时间日期"><a href="#时间日期" class="headerlink" title="时间日期"></a>时间日期</h2><p>Java 8 版本还完善了全球化功能：支持新的 Unicode 6.2.0 标准，新增了日历和本地化的 API，改进了日期时间的管理等。</p>
+<p>Java 的日期与时间 API 问题由来已久，Java 8 之前的版本中关于时间、日期及其他时间日期格式化类由于线程安全、重量级、序列化成本高等问题而饱受批评。Java 8 吸收了 Joda-Time 的精华，以一个新的开始为 Java 创建优秀的 API。</p>
+<p>新的 java.time 中包含了所有关于<code>时钟（Clock）</code>，<code>本地日期（LocalDate）</code>、<code>本地时间（LocalTime）</code>、<code>本地日期时间（LocalDateTime）</code>、<code>时区（ZonedDateTime）</code>和<code>持续时间（Duration）</code>的类。历史悠久的 Date 类新增了 toInstant() 方法，用于把 Date 转换成新的表示形式。这些新增的本地化时间日期 API 大大简化了了日期时间和本地化的管理。</p>
+<h3 id="Clock"><a href="#Clock" class="headerlink" title="Clock"></a>Clock</h3><p>时钟提供对当前日期和时间的访问。时钟知道一个时区，可以代替System.currentTimeMillis()来检索当前的毫秒。时间线上的瞬时点也由类Instants表示。Instants可以用来创建遗留java.util.Date对象。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">Clock clock = Clock.systemDefaultZone();</div><div class="line">long millis = clock.millis();</div><div class="line"></div><div class="line">Instant instant = clock.instant();</div><div class="line">Date legacyDate = Date.from(instant);</div></pre></td></tr></table></figure></p>
+<h3 id="Timezones"><a href="#Timezones" class="headerlink" title="Timezones"></a>Timezones</h3><p>时区由ZoneId表示。可以通过静态工厂方法轻松地访问它们。时区定义了在instant和本地日期和时间之间转换重要的偏移量。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">System.out.println(ZoneId.getAvailableZoneIds());</div><div class="line">// prints all available timezone ids</div><div class="line"></div><div class="line">ZoneId zone1 = ZoneId.of(&quot;Europe/Berlin&quot;);</div><div class="line">ZoneId zone2 = ZoneId.of(&quot;Brazil/East&quot;);</div><div class="line">System.out.println(zone1.getRules());</div><div class="line">System.out.println(zone2.getRules());</div><div class="line"></div><div class="line">// ZoneRules[currentStandardOffset=+01:00]</div><div class="line">// ZoneRules[currentStandardOffset=-03:00]</div></pre></td></tr></table></figure></p>
+<h3 id="LocalTime"><a href="#LocalTime" class="headerlink" title="LocalTime"></a>LocalTime</h3><p>LocalTime表示没有时区的时间，例如:10pm或17:30:15。下面的示例为上面定义的时区创建了两个本地时间。然后我们比较两种情况，并计算两种时间之间的小时数和分钟数的差值。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">LocalTime now1 = LocalTime.now(zone1);</div><div class="line">LocalTime now2 = LocalTime.now(zone2);</div><div class="line"></div><div class="line">System.out.println(now1.isBefore(now2));  // false</div><div class="line"></div><div class="line">long hoursBetween = ChronoUnit.HOURS.between(now1, now2);</div><div class="line">long minutesBetween = ChronoUnit.MINUTES.between(now1, now2);</div><div class="line"></div><div class="line">System.out.println(hoursBetween);       // -3</div><div class="line">System.out.println(minutesBetween);     // -239</div></pre></td></tr></table></figure></p>
+<p>LocalTime提供了各种工厂方法来简化新实例的创建，包括对时间字符串的解析。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">LocalTime late = LocalTime.of(23, 59, 59);</div><div class="line">System.out.println(late);       // 23:59:59</div><div class="line"></div><div class="line">DateTimeFormatter germanFormatter =</div><div class="line">    DateTimeFormatter</div><div class="line">        .ofLocalizedTime(FormatStyle.SHORT)</div><div class="line">        .withLocale(Locale.GERMAN);</div><div class="line"></div><div class="line">LocalTime leetTime = LocalTime.parse(&quot;13:37&quot;, germanFormatter);</div><div class="line">System.out.println(leetTime);   // 13:37</div></pre></td></tr></table></figure></p>
+<h3 id="LocalDate"><a href="#LocalDate" class="headerlink" title="LocalDate"></a>LocalDate</h3><p>LocalDate表示一个不同的日期，如2014-03-11。它是不可变的，和LocalTime完全一样。该示例演示了如何通过添加或减少日、月或年来计算新的日期。请记住，每个操作都返回一个新实例。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">LocalDate today = LocalDate.now();</div><div class="line">LocalDate tomorrow = today.plus(1, ChronoUnit.DAYS);</div><div class="line">LocalDate yesterday = tomorrow.minusDays(2);</div><div class="line"></div><div class="line">LocalDate independenceDay = LocalDate.of(2014, Month.JULY, 4);</div><div class="line">DayOfWeek dayOfWeek = independenceDay.getDayOfWeek();</div><div class="line">System.out.println(dayOfWeek);    // FRIDAY</div></pre></td></tr></table></figure></p>
+<p>从字符串解析LocalDate就像解析LocalTime一样简单:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">DateTimeFormatter germanFormatter =</div><div class="line">    DateTimeFormatter</div><div class="line">        .ofLocalizedDate(FormatStyle.MEDIUM)</div><div class="line">        .withLocale(Locale.GERMAN);</div><div class="line"></div><div class="line">LocalDate xmas = LocalDate.parse(&quot;24.12.2014&quot;, germanFormatter);</div><div class="line">System.out.println(xmas);   // 2014-12-24</div></pre></td></tr></table></figure></p>
+<h3 id="LocalDateTime"><a href="#LocalDateTime" class="headerlink" title="LocalDateTime"></a>LocalDateTime</h3><p>LocalDateTime代表日期时间。它将上面几节中所看到的日期和时间合并为一个实例。LocalDateTime是不可变的，与LocalTime和LocalDate类似。我们可以利用方法来从数据时间检索某些字段:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">LocalDateTime sylvester = LocalDateTime.of(2014, Month.DECEMBER, 31, 23, 59, 59);</div><div class="line"></div><div class="line">DayOfWeek dayOfWeek = sylvester.getDayOfWeek();</div><div class="line">System.out.println(dayOfWeek);      // WEDNESDAY</div><div class="line"></div><div class="line">Month month = sylvester.getMonth();</div><div class="line">System.out.println(month);          // DECEMBER</div><div class="line"></div><div class="line">long minuteOfDay = sylvester.getLong(ChronoField.MINUTE_OF_DAY);</div><div class="line">System.out.println(minuteOfDay);    // 1439</div></pre></td></tr></table></figure></p>
+<p>有了一个时区的额外信息，它可以转换为实例。可以很容易地将Instants转换为java.util.Date类型的遗留日期。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Instant instant = sylvester</div><div class="line">        .atZone(ZoneId.systemDefault())</div><div class="line">        .toInstant();</div><div class="line"></div><div class="line">Date legacyDate = Date.from(instant);</div><div class="line">System.out.println(legacyDate);     // Wed Dec 31 23:59:59 CET 2014</div></pre></td></tr></table></figure></p>
+<p>格式化日期时间就像格式化日期或时间一样。我们可以创建自定义模式的格式化程序，而不是使用预定义的格式。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">DateTimeFormatter formatter =</div><div class="line">    DateTimeFormatter</div><div class="line">        .ofPattern(&quot;MMM dd, yyyy - HH:mm&quot;);</div><div class="line"></div><div class="line">LocalDateTime parsed = LocalDateTime.parse(&quot;Nov 03, 2014 - 07:13&quot;, formatter);</div><div class="line">String string = formatter.format(parsed);</div><div class="line">System.out.println(string);     // Nov 03, 2014 - 07:13</div></pre></td></tr></table></figure></p>
+<p>不像java.text.NumberFormat新的DateTimeFormatter是不可变的和线程安全的。</p>
+<p>例如，下面是对 Clock, LocalDate，LocalTime, LocalDateTime 的简单应用：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">//Clock 时钟</div><div class="line">Clock clock = Clock.systemDefaultZone();//获取系统默认时区 (当前瞬时时间 )</div><div class="line">System.out.println( clock.instant() );//2014-04-12T15:19:29.282Z</div><div class="line">System.out.println( clock.millis() );//1397315969360</div><div class="line"></div><div class="line">// LocalDate: Get the local date and local time</div><div class="line">final LocalDate date = LocalDate.now();</div><div class="line">final LocalDate dateFromClock = LocalDate.now( clock );</div><div class="line">System.out.println( date );//2014-04-12</div><div class="line">System.out.println( dateFromClock );//2014-04-12</div><div class="line"> </div><div class="line">// LocalTime: Get the local date and local time</div><div class="line">final LocalTime time = LocalTime.now();</div><div class="line">final LocalTime timeFromClock = LocalTime.now( clock );</div><div class="line">System.out.println( time );//</div><div class="line">System.out.println( timeFromClock );//11:25:54.568</div><div class="line"></div><div class="line">// LocalDateTime: Get the local date/time</div><div class="line">final LocalDateTime datetime = LocalDateTime.now();</div><div class="line">final LocalDateTime datetimeFromClock = LocalDateTime.now( clock );</div><div class="line">System.out.println( datetime );//2014-04-12T11:37:52.309</div><div class="line">System.out.println( datetimeFromClock );//2014-04-12T15:37:52.309</div><div class="line"></div><div class="line">// 日期格式化：DateTimeFormatter是不可变的，是线程安全的</div><div class="line">DateTimeFormatter formatter =</div><div class="line">    DateTimeFormatter</div><div class="line">        .ofPattern(&quot;MMM dd, yyyy - HH:mm&quot;);</div><div class="line"></div><div class="line">LocalDateTime parsed = LocalDateTime.parse(&quot;Nov 03, 2014 - 07:13&quot;, formatter);</div><div class="line">String string = formatter.format(parsed);</div><div class="line">System.out.println(string);     // Nov 03, 2014 - 07:13</div></pre></td></tr></table></figure></p>
+<p>如果您需要一个类持有日期时间和时区信息，可以使用ZonedDateTime，它保存有ISO-8601日期系统的日期和时间，而且有时区信息。让我们看一些例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">// Get the zoned date/time</div><div class="line">final ZonedDateTime zonedDatetime = ZonedDateTime.now();</div><div class="line">final ZonedDateTime zonedDatetimeFromClock = ZonedDateTime.now( clock );</div><div class="line">final ZonedDateTime zonedDatetimeFromZone = ZonedDateTime.now( ZoneId.of( &quot;America/Los_Angeles&quot; ) );</div><div class="line"> </div><div class="line">System.out.println( zonedDatetime );</div><div class="line">System.out.println( zonedDatetimeFromClock );</div><div class="line">System.out.println( zonedDatetimeFromZone );</div></pre></td></tr></table></figure></p>
+<p>输出如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">2014-04-12T11:47:01.017-04:00[America/New_York]</div><div class="line">2014-04-12T15:47:01.017Z</div><div class="line">2014-04-12T08:47:01.017-07:00[America/Los_Angeles]</div></pre></td></tr></table></figure></p>
+<p>最后让我们看看Duration类，Duration持有的时间精确到纳秒。它让我们很容易计算两个日期中间的差异。让我们来看一下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">// Get duration between two dates</div><div class="line">final LocalDateTime from = LocalDateTime.of( 2014, Month.APRIL, 16, 0, 0, 0 );</div><div class="line">final LocalDateTime to = LocalDateTime.of( 2015, Month.APRIL, 16, 23, 59, 59 );</div><div class="line"> </div><div class="line">final Duration duration = Duration.between( from, to );</div><div class="line">System.out.println( &quot;Duration in days: &quot; + duration.toDays() );</div><div class="line">System.out.println( &quot;Duration in hours: &quot; + duration.toHours() );</div></pre></td></tr></table></figure></p>
+<p>上面的例子计算了两个日期（2014年4月16日和2014年5月16日）之间的持续时间（基于天数和小时）输出如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Duration in days: 365</div><div class="line">Duration in hours: 8783</div></pre></td></tr></table></figure></p>
+<h2 id="Nashorn-javascript引擎"><a href="#Nashorn-javascript引擎" class="headerlink" title="Nashorn javascript引擎"></a>Nashorn javascript引擎</h2><p>Java 8提供了一个新的Nashorn javascript引擎，它允许我们在JVM上运行特定的javascript应用。Nashorn javascript引擎只是javax.script.ScriptEngine另一个实现，而且规则也一样，允许Java和JavaScript互相操作。这里有个小例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">ScriptEngineManager manager = new ScriptEngineManager();</div><div class="line">ScriptEngine engine = manager.getEngineByName( &quot;JavaScript&quot; );</div><div class="line"> </div><div class="line">System.out.println( engine.getClass().getName() );//jdk.nashorn.api.scripting.NashornScriptEngine</div><div class="line">System.out.println( &quot;Result:&quot; + engine.eval( &quot;function f() &#123; return 1; &#125;; f() + 1;&quot; ) );//Result: 2</div></pre></td></tr></table></figure></p>
+<h2 id="并行数组"><a href="#并行数组" class="headerlink" title="并行数组"></a>并行数组</h2><p>Java 8新增加了很多方法支持并行的数组处理。最重要的大概是parallelSort()这个方法显著地使排序在多核计算机上速度加快。下面的小例子演示了这个新的方法（parallelXXX）的行为。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">package com.javacodegeeks.java8.parallel.arrays;</div><div class="line"> </div><div class="line">import java.util.Arrays;</div><div class="line">import java.util.concurrent.ThreadLocalRandom;</div><div class="line"> </div><div class="line">public class ParallelArrays &#123;</div><div class="line">    public static void main( String[] args ) &#123;</div><div class="line">        long[] arrayOfLong = new long [ 20000 ];        </div><div class="line"> </div><div class="line">        Arrays.parallelSetAll( arrayOfLong,</div><div class="line">            index -&gt; ThreadLocalRandom.current().nextInt( 1000000 ) );</div><div class="line">        Arrays.stream( arrayOfLong ).limit( 10 ).forEach(</div><div class="line">            i -&gt; System.out.print( i + &quot; &quot; ) );</div><div class="line">        System.out.println();</div><div class="line"> </div><div class="line">        Arrays.parallelSort( arrayOfLong );</div><div class="line">        Arrays.stream( arrayOfLong ).limit( 10 ).forEach(</div><div class="line">            i -&gt; System.out.print( i + &quot; &quot; ) );</div><div class="line">        System.out.println();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这一小段代码使用parallelSetAll() t方法填充这个长度是2000的数组，然后使用parallelSort() 排序。这个程序输出了排序前和排序后的10个数字来验证数组真的已经被排序了。示例可能的输出如下（请注意这些数字是随机产生的）</p>
+<p>Unsorted: 591217 891976 443951 424479 766825 351964 242997 642839 119108 552378<br>Sorted: 39 220 263 268 325 607 655 678 723 793</p>
+<h2 id="新的工具"><a href="#新的工具" class="headerlink" title="新的工具"></a>新的工具</h2><h3 id="Nashorn引擎：jjs"><a href="#Nashorn引擎：jjs" class="headerlink" title="Nashorn引擎：jjs"></a>Nashorn引擎：jjs</h3><p>jjs是个基于Nashorn引擎的命令行工具。它接受一些JavaScript源代码为参数，并且执行这些源代码。例如，我们创建一个具有如下内容的func.js文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">function f() &#123;</div><div class="line">    return 1;</div><div class="line">&#125;;</div><div class="line"> </div><div class="line">print( f() + 1 );</div></pre></td></tr></table></figure></p>
+<p>我们可以把这个文件作为参数传递给jjs使得这个文件可以在命令行中执行:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">jjs func.js   //结果输出：2</div></pre></td></tr></table></figure></p>
+<h3 id="类依赖分析工具：jdeps"><a href="#类依赖分析工具：jdeps" class="headerlink" title="类依赖分析工具：jdeps"></a>类依赖分析工具：jdeps</h3><p>Jdeps是一个功能强大的命令行工具，它可以帮我们显示出包层级或者类层级java类文件的依赖关系。它接受class文件、目录、jar文件作为输入，默认情况下，jdeps会输出到控制台。</p>
+<p>例如分析Notepad.jar：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">$ jdeps demo/jfc/Notepad/Notepad.jar</div><div class="line"> </div><div class="line">demo/jfc/Notepad/Notepad.jar -&gt; /usr/java/jre/lib/rt.jar</div><div class="line">   &lt;unnamed&gt; (Notepad.jar)</div><div class="line">      -&gt; java.awt                                           </div><div class="line">      -&gt; java.awt.event                                     </div><div class="line">      -&gt; java.beans                                         </div><div class="line">      -&gt; java.io                                            </div><div class="line">      -&gt; java.lang                                          </div><div class="line">      -&gt; java.net                                           </div><div class="line">      -&gt; java.util                                          </div><div class="line">      -&gt; java.util.logging                                  </div><div class="line">      -&gt; javax.swing                                        </div><div class="line">      -&gt; javax.swing.border                                 </div><div class="line">      -&gt; javax.swing.event                                  </div><div class="line">      -&gt; javax.swing.text                                   </div><div class="line">      -&gt; javax.swing.tree                                   </div><div class="line">      -&gt; javax.swing.undo</div></pre></td></tr></table></figure></p>
+<p>更多的详细信息请参考<a href="http://docs.oracle.com/javase/8/docs/technotes/tools/unix/jdeps.html" target="_blank" rel="external">官方文档</a>。</p>
+<h2 id="JVM的新特性"><a href="#JVM的新特性" class="headerlink" title="JVM的新特性"></a>JVM的新特性</h2><p>JVM内存永久区已经被metaspace替换（JEP 122）。JVM参数 -XX:PermSize 和 –XX:MaxPermSize被XX:MetaSpaceSize 和 -XX:MaxMetaspaceSize代替。</p>
+<h2 id="Java-8-开发环境"><a href="#Java-8-开发环境" class="headerlink" title="Java 8 开发环境"></a>Java 8 开发环境</h2><p>随着 Java 8 正式发布，许多 IDE 也开始提供对 Java 8 的支持。Eclipse 是 Java 开发人员最为常用集成开发环境，在最新的 Eclipse Kepler 4.3.2 版本中已经默认增加了对 Java 8 的支持。要想在 Eclipse Kepler 的前期版本中添加对 Java 8 的支持，可以通过下面步骤来完成：</p>
+<ol>
+<li><p>选择 “Help &gt; Eclipse Marketplace…”。</p>
+</li>
+<li><p>在搜索框中输入 “Java 8 Kepler”。</p>
+</li>
+<li><p>点击安装 Java 8 support for Eclipse Kepler SR2。</p>
+</li>
+</ol>
+<p>图 1. 安装 Java 8 support for Eclipse Kepler SR2<br><img src="https://www.ibm.com/developerworks/cn/java/j-lo-jdk8newfeature/img001.png" alt="image"><br>接下来，就可以开启 Java 8 编程之旅。</p>
+<h2 id="结束语"><a href="#结束语" class="headerlink" title="结束语"></a>结束语</h2><p>Java 8 正式版是一个有重大改变的版本，该版本对 Java 做了重大改进。本文通过文字描述及代码实例对新版本中主要新特性做了介绍：函数式接口、Lambda 表达式、集合的流式操作、注解、安全性、IO/NIO、全球化功能。除了文中介绍的这些重要的新功能之外，Java 8 还对 java 工具包 JDBC、Java DB、JavaFX 等方面都有许多改进和增强。这些新增功能简化了开发，提升了代码可读性，增强了代码的安全性，提高了代码的执行效率，为开发者带来了全新的 Java 开发体验，从而推动了 Java 这个平台的前进。</p>
+<h2 id="文档"><a href="#文档" class="headerlink" title="文档"></a>文档</h2><p><a href="http://winterbe.com/posts/2014/03/16/java-8-tutorial/" target="_blank" rel="external">Java 8 Tutorial</a></p>
+<p>Part 1: <a href="http://winterbe.com/posts/2015/04/07/java8-concurrency-tutorial-thread-executor-examples/" target="_blank" rel="external">Threads and Executors</a><br>Part 2: <a href="http://winterbe.com/posts/2015/04/30/java8-concurrency-tutorial-synchronized-locks-examples/" target="_blank" rel="external">Synchronization and Locks</a><br>Part 3: <a href="http://winterbe.com/posts/2015/05/22/java8-concurrency-tutorial-atomic-concurrent-map-examples/" target="_blank" rel="external">Atomic Variables and ConcurrentMap</a>  </p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/java8新特性/" data-id="cjei8ydg8004g7oblukk0cvpk" class="article-share-link">Share</a>
       
       
     </footer>
@@ -353,7 +555,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/类加载机制/" data-id="cjei8qk4y004k6gbl0a5gi7q2" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/Java/基础/类加载机制/" data-id="cjei8ydga004l7oblnks4jj3m" class="article-share-link">Share</a>
       
       
     </footer>
@@ -401,7 +603,81 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/服务器相关/redis/redis快速的几个原因/" data-id="cjei8qka400ep6gblxb3hd788" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/服务器相关/redis/redis快速的几个原因/" data-id="cjei8ydl300ez7oblyio4vhzb" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-服务器相关/redis/高性能IO模型" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/25/服务器相关/redis/高性能IO模型/" class="article-date">
+  <time datetime="2018-02-25T02:09:45.000Z" itemprop="datePublished">2018-02-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a>►<a class="article-category-link" href="/categories/服务器相关/redis/">redis</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/02/25/服务器相关/redis/高性能IO模型/">高性能IO模型</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>服务器端编程经常需要构造高性能的IO模型，常见的IO模型有四种：    </p>
+<ol>
+<li>同步阻塞IO（Blocking IO）：即传统的IO模型。</li>
+<li>同步非阻塞IO（Non-blocking IO）：默认创建的socket都是阻塞的，非阻塞IO要求socket被设置为NONBLOCK。注意这里所说的NIO并非Java的NIO（New IO）库。</li>
+<li>IO多路复用（IO Multiplexing）：即经典的Reactor设计模式，有时也称为异步阻塞IO，Java中的Selector和Linux中的epoll都是这种模型。</li>
+<li>异步IO（Asynchronous IO）：即经典的Proactor设计模式，也称为异步非阻塞IO。    </li>
+</ol>
+<p><strong>同步和异步</strong>的概念描述的是用户线程与内核的交互方式：同步是指用户线程发起IO请求后需要等待或者轮询内核IO操作完成后才能继续执行；而异步是指用户线程发起IO请求后仍继续执行，当内核IO操作完成后会通知用户线程，或者调用用户线程注册的回调函数。    </p>
+<p><strong>阻塞和非阻塞</strong>的概念描述的是用户线程调用内核IO操作的方式：阻塞是指IO操作需要彻底完成后才返回到用户空间；而非阻塞是指IO操作被调用后立即返回给用户一个状态值，无需等到IO操作彻底完成。    </p>
+<h2 id="同步阻塞IO"><a href="#同步阻塞IO" class="headerlink" title="同步阻塞IO"></a>同步阻塞IO</h2><p>同步阻塞IO模型是最简单的IO模型，用户线程在内核进行IO操作时被阻塞。<br><img src="http://images.cnitblog.com/blog/405877/201411/142330286789443.png" alt="image"> </p>
+<p>如上图所示，用户线程通过系统调用read发起IO读操作，由用户空间转到内核空间。内核等到数据包到达后，然后将接收的数据拷贝到用户空间，完成read操作。  </p>
+<p>用户线程使用同步阻塞IO模型的伪代码描述为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">    read(socket, buffer);</div><div class="line">    process(buffer);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>即用户需要等待read将socket中的数据读取到buffer后，才继续处理接收的数据。整个IO请求的过程中，用户线程是被阻塞的，这导致用户在发起IO请求时，不能做任何事情，对CPU的资源利用率不够。</p>
+<h2 id="同步非阻塞IO"><a href="#同步非阻塞IO" class="headerlink" title="同步非阻塞IO"></a>同步非阻塞IO</h2><p>同步非阻塞IO是在同步阻塞IO的基础上，将socket设置为NONBLOCK。这样做用户线程可以在发起IO请求后可以立即返回。<br><img src="http://images.cnitblog.com/blog/405877/201411/142332004602984.png" alt="image"></p>
+<p>如上图所示，由于socket是非阻塞的方式，因此用户线程发起IO请求时立即返回。但并未读取到任何数据，用户线程需要不断地发起IO请求，直到数据到达后，才真正读取到数据，继续执行。<br>用户线程使用同步非阻塞IO模型的伪代码描述为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">    while(read(socket, buffer) != SUCCESS)</div><div class="line">        ;</div><div class="line">    process(buffer);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>即用户需要不断地调用read，尝试读取socket中的数据，直到读取成功后，才继续处理接收的数据。整个IO请求的过程中，虽然用户线程每次发起IO请求后可以立即返回，但是为了等到数据，仍需要不断地轮询、重复请求，消耗了大量的CPU的资源。一般很少直接使用这种模型，而是在其他IO模型中使用非阻塞IO这一特性。  </p>
+<h2 id="IO多路复用"><a href="#IO多路复用" class="headerlink" title="IO多路复用"></a>IO多路复用</h2><p>IO多路复用模型是建立在内核提供的多路分离函数select基础之上的，使用select函数可以避免同步非阻塞IO模型中轮询等待的问题。<br><img src="http://images.cnitblog.com/blog/405877/201411/142332187256396.png" alt="image"><br>如上图所示，用户首先将需要进行IO操作的socket添加到select中，然后阻塞等待select系统调用返回。当数据到达时，socket被激活，select函数返回。用户线程正式发起read请求，读取数据并继续执行。    </p>
+<p>从流程上来看，使用select函数进行IO请求和同步阻塞模型没有太大的区别，甚至还多了添加监视socket，以及调用select函数的额外操作，效率更差。但是，使用select以后最大的优势是用户可以在一个线程内同时处理多个socket的IO请求。用户可以注册多个socket，然后不断地调用select读取被激活的socket，即可达到在<strong>同一个线程内同时处理多个IO请求</strong>的目的。而在同步阻塞模型中，必须通过多线程的方式才能达到这个目的。</p>
+<p>用户线程使用select函数的伪代码描述为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">    select(socket);</div><div class="line">    while(1) &#123;</div><div class="line">        sockets = select();</div><div class="line">        for(socket in sockets) &#123;</div><div class="line">            if(can_read(socket)) &#123;</div><div class="line">                read(socket, buffer);</div><div class="line">                process(buffer);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>其中while循环前将socket添加到select监视中，然后在while内一直调用select获取被激活的socket，一旦socket可读，便调用read函数将socket中的数据读取出来。  </p>
+<p>然而，使用select函数的优点并不仅限于此。虽然上述方式允许单线程内处理多个IO请求，但是每个IO请求的过程还是阻塞的（在select函数上阻塞），平均时间甚至比同步阻塞IO模型还要长。如果用户线程只注册自己感兴趣的socket或者IO请求，然后去做自己的事情，等到数据到来时再进行处理，则可以提高CPU的利用率。 </p>
+<p>IO多路复用模型使用了Reactor设计模式实现了这一机制。<br><img src="http://images.cnitblog.com/blog/405877/201411/142332350853195.png" alt="image"><br>如上图所示，EventHandler抽象类表示IO事件处理器，它拥有IO文件句柄Handle（通过get_handle获取），以及对Handle的操作handle_event（读/写等）。继承于EventHandler的子类可以对事件处理器的行为进行定制。Reactor类用于管理EventHandler（注册、删除等），并使用handle_events实现事件循环，不断调用同步事件多路分离器（一般是内核）的多路分离函数select，只要某个文件句柄被激活（可读/写等），select就返回（阻塞），handle_events就会调用与文件句柄关联的事件处理器的handle_event进行相关操作。    </p>
+<p><img src="http://images.cnitblog.com/blog/405877/201411/142333254136604.png" alt="image"><br>如上图所示，通过Reactor的方式，可以将用户线程轮询IO操作状态的工作统一交给handle_events事件循环进行处理。用户线程注册事件处理器之后可以继续执行做其他的工作（异步），而Reactor线程负责调用内核的select函数检查socket状态。当有socket被激活时，则通知相应的用户线程（或执行用户线程的回调函数），执行handle_event进行数据读取、处理的工作。由于select函数是阻塞的，因此<strong>多路IO复用模型也被称为异步阻塞IO模型</strong>。注意，这里的所说的阻塞是指select函数执行时线程被阻塞，而不是指socket。一般在使用IO多路复用模型时，socket都是设置为NONBLOCK的，不过这并不会产生影响，因为用户发起IO请求时，数据已经到达了，用户线程一定不会被阻塞。</p>
+<p>用户线程使用IO多路复用模型的伪代码描述为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">void UserEventHandler::handle_event() &#123;</div><div class="line">    if(can_read(socket)) &#123;</div><div class="line">        read(socket, buffer);</div><div class="line">        process(buffer);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">&#123;</div><div class="line">    Reactor.register(new UserEventHandler(socket));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>用户需要重写EventHandler的handle_event函数进行读取数据、处理数据的工作，用户线程只需要将自己的EventHandler注册到Reactor即可。Reactor中handle_events事件循环的伪代码大致如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">Reactor::handle_events() &#123;</div><div class="line">    while(1) &#123;</div><div class="line">        sockets = select();</div><div class="line">        for(socket in sockets) &#123;</div><div class="line">            get_event_handler(socket).handle_event();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>事件循环不断地调用select获取被激活的socket，然后根据获取socket对应的EventHandler，执行器handle_event函数即可。  </p>
+<p>IO多路复用是最常使用的IO模型，但是其异步程度还不够“彻底”，因为它使用了会阻塞线程的select系统调用。因此IO多路复用只能称为异步阻塞IO，而非真正的异步IO。  </p>
+<h2 id="异步IO"><a href="#异步IO" class="headerlink" title="异步IO"></a>异步IO</h2><p>“真正”的异步IO需要操作系统更强的支持。在IO多路复用模型中，事件循环将文件句柄的状态事件通知给用户线程，由用户线程自行读取数据、处理数据。而在异步IO模型中，当用户线程收到通知时，数据已经被内核读取完毕，并放在了用户线程指定的缓冲区内，内核在IO完成后通知用户线程直接使用即可。    </p>
+<p>异步IO模型使用了Proactor设计模式实现了这一机制。<br><img src="http://images.cnitblog.com/blog/405877/201411/151608309061672.jpg" alt="image"> </p>
+<p>如上图，Proactor模式和Reactor模式在结构上比较相似，不过在用户（Client）使用方式上差别较大。Reactor模式中，用户线程通过向Reactor对象注册感兴趣的事件监听，然后事件触发时调用事件处理函数。而Proactor模式中，用户线程将AsynchronousOperation（读/写等）、Proactor以及操作完成时的CompletionHandler注册到AsynchronousOperationProcessor。AsynchronousOperationProcessor使用Facade模式提供了一组异步操作API（读/写等）供用户使用，当用户线程调用异步API后，便继续执行自己的任务。AsynchronousOperationProcessor 会开启独立的内核线程执行异步操作，实现真正的异步。当异步IO操作完成时，AsynchronousOperationProcessor将用户线程与AsynchronousOperation一起注册的Proactor和CompletionHandler取出，然后将CompletionHandler与IO操作的结果数据一起转发给Proactor，Proactor负责回调每一个异步操作的事件完成处理函数handle_event。虽然Proactor模式中每个异步操作都可以绑定一个Proactor对象，但是一般在操作系统中，Proactor被实现为Singleton模式，以便于集中化分发操作完成事件。 </p>
+<p><img src="http://images.cnitblog.com/blog/405877/201411/142333511475767.png" alt="image"><br>如上图所示，异步IO模型中，用户线程直接使用内核提供的异步IO API发起read请求，且发起后立即返回，继续执行用户线程代码。不过此时用户线程已经将调用的AsynchronousOperation和CompletionHandler注册到内核，然后操作系统开启独立的内核线程去处理IO操作。当read请求的数据到达时，由内核负责读取socket中的数据，并写入用户指定的缓冲区中。最后内核将read的数据和用户线程注册的CompletionHandler分发给内部Proactor，Proactor将IO完成的信息通知给用户线程（一般通过调用用户线程注册的完成事件处理函数），完成异步IO。    </p>
+<p>用户线程使用异步IO模型的伪代码描述为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">void UserCompletionHandler::handle_event(buffer) &#123;</div><div class="line">    process(buffer);</div><div class="line">&#125;</div><div class="line">&#123;</div><div class="line">    aio_read(socket, new UserCompletionHandler);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>用户需要重写CompletionHandler的handle_event函数进行处理数据的工作，参数buffer表示Proactor已经准备好的数据，用户线程直接调用内核提供的异步IO API，并将重写的CompletionHandler注册即可。  </p>
+<p>相比于IO多路复用模型，异步IO并不十分常用，不少高性能并发服务程序使用IO多路复用模型+多线程任务处理的架构基本可以满足需求。况且目前操作系统对异步IO的支持并非特别完善，更多的是采用IO多路复用模型模拟异步IO的方式（IO事件触发时不直接通知用户线程，而是将数据读写完毕后放到用户指定的缓冲区中）。Java7之后已经支持了异步IO，感兴趣的读者可以尝试使用。  </p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/02/25/服务器相关/redis/高性能IO模型/" data-id="cjei8ydld00fd7oblbwm9de5v" class="article-share-link">Share</a>
       
       
     </footer>
@@ -582,7 +858,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/服务器相关/redis/Redis集群/" data-id="cjei8qka100ek6gblax56dezo" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/服务器相关/redis/Redis集群/" data-id="cjei8ydl200ex7oblqdosjdsc" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1101,113 +1377,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/服务器相关/redis/5种数据结构/" data-id="cjei8qka000eh6gblgpudupts" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-数据库相关/mysql/查询性能优化" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/02/25/数据库相关/mysql/查询性能优化/" class="article-date">
-  <time datetime="2018-02-25T02:09:45.000Z" itemprop="datePublished">2018-02-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a>►<a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/25/数据库相关/mysql/查询性能优化/">查询性能优化</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="慢查询基础：优化数据访问"><a href="#慢查询基础：优化数据访问" class="headerlink" title="慢查询基础：优化数据访问"></a>慢查询基础：优化数据访问</h2><p>对于低效的查询，我们发现通过下面两个步骤来分析总是很有效的：</p>
-<ul>
-<li>确认应用程序是否在检索大量超过需要的数据。这通常意味着访问了太多的行，但有时候也可能是访问了太多列。</li>
-<li>确认MySQL服务器层是否在分析大量超过需要的数据行。</li>
-</ul>
-<p>对于MySQL，最简单的衡量查询开销的三个指标如下：</p>
-<ul>
-<li>响应时间</li>
-<li>扫描的行数</li>
-<li>返回的行数</li>
-</ul>
-<p>一般MySQL能够使用如下三种方式应用WHERE条件，从好到坏依次为：</p>
-<ul>
-<li>在索引中使用WHERE条件来过滤不匹配的记录。这是在存储引擎层完成的。</li>
-<li>使用索引覆盖扫描（在Extra列中出现了Using index）来返回记录，直接从索引中过滤不需要的记录并返回命中的结果。这是在MySQL服务器层完成的，但无须再回表查询记录。</li>
-<li>从数据表中返回数据，然后过滤不满足条件的记录（在Extra列中出现Using Where）。这是在MySQL服务器层完成，MySQL需要先从数据表读出记录然后过滤。</li>
-</ul>
-<p>如果发现查询需要扫描大量的数据但只返回少数的行，那么通常可以尝试下面的技巧去优化它：</p>
-<ul>
-<li>使用索引覆盖扫描，把所有需要用的列都放到索引中，这样存储引擎无须回表获取对应行就可以返回结果了</li>
-<li>改变库表结构</li>
-<li>重写这个复杂的查询，让MySQL优化器能够以更优化的方式执行这个查询</li>
-</ul>
-<h2 id="重构查询的方式"><a href="#重构查询的方式" class="headerlink" title="重构查询的方式"></a>重构查询的方式</h2><h6 id="切分查询"><a href="#切分查询" class="headerlink" title="切分查询"></a>切分查询</h6><p>有时候对于一个大查询我们需要“分而治之”，将大查询切分成小查询，每个查询功能完全一样，只完成一小部分，每次只返回一小部分查询结果</p>
-<h6 id="分解关联查询"><a href="#分解关联查询" class="headerlink" title="分解关联查询"></a>分解关联查询</h6><p>很多高性能的应用都会对关联查询进行分解。简单地，可以对每一个表进行一次单表查询，然后将结果在应用程序中进行关联。例如，下面这个查询<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT * FROM tag</div><div class="line">    -&gt;   JOIN tag_post ON tag_post.tag_id=tag.id</div><div class="line">    -&gt;   JOIN post on tag_post.post_id=post.id</div><div class="line">    -&gt; WHERE tag.tag=&apos;mysql&apos;;</div></pre></td></tr></table></figure></p>
-<p>可以分解成下面这些查询来代替：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT * FROM tag WHERE tag=&apos;mysql&apos;;</div><div class="line">mysql&gt; SELECT * FROM tag_post WHERE tag_id=1234;</div><div class="line">mysql&gt; SELECT * FROM post WHERE post.id in(123, 456, 789);</div></pre></td></tr></table></figure></p>
-<p>用分解关联查询的方式重构查询有如下的优势：</p>
-<ul>
-<li>让缓存更高效。许多应用程序可以方便地缓存单表查询对应的结果对象。</li>
-<li>将查询分解后，执行单个查询可以减少锁的竞争</li>
-<li>在应用层做关联，可以更容易对数据库进行拆分，更容易做到高性能和可扩展</li>
-<li>查询本身效率也可能会有所提升。在这个例子中，使用IN()代替关联查询，可以染MySQL按照ID顺序进行查询，这可能比随机的关联要更高效。</li>
-<li>可以减少冗余记录的查询。在应用层做关联查询，意味着对于某条记录应用只需要查询一次，而在数据库中做关联查询，则可能需要重复地访问一部分数据。从这点看，这样的重构还可能会减少网络和内存的消耗。</li>
-<li>更进一步，这样做相当于在应用中实现了哈希关联，而不是使用MySQL的嵌套循环查询。</li>
-</ul>
-<h2 id="查询执行的基础"><a href="#查询执行的基础" class="headerlink" title="查询执行的基础"></a>查询执行的基础</h2><p>MySQL执行一个查询的过程：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MySQL8.jpeg" alt="image"></p>
-<ol>
-<li>客户端发送一条查询给服务器</li>
-<li>服务器先检查查询缓存，如果命中了缓存，则立刻返回存储在缓存中的结果。否则进入下一阶段</li>
-<li>服务器进行SQL解析，预处理，再由优化器生成对应的执行计划</li>
-<li>MySQL根据优化器生成的执行计划，调用存储引擎的API来执行查询</li>
-<li>将结果返回给客户端</li>
-</ol>
-<h6 id="MySQL客户端-服务器通信协议"><a href="#MySQL客户端-服务器通信协议" class="headerlink" title="MySQL客户端/服务器通信协议"></a>MySQL客户端/服务器通信协议</h6><p>MySQL客户端和服务器之间的通信协议是“半双工”的，这意味着，在任何一个时刻，要么是由服务器向客户端发送数据，要么是由客户端向服务器发送数据，这两个动作不能同时发生。所以，我们无法也无须将一个消息切成小块独立来发送。</p>
-<p>这种协议让MySQL通信简单快速，但是也从很多地方限制了MySQL。一个明显的限制是，这意味着无法进行流量控制。一旦一端开始发送消息，另一端要接收完整个消息才能响应它。</p>
-<p>客户端用一个单独的数据包将查询传给服务器。这也是为什么当查询的语句很长的时候，参数<code>max_allowed_packet</code>就特别重要了。一旦客户端发送了请求，它能做的事情就只是等待结果了。</p>
-<p>相反的，一般服务器响应给用户的数据通常很多，由多个数据包组成。当服务器开始响应客户端请求时，客户端必须完整地接收整个返回结果，而不能简单地只取前面几条结果，然后让服务器停止发送数据。</p>
-<p>换一种方式解释这种行为：当客户端从服务器取数据时，看起来是一个拉数据的过程，但实际上是MySQL在向客户端推送数据的过程。客户端不断地接收从服务器推送的数据，客户端也无法让服务器停下来。</p>
-<p>多数连接MySQL的库函数都可以获得全部结果集并缓存到内存里，还可以逐行获取需要的数据。默认一般是获得全部结果集并缓存到内存中。MySQL通常需要等所有的数据都已经发送给客户端才能释放这条查询所占用的资源，所以接收全部结果并缓存通常可以减少服务器的压力，让查询能够早点结束，早点释放相应的资源。</p>
-<h6 id="查询状态"><a href="#查询状态" class="headerlink" title="查询状态"></a>查询状态</h6><p>对于一个MySQL连接，或者说一个线程，任何时刻都由一个状态，该状态表示了MySQL当前正在做什么。由很多中方式能够查看当前的状态，最简单的是使用<code>SHOW FULL PROCESSLIST</code>命令（该命令返回结果中的Command列就表示当前的状态）</p>
-<h6 id="排序优化"><a href="#排序优化" class="headerlink" title="排序优化"></a>排序优化</h6><p>当不能使用索引生成排序结果的时候，MySQL需要自己进行排序，如果数据量小则在内存中进行，如果数据量大则需要使用磁盘，不过MySQL将这个过程统一称为文件排序（filesort），即使完全是内存排序不需要任何磁盘文件时也是如此。</p>
-<p>如果需要排序的数据量小于“排序缓冲区”，MySQL使用内存进行“快速排序”操作。如果内存不够排序，那么MySQL会先将数据分块，对每个独立的块使用“快速排序”进行排序，并将各个块的排序结果存放在磁盘上，然后将各个拍好序的块进行合并（merge），最后返回排序结果。</p>
-<p>MySQL有两种排序算法，新版本使用的是<strong>单次传输排序</strong>：<br>先读取查询所需要的所有列，然后再根据给定列进行排序，最后直接返回排序结果。这个算法只在MySQL4.1及后续更新的版本引入。因为不再需要从数据表读取两次数据，对于I/O密集型的应用，这样做的效率高了很多。另外，相比两次传输排序，这个算法只需要一次顺序I/O读取所有的数据，而无须任何的随机I/O。缺点是，如果需要返回的列非常多，非常大，会额外占用大量的空间，而这些列对排序操作本身来说是没有任何作用的。因为单条排序记录很大，所以可能会有更多的排序块需要合并。</p>
-<p><strong>在关联查询的时候如果需要排序，MySQL会分两种情况来处理这样的文件排序。如果ORDER BY 子句中的所有列都来自关联的第一个表。那么MySQL在关联处理第一个表的时候就进行文件排序。如果是这样，那么在MySQL的EXPLAIN结果中可以看到Extra字段会有“Using filesort”。除此之外的所有情况，MySQL都会先将关联的结果存放到一个临时表中，然后再所有的关联都结束后，再进行文件排序。这种情况下，在MySQL的EXPLAIN结果的Extra字段可以看到“Using temporary；Using filesort”。如果查询中有LIMIT的话，LIMIT也会在排序之后应用，所以即使需要返回较少的数据，临时表和需要排序的数据量仍然会非常大</strong>。</p>
-<h2 id="优化特定类型的查询"><a href="#优化特定类型的查询" class="headerlink" title="优化特定类型的查询"></a>优化特定类型的查询</h2><h6 id="优化count-查询"><a href="#优化count-查询" class="headerlink" title="优化count()查询"></a>优化count()查询</h6><p>count()是一个特殊的函数，有两种非常不同的作用：它可以统计某个列值的数量，也可以统计行数。</p>
-<p>在统计列值时要求列值是非空的（不统计NULL）。如果在count()的括号中指定了列或者列的表达式，则统计的就是这个表达式有值的结果数。</p>
-<p>在统计结果集的行数时，当MySQL确认括号内的表达式值不可能为空时，实际上就是在统计行数。最简单的就是当我们使用count(*)的时候，它会忽略所有的列而直接统计所有的行数。</p>
-<h6 id="优化关联查询"><a href="#优化关联查询" class="headerlink" title="优化关联查询"></a>优化关联查询</h6><ul>
-<li>确保ON 或者 USING 子句中的列上有索引。一般来说，除非有其他理由，否则只需要在关联顺序中的第二个表的相应列上创建索引。</li>
-<li>确保任何的 GROUP BY 和 ORDER BY 中的表达式只涉及到一个表中的列。这样MySQL才有可能使用索引来优化这个过程。</li>
-<li>当升级MySQL的时候需要注意：关联语法，运算符优先级等其他可能会发生变化的地方。</li>
-</ul>
-<h6 id="优化GROUP-BY-和-DISTINCT"><a href="#优化GROUP-BY-和-DISTINCT" class="headerlink" title="优化GROUP BY 和 DISTINCT"></a>优化GROUP BY 和 DISTINCT</h6><p>MySQL优化器会在内部处理的时候相互转化这两类查询。它们都可以使用索引来优化，这也是最有效的优化办法。</p>
-<p>在MySQL中，当无法使用索引的时候，GROUP BY使用两种策略来完成：<strong>使用临时表或者文件排序来做分组</strong>。</p>
-<p><strong>如果没有通过ORDER BY子句显式地指定排序列，当查询使用GROUP BY子句的时候，结果集会自动按照分组的字段进行排序。如果不关心结果集的顺序，而这种默认排序又导致了需要文件排序，则可以使用ORDER BY NULL，让MySQL不再进行文件排序。也可以在GROUP BY子句中直接使用DESC 或ASC关键字，使分组的结果集按需要的方向排序</strong>。</p>
-<h6 id="优化LIMIT分页"><a href="#优化LIMIT分页" class="headerlink" title="优化LIMIT分页"></a>优化LIMIT分页</h6><p>优化此类分页查询的一个最简单的办法就是尽可能地使用索引覆盖扫描，而不是查询所有的列。然后根据需要做一次关联操作再返回所需的列。对于偏移量很大的时候，这样做的效率会提升非常大。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/查询性能优化/" data-id="cjei8qk9m00do6gblcw810ahx" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/服务器相关/redis/5种数据结构/" data-id="cjei8ydl000es7oblpf00cey7" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1283,271 +1453,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/索引的类型/" data-id="cjei8qk9l00dm6gblei4dckrn" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-数据库相关/mysql/创建高性能的索引" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/02/25/数据库相关/mysql/创建高性能的索引/" class="article-date">
-  <time datetime="2018-02-25T02:09:45.000Z" itemprop="datePublished">2018-02-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a>►<a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/25/数据库相关/mysql/创建高性能的索引/">创建高性能的索引</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>索引（在MySQL中也叫做“键（key）”）是存储引擎用于快速找到记录的一种数据结构。索引优化应该是对查询性能优化最有效的手段了。</p>
-<h2 id="索引基础"><a href="#索引基础" class="headerlink" title="索引基础"></a>索引基础</h2><h3 id="索引类型"><a href="#索引类型" class="headerlink" title="索引类型"></a>索引类型</h3><p>在MySQL中，索引是在存储引擎层而不是服务器层实现的。所以，并没有统一的索引标准：不同存储引擎的索引的工作方式并不一样，也不是所有的存储引擎都支持所有类型的索引。即使多个存储引擎支持同一种类型的索引，其底层的实现也可能不同。</p>
-<h4 id="B-Tree索引"><a href="#B-Tree索引" class="headerlink" title="B-Tree索引"></a>B-Tree索引</h4><p>存储引擎以不同的方式使用B-Tree索引，性能也各有不同，各有优劣。例如，MyISAM使用前缀压缩计数使得索引更小，但InnoDB则按照原数据格式进行存储。再如MyISAM索引通过数据的物理位置引用被索引的行，而InnoDB则根据主键引用被索引的行。</p>
-<p>B-Tree通常意味着所有的值都是按顺序存储的，并且每一个叶子页到根的距离相同。如下图展示了B-Tree索引的抽象表示：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/mysql1.jpeg" alt="image"><br>B-Tree索引能够加快访问数据的速度，因为存储引擎不再需要进行全表扫描来获取需要的数据，取而代之的是从索引的根节点（图示并未画出）开始进行搜索。根节点的槽中存放了指向子节点的指针，存储引擎根据这些指针向下层查找。通过比较节点页的值和要查找的值可以找到合适的指针进入下层子节点，这些指针实际上定义了子节点页中值的上限和下限。最终存储引擎要么是找到对应的值，要么该记录不存在。</p>
-<p>叶子节点比较特别，它们的指针指向的是被索引的数据，而不是其他节点页。上图仅绘制了一个节点和其对应的叶子节点，其实在根节点和叶子节点之间可能有很多层节点页。树的深度和表的大小直接相关。</p>
-<p><strong>索引对多个值进行排序的依据是CREATE TABLE语句中定义索引时列的顺序。</strong></p>
-<p><strong>B-Tree索引适用于全键值，键值范围或键前缀查找。其中键前缀查找只适用于根据最左前缀的查找</strong>。</p>
-<ul>
-<li><strong>全值匹配</strong><br>  全值匹配指的是和索引中的所有列进行匹配</li>
-<li><strong>匹配最左前缀</strong><br>  即按定义好的索引顺序，只使用索引的第一列或几列（按顺序）</li>
-<li><strong>匹配列前缀</strong><br>  也可以只匹配某一列的值的开头部分</li>
-<li><strong>匹配范围值</strong><br>  匹配某一范围内的值</li>
-<li><strong>精确匹配某一列并范围匹配另外一列</strong><br>  即第一列或几列是全值匹配，跟着一列是范围匹配，往后的列不能用于索引查询</li>
-<li><strong>只访问索引的查询</strong><br>  B-Tree通常可以支持“只访问索引的查询”，即查询只需要访问索引，而无须访问数据行</li>
-</ul>
-<p>B-Tree索引的限制：</p>
-<ul>
-<li>如果不是按照索引的最左列开始查找，则无法使用索引。</li>
-<li>不能跳过索引中的列</li>
-<li>如果查询中有某个列的范围查询，则其右边所有列都无法使用索引优化查询。</li>
-</ul>
-<p>索引列的顺序很重要：这些限制都和索引列的顺序有关。在优化性能的时候，可能需要使用相同的列但顺序不同的索引来满足不同类型的查询需求。</p>
-<h4 id="哈希索引"><a href="#哈希索引" class="headerlink" title="哈希索引"></a>哈希索引</h4><p>哈希索引（hash index）基于哈希表实现，只有精确匹配索引所有列的查询才有效。对于每一行数据，存储引擎都会对所有的索引列计算一个哈希码（hash code），哈希码是一个较小的值，并且不同键值的行计算出来的哈希码也不一样。哈希索引将所有的哈希码存储在索引中，同时在哈希表中保存指向每个数据行的指针。</p>
-<p>在Mysql中，只有Memory引擎显式支持哈希索引。这也是Memory引擎表的默认索引类型，Memory引擎同时也支持B-Tree索引。值得一提的是，Memory引擎是支持非唯一哈希索引的，这在数据库世界里面是比较与众不同的。如果多个列的哈希值相同，索引会以链表的方式存放多个记录指针到同一个哈希条目中。</p>
-<p>例如：<br>创建一个测试表：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">CREATE TABLE `testhash` (</div><div class="line">  `fname` varchar(50) COLLATE utf8_unicode_ci NOT NULL,</div><div class="line">  `lanme` varchar(50) COLLATE utf8_unicode_ci NOT NULL,</div><div class="line">  KEY `fname` (`fname`) USING HASH</div><div class="line">) ENGINE=MEMORY DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci</div></pre></td></tr></table></figure></p>
-<p>表中数据如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">mysql&gt; select * from testhash;</div><div class="line">+-------+-----------+</div><div class="line">| fname | lanme     |</div><div class="line">+-------+-----------+</div><div class="line">| Arjen | Lentz     |</div><div class="line">| Baron | Schwartz  |</div><div class="line">| Peter | Zaitsev   |</div><div class="line">| Vadim | Tkachenko |</div><div class="line">+-------+-----------+</div><div class="line">4 行于数据集 (0.05 秒)</div></pre></td></tr></table></figure></p>
-<p>假设索引使用假想的哈希函数f(),它返回下面的值（都是示例数据，非真实数据）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">f(&apos;Arjen&apos;)=2323</div><div class="line">f(&apos;Baron&apos;)=7437</div><div class="line">f(&apos;Peter&apos;)=8784</div><div class="line">f(&apos;Vadim&apos;)=2458</div></pre></td></tr></table></figure></p>
-<p>则哈希索引的数据结构如下：</p>
-<table>
-<thead>
-<tr>
-<th>槽（Slot）</th>
-<th>值（Value）</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>2323</td>
-<td>指向第1行的指针</td>
-</tr>
-<tr>
-<td>2458</td>
-<td>指向第4行的指针</td>
-</tr>
-<tr>
-<td>7437</td>
-<td>指向第2行的指针</td>
-</tr>
-<tr>
-<td>8784</td>
-<td>指向第3行的指针</td>
-</tr>
-</tbody>
-</table>
-<p>注意每个槽的编号是顺序的，但是数据行不是，现在来看如下查询：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT lanme FROM testhash WHERE fname = &apos;Peter&apos;;</div></pre></td></tr></table></figure></p>
-<p>MySQL先计算’Peter’的哈希值，并使用该值寻找对应的记录指针。因为f(‘Peter’)=8784，索引MySQL在索引中查找8784，可以找到指向第3行的指针，最后一步是比较第3行的值是否为’Peter’，以确保就是要查找的行。</p>
-<p>因为索引自身只需存储对应的哈希值，所以索引的结构十分紧凑，这也让哈希索引查找的速度非常快。然而，哈希索引也有它的限制：</p>
-<ul>
-<li><strong>哈希索引只包含哈希值和行指针，而不存储字段值，所以不能使用索引中的值来避免读取行</strong>。不过，访问内存中的行的速度很快，所以大部分情况下这一点对性能的影响并不明显。</li>
-<li><strong>哈希索引数据并不是按照索引值顺序存储的，而是按照索引值的哈希值大小存储的，原数据的大小跟索引值的哈希值大小并不一致，所以也就无法用于排序</strong>。</li>
-<li><strong>哈希索引也不支持部分索引列匹配查找，因为哈希索引始终是使用索引列的全部内容来计算哈希值的</strong>。例如，在数据列（A，B）上建立哈希索引，如果查询只有数据列A，则无法使用该索引。</li>
-<li><p><strong>哈希索引只支持等值比较查询，包括=，IN()，&lt;=&gt;（注意，&lt;&gt;和&lt;=&gt;是不同的操作），也不支持任何范围查询</strong>。例如WHERE price &gt; 100。<br>  注：&lt;=&gt;用于比较可能含有NULL的值，如</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">... WHERE col_a &lt;=&gt; ? ...</div></pre></td></tr></table></figure>
-<p>  这里的占位符有可能是常量也有可能是NULL，当使用&lt;=&gt;运算符时，你没有必要对查询语句做任何修改。</p>
-</li>
-<li><strong>访问哈希索引的数据非常快，除非有很多哈希冲突（不同的索引列值却有相同的哈希值）</strong>。当出现哈希冲突的时候，存储引擎必须遍历链表中所有的行指针，逐行进行比较，直到找到所有符合条件的行。</li>
-<li><strong>如果哈希冲突很多的话，一些索引维护操作的代价也会很高</strong>。例如，如果在某个选择性很低 （哈希冲突很多）的列上建立哈希索引，那么当从表中删除一行时，存储引擎需要遍历对应哈希值的链表中的每一行，找到并删除对应行的引用，冲突越多，代价越大。</li>
-</ul>
-<h2 id="索引的优点"><a href="#索引的优点" class="headerlink" title="索引的优点"></a>索引的优点</h2><p>最常见的B-Tree索引，按照顺序存储数据，所以MySQL可以用来做ORDER BY和GROUP BY操作。因为数据是有序的，所以B-Tree也就会将相关的列值都存储在一起。最后，因为索引中存储了实际的列值，所以某些查询只使用索引就能够完成全部查询。据此特性，总结下来索引有如下三个优点：</p>
-<ul>
-<li>索引大大减少了服务器需要扫描的数据量</li>
-<li>索引可以帮助服务器避免排序和临时表</li>
-<li>索引可以将随机I/O变为顺序I/O</li>
-</ul>
-<h2 id="高性能的索引策略"><a href="#高性能的索引策略" class="headerlink" title="高性能的索引策略"></a>高性能的索引策略</h2><h3 id="独立的列"><a href="#独立的列" class="headerlink" title="独立的列"></a>独立的列</h3><p>如果查询中的列不是独立的，则MySQL就不会使用索引。“独立的列”是指索引列不能是表达式的一部分，也不能是函数的参数。<br>例如，下面这个查询无法使用actor_id列的索引：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT actor_id FORM sakila.actor WHERE actor_id + 1 = 5</div></pre></td></tr></table></figure></p>
-<h3 id="前缀索引和索引选择性"><a href="#前缀索引和索引选择性" class="headerlink" title="前缀索引和索引选择性"></a>前缀索引和索引选择性</h3><p>通常可以索引开始的部分字符，这样可以大大节约索引空间，从而提高索引效率。但这样也会降低索引的选择性。<strong>索引的选择性是指，不重复的索引值（也称为基数，cardinality）和数据表的记录总数（#T）的比值，范围从1/#T到1之间。索引的选择性越高则查询效率越高，因为选择性高的索引可以让MySQL在查找时过滤掉更多的行。唯一索引的选择性是1，这是最好的索引选择性，性能也是最好的</strong>。</p>
-<p>一般情况下某个列前缀的选择性也是足够高的，足以满足查询性能。对于OLOB，TEXT或者很长的VARCHAR类型的列，必须使用前缀索引，因为MySQL不允许索引这些列的完整长度。</p>
-<p>诀窍在于要选择足够长的前缀以保证较高的选择性，同时又不能太长（以便节约空间）。前缀应该足够长，以使得前缀索引的选择性接近于索引整个列。换句话说，前缀的“基数”因该接近于完整列的“<strong>基数</strong>”。</p>
-<p>选择合适的前缀需要反复进行实验：比如<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">SELECT COUNT(*) AS cnt, LEFT(city, 7) AS pref FROM sakila.city_demo GROUP BY pref ORDER BY cnt DESC LIMIT 10;</div></pre></td></tr></table></figure></p>
-<table>
-<thead>
-<tr>
-<th>cnt</th>
-<th>pref</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>70</td>
-<td>Santing</td>
-</tr>
-<tr>
-<td>68</td>
-<td>San Fel</td>
-</tr>
-<tr>
-<td>65</td>
-<td>London</td>
-</tr>
-<tr>
-<td>…</td>
-<td>…</td>
-</tr>
-</tbody>
-</table>
-<p>不断改变前缀的长度，发现长度为7时最合适。</p>
-<p>计算合适的前缀长度的另外一个办法就是计算完整列的选择性，并使前缀的选择性接近于完整列的选择性。下面显示如何计算完整列的选择性：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT COUNT(DISTINCT city) / COUNT(*) FROM sakila.city_demo;</div><div class="line"></div><div class="line">+---------------------------------+</div><div class="line">| COUNT(DISTINCT city) / COUNT(*) | </div><div class="line">+---------------------------------+</div><div class="line">|  0.0312                         |</div><div class="line">+---------------------------------+</div></pre></td></tr></table></figure></p>
-<p>下面演示一下如何创建前缀索引：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; ALTER TABLE sakila.city_demo ADD KEY (city(7));</div></pre></td></tr></table></figure></p>
-<p><strong>前缀索引是一种能使索引更小，更快的有效办法，但另一方面也有其缺点：MySQL无法使用前缀索引做ORDER BY 和 GROUP BY，也无法使用前缀索引做覆盖扫描</strong>。</p>
-<h3 id="多列索引"><a href="#多列索引" class="headerlink" title="多列索引"></a>多列索引</h3><p>在多个列上建立独立的单列索引大部分情况下并不能提高MySQL的查询性能。MySQL5.0和更新版本引入了一种叫“<strong>索引合并</strong>”（index merge）策略，一定程度上可以使用表上的多个单列索引来定位指定的行。</p>
-<p>在MySQL5.0和更新的版本中，查询能够同时使用这两个单列索引进行扫描，并将扫描结果进行合并。这种算法有三个变种：</p>
-<ul>
-<li>OR条件的联合（union）</li>
-<li>AND条件的相交（intersection）</li>
-<li>组合前两种情况的联合及相交</li>
-</ul>
-<p>例如有单索引列actor_id和film_id<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">SELECT film_id, actor_id FROM sakila.film_actor WHERE actor_id = 1 OR film_id = 1;</div></pre></td></tr></table></figure></p>
-<p>索引合并策略有时候是一种优化的结果，但实际上更多时候说明了表上的索引建得很糟糕：</p>
-<ul>
-<li>当出现服务器对多个索引做相交操作时（通常有多个AND条件），通常意味着需要一个包含所有相关列的多列索引，而不是多个独立的单列索引。</li>
-<li>当服务器需要对多个索引做联合操作时（通常有多个OR条件），通常需要耗费大量CPU和内存资源在算法的缓存，排序和合并操作上。特别是当其中有些索引的选择性不高，需要合并并扫描返回的大量数据的时候。</li>
-<li>更重要的是，优化器不会把这些计算到“查询成本”（cost）中，优化器只关心随机页面读取。这会使得查询的成本被“低估”，导致该执行计划还不如直接走全表扫描。这样做不但会消耗更多的CPU和内存资源，还可能会影响查询的并发性，但如果是单独运行这样的查询则往往会忽略对并发性的影响。</li>
-</ul>
-<h3 id="选择合适的索引列顺序"><a href="#选择合适的索引列顺序" class="headerlink" title="选择合适的索引列顺序"></a>选择合适的索引列顺序</h3><p>在一个多列B-Tree索引中，索引列的顺序意味着索引首先按照最左列进行排序，其次是第二列，等等。所以，索引可以按照升序或者降序进行扫描，以满足精确符合列顺序的ORDER BY 和 GROUP BY 和 DISTINCT 等子句的查询需求。</p>
-<p>多列索引的列顺序至关重要。<strong>对于如何选择索引的列顺序有一个经验法则：将选择性最高的列放到索引最前列</strong>。</p>
-<p>当不需要考虑排序和分组时，将选择性最高的列放在前面通常是很好的。</p>
-<h3 id="聚簇索引"><a href="#聚簇索引" class="headerlink" title="聚簇索引"></a>聚簇索引</h3><p>聚簇索引并不是一种单独的索引类型，而是一种数据存储方式。当表有聚簇索引时，它的数据行实际上存放在索引的叶子页（leaf page）中。术语“聚簇”表示数据行和相邻的键值紧凑地存储在一起。因为无法同时把数据行存放在两个不同的地方，所以一个表只能有一个聚簇索引。</p>
-<p>因为是存储引擎负责实现索引，因此不是所有的存储引擎都支持聚簇索引。</p>
-<p>InnoDB将通过主键聚集数据。如果没有定义主键，InnoDB会选择一个唯一的非空索引代替。如果没有这样的索引。InnoDB会隐式定义一个主键来作为聚簇索引。InnoDB只聚集在同一个页面中的记录。包含相邻键值的页面可能会相距甚远。</p>
-<p>聚集数据的一些重要的优点：</p>
-<ul>
-<li>可以把相关数据保存到一起。</li>
-<li>数据访问更快。聚簇索引将索引和数据保存在同一个B-Tree中，因此从聚簇索引中获取数据通常比在非聚簇索引中查找更快。</li>
-<li>使用覆盖索引扫描的查询可以直接使用页节点中的主键值</li>
-</ul>
-<p>聚簇索引的一些缺点：</p>
-<ul>
-<li>聚簇数据最大限度地提高了I/O密集型应用的性能。但如果数据全部都放在内存中，则访问的顺序就没那么重要了，聚簇索引也就没什么优势了。</li>
-<li>插入速度严重依赖于插入顺序。按照主键的顺序插入是加载数据到InnoDB表中速度最快的方式。但如果不是按照主键顺序加载数据，那么在加载完成后最好使用<code>OPTIMIZE TABLE</code>命令重新组织一下表。</li>
-<li>更新聚簇索引列的代价很高，因为会强制InnoDB将每个被更新的行移动到新的位置。</li>
-<li>基于聚簇索引的表在插入新行，或者主键被更新导致需要移动行的时候，可能面临“页分裂（page split）”的问题。当行的主键值要求必须将这一行插入到某个已满的页中时，存储引擎会将该页分裂成两个页面来容纳改行，这就是一次页分裂操作。页分裂会导致表占用更多的磁盘空间。</li>
-<li>聚簇索引可能导致全表扫描变慢，尤其是行比较稀疏，或者由于页分裂导致数据存储不连续的时候。</li>
-<li>二级索引（非聚簇索引）可能比想象的要更大，因为在二级索引的叶子节点包含了引用行的主键列。</li>
-<li>二级索引访问需要两次索引查找，而不是一次。要记住，二级索引叶子节点保存的不是指向行的物理位置的指针，而是行的主键值。</li>
-</ul>
-<h3 id="InnoDB和MyISAM的数据分布对比"><a href="#InnoDB和MyISAM的数据分布对比" class="headerlink" title="InnoDB和MyISAM的数据分布对比"></a>InnoDB和MyISAM的数据分布对比</h3><p>来看看InnoDB和MyISAM是如何存储下面这个表的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">CREATE TABLE layout_test (</div><div class="line"> col1 int not null,</div><div class="line"> col2 int not null,</div><div class="line"> PRIMARY KEY(col1),</div><div class="line"> KEY(col2)</div><div class="line">);</div></pre></td></tr></table></figure></p>
-<h6 id="MyISAM"><a href="#MyISAM" class="headerlink" title="MyISAM"></a>MyISAM</h6><p>MyISAM按照数据插入的顺序存储在磁盘上，如下图：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM1.jpeg" alt="image"><br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM2.jpeg" alt="image"><br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM3.jpeg" alt="image"></p>
-<h6 id="InnoDB的数据分布"><a href="#InnoDB的数据分布" class="headerlink" title="InnoDB的数据分布"></a>InnoDB的数据分布</h6><p><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM4.jpeg" alt="image"><br>该图显示了整个表，而不是只有索引。因为在InnoDB中，聚簇索引“就是”表，所以不像MyISAM那样需要独立的行存储。</p>
-<p><strong>聚簇所以的每一个叶子节点都包含了主键值，事务ID，用于事务和MVCC的回滚指针以及所有的剩余列。如果主键是一个列前缀索引，InnoDB也会包含完整的主键列和剩下的其他列</strong>。</p>
-<p>还有一点和MyISAM的不同是，InnoDB的二级索引和聚簇索引很不同。InnoDB二级索引的叶子节点中存储的不是“行指针”，而是主键值，并以此作为指向行的“指针”。这样的策略减少了当出现行一定或者数据页分裂时二级索引的维护工作。使用主键值当作指针会让二级索引占用更多的空间，换来的好处是，InnoDB在移动行时无须更新二级索引中的这个“指针”。</p>
-<p>下面是二级索引分布图：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM5.jpeg" alt="image"></p>
-<p>下图是描述InnoDB和MyISAM如何存放表的抽象图：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM6.jpeg" alt="image"></p>
-<h3 id="在InnoDB表中按主键顺序插入行"><a href="#在InnoDB表中按主键顺序插入行" class="headerlink" title="在InnoDB表中按主键顺序插入行"></a>在InnoDB表中按主键顺序插入行</h3><p>如果正在使用InnoDB表并且没有什么数据需要聚集，那么可以定义一个代理键（surrogate key）作为主键，这种主键的数据应该和应用无关，最简单的方法是使用<code>AUTO_INCREMENT</code>自增列。这样可以保证数据行是按顺序写入，对于根据主键做关联操作的性能会更好。</p>
-<p>向聚簇索引中顺序插入数据：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MyISAM7.jpeg" alt="image"><br>因为主键的值是顺序的，所以InnoDB把每一条记录都存储在上一条记录的后面。当达到页的最大填充因子时（InnoDB默认最大填充因子是页大小的15/16，流出部分空间用于以后修改），下一条记录就会写入新的页中。一旦数据按照这种顺序的方式加载，主键页就会近似于被顺序的记录填满，这页正是所期望的结果（然而，二级索引页可能是不一样的）。</p>
-<p>最好避免随机的（不连续且值的分布范围非常大）聚簇索引，特别是对于I/O密集型的应用。例如，从性能的角度考虑，使用UUID来作为聚簇索引则会很糟糕：它使得聚簇索引的插入变得完全随机，这是最坏的情况，使得数据没有任何聚集特性。</p>
-<p>随机聚簇索引的缺点：</p>
-<ul>
-<li>写入的目标页可能已经刷到磁盘上并从缓存中移除，或者是还没有被加载到缓存中，InnoDB在插入之前不得不先找到并从磁盘读取目标页到内存中。这将导致大量的随机I/O</li>
-<li>因为写入是乱序的，InnoDB不得不频繁地做页分裂操作，以便为新的行分配空间，页分裂会导致移动大量数据，一次插入最少需要修改三个页而不是一个页。</li>
-<li>由于频繁的页分裂，页会变得稀疏并被不规则填充，所以最终数据会有碎片。</li>
-</ul>
-<p>在把这些随机值载入到聚簇索引以后，也行需要做一次<code>OPTIMIZE TABLE</code>来重建表并优化页的填充。</p>
-<h3 id="覆盖索引"><a href="#覆盖索引" class="headerlink" title="覆盖索引"></a>覆盖索引</h3><p>如果一个索引包含（或者说覆盖）所有需要查询的字段的值，我们就称之为“覆盖索引”。</p>
-<p>覆盖索引是非常有用的工具，能够极大地提高性能。考虑一下如果查询只需要扫描索引而无须回表，会带来多少好处：</p>
-<ul>
-<li><strong>索引条目通常远小于数据行大小，所以如果只需要读取索引，那MySQL机会极大地减少数据访问量</strong>。这对缓存负载非常重要，因为这种情况下响应时间大部分花费在数据拷贝上。覆盖索引对于I/O密集型的应用也有帮助，因为索引比数据更小，更容易全部放入内存中（这对于MyISAM尤其正确，因为MyISAM能压缩索引以变的更小）。</li>
-<li><strong>因为索引是按照列值顺序存储的（至少在单个页内是如此），所以对于I/O密集型的范围查询会比随机从磁盘读取每一行数据的I/O要少的多</strong>。</li>
-<li><strong>一些存储引擎如MyISAM在内存中只缓存索引，数据则依赖于操作系统来缓存</strong>，因此要访问数据需要一次系统调用。这可能会导致严重的性能问题，尤其是那些系统调用占了数据访问中的最大开销的场景。</li>
-<li>由于InnoDB的聚簇索引，覆盖索引对InnoDB表特别有用。InnoDB的二级索引在叶子节点中保存了行的主键值，所以如果二级主键能够覆盖查询，则可以避免对主键索引的二次查询。</li>
-</ul>
-<p><strong>不是所有类型的索引都可以成为覆盖索引。覆盖索引必须要存储索引列的值，而哈希索引，空间索引和全文索引等都不存储索引列的值，所以MySQL只能使用B-Tree索引做覆盖索引</strong>。另外，不同的存储引擎实现覆盖索引的方式也不同，而且不是所有的引擎都支持覆盖索引。</p>
-<p>比如，表inventory有一个多列索引（store_id, film_id）。MySQL如果只需访问这两列，就可以使用这个索引做覆盖索引<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT store_id, film_id FROM inventory;</div></pre></td></tr></table></figure></p>
-<p>下面的查询不会使用覆盖查询：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT * FROM products WHERE actor=&apos;SEAN CARREY&apos; AND title like &apos;%APOLLO%&apos;</div></pre></td></tr></table></figure></p>
-<p>这里的索引无法覆盖该查询，有两个原因：</p>
-<ul>
-<li>没有任何索引能够覆盖这个查询。因为查询从表中选择了所有的列，而没有任何索引覆盖了所有的列。不过，理论上MySQL还有一个捷径可以利用：WHERE条件中的列是由索引可以覆盖的，因此MySQL可以使用该索引找到对应的actor并检查title是否匹配，过滤之后再读取需要的数据行。</li>
-<li>MySQL不能在索引中执行LIKE操作。MySQL能在索引中做最左前缀匹配的LIKE比较，因为该操作可以转换为简单的比较操作，但是如果是通配符开头的LIKE查询，存储引擎就无法做比较匹配。这种情况下，MySQL服务器只能提取数据行的值而不是索引值来做比较。</li>
-</ul>
-<p>也有办法可以解决上面说的两个问题，需要重写查询并巧妙地设计索引。先将索引扩展至覆盖三个数据列（artist, title, prod_id），然后按如下方式重写查询：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT * FROM products JOIN (</div><div class="line">-&gt; SELECT prod_id FROM products WHERE actor=&apos;SEAN CARREY&apos; AND title LIKE &apos;%APOLLO&apos;</div><div class="line">-&gt; ) AS t1 ON (t1.prod_id = products.prod_id)</div></pre></td></tr></table></figure></p>
-<p>我们把这种方式叫做“<strong>延迟关联（deferred join）</strong>”,因为延迟了对列的访问。在查询的第一阶段MySQL可以使用覆盖索引，在FROM子句的子查询中找到匹配的prod_id，然后根据这些prod_id值在外层查询匹配获取需要的所有列值。虽然无法使用索引覆盖整个查询，但总算比完全无法利用索引覆盖好。</p>
-<h3 id="使用索引扫描来做排序"><a href="#使用索引扫描来做排序" class="headerlink" title="使用索引扫描来做排序"></a>使用索引扫描来做排序</h3><p>MySQL有两种方式可以生成有序的结果：</p>
-<ul>
-<li>通过排序操作</li>
-<li>按索引顺序扫描</li>
-</ul>
-<p><strong>只有当索引的列顺序和ORDER BY子句的顺序完全一致，并且所有列的排序方向（倒序或正序）都一样时，MySQL才能够使用索引来对结果做排序。如果查询需要关联多张表，则只有当ORDER BY子句引用的字段全部为第一张表时，才能使用索引做排序。ORDER BY子句和查找型查询的限制是一样的：需要满足索引的最左前缀的要求，否则MySQL都需要执行排序操作，而无法利用索引排序</strong>。</p>
-<p>有一种情况下ORDER BY子句可以不满足索引的最左前缀的要求，就是前导列为常量的时候。如果WHERE子句或者JOIN子句对这些列指定了常量，就可以“弥补”索引的不足。</p>
-<p>例如：表rental在列（rental_data，inv_id, cust_id）上设置了索引，则以下SQL语句可以用索引排序<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT rental_id, staff_id FROM rental WHERE retal_data = &apos;2018-01-01&apos; ORDER BY inv_id, cust_id;</div><div class="line"></div><div class="line">mysql&gt; ... WHERE retal_data = &apos;2018-01-01&apos; ORDER BY inv_id DESC;</div><div class="line"></div><div class="line">mysql&gt; ... WHERE retal_data &gt; &apos;2018-01-01&apos; ORDER BY retal_date, inv_id;</div></pre></td></tr></table></figure></p>
-<p>下面是一些不能使用索引做排序的查询：</p>
-<ol>
-<li><p>这个查询使用了两种不同的排序方向，但是索引列都是正序排序的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; ... WHERE retal_data = &apos;2018-01-01&apos; ORDER BY inv_id DESC, cust_id ASC;</div></pre></td></tr></table></figure>
-</li>
-<li><p>这个查询的ORDER BY 子句中引用了一个不在索引中的列：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; ... WHERE retal_data = &apos;2018-01-01&apos; ORDER BY inv_id, staff_id</div></pre></td></tr></table></figure>
-</li>
-<li><p>这个查询的WHERE 和 ORDER BY中的列无法组合成索引的最左前缀：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; ... WHERE retal_data = &apos;2018-01-01&apos; ORDER BY cust_id;</div></pre></td></tr></table></figure>
-</li>
-<li><p>这个查询在索引列的第一列上是范围条件，所以MySQL无法使用索引的其余列：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; ... WHERE retal_data &gt; &apos;2018-01-01&apos; ORDER BY inv_id, cust_id;</div></pre></td></tr></table></figure>
-</li>
-<li><p>这个查询在inv_id列上有多个等于条件。对于排序来说，这也是一种范围查询：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; ... WHERE retal_data = &apos;2018-01-01&apos; AND inv_id IN(1,2) ORDER BY cust_id;</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<h3 id="压缩（前缀压缩）索引"><a href="#压缩（前缀压缩）索引" class="headerlink" title="压缩（前缀压缩）索引"></a>压缩（前缀压缩）索引</h3><p>MyISAM使用前缀压缩来减少索引的大小，从而让更多的索引可以放入内存中，这在某些情况下能极大地提高性能。默认只压缩字符串，但通过参数设置也可以对整数做压缩。</p>
-<p><strong>MyISAM压缩每个索引块的方法是，先完全保存索引块中的第一个值，然后将其他值和第一个值进行比较得到相同前缀的字节数和剩余的不同后缀部分，把这部分存储起来即可。例如，索引块中第一个值是“perfform”，第二值是“performance”，那么第二个值的前缀压缩后存储的是类似“7,ance”这样的形式。MyISAM对行指针也采用类似的前缀压缩方式</strong>。</p>
-<p>压缩块使用更少的空间，代价是某些操作可能更慢。因为每个值的压缩前缀都依赖前面的值，所以MyISAM查找时无法在索引块使用二分查找而只能从从头开始扫描。正序的扫描速度还不错，但是如果是倒序扫描就不是很好了。</p>
-<h3 id="冗余和重复索引"><a href="#冗余和重复索引" class="headerlink" title="冗余和重复索引"></a>冗余和重复索引</h3><p>MySQL允许在相同列上创建多个索引。重复索引是指在相同的列上按照相同的顺序创建的相同类型的索引。应该避免这样创建重复索引，发现以后也应该立即移除。</p>
-<p>冗余索引通常发生在为表添加新索引的时候。例如有人可能会添加一个新的索引（A,B）而不是扩展已有的索引（A）。还有一种情况是将一个索引扩展为（A, ID），其中ID是主键，对于InnoDB来说主键列已经包含在二级索引中了，所以这也是冗余的。</p>
-<p>大多数情况下都不需要冗余索引，应该尽量扩展已有的索引而不是创建新索引。但也有时候出于性能方面的考虑需要冗余索引，因为扩展已有的索引会导致其变的太大，从而影响其他使用该索引的查询的性能。</p>
-<p>表中的索引越多插入速度会越慢。一般来说，增加新索引将会导致INSERT，UPDATE，DELETE等操作的速度变慢，特别是新增索引后导致达到了内存瓶颈的时候。</p>
-<p>可以使用Percona Toolkit中的<code>pt-duplicate-key-checker</code>分析表结构来找出冗余和重复的索引。</p>
-<h3 id="未使用的索引"><a href="#未使用的索引" class="headerlink" title="未使用的索引"></a>未使用的索引</h3><p>可以使用Percona Toolkit中的<code>pt-index-usage</code>，该工具可以读取查询日志，并对日志中的每条查询进行EXPLAIN操作，然后打印出关于索引和查询的报告。</p>
-<h3 id="索引的锁"><a href="#索引的锁" class="headerlink" title="索引的锁"></a>索引的锁</h3><p>InnoDB只有在访问行的时候才会对其加锁，而索引能够减少InnoDB访问的行数，从而减少锁的数量。但这只有当InnoDB在存储引擎层能够过滤掉所有不需要的行时才有效。如果索引无法过滤掉无效的行，那么在InnoDB检索到数据并返回给服务器层以后，MySQL服务器才能应用WHERE子句。</p>
-<p>比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">mysql&gt; set AUTOCOMMIT=0;</div><div class="line">mysql&gt; BEGIN;</div><div class="line">mysql&gt; SELECT actor_id FROM actor WHERE actor_id &lt; 5 AND actor_id &lt;&gt; 1 FOR UPDATE;</div><div class="line"></div><div class="line">+----------+</div><div class="line">| actor_id | </div><div class="line">+----------+</div><div class="line">| 2        |</div><div class="line">| 3        |</div><div class="line">| 4        |</div><div class="line">+----------+</div></pre></td></tr></table></figure></p>
-<p>这条查询仅仅会返回2～4之间的行，但是实际上获取了1～4之间的行的排他锁。InnoDB会锁住第一行。此时其他事务想获取第一行数据时不得不等待。</p>
-<p>关于InnoDB，索引和锁有一些很少有人知道的细节：InnoDB在二级索引上使用共享（读）锁，但访问主键索引需要排他（写）锁。这消除了使用覆盖索引的可能性，并且使得<code>SELECT FOR UPDATE</code> 比 <code>LOCK IN SHARE MODE</code> 或 非锁定查询要慢很多。</p>
-<h3 id="优化排序"><a href="#优化排序" class="headerlink" title="优化排序"></a>优化排序</h3><p>对于那些选择性非常低的列，可以增加一些特殊的索引来做排序。例如，可以创建（sex, rating）索引用于下面的查询：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT &lt;cols&gt; FROM profiles WHERE sex=&apos;M&apos; ORDER BY rating LIMIT 10;</div></pre></td></tr></table></figure></p>
-<p>这个查询同时使用了ORDER BY 和 LIMIT，如果没有索引的话会很慢。</p>
-<p>即使有索引，如果用户界面上需要翻页，并且翻页到比较靠后时查询也可能非常慢。如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mysql&gt;SELECT &lt;cols&gt; FROM profiles WHERE sex=&apos;M&apos; ORDER BY rating LIMIT 100000, 10;</div></pre></td></tr></table></figure></p>
-<p>无论如何创建索引，这种查询都是个严重的问题，因为随着偏移量的增加，MySQL需要花费大量的时间来扫描需要丢弃的数据。一个更好的办法是限制用户能够翻页的数量，实际上这对用户体验的影响不大，因为用户很少会真正在乎搜索结果的第100000页。</p>
-<p>优化这类搜索的另一个比较好的策略是使用延迟关联，通过使用覆盖索引查询返回需要的主键，再根据这些主键关联原来的表获取需要的行。这可以减少MySQL扫描那些需要丢弃的行数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT &lt;cols&gt; FROM profiles INNER JOIN (</div><div class="line">-&gt; SELECT &lt;primary key cols&gt; FROM profiles</div><div class="line">-&gt; WHERE x.sex=&apos;M&apos; ORDER BY rating LIMIT 100000, 10</div><div class="line">-&gt; ) AS x USING(&lt;primary key cols&gt;);</div></pre></td></tr></table></figure></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/创建高性能的索引/" data-id="cjei8qk9i00de6gblm811qmha" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/索引的类型/" data-id="cjei8ydki00dp7obl4r64ruqz" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1661,7 +1567,113 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2018/02/25/网络/HTTP完整请求过程/" data-id="cjei8qk27002a6gblhzwrbte5" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2018/02/25/网络/HTTP完整请求过程/" data-id="cjei8yde000257oblafks902h" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-数据库相关/mysql/查询性能优化" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/25/数据库相关/mysql/查询性能优化/" class="article-date">
+  <time datetime="2018-02-25T02:09:45.000Z" itemprop="datePublished">2018-02-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/数据库相关/">数据库相关</a>►<a class="article-category-link" href="/categories/数据库相关/mysql/">mysql</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/02/25/数据库相关/mysql/查询性能优化/">查询性能优化</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="慢查询基础：优化数据访问"><a href="#慢查询基础：优化数据访问" class="headerlink" title="慢查询基础：优化数据访问"></a>慢查询基础：优化数据访问</h2><p>对于低效的查询，我们发现通过下面两个步骤来分析总是很有效的：</p>
+<ul>
+<li>确认应用程序是否在检索大量超过需要的数据。这通常意味着访问了太多的行，但有时候也可能是访问了太多列。</li>
+<li>确认MySQL服务器层是否在分析大量超过需要的数据行。</li>
+</ul>
+<p>对于MySQL，最简单的衡量查询开销的三个指标如下：</p>
+<ul>
+<li>响应时间</li>
+<li>扫描的行数</li>
+<li>返回的行数</li>
+</ul>
+<p>一般MySQL能够使用如下三种方式应用WHERE条件，从好到坏依次为：</p>
+<ul>
+<li>在索引中使用WHERE条件来过滤不匹配的记录。这是在存储引擎层完成的。</li>
+<li>使用索引覆盖扫描（在Extra列中出现了Using index）来返回记录，直接从索引中过滤不需要的记录并返回命中的结果。这是在MySQL服务器层完成的，但无须再回表查询记录。</li>
+<li>从数据表中返回数据，然后过滤不满足条件的记录（在Extra列中出现Using Where）。这是在MySQL服务器层完成，MySQL需要先从数据表读出记录然后过滤。</li>
+</ul>
+<p>如果发现查询需要扫描大量的数据但只返回少数的行，那么通常可以尝试下面的技巧去优化它：</p>
+<ul>
+<li>使用索引覆盖扫描，把所有需要用的列都放到索引中，这样存储引擎无须回表获取对应行就可以返回结果了</li>
+<li>改变库表结构</li>
+<li>重写这个复杂的查询，让MySQL优化器能够以更优化的方式执行这个查询</li>
+</ul>
+<h2 id="重构查询的方式"><a href="#重构查询的方式" class="headerlink" title="重构查询的方式"></a>重构查询的方式</h2><h6 id="切分查询"><a href="#切分查询" class="headerlink" title="切分查询"></a>切分查询</h6><p>有时候对于一个大查询我们需要“分而治之”，将大查询切分成小查询，每个查询功能完全一样，只完成一小部分，每次只返回一小部分查询结果</p>
+<h6 id="分解关联查询"><a href="#分解关联查询" class="headerlink" title="分解关联查询"></a>分解关联查询</h6><p>很多高性能的应用都会对关联查询进行分解。简单地，可以对每一个表进行一次单表查询，然后将结果在应用程序中进行关联。例如，下面这个查询<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT * FROM tag</div><div class="line">    -&gt;   JOIN tag_post ON tag_post.tag_id=tag.id</div><div class="line">    -&gt;   JOIN post on tag_post.post_id=post.id</div><div class="line">    -&gt; WHERE tag.tag=&apos;mysql&apos;;</div></pre></td></tr></table></figure></p>
+<p>可以分解成下面这些查询来代替：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">mysql&gt; SELECT * FROM tag WHERE tag=&apos;mysql&apos;;</div><div class="line">mysql&gt; SELECT * FROM tag_post WHERE tag_id=1234;</div><div class="line">mysql&gt; SELECT * FROM post WHERE post.id in(123, 456, 789);</div></pre></td></tr></table></figure></p>
+<p>用分解关联查询的方式重构查询有如下的优势：</p>
+<ul>
+<li>让缓存更高效。许多应用程序可以方便地缓存单表查询对应的结果对象。</li>
+<li>将查询分解后，执行单个查询可以减少锁的竞争</li>
+<li>在应用层做关联，可以更容易对数据库进行拆分，更容易做到高性能和可扩展</li>
+<li>查询本身效率也可能会有所提升。在这个例子中，使用IN()代替关联查询，可以染MySQL按照ID顺序进行查询，这可能比随机的关联要更高效。</li>
+<li>可以减少冗余记录的查询。在应用层做关联查询，意味着对于某条记录应用只需要查询一次，而在数据库中做关联查询，则可能需要重复地访问一部分数据。从这点看，这样的重构还可能会减少网络和内存的消耗。</li>
+<li>更进一步，这样做相当于在应用中实现了哈希关联，而不是使用MySQL的嵌套循环查询。</li>
+</ul>
+<h2 id="查询执行的基础"><a href="#查询执行的基础" class="headerlink" title="查询执行的基础"></a>查询执行的基础</h2><p>MySQL执行一个查询的过程：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/MySQL8.jpeg" alt="image"></p>
+<ol>
+<li>客户端发送一条查询给服务器</li>
+<li>服务器先检查查询缓存，如果命中了缓存，则立刻返回存储在缓存中的结果。否则进入下一阶段</li>
+<li>服务器进行SQL解析，预处理，再由优化器生成对应的执行计划</li>
+<li>MySQL根据优化器生成的执行计划，调用存储引擎的API来执行查询</li>
+<li>将结果返回给客户端</li>
+</ol>
+<h6 id="MySQL客户端-服务器通信协议"><a href="#MySQL客户端-服务器通信协议" class="headerlink" title="MySQL客户端/服务器通信协议"></a>MySQL客户端/服务器通信协议</h6><p>MySQL客户端和服务器之间的通信协议是“半双工”的，这意味着，在任何一个时刻，要么是由服务器向客户端发送数据，要么是由客户端向服务器发送数据，这两个动作不能同时发生。所以，我们无法也无须将一个消息切成小块独立来发送。</p>
+<p>这种协议让MySQL通信简单快速，但是也从很多地方限制了MySQL。一个明显的限制是，这意味着无法进行流量控制。一旦一端开始发送消息，另一端要接收完整个消息才能响应它。</p>
+<p>客户端用一个单独的数据包将查询传给服务器。这也是为什么当查询的语句很长的时候，参数<code>max_allowed_packet</code>就特别重要了。一旦客户端发送了请求，它能做的事情就只是等待结果了。</p>
+<p>相反的，一般服务器响应给用户的数据通常很多，由多个数据包组成。当服务器开始响应客户端请求时，客户端必须完整地接收整个返回结果，而不能简单地只取前面几条结果，然后让服务器停止发送数据。</p>
+<p>换一种方式解释这种行为：当客户端从服务器取数据时，看起来是一个拉数据的过程，但实际上是MySQL在向客户端推送数据的过程。客户端不断地接收从服务器推送的数据，客户端也无法让服务器停下来。</p>
+<p>多数连接MySQL的库函数都可以获得全部结果集并缓存到内存里，还可以逐行获取需要的数据。默认一般是获得全部结果集并缓存到内存中。MySQL通常需要等所有的数据都已经发送给客户端才能释放这条查询所占用的资源，所以接收全部结果并缓存通常可以减少服务器的压力，让查询能够早点结束，早点释放相应的资源。</p>
+<h6 id="查询状态"><a href="#查询状态" class="headerlink" title="查询状态"></a>查询状态</h6><p>对于一个MySQL连接，或者说一个线程，任何时刻都由一个状态，该状态表示了MySQL当前正在做什么。由很多中方式能够查看当前的状态，最简单的是使用<code>SHOW FULL PROCESSLIST</code>命令（该命令返回结果中的Command列就表示当前的状态）</p>
+<h6 id="排序优化"><a href="#排序优化" class="headerlink" title="排序优化"></a>排序优化</h6><p>当不能使用索引生成排序结果的时候，MySQL需要自己进行排序，如果数据量小则在内存中进行，如果数据量大则需要使用磁盘，不过MySQL将这个过程统一称为文件排序（filesort），即使完全是内存排序不需要任何磁盘文件时也是如此。</p>
+<p>如果需要排序的数据量小于“排序缓冲区”，MySQL使用内存进行“快速排序”操作。如果内存不够排序，那么MySQL会先将数据分块，对每个独立的块使用“快速排序”进行排序，并将各个块的排序结果存放在磁盘上，然后将各个拍好序的块进行合并（merge），最后返回排序结果。</p>
+<p>MySQL有两种排序算法，新版本使用的是<strong>单次传输排序</strong>：<br>先读取查询所需要的所有列，然后再根据给定列进行排序，最后直接返回排序结果。这个算法只在MySQL4.1及后续更新的版本引入。因为不再需要从数据表读取两次数据，对于I/O密集型的应用，这样做的效率高了很多。另外，相比两次传输排序，这个算法只需要一次顺序I/O读取所有的数据，而无须任何的随机I/O。缺点是，如果需要返回的列非常多，非常大，会额外占用大量的空间，而这些列对排序操作本身来说是没有任何作用的。因为单条排序记录很大，所以可能会有更多的排序块需要合并。</p>
+<p><strong>在关联查询的时候如果需要排序，MySQL会分两种情况来处理这样的文件排序。如果ORDER BY 子句中的所有列都来自关联的第一个表。那么MySQL在关联处理第一个表的时候就进行文件排序。如果是这样，那么在MySQL的EXPLAIN结果中可以看到Extra字段会有“Using filesort”。除此之外的所有情况，MySQL都会先将关联的结果存放到一个临时表中，然后再所有的关联都结束后，再进行文件排序。这种情况下，在MySQL的EXPLAIN结果的Extra字段可以看到“Using temporary；Using filesort”。如果查询中有LIMIT的话，LIMIT也会在排序之后应用，所以即使需要返回较少的数据，临时表和需要排序的数据量仍然会非常大</strong>。</p>
+<h2 id="优化特定类型的查询"><a href="#优化特定类型的查询" class="headerlink" title="优化特定类型的查询"></a>优化特定类型的查询</h2><h6 id="优化count-查询"><a href="#优化count-查询" class="headerlink" title="优化count()查询"></a>优化count()查询</h6><p>count()是一个特殊的函数，有两种非常不同的作用：它可以统计某个列值的数量，也可以统计行数。</p>
+<p>在统计列值时要求列值是非空的（不统计NULL）。如果在count()的括号中指定了列或者列的表达式，则统计的就是这个表达式有值的结果数。</p>
+<p>在统计结果集的行数时，当MySQL确认括号内的表达式值不可能为空时，实际上就是在统计行数。最简单的就是当我们使用count(*)的时候，它会忽略所有的列而直接统计所有的行数。</p>
+<h6 id="优化关联查询"><a href="#优化关联查询" class="headerlink" title="优化关联查询"></a>优化关联查询</h6><ul>
+<li>确保ON 或者 USING 子句中的列上有索引。一般来说，除非有其他理由，否则只需要在关联顺序中的第二个表的相应列上创建索引。</li>
+<li>确保任何的 GROUP BY 和 ORDER BY 中的表达式只涉及到一个表中的列。这样MySQL才有可能使用索引来优化这个过程。</li>
+<li>当升级MySQL的时候需要注意：关联语法，运算符优先级等其他可能会发生变化的地方。</li>
+</ul>
+<h6 id="优化GROUP-BY-和-DISTINCT"><a href="#优化GROUP-BY-和-DISTINCT" class="headerlink" title="优化GROUP BY 和 DISTINCT"></a>优化GROUP BY 和 DISTINCT</h6><p>MySQL优化器会在内部处理的时候相互转化这两类查询。它们都可以使用索引来优化，这也是最有效的优化办法。</p>
+<p>在MySQL中，当无法使用索引的时候，GROUP BY使用两种策略来完成：<strong>使用临时表或者文件排序来做分组</strong>。</p>
+<p><strong>如果没有通过ORDER BY子句显式地指定排序列，当查询使用GROUP BY子句的时候，结果集会自动按照分组的字段进行排序。如果不关心结果集的顺序，而这种默认排序又导致了需要文件排序，则可以使用ORDER BY NULL，让MySQL不再进行文件排序。也可以在GROUP BY子句中直接使用DESC 或ASC关键字，使分组的结果集按需要的方向排序</strong>。</p>
+<h6 id="优化LIMIT分页"><a href="#优化LIMIT分页" class="headerlink" title="优化LIMIT分页"></a>优化LIMIT分页</h6><p>优化此类分页查询的一个最简单的办法就是尽可能地使用索引覆盖扫描，而不是查询所有的列。然后根据需要做一次关联操作再返回所需的列。对于偏移量很大的时候，这样做的效率会提升非常大。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/02/25/数据库相关/mysql/查询性能优化/" data-id="cjei8ydkh00dm7oblutzgzyn9" class="article-share-link">Share</a>
       
       
     </footer>
@@ -1716,7 +1728,7 @@
           </li>
         
           <li>
-            <a href="/2018/02/25/Java/集合/HashSet原理/">HashSet原理</a>
+            <a href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/">Hashtable与ConcurrentHashMap区别</a>
           </li>
         
           <li>
@@ -1728,7 +1740,7 @@
           </li>
         
           <li>
-            <a href="/2018/02/25/Java/集合/几种常见的map/">几种常见的map</a>
+            <a href="/2018/02/25/Java/集合/在List循环中删除元素/">在List循环中删除元素</a>
           </li>
         
       </ul>
