@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Tomcat类加载机制 | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="tomcat的类加载概览图：    JVM类加载JVM类加载采用 父类委托机制，如下图所示：  JVM中包括集中类加载器：  BootStrapClassLoader 引导类加载器 ExtClassLoader 扩展类加载器 AppClassLoader 应用类加载器 CustomClassLoader 用户自定义类加载器  他们的区别上面也都有说明。需要注意的是，不同的类加载器加载的类是不同的，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tomcat类加载机制">
+<meta property="og:url" content="https://clq2owesome.github.io/2018/04/12/服务器相关/Tomcat/Tomcat类加载机制/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="tomcat的类加载概览图：    JVM类加载JVM类加载采用 父类委托机制，如下图所示：  JVM中包括集中类加载器：  BootStrapClassLoader 引导类加载器 ExtClassLoader 扩展类加载器 AppClassLoader 应用类加载器 CustomClassLoader 用户自定义类加载器  他们的区别上面也都有说明。需要注意的是，不同的类加载器加载的类是不同的，">
+<meta property="og:image" content="https://raw.githubusercontent.com/clq2owesome/image/master/141327112691951.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/clq2owesome/image/master/jvm.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/clq2owesome/image/master/tomcat.jpg">
+<meta property="og:updated_time" content="2018-04-12T01:50:37.841Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Tomcat类加载机制">
+<meta name="twitter:description" content="tomcat的类加载概览图：    JVM类加载JVM类加载采用 父类委托机制，如下图所示：  JVM中包括集中类加载器：  BootStrapClassLoader 引导类加载器 ExtClassLoader 扩展类加载器 AppClassLoader 应用类加载器 CustomClassLoader 用户自定义类加载器  他们的区别上面也都有说明。需要注意的是，不同的类加载器加载的类是不同的，">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/clq2owesome/image/master/141327112691951.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">LeoChan&#39;s 个人博客</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技术都是通用的，重要的是是否具有自主解决问题的能力！</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://clq2owesome.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-服务器相关/Tomcat/Tomcat类加载机制" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/12/服务器相关/Tomcat/Tomcat类加载机制/" class="article-date">
+  <time datetime="2018-04-12T02:09:45.000Z" itemprop="datePublished">2018-04-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a>►<a class="article-category-link" href="/categories/服务器相关/Tomcat/">Tomcat</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Tomcat类加载机制
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>tomcat的类加载概览图：  </p>
+<p><img src="https://raw.githubusercontent.com/clq2owesome/image/master/141327112691951.jpg" alt="image"></p>
+<h3 id="JVM类加载"><a href="#JVM类加载" class="headerlink" title="JVM类加载"></a>JVM类加载</h3><p>JVM类加载采用 父类委托机制，如下图所示：<br><img src="https://raw.githubusercontent.com/clq2owesome/image/master/jvm.jpg" alt="image"> </p>
+<p>JVM中包括集中类加载器：</p>
+<ol>
+<li>BootStrapClassLoader 引导类加载器</li>
+<li>ExtClassLoader 扩展类加载器</li>
+<li>AppClassLoader 应用类加载器</li>
+<li>CustomClassLoader 用户自定义类加载器</li>
+</ol>
+<p>他们的区别上面也都有说明。需要注意的是，不同的类加载器加载的类是不同的，因此如果用户加载器1加载的某个类，其他用户并不能够使用。</p>
+<p>当JVM运行过程中，用户需要加载某些类时，会按照下面的步骤（父类委托机制）：</p>
+<ol>
+<li>用户自己的类加载器，把加载请求传给父加载器，父加载器再传给其父加载器，一直到加载器树的顶层。</li>
+<li>最顶层的类加载器首先针对其特定的位置加载，如果加载不到就转交给子类。</li>
+<li>如果一直到底层的类加载都没有加载到，那么就会抛出异常ClassNotFoundException。</li>
+</ol>
+<p>因此，按照这个过程可以想到，如果同样在CLASSPATH指定的目录中和自己工作目录中存放相同的class，会优先加载CLASSPATH目录中的文件。</p>
+<h3 id="Tomcat类加载"><a href="#Tomcat类加载" class="headerlink" title="Tomcat类加载"></a>Tomcat类加载</h3><p>在tomcat中类的加载稍有不同，如下图：    </p>
+<p><img src="https://raw.githubusercontent.com/clq2owesome/image/master/tomcat.jpg" alt="image"></p>
+<p>当tomcat启动时，会创建几种类加载器：</p>
+<ol>
+<li><p>Bootstrap 引导类加载器 </p>
+<p> 加载JVM启动所需的类，以及标准扩展类（位于jre/lib/ext下）</p>
+</li>
+<li><p>System 系统类加载器  </p>
+<p> 加载tomcat启动的类，比如bootstrap.jar，通常在catalina.bat或者catalina.sh中指定。位于CATALINA_HOME/bin下</p>
+</li>
+<li><p>Common 通用类加载器 </p>
+<p> 加载tomcat使用以及应用通用的一些类，位于CATALINA_HOME/lib下，比如servlet-api.jar</p>
+</li>
+<li><p>webapp 应用类加载器</p>
+<p> 每个应用在部署后，都会创建一个唯一的类加载器。该类加载器会加载位于 WEB-INF/lib下的jar文件中的class 和 WEB-INF/classes下的class文件。</p>
+</li>
+</ol>
+<p>当应用需要到某个类时，则会按照下面的顺序进行类加载：</p>
+<ol>
+<li>使用bootstrap引导类加载器加载</li>
+<li>使用system系统类加载器加载</li>
+<li>使用应用类加载器在WEB-INF/classes中加载</li>
+<li>使用应用类加载器在WEB-INF/lib中加载</li>
+<li>使用common类加载器在CATALINA_HOME/lib中加载</li>
+</ol>
+<h3 id="问题扩展"><a href="#问题扩展" class="headerlink" title="问题扩展"></a>问题扩展</h3><p>为什么java文件放在Eclipse中的src文件夹下会优先jar包中的class?</p>
+<p>这是因为Eclipse中的src文件夹中的文件java以及webContent中的JSP都会在tomcat启动时，被编译成class文件放在 WEB-INF/class 中。</p>
+<p>而Eclipse外部引用的jar包，则相当于放在 WEB-INF/lib 中。</p>
+<p>因此肯定是 java文件或者JSP文件编译出的class优先加载。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/04/12/服务器相关/Tomcat/Tomcat类加载机制/" data-id="cjfvvpho100d3m9fyybcuowb0" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/04/12/服务器相关/Tomcat/Tomcat整体架构浅析/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Tomcat整体架构浅析
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/03/08/正则表达式/正则表达式/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">正则表达式</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Eclipse/">Eclipse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Github/">Github</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/Cookie/">Cookie</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/JAXB/">JAXB</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/JavaMail/">JavaMail</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/分布式/">分布式</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/基础/">基础</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/数据类型/">数据类型</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/日记/">日记</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/时间日期/">时间日期</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/线程/">线程</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/网络NIO/">网络NIO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/队列/">队列</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/集合/">集合</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Maven/">Maven</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Application-Event/">Application Event</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/JPA/">JPA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Security/">Security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Spring-Boot/">Spring Boot</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Spring-Session/">Spring Session</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Task/">Task</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/基础/">基础</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/前端技术相关/">前端技术相关</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/前端技术相关/forever/">forever</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/前端技术相关/javascript/">javascript</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/数据库相关/">数据库相关</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/数据库相关/mysql/">mysql</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/">服务器相关</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hessian/">Hessian</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Memcached/">Memcached</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Nginx/">Nginx</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/red5/">red5</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/redis/">redis</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/resin/">resin</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/正则表达式/">正则表达式</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/网络/">网络</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">四月 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">三月 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">二月 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">十月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">八月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">七月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/04/12/服务器相关/Tomcat/TOMCAT原理详解及请求过程/">TOMCAT原理详解及请求过程</a>
+          </li>
+        
+          <li>
+            <a href="/2018/04/12/网络/HTTPS工作原理/">HTTPS工作原理</a>
+          </li>
+        
+          <li>
+            <a href="/2018/04/12/网络/三次握手和四次挥手/">三次握手和四次挥手</a>
+          </li>
+        
+          <li>
+            <a href="/2018/04/12/服务器相关/Tomcat/内存分配/">内存分配</a>
+          </li>
+        
+          <li>
+            <a href="/2018/04/12/服务器相关/Tomcat/Tomcat整体架构浅析/">Tomcat整体架构浅析</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 LeoChan<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

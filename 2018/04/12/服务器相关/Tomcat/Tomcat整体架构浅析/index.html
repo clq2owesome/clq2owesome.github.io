@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Tomcat整体架构浅析 | LeoChan&#39;s 个人博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="整体结构      从上图中可以看出 Tomcat 的心脏是两个组件：Connector 和 Container，关于这两个组件将在后面详细介绍。Connector 组件是可以被替换，这样可以提供给服务器设计者更多的选择，因为这个组件是如此重要，不仅跟服务器的设计的本身，而且和不同的应用场景也十分相关，所以一个 Container 可以选择对应多个 Connector。多个 Connector 和">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tomcat整体架构浅析">
+<meta property="og:url" content="https://clq2owesome.github.io/2018/04/12/服务器相关/Tomcat/Tomcat整体架构浅析/index.html">
+<meta property="og:site_name" content="LeoChan&#39;s 个人博客">
+<meta property="og:description" content="整体结构      从上图中可以看出 Tomcat 的心脏是两个组件：Connector 和 Container，关于这两个组件将在后面详细介绍。Connector 组件是可以被替换，这样可以提供给服务器设计者更多的选择，因为这个组件是如此重要，不仅跟服务器的设计的本身，而且和不同的应用场景也十分相关，所以一个 Container 可以选择对应多个 Connector。多个 Connector 和">
+<meta property="og:image" content="http://img.my.csdn.net/uploads/201206/05/1338887929_7279.JPG">
+<meta property="og:image" content="http://dl.iteye.com/upload/picture/pic/124649/3f5d0ac0-1c40-3c78-9bed-e990f41e3b84.jpg">
+<meta property="og:image" content="http://img.blog.csdn.net/20180109095231653?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzgyNDU1Mzc=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/image002.png">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/image003.png">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/image004.png">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/image005.png">
+<meta property="og:image" content="http://img.blog.csdn.net/20180109095032618?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzgyNDU1Mzc=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center">
+<meta property="og:image" content="http://img.blog.csdn.net/20180109095336437?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzgyNDU1Mzc=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/origin_image006.png">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/origin_image007.png">
+<meta property="og:image" content="http://img.blog.csdn.net/20180109110049444?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzgyNDU1Mzc=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:image" content="http://img.blog.csdn.net/20180109095725295?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzgyNDU1Mzc=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center">
+<meta property="og:image" content="http://img.blog.csdn.net/20180109095850800?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzgyNDU1Mzc=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/origin_image008.png">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/origin_image009.png">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/origin_image010.png">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/image011.png">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/origin_image012.png">
+<meta property="og:image" content="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/image013.png">
+<meta property="og:image" content="http://img.blog.csdn.net/20161007001421097">
+<meta property="og:image" content="http://img.blog.csdn.net/20161007002724932">
+<meta property="og:image" content="http://img.blog.csdn.net/20161007004829253">
+<meta property="og:image" content="http://img.blog.csdn.net/20161007005430411">
+<meta property="og:updated_time" content="2018-04-12T01:50:11.418Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Tomcat整体架构浅析">
+<meta name="twitter:description" content="整体结构      从上图中可以看出 Tomcat 的心脏是两个组件：Connector 和 Container，关于这两个组件将在后面详细介绍。Connector 组件是可以被替换，这样可以提供给服务器设计者更多的选择，因为这个组件是如此重要，不仅跟服务器的设计的本身，而且和不同的应用场景也十分相关，所以一个 Container 可以选择对应多个 Connector。多个 Connector 和">
+<meta name="twitter:image" content="http://img.my.csdn.net/uploads/201206/05/1338887929_7279.JPG">
+  
+    <link rel="alternate" href="/atom.xml" title="LeoChan&#39;s 个人博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">LeoChan&#39;s 个人博客</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">技术都是通用的，重要的是是否具有自主解决问题的能力！</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://clq2owesome.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-服务器相关/Tomcat/Tomcat整体架构浅析" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/12/服务器相关/Tomcat/Tomcat整体架构浅析/" class="article-date">
+  <time datetime="2018-04-12T02:09:45.000Z" itemprop="datePublished">2018-04-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/服务器相关/">服务器相关</a>►<a class="article-category-link" href="/categories/服务器相关/Tomcat/">Tomcat</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Tomcat整体架构浅析
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="整体结构"><a href="#整体结构" class="headerlink" title="整体结构"></a>整体结构</h3><p><img src="http://img.my.csdn.net/uploads/201206/05/1338887929_7279.JPG" alt="image">     </p>
+<p>从上图中可以看出 Tomcat 的心脏是两个组件：<strong>Connector</strong> 和 <strong>Container</strong>，关于这两个组件将在后面详细介绍。Connector 组件是可以被替换，这样可以提供给服务器设计者更多的选择，因为这个组件是如此重要，不仅跟服务器的设计的本身，而且和不同的应用场景也十分相关，所以一个 Container 可以选择对应多个 Connector。多个 Connector 和一个 Container 就形成了一个 Service，Service 的概念大家都很熟悉了，有了 Service 就可以对外提供服务了，但是 Service 还要一个生存的环境，必须要有人能够给她生命、掌握其生死大权，那就非 Server 莫属了。所以<strong>整个 Tomcat 的生命周期由 Server 控制</strong>。</p>
+<p>组件包含关系图：<br><img src="http://dl.iteye.com/upload/picture/pic/124649/3f5d0ac0-1c40-3c78-9bed-e990f41e3b84.jpg" alt="image"><br>Standard<em>XXXX</em>是组件接口的默认实现类。</p>
+<p>另外一种结构图：<br><img src="http://img.blog.csdn.net/20180109095231653?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzgyNDU1Mzc=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="image"></p>
+<p>Server标签设置的端口号为8005，shutdown=”SHUTDOWN” ，表示在8005端口监听“SHUTDOWN”命令，如果接收到了就会关闭Tomcat。一个Server有一个Service，当然还可以进行配置，一个Service有多个，Service左边的内容都属于Container的，Service下边是Connector。</p>
+<h4 id="以-Service-作为“婚姻”"><a href="#以-Service-作为“婚姻”" class="headerlink" title="以 Service 作为“婚姻”"></a>以 Service 作为“婚姻”</h4><p>我们将 Tomcat 中 Connector、Container 作为一个整体比作一对情侣的话，Connector 主要负责对外交流，可以比作为 Boy，Container 主要处理 Connector 接受的请求，主要是处理内部事务，可以比作为 Girl。那么这个 Service 就是连接这对男女的结婚证了。是 Service 将它们连接在一起，共同组成一个家庭。当然要组成一个家庭还要很多其它的元素。</p>
+<p>说白了，Service 只是在 Connector 和 Container 外面多包一层，把它们组装在一起，向外面提供服务，一个 Service 可以设置多个 Connector，但是只能有一个 Container 容器。这个 Service 接口的方法列表如下：</p>
+<p><img src="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/image002.png" alt="image"> </p>
+<p>从 Service 接口中定义的方法中可以看出，它主要是为了关联 Connector 和 Container，同时会初始化它下面的其它组件，注意接口中它并没有规定一定要控制它下面的组件的生命周期。所有组件的生命周期在一个 Lifecycle 的接口中控制，这里用到了一个重要的设计模式，关于这个接口将在后面介绍。</p>
+<p>Tomcat 中 Service 接口的标准实现类是 StandardService 它不仅实现了 Service 借口同时还实现了 Lifecycle 接口，这样它就可以控制它下面的组件的生命周期了。<strong>StandardService</strong> 类结构图如下：</p>
+<p><img src="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/image003.png" alt="image"> </p>
+<p>从上图中可以看出除了 Service 接口的方法的实现以及控制组件生命周期的 Lifecycle 接口的实现，还有几个方法是用于在事件监听的方法的实现，不仅是这个 Service 组件，Tomcat 中其它组件也同样有这几个方法，这也是一个典型的设计模式，将在后面介绍。</p>
+<p>下面看一下 StandardService 中主要的几个方法实现的代码，下面是 setContainer 和 addConnector 方法的源码：   </p>
+<p>清单 1.StandardService. SetContainer<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContainer</span><span class="params">(Container container)</span> </span>&#123;</div><div class="line">    Container oldContainer = <span class="keyword">this</span>.container;</div><div class="line">    <span class="keyword">if</span> ((oldContainer != <span class="keyword">null</span>) &amp;&amp; (oldContainer <span class="keyword">instanceof</span> Engine))</div><div class="line">        ((Engine) oldContainer).setService(<span class="keyword">null</span>);</div><div class="line">    <span class="keyword">this</span>.container = container;</div><div class="line">    <span class="keyword">if</span> ((<span class="keyword">this</span>.container != <span class="keyword">null</span>) &amp;&amp; (<span class="keyword">this</span>.container <span class="keyword">instanceof</span> Engine))</div><div class="line">        ((Engine) <span class="keyword">this</span>.container).setService(<span class="keyword">this</span>);</div><div class="line">    <span class="keyword">if</span> (started &amp;&amp; (<span class="keyword">this</span>.container != <span class="keyword">null</span>) &amp;&amp; (<span class="keyword">this</span>.container <span class="keyword">instanceof</span> Lifecycle)) &#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            ((Lifecycle) <span class="keyword">this</span>.container).start();</div><div class="line">        &#125; <span class="keyword">catch</span> (LifecycleException e) &#123;</div><div class="line">            ;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">synchronized</span> (connectors) &#123;</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; connectors.length; i++)</div><div class="line">            connectors[i].setContainer(<span class="keyword">this</span>.container);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (started &amp;&amp; (oldContainer != <span class="keyword">null</span>) &amp;&amp; (oldContainer <span class="keyword">instanceof</span> Lifecycle)) &#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            ((Lifecycle) oldContainer).stop();</div><div class="line">        &#125; <span class="keyword">catch</span> (LifecycleException e) &#123;</div><div class="line">            ;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    support.firePropertyChange(<span class="string">"container"</span>, oldContainer, <span class="keyword">this</span>.container);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这段代码很简单，其实就是先判断当前的这个 Service 有没有已经关联了 Container，如果已经关联了，那么去掉这个关联关系—— oldContainer.setService(null)。如果这个 oldContainer 已经被启动了，结束它的生命周期。然后再替换新的关联、再初始化并开始这个新的 Container 的生命周期。最后将这个过程通知感兴趣的事件监听程序。这里值得注意的地方就是，修改 Container 时要将新的 Container 关联到每个 Connector，还好 Container 和 Connector 没有双向关联，不然这个关联关系将会很难维护。</p>
+<p>清单 2. StandardService. addConnector<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">public void addConnector(Connector connector) &#123;</div><div class="line">    synchronized (connectors) &#123;</div><div class="line">        connector.setContainer(this.container);</div><div class="line">        connector.setService(this);</div><div class="line">        Connector results[] = new Connector[connectors.length + 1];</div><div class="line">        System.arraycopy(connectors, 0, results, 0, connectors.length);</div><div class="line">        results[connectors.length] = connector;</div><div class="line">        connectors = results;</div><div class="line">        if (initialized) &#123;</div><div class="line">            try &#123;</div><div class="line">                connector.initialize();</div><div class="line">            &#125; catch (LifecycleException e) &#123;</div><div class="line">                e.printStackTrace(System.err);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        if (started &amp;&amp; (connector instanceof Lifecycle)) &#123;</div><div class="line">            try &#123;</div><div class="line">                ((Lifecycle) connector).start();</div><div class="line">            &#125; catch (LifecycleException e) &#123;</div><div class="line">                ;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        support.firePropertyChange(&quot;connector&quot;, null, connector);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>上面是 addConnector 方法，这个方法也很简单，首先是设置关联关系，然后是初始化工作，开始新的生命周期。这里值得一提的是，注意 Connector 用的是数组而不是 List 集合，这个从性能角度考虑可以理解，有趣的是这里用了数组但是并没有向我们平常那样，一开始就分配一个固定大小的数组，它这里的实现机制是：重新创建一个当前大小的数组对象，然后将原来的数组对象 copy 到新的数组中，这种方式实现了类似的动态数组的功能，这种实现方式，值得我们以后拿来借鉴。</p>
+<p>最新的 Tomcat6 中 StandardService 也基本没有变化，但是从 Tomcat5 开始 Service、Server 和容器类都继承了 MBeanRegistration 接口，Mbeans 的管理更加合理。</p>
+<h4 id="以-Server-为“居”"><a href="#以-Server-为“居”" class="headerlink" title="以 Server 为“居”"></a>以 Server 为“居”</h4><p>前面说一对情侣因为 Service 而成为一对夫妻，有了能够组成一个家庭的基本条件，但是它们还要有个实体的家，这是它们在社会上生存之本，有了家它们就可以安心的为人民服务了，一起为社会创造财富。</p>
+<p>Server 要完成的任务很简单，就是要能够提供一个接口让其它程序能够访问到这个 Service 集合、同时要维护它所包含的所有 Service 的生命周期，包括如何初始化、如何结束服务、如何找到别人要访问的 Service。还有其它的一些次要的任务，如您住在这个地方要向当地政府去登记啊、可能还有要配合当地公安机关日常的安全检查什么的。</p>
+<p>Server 的类结构图如下：</p>
+<p><img src="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/image004.png" alt="image"></p>
+<p>它的标准实现类 StandardServer 实现了上面这些方法，同时也实现了 Lifecycle、MbeanRegistration 两个接口的所有方法，下面主要看一下 <strong>StandardServer</strong> 重要的一个方法 addService 的实现：</p>
+<p>清单 3. StandardServer.addService<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">public void addService(Service service) &#123;</div><div class="line">    service.setServer(this);</div><div class="line">    synchronized (services) &#123;</div><div class="line">        Service results[] = new Service[services.length + 1];</div><div class="line">        System.arraycopy(services, 0, results, 0, services.length);</div><div class="line">        results[services.length] = service;</div><div class="line">        services = results;</div><div class="line">        if (initialized) &#123;</div><div class="line">            try &#123;</div><div class="line">                service.initialize();</div><div class="line">            &#125; catch (LifecycleException e) &#123;</div><div class="line">                e.printStackTrace(System.err);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        if (started &amp;&amp; (service instanceof Lifecycle)) &#123;</div><div class="line">            try &#123;</div><div class="line">                ((Lifecycle) service).start();</div><div class="line">            &#125; catch (LifecycleException e) &#123;</div><div class="line">                ;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        support.firePropertyChange(&quot;service&quot;, null, service);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>从上面第一句就知道了 Service 和 Server 是相互关联的，Server 也是和 Service 管理 Connector 一样管理它，也是将 Service 放在一个数组中，后面部分的代码也是管理这个新加进来的 Service 的生命周期。Tomcat6 中也是没有什么变化的。</p>
+<h4 id="组件的生命线“Lifecycle”"><a href="#组件的生命线“Lifecycle”" class="headerlink" title="组件的生命线“Lifecycle”"></a>组件的生命线“Lifecycle”</h4><p>前面一直在说 Service 和 Server 管理它下面组件的生命周期，那它们是如何管理的呢？</p>
+<p>Tomcat 中组件的生命周期是通过 Lifecycle 接口来控制的，组件只要继承这个接口并实现其中的方法就可以统一被拥有它的组件控制了，这样一层一层的直到一个最高级的组件就可以控制 Tomcat 中所有组件的生命周期，这个最高的组件就是 Server，而控制 Server 的是 Startup，也就是您启动和关闭 Tomcat。</p>
+<p>下面是 Lifecycle 接口的类结构图：   </p>
+<p><img src="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/image005.png" alt="image">    </p>
+<p>除了控制生命周期的 Start 和 Stop 方法外还有一个监听机制，在生命周期开始和结束的时候做一些额外的操作。这个机制在其它的框架中也被使用，如在 Spring 中。关于这个设计模式会在后面介绍。</p>
+<p>Lifecycle 接口的方法的实现都在其它组件中，就像前面中说的，组件的生命周期由包含它的父组件控制，所以它的 Start 方法自然就是调用它下面的组件的 Start 方法，Stop 方法也是一样。如在 Server 中 Start 方法就会调用 Service 组件的 Start 方法，Server 的 Start 方法代码如下：</p>
+<p>清单 4. StandardServer.Start<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">public void start() throws LifecycleException &#123;</div><div class="line">    if (started) &#123;</div><div class="line">        log.debug(sm.getString(&quot;standardServer.start.started&quot;));</div><div class="line">        return;</div><div class="line">    &#125;</div><div class="line">    lifecycle.fireLifecycleEvent(BEFORE_START_EVENT, null);</div><div class="line">    lifecycle.fireLifecycleEvent(START_EVENT, null);</div><div class="line">    started = true;</div><div class="line">    synchronized (services) &#123;</div><div class="line">        for (int i = 0; i &lt; services.length; i++) &#123;</div><div class="line">            if (services[i] instanceof Lifecycle)</div><div class="line">                ((Lifecycle) services[i]).start();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    lifecycle.fireLifecycleEvent(AFTER_START_EVENT, null);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>监听的代码会包围 Service 组件的启动过程，就是简单的循环启动所有 Service 组件的 Start 方法，但是所有 Service 必须要实现 Lifecycle 接口，这样做会更加灵活。</p>
+<p>Server 的 Stop 方法代码如下：</p>
+<p>清单 5. StandardServer.Stop<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">public void stop() throws LifecycleException &#123;</div><div class="line">    if (!started)</div><div class="line">        return;</div><div class="line">    lifecycle.fireLifecycleEvent(BEFORE_STOP_EVENT, null);</div><div class="line">    lifecycle.fireLifecycleEvent(STOP_EVENT, null);</div><div class="line">    started = false;</div><div class="line">    for (int i = 0; i &lt; services.length; i++) &#123;</div><div class="line">        if (services[i] instanceof Lifecycle)</div><div class="line">            ((Lifecycle) services[i]).stop();</div><div class="line">    &#125;</div><div class="line">    lifecycle.fireLifecycleEvent(AFTER_STOP_EVENT, null);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>它所要做的事情也和 Start 方法差不多。</p>
+<h3 id="Connector-组件"><a href="#Connector-组件" class="headerlink" title="Connector 组件"></a>Connector 组件</h3><p>Connector 组件是 Tomcat 中两个核心组件之一，它的主要任务是负责接收浏览器的发过来的 tcp 连接请求，创建一个 Request 和 Response 对象分别用于和请求端交换数据，然后会产生一个线程来处理这个请求并把产生的 Request 和 Response 对象传给处理这个请求的线程，处理这个请求的线程就是 Container 组件要做的事了。</p>
+<p>Connector最底层使用的是Socket来进行连接的，Request和Response是按照HTTP协议来封装的，所以Connector同时需要实现TCP/IP协议和HTTP协议！</p>
+<p>一个Tomcat中只有一个Server，一个Server可以包含多个Service，一个Service只有一个Container，但是可以有多个Connectors，这是因为一个服务可以有多个连接，如同时提供Http和Https链接，也可以提供向相同协议不同端口的连接,示意图如下：<br><img src="http://img.blog.csdn.net/20180109095032618?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzgyNDU1Mzc=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="image"></p>
+<p>Connector的结构图：<br><img src="http://img.blog.csdn.net/20180109095336437?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzgyNDU1Mzc=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="image">  </p>
+<p>Connector就是使用ProtocolHandler来处理请求的，不同的ProtocolHandler代表不同的连接类型，比如：Http11Protocol使用的是普通Socket来连接的，Http11NioProtocol使用的是NioSocket来连接的。</p>
+<p>其中ProtocolHandler由包含了三个部件：<strong>Endpoint</strong>、<strong>Processor</strong>、<strong>Adapter</strong>。</p>
+<ol>
+<li><p>Endpoint用来处理底层Socket的网络连接，Processor用于将Endpoint接收到的Socket封装成Request，Adapter用于将Request交给Container进行具体的处理。</p>
+</li>
+<li><p>Endpoint由于是处理底层的Socket网络连接，因此Endpoint是用来实现TCP/IP协议的，而Processor用来实现HTTP协议的，Adapter将请求适配到Servlet容器进行具体的处理。</p>
+</li>
+<li><p>Endpoint的抽象实现AbstractEndpoint里面定义的Acceptor和AsyncTimeout两个内部类和一个Handler接口。Acceptor用于监听请求，AsyncTimeout用于检查异步Request的超时，Handler用于处理接收到的Socket，在内部调用Processor进行处理。</p>
+</li>
+</ol>
+<p>由于这个过程比较复杂，大体的流程可以用下面的顺序图来解释：</p>
+<p>Connector 处理一次请求顺序图:<br><img src="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/origin_image006.png" alt="image"><br>​<br>Tomcat5 中默认的 Connector 是 Coyote，这个 Connector 是可以选择替换的。Connector 最重要的功能就是接收连接请求然后分配线程让 Container 来处理这个请求，所以这必然是多线程的，多线程的处理是 Connector 设计的核心。Tomcat5 将这个过程更加细化，它将 Connector 划分成 Connector、Processor、Protocol, 另外 Coyote 也定义自己的 Request 和 Response 对象。</p>
+<p>下面主要看一下 Tomcat 中如何处理多线程的连接请求，先看一下 Connector 的主要类图：</p>
+<p><img src="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/origin_image007.png" alt="image"></p>
+<p>看一下 HttpConnector 的 Start 方法：</p>
+<p>清单 6. HttpConnector.Start<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">public void start() throws LifecycleException &#123;</div><div class="line">    if (started)</div><div class="line">        throw new LifecycleException</div><div class="line">            (sm.getString(&quot;httpConnector.alreadyStarted&quot;));</div><div class="line">    threadName = &quot;HttpConnector[&quot; + port + &quot;]&quot;;</div><div class="line">    lifecycle.fireLifecycleEvent(START_EVENT, null);</div><div class="line">    started = true;</div><div class="line">    threadStart();</div><div class="line">    while (curProcessors &lt; minProcessors) &#123;</div><div class="line">        if ((maxProcessors &gt; 0) &amp;&amp; (curProcessors &gt;= maxProcessors))</div><div class="line">            break;</div><div class="line">        HttpProcessor processor = newProcessor();</div><div class="line">        recycle(processor);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>threadStart() 执行就会进入等待请求的状态，直到一个新的请求到来才会激活它继续执行，这个激活是在 HttpProcessor 的 assign 方法中，这个方法是代码如下 ：</p>
+<p>清单 7. HttpProcessor.assign<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">synchronized void assign(Socket socket) &#123;</div><div class="line">    while (available) &#123;</div><div class="line">        try &#123;</div><div class="line">            wait();</div><div class="line">        &#125; catch (InterruptedException e) &#123;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    this.socket = socket;</div><div class="line">    available = true;</div><div class="line">    notifyAll();</div><div class="line">    if ((debug &gt;= 1) &amp;&amp; (socket != null))</div><div class="line">        log(&quot; An incoming request is being assigned&quot;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>创建 HttpProcessor 对象是会把 available 设为 false，所以当请求到来时不会进入 while 循环，将请求的 socket 赋给当期处理的 socket，并将 available 设为 true，当 available 设为 true 是 HttpProcessor 的 run 方法将被激活，接下去将会处理这次请求。</p>
+<p>Run 方法代码如下：</p>
+<p>清单 8. HttpProcessor.Run<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">public void run() &#123; </div><div class="line">    while (!stopped) &#123; </div><div class="line">        Socket socket = await(); </div><div class="line">        if (socket == null) </div><div class="line">            continue; </div><div class="line">        try &#123; </div><div class="line">            process(socket); </div><div class="line">        &#125; catch (Throwable t) &#123; </div><div class="line">            log(&quot;process.invoke&quot;, t); </div><div class="line">        &#125; </div><div class="line">        connector.recycle(this); </div><div class="line">    &#125; </div><div class="line">    synchronized (threadSync) &#123; </div><div class="line">        threadSync.notifyAll(); </div><div class="line">    &#125; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>解析 socket 的过程在 process 方法中，process 方法的代码片段如下：</p>
+<p>清单 9. HttpProcessor.process<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div></pre></td><td class="code"><pre><div class="line">private void process(Socket socket) &#123;</div><div class="line">    boolean ok = true;</div><div class="line">    boolean finishResponse = true;</div><div class="line">    SocketInputStream input = null;</div><div class="line">    OutputStream output = null;</div><div class="line">    try &#123;</div><div class="line">        input = new SocketInputStream(socket.getInputStream(),connector.getBufferSize());</div><div class="line">    &#125; catch (Exception e) &#123;</div><div class="line">        log(&quot;process.create&quot;, e);</div><div class="line">        ok = false;</div><div class="line">    &#125;</div><div class="line">    keepAlive = true;</div><div class="line">    while (!stopped &amp;&amp; ok &amp;&amp; keepAlive) &#123;</div><div class="line">        finishResponse = true;</div><div class="line">        try &#123;</div><div class="line">            request.setStream(input);</div><div class="line">            request.setResponse(response);</div><div class="line">            output = socket.getOutputStream();</div><div class="line">            response.setStream(output);</div><div class="line">            response.setRequest(request);</div><div class="line">            ((HttpServletResponse) response.getResponse())</div><div class="line">                .setHeader(&quot;Server&quot;, SERVER_INFO);</div><div class="line">        &#125; catch (Exception e) &#123;</div><div class="line">            log(&quot;process.create&quot;, e);</div><div class="line">            ok = false;</div><div class="line">        &#125;</div><div class="line">        try &#123;</div><div class="line">            if (ok) &#123;</div><div class="line">                parseConnection(socket);</div><div class="line">                parseRequest(input, output);</div><div class="line">                if (!request.getRequest().getProtocol().startsWith(&quot;HTTP/0&quot;))</div><div class="line">                    parseHeaders(input);</div><div class="line">                if (http11) &#123;</div><div class="line">                    ackRequest(output);</div><div class="line">                    if (connector.isChunkingAllowed())</div><div class="line">                        response.setAllowChunking(true);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        。。。。。。</div><div class="line">        try &#123;</div><div class="line">            ((HttpServletResponse) response).setHeader</div><div class="line">                (&quot;Date&quot;, FastHttpDateFormat.getCurrentDate());</div><div class="line">            if (ok) &#123;</div><div class="line">                connector.getContainer().invoke(request, response);</div><div class="line">            &#125;</div><div class="line">            。。。。。。</div><div class="line">        &#125;</div><div class="line">        try &#123;</div><div class="line">            shutdownInput(input);</div><div class="line">            socket.close();</div><div class="line">        &#125; catch (IOException e) &#123;</div><div class="line">            ;</div><div class="line">        &#125; catch (Throwable e) &#123;</div><div class="line">            log(&quot;process.invoke&quot;, e);</div><div class="line">        &#125;</div><div class="line">    socket = null;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>当 Connector 将 socket 连接封装成 request 和 response 对象后接下来的事情就交给 Container 来处理了。</p>
+<h3 id="Servlet-容器“Container”"><a href="#Servlet-容器“Container”" class="headerlink" title="Servlet 容器“Container”"></a>Servlet 容器“Container”</h3><p>Container 是容器的父接口，所有子容器都必须实现这个接口，Container 容器的设计用的是典型的责任链的设计模式，它有四个子容器组件构成，分别是：<strong>Engine</strong>、<strong>Host</strong>、<strong>Context</strong>、<strong>Wrapper</strong>，这四个组件不是平行的，而是父子关系，Engine 包含 Host,Host 包含 Context，Context 包含 Wrapper。通常一个 Servlet class 对应一个 Wrapper，如果有多个 Servlet 就可以定义多个 Wrapper，如果有多个 Wrapper 就要定义一个更高的 Container 了.</p>
+<ul>
+<li><strong>Engine</strong>：没有父容器，一个 Engine代表一个完整的 Servlet 引擎，它接收来自Connector的请求，并决定传给哪个Host来处理，Host处理完请求后，将结果返回给Engine，Engine再将结果返回给Connector。</li>
+<li><strong>Host</strong>：Engine可以包含多个Host，每个Host代表一个虚拟主机，这个虚拟主机的作用就是运行多个应用，它负责安装和展开这些应用，并且标识这个应用以便能够区分它们，每个虚拟主机对应的一个域名，不同Host容器接受处理对应不同域名的请求。</li>
+<li><strong>Context</strong>：Host可以包含多个Context，Context是Servlet规范的实现，它提供了Servlet的基本环境，一个Context代表一个运行在Host上的Web应用</li>
+<li><strong>Wrapper</strong>: Context可以包含多个Wrapper, Wrapper 代表一个 Servlet，它负责管理一个 Servlet，包括的 Servlet 的装载、初始化、执行以及资源回收。Wrapper 是最底层的容器，它没有子容器了，所以调用它的 addChild 将会报错。</li>
+</ul>
+<p>结构图：<br><img src="http://img.blog.csdn.net/20180109110049444?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzgyNDU1Mzc=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast" alt="image">   </p>
+<p>下面找一个Tomcat的文件目录对照一下，如下图所示：<br><img src="http://img.blog.csdn.net/20180109095725295?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzgyNDU1Mzc=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="image"></p>
+<p>Context和Host的区别是Context表示一个应用，我们的Tomcat中默认的配置下webapps下的每一个文件夹目录都是一个Context，其中ROOT目录中存放着主应用，其他目录存放着子应用，而整个webapps就是一个Host站点。</p>
+<p>我们访问应用Context的时候，如果是ROOT下的则直接使用域名就可以访问，例如：<code>www.ledouit.com</code>,如果是Host（webapps）下的其他应用，则可以使用<code>www.ledouit.com/docs</code>进行访问，当然默认指定的根应用（ROOT）是可以进行设定的，只不过Host站点下默认的主营用是ROOT目录下的。</p>
+<p>如 Context，Context 通常就是对应下面这个配置：</p>
+<p>清单 10. Server.xml<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">Context</span></span></div><div class="line">    <span class="attr">path</span>=<span class="string">"/library"</span></div><div class="line">    <span class="attr">docBase</span>=<span class="string">"D:\projects\library\deploy\target\library.war"</span></div><div class="line">    <span class="attr">reloadable</span>=<span class="string">"true"</span></div><div class="line">/&gt;</div></pre></td></tr></table></figure></p>
+<h4 id="Container如何处理请求的"><a href="#Container如何处理请求的" class="headerlink" title="Container如何处理请求的"></a>Container如何处理请求的</h4><p>Container处理请求是使用Pipeline-Value管道来处理的！</p>
+<p>Pipeline-Value是责任链模式，责任链模式是指在一个请求处理的过程中有很多处理者依次对请求进行处理，每个处理者负责做自己相应的处理，处理完之后将处理后的请求返回，再让下一个处理着继续处理。</p>
+<p>但是！Pipeline-Value使用的责任链模式和普通的责任链模式有些不同！区别主要有以下两点：</p>
+<ol>
+<li>每个Pipeline都有特定的Value，而且是在管道的最后一个执行，这个Value叫做BaseValue，BaseValue是不可删除的；</li>
+<li>在上层容器的管道的BaseValue中会调用下层容器的管道。</li>
+</ol>
+<p>我们知道Container包含四个子容器，而这四个子容器对应的BaseValue分别在：StandardEngineValue、StandardHostValue、StandardContextValue、StandardWrapperValue。</p>
+<p>Pipeline的处理流程图如下：<br><img src="http://img.blog.csdn.net/20180109095850800?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzgyNDU1Mzc=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="image">  </p>
+<ol>
+<li><p>Connector在接收到请求后会首先调用最顶层容器的Pipeline来处理，这里的最顶层容器的Pipeline就是EnginePipeline（Engine的管道）；</p>
+</li>
+<li><p>在Engine的管道中依次会执行EngineValue1、EngineValue2等等，最后会执行StandardEngineValue，在StandardEngineValue中会调用Host管道，然后再依次执行Host的HostValue1、HostValue2等，最后在执行StandardHostValue，然后再依次调用Context的管道和Wrapper的管道，最后执行到StandardWrapperValue。</p>
+</li>
+<li><p>当执行到StandardWrapperValue的时候，会在StandardWrapperValue中创建FilterChain，并调用其doFilter方法来处理请求，这个FilterChain包含着我们配置的与请求相匹配的Filter和Servlet，其doFilter方法会依次调用所有的Filter的doFilter方法和Servlet的service方法，这样请求就得到了处理！</p>
+</li>
+<li><p>当所有的Pipeline-Value都执行完之后，并且处理完了具体的请求，这个时候就可以将返回的结果交给Connector了，Connector在通过Socket的方式将结果返回给客户端。</p>
+</li>
+</ol>
+<h4 id="容器的总体设计"><a href="#容器的总体设计" class="headerlink" title="容器的总体设计"></a>容器的总体设计</h4><p>Context 还可以定义在父容器 Host 中，Host 不是必须的，但是要运行 war 程序，就必须要 Host，因为 war 中必有 web.xml 文件，这个文件的解析就需要 Host 了，如果要有多个 Host 就要定义一个 top 容器 Engine 了。而 Engine 没有父容器了，一个 Engine 代表一个完整的 Servlet 引擎。</p>
+<p>那么这些容器是如何协同工作的呢？先看一下它们之间的关系图：</p>
+<p>四个容器的关系图:<br><img src="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/origin_image008.png" alt="image"></p>
+<p>当 Connector 接受到一个连接请求时，将请求交给 Container，Container 是如何处理这个请求的？这四个组件是怎么分工的，怎么把请求传给特定的子容器的呢？又是如何将最终的请求交给 Servlet 处理。下面是这个过程的时序图：</p>
+<p>Engine 和 Host 处理请求的时序图:<br><img src="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/origin_image009.png" alt="image"></p>
+<p>这里看到了 Valve 是不是很熟悉，没错 Valve 的设计在其他框架中也有用的，同样 Pipeline 的原理也基本是相似的，它是一个管道，Engine 和 Host 都会执行这个 Pipeline，您可以在这个管道上增加任意的 Valve，Tomcat 会挨个执行这些 Valve，而且四个组件都会有自己的一套 Valve 集合。您怎么才能定义自己的 Valve 呢？在 server.xml 文件中可以添加，如给 Engine 和 Host 增加一个 Valve 如下：</p>
+<p>清单 11. Server.xml<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">Engine</span> <span class="attr">defaultHost</span>=<span class="string">"localhost"</span> <span class="attr">name</span>=<span class="string">"Catalina"</span>&gt;</span></div><div class="line"> </div><div class="line">    <span class="tag">&lt;<span class="name">Valve</span> <span class="attr">className</span>=<span class="string">"org.apache.catalina.valves.RequestDumperValve"</span>/&gt;</span></div><div class="line">    ………</div><div class="line">    <span class="tag">&lt;<span class="name">Host</span> <span class="attr">appBase</span>=<span class="string">"webapps"</span> <span class="attr">autoDeploy</span>=<span class="string">"true"</span> <span class="attr">name</span>=<span class="string">"localhost"</span> <span class="attr">unpackWARs</span>=<span class="string">"true"</span></span></div><div class="line">        <span class="attr">xmlNamespaceAware</span>=<span class="string">"false"</span> <span class="attr">xmlValidation</span>=<span class="string">"false"</span>&gt;</div><div class="line"> </div><div class="line">        <span class="tag">&lt;<span class="name">Valve</span> <span class="attr">className</span>=<span class="string">"org.apache.catalina.valves.FastCommonAccessLogValve"</span></span></div><div class="line">            <span class="attr">directory</span>=<span class="string">"logs"</span>  <span class="attr">prefix</span>=<span class="string">"localhost_access_log."</span> <span class="attr">suffix</span>=<span class="string">".txt"</span></div><div class="line">            <span class="attr">pattern</span>=<span class="string">"common"</span> <span class="attr">resolveHosts</span>=<span class="string">"false"</span>/&gt;     </div><div class="line">    …………</div><div class="line">    <span class="tag">&lt;/<span class="name">Host</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">Engine</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>StandardEngineValve 和 StandardHostValve 是 Engine 和 Host 的默认的 Valve，它们是最后一个 Valve 负责将请求传给它们的子容器，以继续往下执行。</p>
+<p>前面是 Engine 和 Host 容器的请求过程，下面看 Context 和 Wrapper 容器时如何处理请求的。下面是处理请求的时序图：</p>
+<p>Context 和 wrapper 的处理请求时序图:<br><img src="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/origin_image010.png" alt="image">     </p>
+<p>从 Tomcat5 开始，子容器的路由放在了 request 中，request 中保存了当前请求正在处理的 Host、Context 和 wrapper。</p>
+<h4 id="Engine-容器"><a href="#Engine-容器" class="headerlink" title="Engine 容器"></a>Engine 容器</h4><p>Engine 容器比较简单，它只定义了一些基本的关联关系，接口类图如下：</p>
+<p>Engine 接口的类结构:<br><img src="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/image011.png" alt="image"></p>
+<p>它的标准实现类是 StandardEngine，这个类注意一点就是 Engine 没有父容器了，如果调用 setParent 方法时将会报错。添加子容器也只能是 Host 类型的，代码如下：</p>
+<p>清单 12. StandardEngine. addChild<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public void addChild(Container child) &#123;</div><div class="line">    if (!(child instanceof Host))</div><div class="line">        throw new IllegalArgumentException</div><div class="line">            (sm.getString(&quot;standardEngine.notHost&quot;));</div><div class="line">    super.addChild(child);</div><div class="line">&#125;</div><div class="line"> </div><div class="line">public void setParent(Container container) &#123;</div><div class="line">    throw new IllegalArgumentException</div><div class="line">        (sm.getString(&quot;standardEngine.notParent&quot;));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>它的初始化方法也就是初始化和它相关联的组件，以及一些事件的监听。</p>
+<h4 id="Host-容器"><a href="#Host-容器" class="headerlink" title="Host 容器"></a>Host 容器</h4><p>Host 是 Engine 的字容器，一个 Host 在 Engine 中代表一个虚拟主机，这个虚拟主机的作用就是运行多个应用，它负责安装和展开这些应用，并且标识这个应用以便能够区分它们。它的子容器通常是 Context，它除了关联子容器外，还有就是保存一个主机应该有的信息。</p>
+<p>图 12. Host 相关的类图:<br><img src="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/origin_image012.png" alt="image"></p>
+<p>从上图中可以看出除了所有容器都继承的 ContainerBase 外，StandardHost 还实现了 Deployer 接口，上图清楚的列出了这个接口的主要方法，这些方法都是安装、展开、启动和结束每个 web application。</p>
+<p>Deployer 接口的实现是 StandardHostDeployer，这个类实现了的最要的几个方法，Host 可以调用这些方法完成应用的部署等。</p>
+<h4 id="Context-容器"><a href="#Context-容器" class="headerlink" title="Context 容器"></a>Context 容器</h4><p>Context 代表 Servlet 的 Context，它具备了 Servlet 运行的基本环境，理论上只要有 Context 就能运行 Servlet 了。简单的 Tomcat 可以没有 Engine 和 Host。</p>
+<p>Context 最重要的功能就是管理它里面的 Servlet 实例，Servlet 实例在 Context 中是以 Wrapper 出现的，还有一点就是 Context 如何才能找到正确的 Servlet 来执行它呢？ Tomcat5 以前是通过一个 Mapper 类来管理的，Tomcat5 以后这个功能被移到了 request 中，在前面的时序图中就可以发现获取子容器都是通过 request 来分配的。</p>
+<p>Context 准备 Servlet 的运行环境是在 Start 方法开始的，这个方法的代码片段如下：</p>
+<p>清单 13. StandardContext.start<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div></pre></td><td class="code"><pre><div class="line">public synchronized void start() throws LifecycleException &#123;</div><div class="line">    ………</div><div class="line">    if( !initialized ) &#123; </div><div class="line">        try &#123;</div><div class="line">            init();</div><div class="line">        &#125; catch( Exception ex ) &#123;</div><div class="line">            throw new LifecycleException(&quot;Error initializaing &quot;, ex);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">     </div><div class="line">    ………</div><div class="line">    lifecycle.fireLifecycleEvent(BEFORE_START_EVENT, null);</div><div class="line">    setAvailable(false);</div><div class="line">    setConfigured(false);</div><div class="line">    boolean ok = true;</div><div class="line">    File configBase = getConfigBase();</div><div class="line">    if (configBase != null) &#123;</div><div class="line">        if (getConfigFile() == null) &#123;</div><div class="line">            File file = new File(configBase, getDefaultConfigFile());</div><div class="line">            setConfigFile(file.getPath());</div><div class="line">            try &#123;</div><div class="line">                File appBaseFile = new File(getAppBase());</div><div class="line">                if (!appBaseFile.isAbsolute()) &#123;</div><div class="line">                    appBaseFile = new File(engineBase(), getAppBase());</div><div class="line">                &#125;</div><div class="line">                String appBase = appBaseFile.getCanonicalPath();</div><div class="line">                String basePath = </div><div class="line">                    (new File(getBasePath())).getCanonicalPath();</div><div class="line">                if (!basePath.startsWith(appBase)) &#123;</div><div class="line">                    Server server = ServerFactory.getServer();</div><div class="line">                    ((StandardServer) server).storeContext(this);</div><div class="line">                &#125;</div><div class="line">            &#125; catch (Exception e) &#123;</div><div class="line">                log.warn(&quot;Error storing config file&quot;, e);</div><div class="line">            &#125;</div><div class="line">        &#125; else &#123;</div><div class="line">            try &#123;</div><div class="line">                String canConfigFile =  (new File(getConfigFile())).getCanonicalPath();</div><div class="line">                if (!canConfigFile.startsWith (configBase.getCanonicalPath())) &#123;</div><div class="line">                    File file = new File(configBase, getDefaultConfigFile());</div><div class="line">                    if (copy(new File(canConfigFile), file)) &#123;</div><div class="line">                        setConfigFile(file.getPath());</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125; catch (Exception e) &#123;</div><div class="line">                log.warn(&quot;Error setting config file&quot;, e);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"> </div><div class="line">    ………</div><div class="line">    Container children[] = findChildren();</div><div class="line">    for (int i = 0; i &lt; children.length; i++) &#123;</div><div class="line">        if (children[i] instanceof Lifecycle)</div><div class="line">            ((Lifecycle) children[i]).start();</div><div class="line">    &#125;</div><div class="line">     </div><div class="line">    if (pipeline instanceof Lifecycle)</div><div class="line">        ((Lifecycle) pipeline).start();</div><div class="line">    ………</div><div class="line"> </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>它主要是设置各种资源属性和管理组件，还有非常重要的就是启动子容器和 Pipeline。</p>
+<p>我们知道 Context 的配置文件中有个 reloadable 属性，如下面配置：</p>
+<p>清单 14. Server.xml<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">Context</span></span></div><div class="line">    <span class="attr">path</span>=<span class="string">"/library"</span></div><div class="line">    <span class="attr">docBase</span>=<span class="string">"D:\projects\library\deploy\target\library.war"</span></div><div class="line">    <span class="attr">reloadable</span>=<span class="string">"true"</span></div><div class="line">/&gt;</div></pre></td></tr></table></figure></p>
+<p>当这个 reloadable 设为 true 时，war 被修改后 Tomcat 会自动的重新加载这个应用。如何做到这点的呢 ? 这个功能是在 StandardContext 的 backgroundProcess 方法中实现的，这个方法的代码如下：</p>
+<p>清单 15. StandardContext. backgroundProcess<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">public void backgroundProcess() &#123;</div><div class="line">    if (!started) return;</div><div class="line">    count = (count + 1) % managerChecksFrequency;</div><div class="line">    if ((getManager() != null) &amp;&amp; (count == 0)) &#123;</div><div class="line">        try &#123;</div><div class="line">            getManager().backgroundProcess();</div><div class="line">        &#125; catch ( Exception x ) &#123;</div><div class="line">            log.warn(&quot;Unable to perform background process on manager&quot;,x);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    if (getLoader() != null) &#123;</div><div class="line">        if (reloadable &amp;&amp; (getLoader().modified())) &#123;</div><div class="line">            try &#123;</div><div class="line">                Thread.currentThread().setContextClassLoader</div><div class="line">                    (StandardContext.class.getClassLoader());</div><div class="line">                reload();</div><div class="line">            &#125; finally &#123;</div><div class="line">                if (getLoader() != null) &#123;</div><div class="line">                    Thread.currentThread().setContextClassLoader</div><div class="line">                        (getLoader().getClassLoader());</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        if (getLoader() instanceof WebappLoader) &#123;</div><div class="line">            ((WebappLoader) getLoader()).closeJARs(false);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>它会调用 reload 方法，而 reload 方法会先调用 stop 方法然后再调用 Start 方法，完成 Context 的一次重新加载。可以看出执行 reload 方法的条件是 reloadable 为 true 和应用被修改，那么这个 backgroundProcess 方法是怎么被调用的呢？</p>
+<p>这个方法是在 ContainerBase 类中定义的内部类 ContainerBackgroundProcessor 被周期调用的，这个类是运行在一个后台线程中，它会周期的执行 run 方法，它的 run 方法会周期调用所有容器的 backgroundProcess 方法，因为所有容器都会继承 ContainerBase 类，所以所有容器都能够在 backgroundProcess 方法中定义周期执行的事件。</p>
+<h4 id="Wrapper-容器"><a href="#Wrapper-容器" class="headerlink" title="Wrapper 容器"></a>Wrapper 容器</h4><p>Wrapper 代表一个 Servlet，它负责管理一个 Servlet，包括的 Servlet 的装载、初始化、执行以及资源回收。Wrapper 是最底层的容器，它没有子容器了，所以调用它的 addChild 将会报错。</p>
+<p>Wrapper 的实现类是 StandardWrapper，StandardWrapper 还实现了拥有一个 Servlet 初始化信息的 ServletConfig，由此看出 StandardWrapper 将直接和 Servlet 的各种信息打交道。</p>
+<p>下面看一下非常重要的一个方法 loadServlet，代码片段如下：</p>
+<p>清单 16. StandardWrapper.loadServlet<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line">public synchronized Servlet loadServlet() throws ServletException &#123;</div><div class="line">    ………</div><div class="line">    Servlet servlet;</div><div class="line">    try &#123;</div><div class="line">        ………</div><div class="line">        ClassLoader classLoader = loader.getClassLoader();</div><div class="line">        ………</div><div class="line">        Class classClass = null;</div><div class="line">        ………</div><div class="line">        servlet = (Servlet) classClass.newInstance();</div><div class="line">        if ((servlet instanceof ContainerServlet) &amp;&amp;</div><div class="line">            (isContainerProvidedServlet(actualClass) ||</div><div class="line">            ((Context)getParent()).getPrivileged() )) &#123;</div><div class="line">                ((ContainerServlet) servlet).setWrapper(this);</div><div class="line">        &#125;</div><div class="line">        classLoadTime=(int) (System.currentTimeMillis() -t1);</div><div class="line">        try &#123;</div><div class="line">            instanceSupport.fireInstanceEvent(InstanceEvent.BEFORE_INIT_EVENT,servlet);</div><div class="line">            if( System.getSecurityManager() != null) &#123;</div><div class="line">                Class[] classType = new Class[]&#123;ServletConfig.class&#125;;</div><div class="line">                Object[] args = new Object[]&#123;((ServletConfig)facade)&#125;;</div><div class="line">                SecurityUtil.doAsPrivilege(&quot;init&quot;,servlet,classType,args);</div><div class="line">            &#125; else &#123;</div><div class="line">                servlet.init(facade);</div><div class="line">            &#125;</div><div class="line">            if ((loadOnStartup &gt;= 0) &amp;&amp; (jspFile != null)) &#123;</div><div class="line">                ………</div><div class="line">                if( System.getSecurityManager() != null) &#123;</div><div class="line">                    Class[] classType = new Class[]&#123;ServletRequest.class,</div><div class="line">                        ServletResponse.class&#125;;</div><div class="line">                    Object[] args = new Object[]&#123;req, res&#125;;</div><div class="line">                    SecurityUtil.doAsPrivilege(&quot;service&quot;,servlet,classType,args);</div><div class="line">                &#125; else &#123;</div><div class="line">                    servlet.service(req, res);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">            instanceSupport.fireInstanceEvent(InstanceEvent.AFTER_INIT_EVENT,servlet);</div><div class="line">            ………</div><div class="line">         </div><div class="line">    return servlet;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>它基本上描述了对 Servlet 的操作，当装载了 Servlet 后就会调用 Servlet 的 init 方法，同时会传一个 StandardWrapperFacade 对象给 Servlet，这个对象包装了 StandardWrapper，ServletConfig 与它们的关系图如下：</p>
+<p>ServletConfig 与 StandardWrapperFacade、StandardWrapper 的关系:<br><img src="https://www.ibm.com/developerworks/cn/java/j-lo-tomcat1/image013.png" alt="image"></p>
+<p>Servlet 可以获得的信息都在 StandardWrapperFacade 封装，这些信息又是在 StandardWrapper 对象中拿到的。所以 Servlet 可以通过 ServletConfig 拿到有限的容器的信息。</p>
+<p>当 Servlet 被初始化完成后，就等着 StandardWrapperValve 去调用它的 service 方法了，调用 service 方法之前要调用 Servlet 所有的 filter。</p>
+<h3 id="pipeline"><a href="#pipeline" class="headerlink" title="pipeline"></a>pipeline</h3><p>接口中定义的方法:<br><img src="http://img.blog.csdn.net/20161007001421097" alt="image"></p>
+<p>一个pipeline包含多个Valve，这些阀共分为两类，一类叫基础阀（通过getBasic、setBasic方法调用），一类是普通阀（通过addValve、removeValve调用）。管道都是包含在容器中，所以有getContainer和setContainer方法。一个管道一般有一个基础阀（通过setBasic添加），可以有0到多个普通阀（通过addValve添加）。 </p>
+<p>isAsyncSupported：当管道中的所有阀门都支持异步时返回ture，否则返回false </p>
+<p>该接口的标准实现是：org.apache.catalina.core.StandardPipeline<br>Engine、Host、Context及Wrapper的pipeline属性都继承自父类ContainerBase。</p>
+<h3 id="Valve"><a href="#Valve" class="headerlink" title="Valve"></a>Valve</h3><p>接口方法:<br><img src="http://img.blog.csdn.net/20161007002724932" alt="image">    </p>
+<p>重点关注setNext、getNext、invoke这三个方法，通过setNext设置该阀的下一阀，通过getNext返回该阀的下一个阀的引用，invoke方法则执行该阀内部自定义的请求处理代码。 </p>
+<p><strong>ValveBase</strong>：是Valve接口的基本实现<br>四大容器类都有各自缺省的标准valve实现。它们分别是</p>
+<ul>
+<li><strong>StandardEngineValve</strong>：StandardEngine中的唯一阀门，主要用于从request中选择其host映射的Host容器StandardHost。</li>
+<li><strong>StandardHostValve</strong>：StandardHost中最后的阀门，主要用于从request中选择其context映射的Context容器StandardContext以及访问request中的Session以更新会话的最后访问时间。</li>
+<li><strong>StandardContextValve</strong>：StandardContext中的唯一阀门，主要作用是禁止任何对WEB-INF或META-INF目录下资源的重定向访问，对应用程序热部署功能的实现，从request中获得StandardWrapper。</li>
+<li><strong>StandardWrapperValve</strong>：StandardWrapper中的唯一阀门，主要作用包括调用StandardWrapper的loadServlet方法生成Servlet实例和调用ApplicationFilterFactory生成Filter链。</li>
+</ul>
+<p>标准valve的调用逻辑图：<br><img src="http://img.blog.csdn.net/20161007004829253" alt="image">    </p>
+<p>从StandardEngineValve开始， 所有的基础阀的实现最后都会调用其下一级容器，所有的普通阀都会执行getNext().invoke(request, response);，一直到StandardWrapperValve，完成请求处理过程。因为Wrapper是对一个Servlet的包装，所以它的基础阀内部调用的过滤器链的doFilter方法和Servlet的service方法。<br>上述机制保证了请求传递到servlet去处理。</p>
+<p>当采用tomcat默认初始配置时，Valve链如下：<br><img src="http://img.blog.csdn.net/20161007005430411" alt="image"></p>
+<h3 id="Tomcat-中其它组件"><a href="#Tomcat-中其它组件" class="headerlink" title="Tomcat 中其它组件"></a>Tomcat 中其它组件</h3><p>Tomcat 还有其它重要的组件，如安全组件 security、logger 日志组件、session、mbeans、naming 等其它组件。这些组件共同为 Connector 和 Container 提供必要的服务。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2018/04/12/服务器相关/Tomcat/Tomcat整体架构浅析/" data-id="cjfvvpho200d5m9fyhqjhdcns" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/04/12/服务器相关/Tomcat/内存分配/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          内存分配
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/04/12/服务器相关/Tomcat/Tomcat类加载机制/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Tomcat类加载机制</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Eclipse/">Eclipse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Github/">Github</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/Cookie/">Cookie</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/JAXB/">JAXB</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/JavaMail/">JavaMail</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/分布式/">分布式</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/基础/">基础</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/数据类型/">数据类型</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/日记/">日记</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/时间日期/">时间日期</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/线程/">线程</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/网络NIO/">网络NIO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/队列/">队列</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/集合/">集合</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Maven/">Maven</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/">Spring</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Application-Event/">Application Event</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/JPA/">JPA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Security/">Security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Spring-Boot/">Spring Boot</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Spring-Session/">Spring Session</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/Task/">Task</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-MVC/">spring MVC</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/spring-data-redis/">spring data redis</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spring/基础/">基础</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/前端技术相关/">前端技术相关</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/前端技术相关/forever/">forever</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/前端技术相关/javascript/">javascript</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/数据库相关/">数据库相关</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/数据库相关/mysql/">mysql</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/">服务器相关</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hessian/">Hessian</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Hudson-Jenkins/">Hudson & Jenkins</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Memcached/">Memcached</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Nginx/">Nginx</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/Tomcat/">Tomcat</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/red5/">red5</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/redis/">redis</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器相关/resin/">resin</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/正则表达式/">正则表达式</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/网络/">网络</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">四月 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">三月 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">二月 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">十月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">八月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">七月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/04/12/服务器相关/Tomcat/TOMCAT原理详解及请求过程/">TOMCAT原理详解及请求过程</a>
+          </li>
+        
+          <li>
+            <a href="/2018/04/12/网络/HTTPS工作原理/">HTTPS工作原理</a>
+          </li>
+        
+          <li>
+            <a href="/2018/04/12/网络/三次握手和四次挥手/">三次握手和四次挥手</a>
+          </li>
+        
+          <li>
+            <a href="/2018/04/12/服务器相关/Tomcat/内存分配/">内存分配</a>
+          </li>
+        
+          <li>
+            <a href="/2018/04/12/服务器相关/Tomcat/Tomcat整体架构浅析/">Tomcat整体架构浅析</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 LeoChan<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

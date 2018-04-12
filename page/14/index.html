@@ -68,14 +68,14 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-Spring/JPA/利用hibernate实现" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/网络NIO/Pipe" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Spring/JPA/利用hibernate实现/" class="article-date">
+    <a href="/2017/07/19/Java/网络NIO/Pipe/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
   </div>
 
   </div>
@@ -86,7 +86,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/JPA/利用hibernate实现/">利用hibernate实现</a>
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/Pipe/">Pipe</a>
     </h1>
   
 
@@ -94,24 +94,131 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="依赖包"><a href="#依赖包" class="headerlink" title="依赖包"></a>依赖包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">&lt;!--  spring data jpa --&gt;</div><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;org.springframework.data&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;spring-data-jpa&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;$&#123;spring-data-jpa.version&#125;&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div><div class="line"></div><div class="line">&lt;dependency&gt;</div><div class="line">	&lt;groupId&gt;org.hibernate&lt;/groupId&gt;</div><div class="line">	&lt;artifactId&gt;hibernate-entitymanager&lt;/artifactId&gt; </div><div class="line">	&lt;version&gt;5.1.0.Final&lt;/version&gt;</div><div class="line">&lt;/dependency&gt; </div><div class="line">	</div><div class="line">&lt;!-- Auditing依赖 --&gt;</div><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;org.springframework&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;spring-aspects&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;$&#123;spring.version&#125;&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div><div class="line">&lt;!-- Auditing依赖 --&gt;</div><div class="line">	</div><div class="line">&lt;dependency&gt;</div><div class="line">   &lt;groupId&gt;javax.el&lt;/groupId&gt;</div><div class="line">   &lt;artifactId&gt;javax.el-api&lt;/artifactId&gt;</div><div class="line">   &lt;version&gt;2.2.4&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div><div class="line"> &lt;!--  spring data jpa --&gt;</div></pre></td></tr></table></figure>
-<h2 id="支持annotation"><a href="#支持annotation" class="headerlink" title="支持annotation"></a>支持annotation</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;tx:annotation-driven /&gt;</div></pre></td></tr></table></figure>
-<h2 id="配置Repository路径"><a href="#配置Repository路径" class="headerlink" title="配置Repository路径"></a>配置Repository路径</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;jpa:repositories base-package=&quot;com.lhc.repository&quot;     /&gt;</div></pre></td></tr></table></figure>
+        <p>Java NIO 管道是2个线程之间的单向数据连接。Pipe有一个source通道和一个sink通道。数据会被写到sink通道，从source通道读取。</p>
+<p>这里是Pipe原理的图示：<br><img src="http://ifeve.com/wp-content/uploads/2013/06/pipe.bmp" alt="image"></p>
+<h3 id="创建管道"><a href="#创建管道" class="headerlink" title="创建管道"></a>创建管道</h3><p>通过Pipe.open()方法打开管道。例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Pipe pipe = Pipe.open();</div></pre></td></tr></table></figure></p>
+<h3 id="向管道写数据"><a href="#向管道写数据" class="headerlink" title="向管道写数据"></a>向管道写数据</h3><p>要向管道写数据，需要访问sink通道。像这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Pipe.SinkChannel sinkChannel = pipe.sink();</div></pre></td></tr></table></figure></p>
+<p>通过调用SinkChannel的write()方法，将数据写入SinkChannel,像这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">String newData = &quot;New String to write to file...&quot; + System.currentTimeMillis();</div><div class="line">ByteBuffer buf = ByteBuffer.allocate(48);</div><div class="line">buf.clear();</div><div class="line">buf.put(newData.getBytes());</div><div class="line">buf.flip();</div><div class="line">while(buf.hasRemaining()) &#123;</div><div class="line">    sinkChannel.write(buf);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="从管道读取数据"><a href="#从管道读取数据" class="headerlink" title="从管道读取数据"></a>从管道读取数据</h3><p>从读取管道的数据，需要访问source通道，像这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Pipe.SourceChannel sourceChannel = pipe.source();</div></pre></td></tr></table></figure></p>
+<p>调用source通道的read()方法来读取数据，像这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">ByteBuffer buf = ByteBuffer.allocate(48);</div><div class="line">int bytesRead = sourceChannel.read(buf);</div></pre></td></tr></table></figure></p>
+<p>read()方法返回的int值会告诉我们多少字节被读进了缓冲区。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/Pipe/" data-id="cjfvvphk6004mm9fyd30qxhbj" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Java/网络NIO/Buffer" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/07/19/Java/网络NIO/Buffer/" class="article-date">
+  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/Buffer/">Buffer</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Java NIO中的Buffer用于和NIO通道进行交互。如你所知，数据是从通道读入缓冲区，从缓冲区写入到通道中的。  </p>
+<p>缓冲区本质上是一块可以写入数据，然后可以从中读取数据的内存。这块内存被包装成NIO Buffer对象，并提供了一组方法，用来方便的访问该块内存。  </p>
+<h2 id="Buffer的基本用法"><a href="#Buffer的基本用法" class="headerlink" title="Buffer的基本用法"></a>Buffer的基本用法</h2><p>使用Buffer读写数据一般遵循以下四个步骤：</p>
+<ol>
+<li>写入数据到Buffer</li>
+<li>调用flip()方法</li>
+<li>从Buffer中读取数据</li>
+<li>调用clear()方法或者compact()方法</li>
+</ol>
+<p>当向buffer写入数据时，buffer会记录下写了多少数据。一旦要读取数据，需要通过flip()方法将Buffer从写模式切换到读模式。在读模式下，可以读取之前写入到buffer的所有数据。</p>
+<p>一旦读完了所有的数据，就需要清空缓冲区，让它可以再次被写入。有两种方式能清空缓冲区：调用clear()或compact()方法。<strong>clear()方法会清空整个缓冲区。compact()方法只会清除已经读过的数据。任何未读的数据都被移到缓冲区的起始处，新写入的数据将放到缓冲区未读数据的后面</strong>。</p>
+<h3 id="Buffer的capacity-position和limit"><a href="#Buffer的capacity-position和limit" class="headerlink" title="Buffer的capacity,position和limit"></a>Buffer的capacity,position和limit</h3><p>缓冲区本质上是一块可以写入数据，然后可以从中读取数据的内存。这块内存被包装成NIO Buffer对象，并提供了一组方法，用来方便的访问该块内存。  </p>
+<p>为了理解Buffer的工作原理，需要熟悉它的三个属性：<br>capacity，position，limit   </p>
+<p>position和limit的含义取决于Buffer处在读模式还是写模式。不管Buffer处在什么模式，capacity的含义总是一样的。</p>
+<p>这里有一个关于capacity，position和limit在读写模式中的说明，详细的解释在插图后面。<br><img src="http://ifeve.com/wp-content/uploads/2013/06/buffers-modes.png" alt="image"></p>
+<h4 id="capacity"><a href="#capacity" class="headerlink" title="capacity"></a>capacity</h4><p><strong>作为一个内存块，Buffer有一个固定的大小值，也叫“capacity”</strong>.你只能往里写capacity个byte、long，char等类型。一旦Buffer满了，需要将其清空（通过读数据或者清除数据）才能继续写数据往里写数据。</p>
+<h4 id="position"><a href="#position" class="headerlink" title="position"></a>position</h4><p>当你写数据到Buffer中时，position表示当前的位置。初始的position值为0.当一个byte、long等数据写到Buffer后， position会向前移动到下一个可插入数据的Buffer单元。</p>
+<p>当读取数据时，也是从某个特定位置读。<strong>当将Buffer从写模式切换到读模式，position会被重置为0. 当从Buffer的position处读取数据时，position向前移动到下一个可读的位置</strong>。</p>
+<h4 id="limit"><a href="#limit" class="headerlink" title="limit"></a>limit</h4><p><strong>在读模式下，Buffer的limit表示你往Buffer里写了多少数据。 写模式下，limit等于Buffer的capacity</strong>。</p>
+<p>当切换Buffer到读模式时， limit表示你最多能读到多少数据。因此，<strong>当切换Buffer到读模式时，limit会被设置成写模式下的position值</strong>。换句话说，你能读到之前写入的所有数据（limit被设置成已写数据的数量，这个值在写模式下就是position）</p>
+<h2 id="Buffer的类型"><a href="#Buffer的类型" class="headerlink" title="Buffer的类型"></a>Buffer的类型</h2><p>Java NIO 有以下Buffer类型：</p>
 <ul>
-<li>默认的事务管理类为<code>transactionManager</code>  </li>
-<li>默认的实体管理工厂为<code>entityManagerFactory</code>  </li>
+<li>ByteBuffer</li>
+<li>MappedByteBuffer</li>
+<li>CharBuffer</li>
+<li>DoubleBuffer</li>
+<li>FloatBuffer</li>
+<li>IntBuffer</li>
+<li>LongBuffer</li>
+<li>ShortBuffer</li>
 </ul>
-<p>可以在配置文件中指定事务管理类和实体管理工厂<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&lt;jpa:repositories base-package=&quot;com.lhc.repository&quot;   entity-manager-factory-ref=&quot;entityManagerFactory&quot;</div><div class="line">   transaction-manager-ref=&quot;transactionManager&quot;  /&gt;</div></pre></td></tr></table></figure></p>
-<h2 id="配置transactionManager"><a href="#配置transactionManager" class="headerlink" title="配置transactionManager"></a>配置transactionManager</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;transactionManager&quot; class=&quot;org.springframework.orm.jpa.JpaTransactionManager&quot;&gt;</div><div class="line">	&lt;property name=&quot;entityManagerFactory&quot; ref=&quot;entityManagerFactory&quot; /&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<h2 id="配置JPA实体管理工厂（entityManagerFactory），此处Hibernate的实现"><a href="#配置JPA实体管理工厂（entityManagerFactory），此处Hibernate的实现" class="headerlink" title="配置JPA实体管理工厂（entityManagerFactory），此处Hibernate的实现"></a>配置JPA实体管理工厂（entityManagerFactory），此处Hibernate的实现</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;entityManagerFactory&quot;</div><div class="line">	class=&quot;org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean&quot;&gt;</div><div class="line">	&lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot; /&gt;</div><div class="line">	&lt;property name=&quot;jpaVendorAdapter&quot;&gt;</div><div class="line">		&lt;bean class=&quot;org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter&quot;&gt;</div><div class="line">			&lt;property name=&quot;database&quot; value=&quot;MYSQL&quot; /&gt;</div><div class="line">			&lt;property name=&quot;databasePlatform&quot; value=&quot;org.hibernate.dialect.MySQLDialect&quot; /&gt;</div><div class="line">			&lt;property name=&quot;showSql&quot; value=&quot;true&quot; /&gt;</div><div class="line">			&lt;property name=&quot;generateDdl&quot; value=&quot;false&quot; /&gt;</div><div class="line">		&lt;/bean&gt;</div><div class="line">	&lt;/property&gt;</div><div class="line">	&lt;property name=&quot;packagesToScan&quot; value=&quot;com.lhc.entity.jpa&quot; /&gt;</div><div class="line">	&lt;property name=&quot;jpaProperties&quot;&gt;</div><div class="line">		&lt;props&gt;</div><div class="line">			&lt;prop key=&quot;hibernate.dialect&quot;&gt;org.hibernate.dialect.MySQL5InnoDBDialect&lt;/prop&gt;</div><div class="line">			&lt;prop key=&quot;hibernate.format_sql&quot;&gt;false&lt;/prop&gt;</div><div class="line">			&lt;!-- &lt;prop key=&quot;hibernate.cache.use_query_cache&quot;&gt;true&lt;/prop&gt;</div><div class="line">			&lt;prop key=&quot;hibernate.cache.use_second_level_cache&quot;&gt;true&lt;/prop&gt;</div><div class="line">			&lt;prop key=&quot;hibernate.cache.region.factory_class&quot;&gt;org.hibernate.cache.ehcache.EhCacheRegionFactory</div><div class="line">			&lt;/prop&gt; --&gt;</div><div class="line">			&lt;prop key=&quot;javax.persistence.sharedCache.mode&quot;&gt;ENABLE_SELECTIVE&lt;/prop&gt;</div><div class="line">			&lt;prop key=&quot;hibernate.generate_statistics&quot;&gt;false&lt;/prop&gt;</div><div class="line">			&lt;prop key=&quot;hibernate.use_sql_comments&quot;&gt;false&lt;/prop&gt;</div><div class="line">			&lt;!-- &lt;prop key=&quot;hibernate.hbm2ddl.auto&quot; &gt;update&lt;/prop&gt; --&gt; </div><div class="line">		&lt;/props&gt;</div><div class="line">	&lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<h2 id="配置审计（即新建实体时自动插入创建人，创建事件，更新实体时自动插入更新人，更新时间）"><a href="#配置审计（即新建实体时自动插入创建人，创建事件，更新实体时自动插入更新人，更新时间）" class="headerlink" title="配置审计（即新建实体时自动插入创建人，创建事件，更新实体时自动插入更新人，更新时间）"></a>配置审计（即新建实体时自动插入创建人，创建事件，更新实体时自动插入更新人，更新时间）</h2><h3 id="Entity配置Listener"><a href="#Entity配置Listener" class="headerlink" title="Entity配置Listener"></a>Entity配置Listener</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">@EntityListeners(AuditingEntityListener.class)</div></pre></td></tr></table></figure>
-<h3 id="Entity添加相应注解"><a href="#Entity添加相应注解" class="headerlink" title="Entity添加相应注解"></a>Entity添加相应注解</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">@CreatedBy</div><div class="line">@Column(name=&quot;created_by&quot;)</div><div class="line">private Integer createdBy;</div><div class="line"></div><div class="line">@CreatedDate</div><div class="line">@Temporal(TemporalType.TIMESTAMP)</div><div class="line">@Column(name=&quot;created_date&quot;)</div><div class="line">private Date createdDate;</div><div class="line"></div><div class="line">@LastModifiedBy</div><div class="line">@Column(name=&quot;modified_by&quot;)</div><div class="line">private Integer modifiedBy;</div><div class="line"></div><div class="line">@LastModifiedDate</div><div class="line">@Temporal(TemporalType.TIMESTAMP)</div><div class="line">@Column(name=&quot;modified_date&quot;)</div><div class="line">private Date modifiedDate;</div></pre></td></tr></table></figure>
-<h3 id="实现AuditorAware接口"><a href="#实现AuditorAware接口" class="headerlink" title="实现AuditorAware接口"></a>实现AuditorAware<t>接口</t></h3><p>以下采用spring security实现<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">public class SpringSecurityAuditorAware implements AuditorAware&lt;Integer&gt; &#123;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public Integer getCurrentAuditor() &#123;</div><div class="line"></div><div class="line">		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();</div><div class="line"></div><div class="line">		if (authentication == null || !authentication.isAuthenticated()) &#123;</div><div class="line">			return 0;</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">		AdminDetails adminDetails = (AdminDetails) authentication.getPrincipal();</div><div class="line">		if(null == adminDetails) &#123;</div><div class="line">			return 0;</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">		return adminDetails.getId();</div><div class="line">	&#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<h3 id="xml配置"><a href="#xml配置" class="headerlink" title="xml配置"></a>xml配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;springSecurityAuditorAware&quot; class=&quot;com.lhc.security.SpringSecurityAuditorAware&quot; /&gt;</div><div class="line">&lt;jpa:auditing auditor-aware-ref=&quot;springSecurityAuditorAware&quot; /&gt;</div></pre></td></tr></table></figure>
+<p>如你所见，这些Buffer类型代表了不同的数据类型。换句话说，就是可以通过char，short，int，long，float 或 double类型来操作缓冲区中的字节。</p>
+<h2 id="Buffer的分配"><a href="#Buffer的分配" class="headerlink" title="Buffer的分配"></a>Buffer的分配</h2><p>要想获得一个Buffer对象首先要进行分配。 每一个Buffer类都有一个allocate方法。下面是一个分配48字节capacity的ByteBuffer的例子。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ByteBuffer buf = ByteBuffer.allocate(48);</div></pre></td></tr></table></figure></p>
+<p>这是分配一个可存储1024个字符的CharBuffer：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">CharBuffer buf = CharBuffer.allocate(1024);</div></pre></td></tr></table></figure></p>
+<h2 id="向Buffer中写数据"><a href="#向Buffer中写数据" class="headerlink" title="向Buffer中写数据"></a>向Buffer中写数据</h2><p>写数据到Buffer有两种方式：</p>
+<ol>
+<li>从Channel写到Buffer。</li>
+<li>通过Buffer的put()方法写到Buffer里。</li>
+</ol>
+<p>从Channel写到Buffer的例子(从channel读取数据到buf中)<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">int bytesRead = inChannel.read(buf); //read into buffer</div></pre></td></tr></table></figure></p>
+<p>通过put方法写Buffer的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">buf.put(127);</div></pre></td></tr></table></figure></p>
+<p>put方法有很多版本，允许你以不同的方式把数据写入到Buffer中。例如， 写到一个指定的位置，或者把一个字节数组写入到Buffer。</p>
+<h3 id="flip-方法"><a href="#flip-方法" class="headerlink" title="flip()方法"></a>flip()方法</h3><p><strong>flip方法将Buffer从写模式切换到读模式。调用flip()方法会将position设回0，并将limit设置成之前position的值</strong>。   </p>
+<p>换句话说，position现在用于标记读的位置，limit表示之前写进了多少个byte、char等 —— 现在能读取多少个byte、char等。</p>
+<h2 id="从Buffer中读取数据"><a href="#从Buffer中读取数据" class="headerlink" title="从Buffer中读取数据"></a>从Buffer中读取数据</h2><p>从Buffer中读取数据有两种方式：</p>
+<ol>
+<li>从Buffer读取数据到Channel。</li>
+<li>使用get()方法从Buffer中读取数据。</li>
+</ol>
+<p>从Buffer读取数据到Channel的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">//read from buffer into channel.</div><div class="line">int bytesWritten = inChannel.write(buf);</div></pre></td></tr></table></figure></p>
+<p>使用get()方法从Buffer中读取数据的例子<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">byte aByte = buf.get();</div></pre></td></tr></table></figure></p>
+<p>get方法有很多版本，允许你以不同的方式从Buffer中读取数据。例如，从指定position读取，或者从Buffer中读取数据到字节数组。</p>
+<h3 id="rewind-方法"><a href="#rewind-方法" class="headerlink" title="rewind()方法"></a>rewind()方法</h3><p><strong>Buffer.rewind()将position设回0，所以你可以重读Buffer中的所有数据</strong>。limit保持不变，仍然表示能从Buffer中读取多少个元素（byte、char等）。</p>
+<h3 id="clear-与compact-方法"><a href="#clear-与compact-方法" class="headerlink" title="clear()与compact()方法"></a>clear()与compact()方法</h3><p>一旦读完Buffer中的数据，需要让Buffer准备好再次被写入。可以通过clear()或compact()方法来完成。</p>
+<p><strong>如果调用的是clear()方法，position将被设回0，limit被设置成 capacity的值。换句话说，Buffer 被清空了。Buffer中的数据并未清除，只是这些标记告诉我们可以从哪里开始往Buffer里写数据。</strong></p>
+<p>如果Buffer中有一些未读的数据，调用clear()方法，数据将“被遗忘”，意味着不再有任何标记会告诉你哪些数据被读过，哪些还没有。</p>
+<p>如果Buffer中仍有未读的数据，且后续还需要这些数据，但是此时想要先先写些数据，那么使用compact()方法。</p>
+<p><strong>compact()方法将所有未读的数据拷贝到Buffer起始处。然后将position设到最后一个未读元素正后面。limit属性依然像clear()方法一样，设置成capacity。现在Buffer准备好写数据了，但是不会覆盖未读的数据。</strong></p>
+<h3 id="mark-与reset-方法"><a href="#mark-与reset-方法" class="headerlink" title="mark()与reset()方法"></a>mark()与reset()方法</h3><p><strong>通过调用Buffer.mark()方法，可以标记Buffer中的一个特定position。之后可以通过调用Buffer.reset()方法恢复到这个position。</strong><br>例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">buffer.mark();</div><div class="line">//call buffer.get() a couple of times, e.g. during parsing.</div><div class="line">buffer.reset();//set position back to mark.</div></pre></td></tr></table></figure></p>
+<h3 id="equals-与compareTo-方法"><a href="#equals-与compareTo-方法" class="headerlink" title="equals()与compareTo()方法"></a>equals()与compareTo()方法</h3><p>可以使用equals()和compareTo()方法比较两个Buffer。</p>
+<h3 id="equals"><a href="#equals" class="headerlink" title="equals()"></a>equals()</h3><p>当满足下列条件时，表示两个Buffer相等：</p>
+<ol>
+<li>有相同的类型（byte、char、int等）。</li>
+<li>Buffer中剩余的byte、char等的个数相等。</li>
+<li>Buffer中所有剩余的byte、char等都相同。</li>
+</ol>
+<p>如你所见，equals只是比较Buffer的一部分，不是每一个在它里面的元素都比较。实际上，它只比较Buffer中的剩余元素。</p>
+<h3 id="compareTo-方法"><a href="#compareTo-方法" class="headerlink" title="compareTo()方法"></a>compareTo()方法</h3><p>compareTo()方法比较两个Buffer的剩余元素(byte、char等)， 如果满足下列条件，则认为一个Buffer“小于”另一个Buffer：</p>
+<ol>
+<li>第一个不相等的元素小于另一个Buffer中对应的元素 。</li>
+<li>所有元素都相等，但第一个Buffer比另一个先耗尽(第一个Buffer的元素个数比另一个少)。</li>
+</ol>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/利用hibernate实现/" data-id="cjei97efo008n89blhoed0laj" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/Buffer/" data-id="cjfvvphk7004pm9fya7rcaf5y" class="article-share-link">Share</a>
       
       
     </footer>
@@ -121,14 +228,14 @@
 
 
   
-    <article id="post-Spring/JPA/对应关系映射配置" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/网络NIO/NIO与传统IO的区别" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Spring/JPA/对应关系映射配置/" class="article-date">
+    <a href="/2017/07/19/Java/网络NIO/NIO与传统IO的区别/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/JPA/">JPA</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
   </div>
 
   </div>
@@ -139,7 +246,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/JPA/对应关系映射配置/">对应关系映射配置</a>
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/NIO与传统IO的区别/">NIO与传统IO的区别</a>
     </h1>
   
 
@@ -147,17 +254,64 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="ManyToMany"><a href="#ManyToMany" class="headerlink" title="ManyToMany"></a>ManyToMany</h2><p>主控方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@ManyToMany(targetEntity=SysRoleEntity.class, fetch=FetchType.LAZY)</div><div class="line">@JoinTable(name=&quot;sys_admin_role&quot;, </div><div class="line">  joinColumns=@JoinColumn(name=&quot;admin_id&quot;, referencedColumnName=&quot;id&quot;),</div><div class="line">  inverseJoinColumns=@JoinColumn(name=&quot;role_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line"> ) </div><div class="line">private List&lt;SysRoleEntity&gt; listOfSysRole;</div></pre></td></tr></table></figure></p>
-<p>被动方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@ManyToMany(mappedBy=&quot;listOfSysRole&quot;, targetEntity=SysAdminEntity.class)</div><div class="line">private List&lt;SysAdminEntity&gt; listOfSysAdmin;</div></pre></td></tr></table></figure></p>
-<h2 id="ManyToOne-And-OneToMany"><a href="#ManyToOne-And-OneToMany" class="headerlink" title="ManyToOne And OneToMany"></a>ManyToOne And OneToMany</h2><p>主控方配置：一般是多的一方为主控<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@ManyToOne</div><div class="line">@JoinColumn(name=&quot;role_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line">private SysRoleEntity sysRole;</div></pre></td></tr></table></figure></p>
-<p>被动方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@OneToMany(mappedBy=&quot;sysRole&quot;, targetEntity=SysAuthorityEntity.class)</div><div class="line">private List&lt;SysAuthorityEntity&gt; listOfsysAuthority;</div></pre></td></tr></table></figure></p>
-<h2 id="OneToOne"><a href="#OneToOne" class="headerlink" title="OneToOne"></a>OneToOne</h2><p>主控方配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">@OneToOne(fetch=FetchType.LAZY)</div><div class="line">@JoinColumn(name=&quot;code_id&quot;, referencedColumnName=&quot;id&quot;)</div><div class="line">private CodeEntity codeEntity;</div></pre></td></tr></table></figure></p>
-<p>被动方配置:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@OneToOne(mappedBy=&quot;codeEntity&quot;, targetEntity=OddsEntity.class, fetch=FetchType.LAZY)</div><div class="line">private OddsEntity oddsEntity;</div></pre></td></tr></table></figure></p>
+        <p>传统的socket IO中，需要为每个连接创建一个线程，当并发的连接数量非常巨大时，线程所占用的栈内存和CPU线程切换的开销将非常巨大。使用NIO，不再需要为每个线程创建单独的线程，可以用一个含有限数量线程的线程池，甚至一个线程来为任意数量的连接服务。由于线程数量小于连接数量，所以每个线程进行IO操作时就不能阻塞，如果阻塞的话，有些连接就得不到处理，NIO提供了这种非阻塞的能力。 </p>
+<p>小量的线程如何同时为大量连接服务呢，答案就是就绪选择。这就好比到餐厅吃饭，每来一桌客人，都有一个服务员专门为你服务，从你到餐厅到结帐走人，这样方式的好处是服务质量好，一对一的服务，VIP啊，可是缺点也很明显，成本高，如果餐厅生意好，同时来100桌客人，就需要100个服务员，那老板发工资的时候得心痛死了，这就是传统的一个连接一个线程的方式。</p>
+<p>老板是什么人啊，精着呢。这老板就得捉摸怎么能用10个服务员同时为100桌客人服务呢，老板就发现，服务员在为客人服务的过程中并不是一直都忙着，客人点完菜，上完菜，吃着的这段时间，服务员就闲下来了，可是这个服务员还是被这桌客人占用着，不能为别的客人服务，用华为领导的话说，就是工作不饱满。那怎么把这段闲着的时间利用起来呢。这餐厅老板就想了一个办法，让一个服务员（前台）专门负责收集客人的需求，登记下来，比如有客人进来了、客人点菜了，客人要结帐了，都先记录下来按顺序排好。每个服务员到这里领一个需求，比如点菜，就拿着菜单帮客人点菜去了。点好菜以后，服务员马上回来，领取下一个需求，继续为别人客人服务去了。这种方式服务质量就不如一对一的服务了，当客人数据很多的时候可能需要等待。但好处也很明显，由于在客人正吃饭着的时候服务员不用闲着了，服务员这个时间内可以为其他客人服务了，原来10个服务员最多同时为10桌客人服务，现在可能为50桌，60客人服务了。</p>
+<p>这种服务方式跟传统的区别有两个：</p>
+<ol>
+<li>增加了一个角色，要有一个专门负责收集客人需求的人。NIO里对应的就是Selector。</li>
+<li>由阻塞服务方式改为非阻塞服务了，客人吃着的时候服务员不用一直侯在客人旁边了。传统的IO操作，比如read()，当没有数据可读的时候，线程一直阻塞被占用，直到数据到来。NIO中没有数据可读时，read()会立即返回0，线程不会阻塞。</li>
+</ol>
+<p>NIO中，客户端创建一个连接后，先要将连接注册到Selector，相当于客人进入餐厅后，告诉前台你要用餐，前台会告诉你你的桌号是几号，然后你就可能到那张桌子坐下了，SelectionKey就是桌号。当某一桌需要服务时，前台就记录哪一桌需要什么服务，比如1号桌要点菜，2号桌要结帐，服务员从前台取一条记录，根据记录提供服务，完了再来取下一条。这样服务的时间就被最有效的利用起来了。</p>
+<h3 id="java-NIO-和阻塞I-O的区别"><a href="#java-NIO-和阻塞I-O的区别" class="headerlink" title="java NIO 和阻塞I/O的区别"></a>java NIO 和阻塞I/O的区别</h3><h4 id="阻塞I-O通信模型"><a href="#阻塞I-O通信模型" class="headerlink" title="阻塞I/O通信模型"></a>阻塞I/O通信模型</h4><p>假如现在你对阻塞I/O已有了一定了解，我们知道阻塞I/O在调用InputStream.read()方法时是阻塞的，它会一直等到数据到来时（或超时）才会返回；同样，在调用ServerSocket.accept()方法时，也会一直阻塞到有客户端连接才会返回，每个客户端连接过来后，服务端都会启动一个线程去处理该客户端的请求。阻塞I/O的通信模型示意图如下：<br><img src="http://dl.iteye.com/upload/attachment/0066/2121/3158e45b-1bb9-37a2-ba3e-3982b604eeff.jpg" alt="image">    </p>
+<p>如果你细细分析，一定会发现阻塞I/O存在一些缺点。根据阻塞I/O通信模型，我总结了它的两点缺点：</p>
+<ol>
+<li><p>当客户端多时，会创建大量的处理线程。且每个线程都要占用栈空间和一些CPU时间</p>
+</li>
+<li><p>阻塞可能带来频繁的上下文切换，且大部分上下文切换可能是无意义的。</p>
+</li>
+</ol>
+<p>在这种情况下非阻塞式I/O就有了它的应用前景。</p>
+<h3 id="java-NIO原理及通信模型"><a href="#java-NIO原理及通信模型" class="headerlink" title="java NIO原理及通信模型"></a>java NIO原理及通信模型</h3><p>Java NIO是在jdk1.4开始使用的，它既可以说成“新I/O”，也可以说成非阻塞式I/O。下面是java NIO的工作原理：</p>
+<ol>
+<li>由一个专门的线程来处理所有的 IO 事件，并负责分发。 </li>
+<li>事件驱动机制：事件到的时候触发，而不是同步的去监视事件。 </li>
+<li>线程通讯：线程之间通过 wait,notify 等方式通讯。保证每次上下文切换都是有意义的。减少无谓的线程切换。</li>
+</ol>
+<p>阅读过一些资料之后，下面贴出我理解的java NIO的工作原理图：<br><img src="http://dl.iteye.com/upload/attachment/0066/2123/c17e2880-a712-349f-a818-2c921303f224.jpg" alt="image"><br>（注：每个线程的处理流程大概都是读取数据、解码、计算处理、编码、发送响应。）  </p>
+<p>Java NIO的服务端只需启动一个专门的线程来处理所有的 IO 事件，这种通信模型是怎么实现的呢？呵呵，我们一起来探究它的奥秘吧。<strong>java NIO采用了双向通道（channel）进行数据传输，而不是单向的流（stream），在通道上可以注册我们感兴趣的事件</strong>。一共有以下四种事件：    </p>
+<table>
+<thead>
+<tr>
+<th>事件名</th>
+<th>对应值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>服务端接收客户端连接事件</td>
+<td>SelectionKey.OP_ACCEPT(16)</td>
+</tr>
+<tr>
+<td>客户端连接服务端事件</td>
+<td>SelectionKey.OP_CONNECT(8)</td>
+</tr>
+<tr>
+<td>读事件</td>
+<td>SelectionKey.OP_READ(1)</td>
+</tr>
+<tr>
+<td>写事件</td>
+<td>SelectionKey.OP_WRITE(4)</td>
+</tr>
+</tbody>
+</table>
+<p>服务端和客户端各自维护一个管理通道的对象，我们称之为selector，该对象能检测一个或多个通道 (channel) 上的事件。我们以服务端为例，如果服务端的selector上注册了读事件，某时刻客户端给服务端发送了一些数据，阻塞I/O这时会调用read()方法阻塞地读取数据，而NIO的服务端会在selector中添加一个读事件。服务端的处理线程会轮询地访问selector，如果访问selector时发现有感兴趣的事件到达，则处理这些事件，如果没有感兴趣的事件到达，则处理线程会一直阻塞直到感兴趣的事件到达为止。下面是我理解的java NIO的通信模型示意图：<br><img src="http://dl.iteye.com/upload/attachment/0066/3190/0184183e-286c-34f1-9742-4adaa28b7003.jpg" alt="image">    </p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/JPA/对应关系映射配置/" data-id="cjei97efp008q89blxuq6z161" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/NIO与传统IO的区别/" data-id="cjfvvphk8004rm9fyy48sbf2o" class="article-share-link">Share</a>
       
       
     </footer>
@@ -167,14 +321,14 @@
 
 
   
-    <article id="post-Spring/Security/获取所有登录用户" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/网络NIO/ServerSocketChannel" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Spring/Security/获取所有登录用户/" class="article-date">
+    <a href="/2017/07/19/Java/网络NIO/ServerSocketChannel/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>►<a class="article-category-link" href="/categories/Spring/Security/">Security</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
   </div>
 
   </div>
@@ -185,7 +339,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Spring/Security/获取所有登录用户/">获取所有登录用户</a>
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/ServerSocketChannel/">ServerSocketChannel</a>
     </h1>
   
 
@@ -193,13 +347,19 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="web-xml"><a href="#web-xml" class="headerlink" title="web.xml"></a>web.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;listener&gt;</div><div class="line">    &lt;listener-class&gt;</div><div class="line">      org.springframework.security.web.session.HttpSessionEventPublisher</div><div class="line">    &lt;/listener-class&gt;</div><div class="line">&lt;/listener&gt;</div></pre></td></tr></table></figure>
-<h2 id="security-xml"><a href="#security-xml" class="headerlink" title="security.xml"></a>security.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&lt;http&gt;</div><div class="line">    &lt;session-management &gt;</div><div class="line">    	&lt;concurrency-control max-sessions=&quot;1&quot; session-registry-ref=&quot;sessionRegistry&quot;</div><div class="line">    	expired-url=&quot;/admin/none/session_expired.jsp&quot; /&gt; </div><div class="line">    &lt;/session-management&gt;</div><div class="line">&lt;/http&gt;</div><div class="line"></div><div class="line">&lt;beans:bean id=&quot;sessionRegistry&quot; class=&quot;org.springframework.security.core.session.SessionRegistryImpl&quot; /&gt;</div></pre></td></tr></table></figure>
-<h2 id="java中使用"><a href="#java中使用" class="headerlink" title="java中使用"></a>java中使用</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sessionRegistry.getAllPrincipals()</div></pre></td></tr></table></figure>
+        <p>Java NIO中的 ServerSocketChannel 是一个可以监听新进来的TCP连接的通道, 就像标准IO中的ServerSocket一样。ServerSocketChannel类在 java.nio.channels包中。</p>
+<p>这里有个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();</div><div class="line">serverSocketChannel.socket().bind(new InetSocketAddress(9999));</div><div class="line"></div><div class="line">while(true)&#123;</div><div class="line">    SocketChannel socketChannel = serverSocketChannel.accept();</div><div class="line">    //do something with socketChannel...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="打开-ServerSocketChannel"><a href="#打开-ServerSocketChannel" class="headerlink" title="打开 ServerSocketChannel"></a>打开 ServerSocketChannel</h3><p>通过调用 ServerSocketChannel.open() 方法来打开ServerSocketChannel.如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();</div></pre></td></tr></table></figure></p>
+<h3 id="关闭-ServerSocketChannel"><a href="#关闭-ServerSocketChannel" class="headerlink" title="关闭 ServerSocketChannel"></a>关闭 ServerSocketChannel</h3><p>通过调用ServerSocketChannel.close() 方法来关闭ServerSocketChannel. 如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">serverSocketChannel.close();</div></pre></td></tr></table></figure></p>
+<h3 id="监听新进来的连接"><a href="#监听新进来的连接" class="headerlink" title="监听新进来的连接"></a>监听新进来的连接</h3><p>通过 ServerSocketChannel.accept() 方法监听新进来的连接。当 accept()方法返回的时候,它返回一个包含新进来的连接的 SocketChannel。因此, accept()方法会一直阻塞到有新连接到达。</p>
+<p>通常不会仅仅只监听一个连接,在while循环中调用 accept()方法. 如下面的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">while(true)&#123;</div><div class="line"></div><div class="line">    SocketChannel socketChannel = serverSocketChannel.accept();</div><div class="line"></div><div class="line">    //do something with socketChannel...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>当然,也可以在while循环中使用除了true以外的其它退出准则。</p>
+<h3 id="非阻塞模式"><a href="#非阻塞模式" class="headerlink" title="非阻塞模式"></a>非阻塞模式</h3><p>ServerSocketChannel可以设置成非阻塞模式。在非阻塞模式下，accept() 方法会立刻返回，如果还没有新进来的连接,返回的将是null。 因此，需要检查返回的SocketChannel是否是null.如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();</div><div class="line">serverSocketChannel.socket().bind(new InetSocketAddress(9999));</div><div class="line">serverSocketChannel.configureBlocking(false);</div><div class="line">while(true)&#123;</div><div class="line"></div><div class="line">    SocketChannel socketChannel = serverSocketChannel.accept();</div><div class="line"></div><div class="line">    if(socketChannel != null)&#123;</div><div class="line">        //do something with socketChannel...</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Spring/Security/获取所有登录用户/" data-id="cjei97efq008r89blp4xeogs8" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/ServerSocketChannel/" data-id="cjfvvphk9004um9fyg50fmg7c" class="article-share-link">Share</a>
       
       
     </footer>
@@ -209,14 +369,14 @@
 
 
   
-    <article id="post-Java/日记/spring配置log4j" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/网络NIO/Selector" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Java/日记/spring配置log4j/" class="article-date">
+    <a href="/2017/07/19/Java/网络NIO/Selector/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/日记/">日记</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
   </div>
 
   </div>
@@ -227,7 +387,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/日记/spring配置log4j/">spring配置log4j</a>
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/Selector/">Selector</a>
     </h1>
   
 
@@ -235,21 +395,66 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="依赖包"><a href="#依赖包" class="headerlink" title="依赖包"></a>依赖包</h2><p>引入下面这个包即可，maven会自动加载依赖包<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;  </div><div class="line">    &lt;groupId&gt;org.slf4j&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;  </div><div class="line">    &lt;version&gt;1.7.2&lt;/version&gt;  </div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure></p>
-<p>实际上需要jar包</p>
+        <p>Selector（选择器）是Java NIO中能够检测一到多个NIO通道，并能够知晓通道是否为诸如读写事件做好准备的组件。这样，一个单独的线程可以管理多个channel，从而管理多个网络连接。</p>
+<h3 id="为什么使用Selector"><a href="#为什么使用Selector" class="headerlink" title="为什么使用Selector?"></a>为什么使用Selector?</h3><p>仅用单个线程来处理多个Channels的好处是，只需要更少的线程来处理通道。事实上，可以只用一个线程处理所有的通道。对于操作系统来说，线程之间上下文切换的开销很大，而且每个线程都要占用系统的一些资源（如内存）。因此，使用的线程越少越好。</p>
+<p>但是，需要记住，现代的操作系统和CPU在多任务方面表现的越来越好，所以多线程的开销随着时间的推移，变得越来越小了。实际上，如果一个CPU有多个内核，不使用多任务可能是在浪费CPU能力。不管怎么说，关于那种设计的讨论应该放在另一篇不同的文章中。在这里，只要知道使用Selector能够处理多个通道就足够了。 </p>
+<h3 id="Selector的创建"><a href="#Selector的创建" class="headerlink" title="Selector的创建"></a>Selector的创建</h3><p>通过调用Selector.open()方法创建一个Selector，如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Selector selector = Selector.open();</div></pre></td></tr></table></figure></p>
+<h3 id="向Selector注册通道"><a href="#向Selector注册通道" class="headerlink" title="向Selector注册通道"></a>向Selector注册通道</h3><p>为了将Channel和Selector配合使用，必须将channel注册到selector上。通过SelectableChannel.register()方法来实现，如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">channel.configureBlocking(false);</div><div class="line">SelectionKey key = channel.register(selector,</div><div class="line">	Selectionkey.OP_READ);</div></pre></td></tr></table></figure></p>
+<p><strong>与Selector一起使用时，Channel必须处于非阻塞模式下</strong>。这意味着不能将FileChannel与Selector一起使用，因为FileChannel不能切换到非阻塞模式。而套接字通道都可以。</p>
+<p>注意register()方法的第二个参数。这是一个“interest集合”，意思是在通过Selector监听Channel时对什么事件感兴趣。可以监听四种不同类型的事件：</p>
+<ol>
+<li>Connect</li>
+<li>Accept</li>
+<li>Read</li>
+<li>Write</li>
+</ol>
+<p>通道触发了一个事件意思是该事件已经就绪。所以，某个channel成功连接到另一个服务器称为“连接就绪”。一个server socket channel准备好接收新进入的连接称为“接收就绪”。一个有数据可读的通道可以说是“读就绪”。等待写数据的通道可以说是“写就绪”。</p>
+<p>这四种事件用SelectionKey的四个常量来表示：</p>
+<ol>
+<li>SelectionKey.OP_CONNECT</li>
+<li>SelectionKey.OP_ACCEPT</li>
+<li>SelectionKey.OP_READ</li>
+<li>SelectionKey.OP_WRITE</li>
+</ol>
+<p>如果你对不止一种事件感兴趣，那么可以用“位或”操作符将常量连接起来，如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">int interestSet = SelectionKey.OP_READ | SelectionKey.OP_WRITE;</div></pre></td></tr></table></figure></p>
+<h3 id="SelectionKey"><a href="#SelectionKey" class="headerlink" title="SelectionKey"></a>SelectionKey</h3><p>当向Selector注册Channel时，register()方法会返回一个SelectionKey对象。这个对象包含了一些你感兴趣的属性：</p>
 <ul>
-<li>slf4j-log4j12-1.7.2.jar</li>
-<li>slf4j-api-1.7.2.jar</li>
-<li>log4j-1.2.17.jar</li>
-<li>commons-logging-1.0.3.jar</li>
+<li>interest集合</li>
+<li>ready集合</li>
+<li>Channel</li>
+<li>Selector</li>
+<li>附加的对象（可选）</li>
 </ul>
-<h2 id="web文件中的配置"><a href="#web文件中的配置" class="headerlink" title="web文件中的配置"></a>web文件中的配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;!--  设置log4j配置文件目录 --&gt;</div><div class="line">&lt;context-param&gt;  </div><div class="line">    &lt;param-name&gt;log4jConfigLocation&lt;/param-name&gt;  </div><div class="line">    &lt;param-value&gt;WEB-INF/log4j.properties&lt;/param-value&gt;  </div><div class="line">&lt;/context-param&gt;  </div><div class="line">  </div><div class="line">&lt;!-- 启动一个watchdog线程每3秒扫描一下log4j配置文件的变化  --&gt;</div><div class="line">&lt;!-- &lt;context-param&gt;  </div><div class="line">    &lt;param-name&gt;log4jRefreshInterval&lt;/param-name&gt;  </div><div class="line">    &lt;param-value&gt;3000&lt;/param-value&gt;</div><div class="line">&lt;/context-param&gt;  --&gt;</div><div class="line"></div><div class="line">&lt;!-- 设置监听器 --&gt;</div><div class="line">&lt;listener&gt;  </div><div class="line">    &lt;listener-class&gt;  </div><div class="line">        org.springframework.web.util.Log4jConfigListener  </div><div class="line">    &lt;/listener-class&gt;  </div><div class="line">&lt;/listener&gt;</div></pre></td></tr></table></figure>
-<p>默认会找默认会找src目录下的log4j.properties<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;context-param&gt;</div><div class="line">    &lt;param-name&gt;log4jConfigLocation&lt;/param-name&gt;</div><div class="line">    &lt;param-value&gt;classpath:log4j.properties&lt;/param-value&gt;</div><div class="line">&lt;/context-param&gt;</div></pre></td></tr></table></figure></p>
-<h2 id="log4j-properties"><a href="#log4j-properties" class="headerlink" title="log4j.properties"></a>log4j.properties</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div></pre></td><td class="code"><pre><div class="line"># +======================================================================+#</div><div class="line">log4j.rootLogger=$&#123;log4j.log.level&#125;,$&#123;log4j.log.target&#125;</div><div class="line">log4j.addivity.org.apache=true</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - Console</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender</div><div class="line">log4j.appender.CONSOLE.Threshold=$&#123;log4j.log.level&#125;</div><div class="line">log4j.appender.CONSOLE.Encoding=$&#123;log4j.log.encoding&#125;</div><div class="line">log4j.appender.CONSOLE.Target=System.out</div><div class="line">log4j.appender.CONSOLE.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.CONSOLE.layout.ConversionPattern=$&#123;log4j.log.layout.pattern&#125;</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - FILE</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.FILE=org.apache.log4j.RollingFileAppender</div><div class="line">log4j.appender.FILE.Threshold=$&#123;log4j.log.level&#125;</div><div class="line">log4j.appender.FILE.Encoding=$&#123;log4j.log.encoding&#125;</div><div class="line">log4j.appender.FILE.File=$&#123;log4j.log.dir&#125;/runtime.log</div><div class="line">log4j.appender.FILE.Append=true</div><div class="line">#规定最大到1024K，就生成新文件</div><div class="line">log4j.appender.FILE.MaxFileSize=2048KB</div><div class="line">#最多生成10个</div><div class="line">log4j.appender.FILE.MaxBackupIndex=10</div><div class="line">log4j.appender.FILE.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.FILE.layout.ConversionPattern=$&#123;log4j.log.layout.pattern&#125;</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - DATABASE</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.DATABASE=org.apache.log4j.jdbc.JDBCAppender</div><div class="line">log4j.appender.DATABASE.Threshold=ERROR</div><div class="line">log4j.appender.DATABASE.URL=jdbc:mysql://127.0.0.1:3306/spring</div><div class="line">log4j.appender.DATABASE.driver=com.mysql.jdbc.Driver</div><div class="line">log4j.appender.DATABASE.user=root</div><div class="line">log4j.appender.DATABASE.password=liuriqi</div><div class="line">log4j.appender.DATABASE.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.DATABASE.sql=INSERT INTO tv_log4j(message)VALUES(&apos;$&#123;log4j.log.layout.pattern&#125;&apos;)</div><div class="line"># +======================================================================+#</div><div class="line"># | [target] - EMAIL</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.appender.EMAIL=org.apache.log4j.net.SMTPAppender</div><div class="line">log4j.appender.EMAIL.Threshold=FATAL</div><div class="line">log4j.appender.EMAIL.BufferSize=10</div><div class="line">log4j.appender.EMAIL.From=fromuser@gmail.com</div><div class="line">log4j.appender.EMAIL.SMTPHost=localhost</div><div class="line">log4j.appender.EMAIL.Subject=Log4J Message</div><div class="line">log4j.appender.EMAIL.To=touser@gmail.com</div><div class="line">log4j.appender.EMAIL.layout=$&#123;log4j.log.layout&#125;</div><div class="line">log4j.appender.EMAIL.layout.ConversionPattern=$&#123;log4j.log.layout.pattern&#125;</div><div class="line"># +======================================================================+#</div><div class="line">上面配置相关的变量，我提取出来统一放到变量配置文件里边，如下：</div><div class="line"></div><div class="line"># +======================================================================+#</div><div class="line"># | log4j config</div><div class="line"># +----------------------------------------------------------------------+#</div><div class="line">log4j.log.dir=logs/</div><div class="line">#log4j.log.level=ALL,TRACE,DEBUG,INFO,WARN,ERROR,FATAL,OFF</div><div class="line">log4j.log.level=DEBUG</div><div class="line">#log4j.log.target=CONSOLE,FILE,DATABASE,EMAIL,SOCKET</div><div class="line">log4j.log.target=CONSOLE,FILE</div><div class="line">log4j.log.encoding=UTF-8</div><div class="line">log4j.log.layout=org.apache.log4j.PatternLayout</div><div class="line">log4j.log.layout.pattern=[%d %r] [%-5p] [%t] [%l] [%m]%n</div><div class="line"># +======================================================================+#</div></pre></td></tr></table></figure>
+<p>下面我会描述这些属性。</p>
+<h4 id="interest集合"><a href="#interest集合" class="headerlink" title="interest集合"></a>interest集合</h4><p>就像向Selector注册通道一节中所描述的，interest集合是你所选择的感兴趣的事件集合。可以通过SelectionKey读写interest集合，像这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">int interestSet = selectionKey.interestOps();</div><div class="line"></div><div class="line">boolean isInterestedInAccept  = (interestSet &amp; SelectionKey.OP_ACCEPT) == SelectionKey.OP_ACCEPT；</div><div class="line">boolean isInterestedInConnect = interestSet &amp; SelectionKey.OP_CONNECT;</div><div class="line">boolean isInterestedInRead    = interestSet &amp; SelectionKey.OP_READ;</div><div class="line">boolean isInterestedInWrite   = interestSet &amp; SelectionKey.OP_WRITE;</div></pre></td></tr></table></figure></p>
+<p>可以看到，用“位与”操作interest 集合和给定的SelectionKey常量，可以确定某个确定的事件是否在interest 集合中。</p>
+<h4 id="ready集合"><a href="#ready集合" class="headerlink" title="ready集合"></a>ready集合</h4><p>ready 集合是通道已经准备就绪的操作的集合。在一次选择(Selection)之后，你会首先访问这个ready set。Selection将在下一小节进行解释。可以这样访问ready集合：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">int readySet = selectionKey.readyOps();</div></pre></td></tr></table></figure></p>
+<p>可以用像检测interest集合那样的方法，来检测channel中什么事件或操作已经就绪。但是，也可以使用以下四个方法，它们都会返回一个布尔类型：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">selectionKey.isAcceptable();</div><div class="line">selectionKey.isConnectable();</div><div class="line">selectionKey.isReadable();</div><div class="line">selectionKey.isWritable();</div></pre></td></tr></table></figure></p>
+<h4 id="Channel-Selector"><a href="#Channel-Selector" class="headerlink" title="Channel + Selector"></a>Channel + Selector</h4><p>从SelectionKey访问Channel和Selector很简单。如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Channel  channel  = selectionKey.channel();</div><div class="line">Selector selector = selectionKey.selector();</div></pre></td></tr></table></figure></p>
+<h4 id="附加的对象"><a href="#附加的对象" class="headerlink" title="附加的对象"></a>附加的对象</h4><p>可以将一个对象或者更多信息附着到SelectionKey上，这样就能方便的识别某个给定的通道。例如，可以附加 与通道一起使用的Buffer，或是包含聚集数据的某个对象。使用方法如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">selectionKey.attach(theObject);</div><div class="line">Object attachedObj = selectionKey.attachment();</div></pre></td></tr></table></figure></p>
+<p>还可以在用register()方法向Selector注册Channel的时候附加对象。如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">SelectionKey key = channel.register(selector, SelectionKey.OP_READ, theObject);</div></pre></td></tr></table></figure></p>
+<h3 id="通过Selector选择通道"><a href="#通过Selector选择通道" class="headerlink" title="通过Selector选择通道"></a>通过Selector选择通道</h3><p>一旦向Selector注册了一或多个通道，就可以调用几个重载的select()方法。这些方法返回你所感兴趣的事件（如连接、接受、读或写）已经准备就绪的那些通道。换句话说，如果你对“读就绪”的通道感兴趣，select()方法会返回读事件已经就绪的那些通道。  </p>
+<p>下面是select()方法：</p>
+<ul>
+<li>int select():阻塞直到至少有一个通道在你注册的事件上就绪了。</li>
+<li>int select(long timeout):和select()一样，除了最长会阻塞timeout毫秒(参数)。</li>
+<li>int selectNow():不会阻塞，不管什么通道就绪都立刻返回（译者注：此方法执行非阻塞的选择操作。如果自从前一次选择操作后，没有通道变成可选择的，则此方法直接返回零）。</li>
+</ul>
+<p>select()方法返回的int值表示有多少通道已经就绪。亦即，自上次调用select()方法后有多少通道变成就绪状态。如果调用select()方法，因为有一个通道变成就绪状态，返回了1，若再次调用select()方法，如果另一个通道就绪了，它会再次返回1。如果对第一个就绪的channel没有做任何操作，现在就有两个就绪的通道，但在每次select()方法调用之间，只有一个通道就绪了。</p>
+<h4 id="selectedKeys"><a href="#selectedKeys" class="headerlink" title="selectedKeys()"></a>selectedKeys()</h4><p>一旦调用了select()方法，并且返回值表明有一个或更多个通道就绪了，然后可以通过调用selector的selectedKeys()方法，访问“已选择键集（selected key set）”中的就绪通道。如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Set selectedKeys = selector.selectedKeys();</div></pre></td></tr></table></figure></p>
+<p>当像Selector注册Channel时，Channel.register()方法会返回一个SelectionKey 对象。这个对象代表了注册到该Selector的通道。可以通过Selector的selectedKeys()方法访问这些对象。    </p>
+<p>可以遍历这个已选择的键集合来访问就绪的通道。如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">Set selectedKeys = selector.selectedKeys();</div><div class="line">Iterator keyIterator = selectedKeys.iterator();</div><div class="line">while(keyIterator.hasNext()) &#123;</div><div class="line">    SelectionKey key = keyIterator.next();</div><div class="line">    if(key.isAcceptable()) &#123;</div><div class="line">        // a connection was accepted by a ServerSocketChannel.</div><div class="line">    &#125; else if (key.isConnectable()) &#123;</div><div class="line">        // a connection was established with a remote server.</div><div class="line">    &#125; else if (key.isReadable()) &#123;</div><div class="line">        // a channel is ready for reading</div><div class="line">    &#125; else if (key.isWritable()) &#123;</div><div class="line">        // a channel is ready for writing</div><div class="line">    &#125;</div><div class="line">    keyIterator.remove();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这个循环遍历已选择键集中的每个键，并检测各个键所对应的通道的就绪事件。</p>
+<p><strong>注意每次迭代末尾的keyIterator.remove()调用。Selector不会自己从已选择键集中移除SelectionKey实例。必须在处理完通道时自己移除。下次该通道变成就绪时，Selector会再次将其放入已选择键集中。</strong></p>
+<p>SelectionKey.channel()方法返回的通道需要转型成你要处理的类型，如ServerSocketChannel或SocketChannel等。</p>
+<h4 id="wakeUp"><a href="#wakeUp" class="headerlink" title="wakeUp()"></a>wakeUp()</h4><p>某个线程调用select()方法后阻塞了，即使没有通道已经就绪，也有办法让其从select()方法返回。只要让其它线程在第一个线程调用select()方法的那个对象上调用Selector.wakeup()方法即可。阻塞在select()方法上的线程会立马返回。   </p>
+<p>如果有其它线程调用了wakeup()方法，但当前没有线程阻塞在select()方法上，下个调用select()方法的线程会立即“醒来（wake up）”。</p>
+<h4 id="close"><a href="#close" class="headerlink" title="close()"></a>close()</h4><p>用完Selector后调用其close()方法会关闭该Selector，且使注册到该Selector上的所有SelectionKey实例无效。通道本身并不会关闭。</p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/日记/spring配置log4j/" data-id="cjei97ee2005289blm1igazuk" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/Selector/" data-id="cjfvvphka004wm9fyjrcbyxh2" class="article-share-link">Share</a>
       
       
     </footer>
@@ -259,14 +464,14 @@
 
 
   
-    <article id="post-Java/JavaMail/简单发送事例" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/网络NIO/channel" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Java/JavaMail/简单发送事例/" class="article-date">
+    <a href="/2017/07/19/Java/网络NIO/channel/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/JavaMail/">JavaMail</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
   </div>
 
   </div>
@@ -277,7 +482,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/JavaMail/简单发送事例/">简单发送事例</a>
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/channel/">channel</a>
     </h1>
   
 
@@ -285,11 +490,27 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div></pre></td><td class="code"><pre><div class="line">package com.roaster.util;</div><div class="line">import java.util.Properties;</div><div class="line"></div><div class="line">import javax.mail.Authenticator;</div><div class="line">import javax.mail.MessagingException;</div><div class="line">import javax.mail.PasswordAuthentication;</div><div class="line">import javax.mail.Session;</div><div class="line">import javax.mail.Transport;</div><div class="line">import javax.mail.internet.InternetAddress;</div><div class="line">import javax.mail.internet.MimeMessage;</div><div class="line"></div><div class="line">public class SimpleAliDMSendMailUtil &#123;</div><div class="line">	//private static final String ALIDM_SMTP_HOST = &quot;smtpdm.aliyun.com&quot;;</div><div class="line">	private static final String ALIDM_SMTP_HOST = &quot;smtp.exmail.qq.com&quot;;</div><div class="line">        private static final int ALIDM_SMTP_PORT = 25;</div><div class="line"></div><div class="line">	public static void sendMail(String sendTo, String subject, String body) throws MessagingException &#123;</div><div class="line">		// 配置发送邮件的环境属性</div><div class="line">            final Properties props = new Properties();</div><div class="line">            // 表示SMTP发送邮件，需要进行身份验证</div><div class="line">            props.put(&quot;mail.smtp.auth&quot;, &quot;true&quot;);</div><div class="line">            props.put(&quot;mail.smtp.host&quot;, ALIDM_SMTP_HOST);</div><div class="line">            //props.put(&quot;mail.smtp.port&quot;, ALIDM_SMTP_PORT);   </div><div class="line">            // 如果使用ssl，则去掉使用25端口的配置，进行如下配置, </div><div class="line">            props.put(&quot;mail.smtp.socketFactory.class&quot;, &quot;javax.net.ssl.SSLSocketFactory&quot;);</div><div class="line">            props.put(&quot;mail.smtp.socketFactory.port&quot;, &quot;465&quot;);</div><div class="line">            props.put(&quot;mail.smtp.port&quot;, &quot;465&quot;);</div><div class="line">    </div><div class="line">    </div><div class="line">            // 发件人的账号</div><div class="line">            props.put(&quot;mail.user&quot;, &quot;账号&quot;);</div><div class="line">            // 访问SMTP服务时需要提供的密码</div><div class="line">            props.put(&quot;mail.password&quot;, &quot;密码&quot;);</div><div class="line">            props.put(&quot;mail.smtp.localhost&quot;, &quot;127.0.0.1&quot;);//防止Linux发送时产生501错误</div><div class="line">    </div><div class="line">            // 构建授权信息，用于进行SMTP进行身份验证</div><div class="line">            Authenticator authenticator = new Authenticator() &#123;</div><div class="line">                @Override</div><div class="line">                protected PasswordAuthentication getPasswordAuthentication() &#123;</div><div class="line">                    // 用户名、密码</div><div class="line">                    String userName = props.getProperty(&quot;mail.user&quot;);</div><div class="line">                    String password = props.getProperty(&quot;mail.password&quot;);</div><div class="line">                    return new PasswordAuthentication(userName, password);</div><div class="line">                &#125;</div><div class="line">            &#125;;</div><div class="line">            // 使用环境属性和授权信息，创建邮件会话</div><div class="line">            Session mailSession = Session.getInstance(props, authenticator);</div><div class="line">            // 创建邮件消息</div><div class="line">            MimeMessage message = new MimeMessage(mailSession);</div><div class="line">            // 设置发件人</div><div class="line">            InternetAddress form = new InternetAddress(</div><div class="line">                    props.getProperty(&quot;mail.user&quot;));</div><div class="line">            message.setFrom(form);</div><div class="line">    </div><div class="line">            // 设置收件人</div><div class="line">            InternetAddress to = new InternetAddress(sendTo);</div><div class="line">            message.setRecipient(MimeMessage.RecipientType.TO, to);</div><div class="line">    </div><div class="line">            // 设置邮件标题</div><div class="line">            message.setSubject(subject);</div><div class="line">            // 设置邮件的内容体</div><div class="line">            message.setContent(body, &quot;text/html;charset=UTF-8&quot;);</div><div class="line">    </div><div class="line">            // 发送邮件</div><div class="line">            Transport.send(message);</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	public static void main(String[] args) &#123;</div><div class="line">		try &#123;</div><div class="line">			sendMail(&quot;接收账号&quot;, &quot;测试&quot;, &quot;这是内容，哈哈&quot;);</div><div class="line">		&#125; catch (MessagingException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+        <p>Java NIO的通道类似流，但又有些不同：</p>
+<ul>
+<li>既可以从通道中读取数据，又可以写数据到通道。但流的读写通常是单向的。</li>
+<li>通道可以异步地读写。</li>
+<li>通道中的数据总是要先读到一个Buffer，或者总是要从一个Buffer中写入。</li>
+</ul>
+<p>正如上面所说，从通道读取数据到缓冲区，从缓冲区写入数据到通道。如下图所示：<br><img src="http://dl2.iteye.com/upload/attachment/0096/4760/147a85aa-2924-3652-aaf0-212b1002b561.png" alt="image"></p>
+<h3 id="Channel的实现"><a href="#Channel的实现" class="headerlink" title="Channel的实现"></a>Channel的实现</h3><p>这些是Java NIO中最重要的通道的实现：</p>
+<ul>
+<li>FileChannel：从文件中读写数据。</li>
+<li>DatagramChannel：能通过UDP读写网络中的数据。</li>
+<li>SocketChannel：能通过TCP读写网络中的数据。</li>
+<li>ServerSocketChannel：可以监听新进来的TCP连接，像Web服务器那样。对每一个新进来的连接都会创建一个SocketChannel。</li>
+</ul>
+<h3 id="基本的-Channel-示例"><a href="#基本的-Channel-示例" class="headerlink" title="基本的 Channel 示例"></a>基本的 Channel 示例</h3><p>下面是一个使用FileChannel读取数据到Buffer中的示例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">RandomAccessFile aFile = new RandomAccessFile(&quot;data/nio-data.txt&quot;, &quot;rw&quot;); </div><div class="line">FileChannel inChannel = aFile.getChannel(); </div><div class="line"> </div><div class="line">ByteBuffer buf = ByteBuffer.allocate(48); </div><div class="line"> </div><div class="line">int bytesRead = inChannel.read(buf); </div><div class="line">while (bytesRead != -1) &#123; </div><div class="line"> </div><div class="line">    System.out.println(&quot;Read &quot; + bytesRead); </div><div class="line">    buf.flip(); </div><div class="line">     </div><div class="line">    while(buf.hasRemaining()) &#123; </div><div class="line">        System.out.print((char) buf.get()); </div><div class="line">    &#125; </div><div class="line">     </div><div class="line">    buf.clear(); </div><div class="line">    bytesRead = inChannel.read(buf); </div><div class="line">&#125; </div><div class="line">aFile.close();</div></pre></td></tr></table></figure></p>
+<p>注意 buf.flip() 的调用，首先读取数据到Buffer，然后反转Buffer,接着再从Buffer中读取数据</p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JavaMail/简单发送事例/" data-id="cjei97ed9003189blg4rxp8zr" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/channel/" data-id="cjfvvphkb004zm9fy3yf72tab" class="article-share-link">Share</a>
       
       
     </footer>
@@ -299,14 +520,14 @@
 
 
   
-    <article id="post-Java/JavaMail/发送邮件（Spring集成）" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/网络NIO/通道之间的数据传输" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Java/JavaMail/发送邮件（Spring集成）/" class="article-date">
+    <a href="/2017/07/19/Java/网络NIO/通道之间的数据传输/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/JavaMail/">JavaMail</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
   </div>
 
   </div>
@@ -317,7 +538,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/JavaMail/发送邮件（Spring集成）/">发送邮件（Spring集成）</a>
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/通道之间的数据传输/">通道之间的数据传输</a>
     </h1>
   
 
@@ -325,15 +546,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">insurance.mail.host=smtp.exmail.qq.com  </div><div class="line">insurance.mail.password=密码</div><div class="line">insurance.mail.smtp.auth=true  </div><div class="line">insurance.mail.smtp.timeout=25000  </div><div class="line">insurance.mail.username=账号  </div><div class="line">insurance.mail.to=chudanhuoyun1@gzpicc.com.cn  </div><div class="line">insurance.mail.copyto=piccjw@foxmail.com</div></pre></td></tr></table></figure>
-<h2 id="spring中配置Bean"><a href="#spring中配置Bean" class="headerlink" title="spring中配置Bean"></a>spring中配置Bean</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">&lt;bean id=&quot;insuranceMailSender&quot; class=&quot;org.springframework.mail.javamail.JavaMailSenderImpl&quot;  &gt;</div><div class="line">    &lt;property name=&quot;host&quot; value=&quot;$&#123;insurance.mail.host&#125;&quot; /&gt;</div><div class="line">    &lt;property name=&quot;port&quot; value=&quot;25&quot; /&gt;</div><div class="line">    &lt;property name=&quot;protocol&quot; value=&quot;smtp&quot; /&gt;</div><div class="line">    &lt;property name=&quot;defaultEncoding&quot; value=&quot;GBK&quot; /&gt;</div><div class="line">    &lt;property name=&quot;username&quot; value=&quot;$&#123;insurance.mail.username&#125;&quot; /&gt;</div><div class="line">    &lt;property name=&quot;password&quot; value=&quot;$&#123;insurance.mail.password&#125;&quot; /&gt;</div><div class="line">	&lt;property name=&quot;javaMailProperties&quot;&gt;</div><div class="line">		&lt;props&gt;</div><div class="line">			&lt;prop key=&quot;mail.smtp.auth&quot;&gt;$&#123;insurance.mail.smtp.auth&#125;&lt;/prop&gt;</div><div class="line">			&lt;prop key=&quot;mail.smtp.timeout&quot;&gt;$&#123;insurance.mail.smtp.timeout&#125;&lt;/prop&gt;</div><div class="line">		&lt;/props&gt;</div><div class="line">	&lt;/property&gt;</div><div class="line">&lt;/bean&gt;</div></pre></td></tr></table></figure>
-<h2 id="发送ServiceImpl（EmailServiceImpl）"><a href="#发送ServiceImpl（EmailServiceImpl）" class="headerlink" title="发送ServiceImpl（EmailServiceImpl）"></a>发送ServiceImpl（EmailServiceImpl）</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div></pre></td><td class="code"><pre><div class="line">@Service</div><div class="line">public class EmailServiceImpl implements EmailService &#123;</div><div class="line"></div><div class="line">	/** Logger */</div><div class="line">	private final Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);</div><div class="line">    @Autowired</div><div class="line">    @Qualifier(&quot;mailSender&quot;)</div><div class="line">	private JavaMailSenderImpl mailSender;	</div><div class="line">	@Value(&quot;$&#123;mail.username&#125;&quot;)</div><div class="line">    private  String from;</div><div class="line">	</div><div class="line">	@Autowired</div><div class="line">	@Qualifier(&quot;insuranceMailSender&quot;)</div><div class="line">	private JavaMailSenderImpl insuranceMailSender;</div><div class="line">	@Value(&quot;$&#123;insurance.mail.username&#125;&quot;)</div><div class="line">	private String insuranceFrom;</div><div class="line">	</div><div class="line">	@Override</div><div class="line">	public void sendEmail(String to, String subject, String body,File attachedFile) throws BussinessException &#123;</div><div class="line">		try &#123;</div><div class="line">			logger.info(&quot;to:&quot;+to);</div><div class="line">			logger.info(&quot;subject:&quot;+subject);</div><div class="line">			logger.info(&quot;attachedFile:&quot;+attachedFile);</div><div class="line">			MimeMessage message=mailSender.createMimeMessage();</div><div class="line">			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message, true);</div><div class="line">			mimeMessageHelper.setFrom(from);</div><div class="line">			logger.info(&quot;from:&quot;+from);</div><div class="line">			mimeMessageHelper.setSubject(subject);</div><div class="line">			mimeMessageHelper.setTo(to);</div><div class="line">			mimeMessageHelper.setText(body);</div><div class="line">			mimeMessageHelper.addAttachment(attachedFile.getName(), attachedFile);</div><div class="line">			mailSender.send(message);</div><div class="line">		&#125; catch (MessagingException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			logger.error(e.getMessage());</div><div class="line">			throw new BussinessException(e.getMessage());</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">	&#125;</div><div class="line">	</div><div class="line">	@Override</div><div class="line">	public void sendEmail(String to, String cc, String subject, String body) throws BussinessException &#123;</div><div class="line">		try &#123;</div><div class="line">			logger.info(&quot;to:&quot;+to);</div><div class="line">			logger.info(&quot;insuranceFrom:&quot;+insuranceFrom);</div><div class="line">			logger.info(&quot;subject:&quot;+subject);</div><div class="line">			logger.info(&quot;body:&quot;+body);</div><div class="line">			MimeMessage message=insuranceMailSender.createMimeMessage();</div><div class="line">			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message, true);</div><div class="line">			mimeMessageHelper.setFrom(insuranceFrom);//发件人</div><div class="line">			mimeMessageHelper.setSubject(subject);//邮件主题</div><div class="line">			mimeMessageHelper.setTo(to);// 收件人</div><div class="line">			mimeMessageHelper.setCc(cc);// 抄送人</div><div class="line">			mimeMessageHelper.setText(body); //邮件内容</div><div class="line">			insuranceMailSender.send(message);</div><div class="line">		&#125; catch (MessagingException e) &#123;</div><div class="line">			e.printStackTrace();</div><div class="line">			logger.error(e.getMessage());</div><div class="line">			throw new BussinessException(e.getMessage());</div><div class="line">		&#125;</div><div class="line">		</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="发送Service（EmailService"><a href="#发送Service（EmailService" class="headerlink" title="发送Service（EmailService)"></a>发送Service（EmailService)</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 发邮件</div><div class="line"> * @author clq</div><div class="line"> *</div><div class="line"> */</div><div class="line">public interface EmailService &#123;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * @author clq</div><div class="line">	 * @param to</div><div class="line">	 * @param subject</div><div class="line">	 * @param body</div><div class="line">	 * @param attachment 附件</div><div class="line">	 * @throws BussinessException</div><div class="line">	 */</div><div class="line">	public void sendEmail(String to,String subject,String body,File attachedFile) throws BussinessException;</div><div class="line"></div><div class="line">	/**</div><div class="line">	 * @param to</div><div class="line">	 * @param subject</div><div class="line">	 * @param body</div><div class="line">	 * @throws BussinessException&lt;br&gt;</div><div class="line">	 * @author chenliqiang, 2016年11月26日.&lt;br&gt;</div><div class="line">	 */</div><div class="line">	void sendEmail(String to, String cc, String subject, String body) throws BussinessException;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="Jar包"><a href="#Jar包" class="headerlink" title="Jar包"></a>Jar包</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;javax.mail&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;mail&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;1.4.7&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
+        <p>在Java NIO中，如果两个通道中有一个是FileChannel，那你可以直接将数据从一个channel（译者注：channel中文常译作通道）传输到另外一个channel。</p>
+<h3 id="transferFrom"><a href="#transferFrom" class="headerlink" title="transferFrom()"></a>transferFrom()</h3><p>FileChannel的transferFrom()方法可以将数据从源通道传输到FileChannel中（译者注：这个方法在JDK文档中的解释为将字节从给定的可读取字节通道传输到此通道的文件中）。下面是一个简单的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">RandomAccessFile fromFile = new RandomAccessFile(&quot;fromFile.txt&quot;, &quot;rw&quot;);</div><div class="line">FileChannel fromChannel = fromFile.getChannel();</div><div class="line">RandomAccessFile toFile = new RandomAccessFile(&quot;toFile.txt&quot;, &quot;rw&quot;);</div><div class="line">FileChannel toChannel = toFile.getChannel();</div><div class="line">long position = 0;</div><div class="line">long count = fromChannel.size();</div><div class="line">toChannel.transferFrom(position, count, fromChannel);</div></pre></td></tr></table></figure></p>
+<p>方法的输入参数position表示从position处开始向目标文件写入数据，count表示最多传输的字节数。如果源通道的剩余空间小于 count 个字节，则所传输的字节数要小于请求的字节数。</p>
+<p>此外要注意，在SoketChannel的实现中，SocketChannel只会传输此刻准备好的数据（可能不足count字节）。因此，SocketChannel可能不会将请求的所有数据(count个字节)全部传输到FileChannel中。</p>
+<h3 id="transferTo"><a href="#transferTo" class="headerlink" title="transferTo()"></a>transferTo()</h3><p>transferTo()方法将数据从FileChannel传输到其他的channel中。下面是一个简单的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">RandomAccessFile fromFile = new RandomAccessFile(&quot;fromFile.txt&quot;, &quot;rw&quot;);</div><div class="line">FileChannel fromChannel = fromFile.getChannel();</div><div class="line">RandomAccessFile toFile = new RandomAccessFile(&quot;toFile.txt&quot;, &quot;rw&quot;);</div><div class="line">FileChannel toChannel = toFile.getChannel();</div><div class="line">long position = 0;</div><div class="line">long count = fromChannel.size();</div><div class="line">fromChannel.transferTo(position, count, toChannel);</div></pre></td></tr></table></figure></p>
+<p>是不是发现这个例子和前面那个例子特别相似？除了调用方法的FileChannel对象不一样外，其他的都一样。</p>
+<p>上面所说的关于SocketChannel的问题在transferTo()方法中同样存在。SocketChannel会一直传输数据直到目标buffer被填满。</p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/JavaMail/发送邮件（Spring集成）/" data-id="cjei97ed8002y89bl00wwbtpv" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/通道之间的数据传输/" data-id="cjfvvphkb0051m9fybe15un82" class="article-share-link">Share</a>
       
       
     </footer>
@@ -343,14 +567,14 @@
 
 
   
-    <article id="post-Java/Cookie/secure和HttpOnly属性" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/网络NIO/分散(Scatter) and 聚集(Gather)" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Java/Cookie/secure和HttpOnly属性/" class="article-date">
+    <a href="/2017/07/19/Java/网络NIO/分散(Scatter) and 聚集(Gather)/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/Cookie/">Cookie</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
   </div>
 
   </div>
@@ -361,7 +585,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/Cookie/secure和HttpOnly属性/">secure和HttpOnly属性</a>
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/分散(Scatter) and 聚集(Gather)/">分散(Scatter) and 聚集(Gather)</a>
     </h1>
   
 
@@ -369,19 +593,22 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="Cookie属性"><a href="#Cookie属性" class="headerlink" title="Cookie属性"></a>Cookie属性</h2><ol>
-<li><p>secure属性<br>当设置为true时，表示创建的 Cookie 会被以安全的形式向服务器传输，也就是只能在 HTTPS 连接中被浏览器传递到服务器端进行会话验证，如果是 HTTP 连接则不会传递该信息，所以不会被窃取到Cookie 的具体内容。</p>
-</li>
-<li><p>HttpOnly属性<br>如果在Cookie中设置了”HttpOnly”属性，那么通过程序(JS脚本、Applet等)将无法读取到Cookie信息，这样能有效的防止XSS攻击。</p>
-</li>
-</ol>
-<p>对于以上两个属性,secure属性是防止信息在传递的过程中被监听捕获后信息泄漏，HttpOnly属性的目的是防止程序获取cookie后进行攻击。</p>
-<p>以上两个属性，并不能解决cookie在本机出现的信息泄漏的问题(FireFox的插件FireBug能直接看到cookie的相关信息)。</p>
-<h2 id="配置web-xml"><a href="#配置web-xml" class="headerlink" title="配置web.xml"></a>配置web.xml</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;session-config&gt;</div><div class="line">	&lt;cookie-config&gt;</div><div class="line">	  &lt;http-only&gt;true&lt;/http-only&gt;</div><div class="line">	 &lt;/cookie-config&gt;</div><div class="line">&lt;/session-config&gt;</div></pre></td></tr></table></figure>
+        <p>Java NIO开始支持scatter/gather，scatter/gather用于描述从Channel（译者注：Channel在中文经常翻译为通道）中读取或者写入到Channel的操作。</p>
+<p>分散（scatter）从Channel中读取是指在读操作时将读取的数据写入多个buffer中。因此，Channel将从Channel中读取的数据“分散（scatter）”到多个Buffer中。</p>
+<p>聚集（gather）写入Channel是指在写操作时将多个buffer的数据写入同一个Channel，因此，Channel 将多个Buffer中的数据“聚集（gather）”后发送到Channel。</p>
+<p>scatter / gather经常用于需要将传输的数据分开处理的场合，例如传输一个由消息头和消息体组成的消息，你可能会将消息体和消息头分散到不同的buffer中，这样你可以方便的处理消息头和消息体。</p>
+<h3 id="Scattering-Reads"><a href="#Scattering-Reads" class="headerlink" title="Scattering Reads"></a>Scattering Reads</h3><p>Scattering Reads是指数据从一个channel读取到多个buffer中。如下图描述：<br><img src="http://dl2.iteye.com/upload/attachment/0096/4789/56355a57-22cc-35d0-bb6c-f951fed0e084.png" alt="image">   </p>
+<p>代码示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">ByteBuffer header = ByteBuffer.allocate(128); </div><div class="line">ByteBuffer body = ByteBuffer.allocate(1024); </div><div class="line"></div><div class="line">ByteBuffer[] bufferArray = &#123; header, body &#125;; </div><div class="line"> </div><div class="line">channel.read(bufferArray);</div></pre></td></tr></table></figure></p>
+<p><strong>注意:buffer首先被插入到数组，然后再将数组作为channel.read() 的输入参数。read()方法按照buffer在数组中的顺序将从channel中读取的数据写入到buffer，当一个buffer被写满后，channel紧接着向另一个buffer中写。</strong></p>
+<p>Scattering Reads在移动下一个buffer前，必须填满当前的buffer，这也意味着它不适用于动态消息(译者注：消息大小不固定)。换句话说，如果存在消息头和消息体，消息头必须完成填充（例如 128byte），Scattering Reads才能正常工作。</p>
+<h3 id="Gathering-Writes"><a href="#Gathering-Writes" class="headerlink" title="Gathering Writes"></a>Gathering Writes</h3><p>Gathering Writes是指数据从多个buffer写入到同一个channel。如下图描述：<br><img src="http://dl2.iteye.com/upload/attachment/0096/4791/3eb74d8a-3180-3ca2-9541-4966fb46d44d.png" alt="image"> </p>
+<p>代码示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">ByteBuffer header = ByteBuffer.allocate(128); </div><div class="line">ByteBuffer body = ByteBuffer.allocate(1024); </div><div class="line"> </div><div class="line">//write data into buffers </div><div class="line"> </div><div class="line">ByteBuffer[] bufferArray = &#123; header, body &#125;; </div><div class="line"> </div><div class="line">channel.write(bufferArray);</div></pre></td></tr></table></figure></p>
+<p>buffers数组是write()方法的入参，write()方法会按照buffer在数组中的顺序，将数据写入到channel，注意只有position和limit之间的数据才会被写入。因此，如果一个buffer的容量为128byte，但是仅仅包含58byte的数据，那么这58byte的数据将被写入到channel中。因此与Scattering Reads相反，Gathering Writes能较好的处理动态消息。</p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/Cookie/secure和HttpOnly属性/" data-id="cjei97ed5002t89blgk7ua185" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/分散(Scatter) and 聚集(Gather)/" data-id="cjfvvphkc0054m9fyi2wd8mac" class="article-share-link">Share</a>
       
       
     </footer>
@@ -391,14 +618,14 @@
 
 
   
-    <article id="post-Java/线程/Condition" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java/网络NIO/SocketChannel" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Java/线程/Condition/" class="article-date">
+    <a href="/2017/07/19/Java/网络NIO/SocketChannel/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/线程/">线程</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/网络NIO/">网络NIO</a>
   </div>
 
   </div>
@@ -409,7 +636,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/线程/Condition/">Condition</a>
+      <a class="article-title" href="/2017/07/19/Java/网络NIO/SocketChannel/">SocketChannel</a>
     </h1>
   
 
@@ -417,34 +644,28 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>在java.util.concurrent包中，有两个很特殊的工具类，Condition和ReentrantLock,使用过的人都知道，ReentrantLock（重入锁）是jdk的concurrent包提供的一种独占锁的实现。它继承自Dong Lea的 AbstractQueuedSynchronizer（同步器），确切的说是ReentrantLock的一个内部类继承了AbstractQueuedSynchronizer，ReentrantLock只不过是代理了该类的一些方法，可能有人会问为什么要使用内部类在包装一层？ 我想是安全的关系，因为AbstractQueuedSynchronizer中有很多方法，还实现了共享锁，Condition(稍候再细说)等功能，如果直接使ReentrantLock继承它，则很容易出现AbstractQueuedSynchronizer中的API被误用的情况。  </p>
-<p>言归正传，今天，我们讨论下Condition工具类的实现。 </p>
-<p>ReentrantLock和Condition的使用方式通常是这样的：<br><img src="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/9749D9729D1742A69032416B12BBF1AC/8325" alt="image"></p>
-<p>运行后，结果如下：<br><img src="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/5429FA3A6FE94A48812924FEF460AE68/8327" alt="image"><br>Condition的执行方式，是当在线程1中调用await方法后，线程1将释放锁，并且将自己沉睡，等待唤醒，<br>线程2获取到锁后，开始做事，完毕后，调用Condition的signal方法，唤醒线程1，线程1恢复执行。<br>以上说明Condition是一个多线程间协调通信的工具类，使得某个，或者某些线程一起等待某个条件（Condition）,只有当该条件具备( signal 或者 signalAll方法被带调用)时 ，这些等待线程才会被唤醒，从而重新争夺锁。  </p>
-<p>那，它是怎么实现的呢？<br>首先还是要明白，reentrantLock.newCondition() 返回的是Condition的一个实现，该类在AbstractQueuedSynchronizer中被实现，叫做newCondition()<br><img src="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/AD627C2D54E84A408B9BC338CFE15977/8326" alt="image">   </p>
-<p>它可以访问AbstractQueuedSynchronizer中的方法和其余内部类（ AbstractQueuedSynchronizer是个抽象类，至于他怎么能访问，这里有个很奇妙的点，后面我专门用demo说明 ）<br>现在，我们一起来看下Condition类的实现，还是从上面的demo入手，<br>为了方便书写，我将AbstractQueuedSynchronizer缩写为AQS<br>当await被调用时，代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">public final void await() throws InterruptedException &#123;</div><div class="line">	if (Thread.interrupted())</div><div class="line">		throw new InterruptedException();</div><div class="line">		Node node = addConditionWaiter(); //将当前线程包装下后，</div><div class="line">		//添加到Condition自己维护的一个链表中。</div><div class="line">		int savedState = fullyRelease(node);//释放当前线程占有的锁，从demo中看到，</div><div class="line">		//调用await前，当前线程是占有锁的</div><div class="line">		</div><div class="line">		int interruptMode = 0;</div><div class="line">		while (!isOnSyncQueue(node)) &#123;//释放完毕后，遍历AQS的队列，看当前节点是否在队列中，</div><div class="line">			//不在 说明它还没有竞争锁的资格，所以继续将自己沉睡。</div><div class="line">			//直到它被加入到队列中，聪明的你可能猜到了，</div><div class="line">			//没有错，在singal的时候加入不就可以了？</div><div class="line">			LockSupport.park(this);</div><div class="line">			if ((interruptMode = checkInterruptWhileWaiting(node)) != 0) break;</div><div class="line">		&#125;</div><div class="line">		//被唤醒后，重新开始正式竞争锁，同样，如果竞争不到还是会将自己沉睡，等待唤醒重新开始竞争。</div><div class="line">		if (acquireQueued(node, savedState) &amp;&amp; interruptMode != THROW_IE)</div><div class="line">			interruptMode = REINTERRUPT;</div><div class="line">			</div><div class="line">		if (node.nextWaiter != null)</div><div class="line">			unlinkCancelledWaiters();</div><div class="line">			</div><div class="line">		if (interruptMode != 0)</div><div class="line">			reportInterruptAfterWait(interruptMode);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>回到上面的demo，锁被释放后，线程1开始沉睡，这个时候线程因为线程1沉睡时，会唤醒AQS队列中的头结点，所所以线程2会开始竞争锁，并获取到，等待3秒后，线程2会调用signal方法，“发出”signal信号，signal方法如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">public final void signal() &#123;</div><div class="line">	if (!isHeldExclusively()) throw new IllegalMonitorStateException();</div><div class="line">	Node first = firstWaiter; //firstWaiter为condition自己维护的一个链表的头结点，</div><div class="line">	//取出第一个节点后开始唤醒操作</div><div class="line">	if (first != null) doSignal(first);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>说明下，其实Condition内部维护了等待队列的头结点和尾节点，该队列的作用是存放等待signal信号的线程，该线程被封装为Node节点后存放于此。  </p>
-<p><img src="http://note.youdao.com/yws/public/resource/0209a37daac4bf11dab29a3f25b155bd/xmlnote/21A3D2F0FE164DD8AEB7B71E5865C28A/8328" alt="image"><br>关键的就在于此，我们知道AQS自己维护的队列是当前等待资源的队列，AQS会在资源被释放后，依次唤醒队列中从前到后的所有节点，使他们对应的线程恢复执行。直到队列为空。</p>
-<p>而Condition自己也维护了一个队列，该队列的作用是维护一个等待signal信号的队列，两个队列的作用是不同，事实上，每个线程也仅仅会同时存在以上两个队列中的一个，流程是这样的</p>
+        <p>Java NIO中的SocketChannel是一个连接到TCP网络套接字的通道。可以通过以下2种方式创建SocketChannel：</p>
 <ol>
-<li>线程1调用reentrantLock.lock时，线程被加入到AQS的等待队列中。</li>
-<li>线程1调用await方法被调用时，该线程从AQS中移除，对应操作是锁的释放。</li>
-<li>接着马上被加入到Condition的等待队列中，以为着该线程需要signal信号。</li>
-<li>线程2，因为线程1释放锁的关系，被唤醒，并判断可以获取锁，于是线程2获取锁，并被加入到AQS的等待队列中。</li>
-<li>线程2调用signal方法，这个时候Condition的等待队列中只有线程1一个节点，于是它被取出来，并被加入到AQS的等待队列中。  注意，这个时候，线程1 并没有被唤醒。</li>
-<li>signal方法执行完毕，线程2调用reentrantLock.unLock()方法，释放锁。这个时候因为AQS中只有线程1，于是，AQS释放锁后按从头到尾的顺序唤醒线程时，线程1被唤醒，于是线程1回复执行。</li>
-<li>直到释放所整个过程执行完毕。 </li>
+<li>打开一个SocketChannel并连接到互联网上的某台服务器。</li>
+<li>一个新连接到达ServerSocketChannel时，会创建一个SocketChannel。</li>
 </ol>
-<p>可以看到，整个协作过程是靠结点在AQS的等待队列和Condition的等待队列中来回移动实现的，Condition作为一个条件类，很好的自己维护了一个等待信号的队列，并在适时的时候将结点加入到AQS的等待队列中来实现的唤醒操作。    </p>
-<p>看到这里，signal方法的代码应该不难理解了。</p>
-<p>取出头结点，然后doSignal<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">private void doSignal(Node first) &#123;</div><div class="line">	do &#123;</div><div class="line">		if ( (firstWaiter = first.nextWaiter) == null) //修改头结点，完成旧头结点的移出工作</div><div class="line">			lastWaiter = null;</div><div class="line">			first.nextWaiter = null;</div><div class="line">	&#125; while (!transferForSignal(first) &amp;&amp;//将老的头结点，加入到AQS的等待队列中</div><div class="line">			(first = firstWaiter) != null);</div><div class="line">&#125;</div><div class="line">	</div><div class="line">final boolean transferForSignal(Node node) &#123;</div><div class="line">	/*</div><div class="line">	 * If cannot change waitStatus, the node has been cancelled.</div><div class="line">	 */</div><div class="line">	if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))</div><div class="line">	return false;</div><div class="line"></div><div class="line">	/*</div><div class="line">	 * Splice onto queue and try to set waitStatus of predecessor to</div><div class="line">	 * indicate that thread is (probably) waiting. If cancelled or</div><div class="line">	 * attempt to set waitStatus fails, wake up to resync (in which</div><div class="line">	 * case the waitStatus can be transiently and harmlessly wrong).</div><div class="line">	 */</div><div class="line">	Node p = enq(node);</div><div class="line">	int ws = p.waitStatus;</div><div class="line">	//如果该结点的状态为cancel 或者修改waitStatus失败，则直接唤醒。</div><div class="line">	if (ws &gt; 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))</div><div class="line">	LockSupport.unpark(node.thread);</div><div class="line">	return true;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>可以看到，正常情况 ws &gt; 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL) 这个判断是不会为true的，所以，不会在这个时候唤醒该线程。<br>只有到发送signal信号的线程调用reentrantLock.unlock()后因为它已经被加到AQS的等待队列中，所以才会被唤醒。</p>
+<h3 id="打开-SocketChannel"><a href="#打开-SocketChannel" class="headerlink" title="打开 SocketChannel"></a>打开 SocketChannel</h3><p>下面是SocketChannel的打开方式：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">SocketChannel socketChannel = SocketChannel.open();</div><div class="line">socketChannel.connect(new InetSocketAddress(&quot;http://jenkov.com&quot;, 80));</div></pre></td></tr></table></figure></p>
+<h3 id="关闭-SocketChannel"><a href="#关闭-SocketChannel" class="headerlink" title="关闭 SocketChannel"></a>关闭 SocketChannel</h3><p>当用完SocketChannel之后调用SocketChannel.close()关闭SocketChannel：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">socketChannel.close();</div></pre></td></tr></table></figure></p>
+<h3 id="从-SocketChannel-读取数据"><a href="#从-SocketChannel-读取数据" class="headerlink" title="从 SocketChannel 读取数据"></a>从 SocketChannel 读取数据</h3><p>要从SocketChannel中读取数据，调用一个read()的方法之一。以下是例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">ByteBuffer buf = ByteBuffer.allocate(48);</div><div class="line">int bytesRead = socketChannel.read(buf);</div></pre></td></tr></table></figure></p>
+<p>首先，分配一个Buffer。从SocketChannel读取到的数据将会放到这个Buffer中。</p>
+<p>然后，调用SocketChannel.read()。该方法将数据从SocketChannel 读到Buffer中。read()方法返回的int值表示读了多少字节进Buffer里。如果返回的是-1，表示已经读到了流的末尾（连接关闭了）。</p>
+<h3 id="写入-SocketChannel"><a href="#写入-SocketChannel" class="headerlink" title="写入 SocketChannel"></a>写入 SocketChannel</h3><p>写数据到SocketChannel用的是SocketChannel.write()方法，该方法以一个Buffer作为参数。示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">String newData = &quot;New String to write to file...&quot; + System.currentTimeMillis();</div><div class="line"></div><div class="line">ByteBuffer buf = ByteBuffer.allocate(48);</div><div class="line">buf.clear();</div><div class="line">buf.put(newData.getBytes());</div><div class="line"></div><div class="line">buf.flip();</div><div class="line"></div><div class="line">while(buf.hasRemaining()) &#123;</div><div class="line">    channel.write(buf);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>注意SocketChannel.write()方法的调用是在一个while循环中的。Write()方法无法保证能写多少字节到SocketChannel。所以，我们重复调用write()直到Buffer没有要写的字节为止。</p>
+<h3 id="非阻塞模式"><a href="#非阻塞模式" class="headerlink" title="非阻塞模式"></a>非阻塞模式</h3><p>可以设置 SocketChannel 为非阻塞模式（non-blocking mode）.设置之后，就可以在异步模式下调用connect(), read() 和write()了。</p>
+<h4 id="connect"><a href="#connect" class="headerlink" title="connect()"></a>connect()</h4><p>如果SocketChannel在非阻塞模式下，此时调用connect()，该方法可能在连接建立之前就返回了。为了确定连接是否建立，可以调用finishConnect()的方法。像这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">socketChannel.configureBlocking(false);</div><div class="line">socketChannel.connect(new InetSocketAddress(&quot;http://jenkov.com&quot;, 80));</div><div class="line"></div><div class="line">while(! socketChannel.finishConnect() )&#123;</div><div class="line">    //wait, or do something else...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h4 id="write"><a href="#write" class="headerlink" title="write()"></a>write()</h4><p>非阻塞模式下，write()方法在尚未写出任何内容时可能就返回了。所以需要在循环中调用write()。前面已经有例子了，这里就不赘述了。</p>
+<h4 id="read"><a href="#read" class="headerlink" title="read()"></a>read()</h4><p>非阻塞模式下,read()方法在尚未读取到任何数据时可能就返回了。所以需要关注它的int返回值，它会告诉你读取了多少字节。</p>
+<h3 id="非阻塞模式与选择器"><a href="#非阻塞模式与选择器" class="headerlink" title="非阻塞模式与选择器"></a>非阻塞模式与选择器</h3><p>非阻塞模式与选择器搭配会工作的更好，通过将一或多个SocketChannel注册到Selector，可以询问选择器哪个通道已经准备好了读取，写入等。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/线程/Condition/" data-id="cjei97ee5005c89blesp1ufw4" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/网络NIO/SocketChannel/" data-id="cjfvvphkd0056m9fycckmnmkg" class="article-share-link">Share</a>
       
       
     </footer>
@@ -454,14 +675,14 @@
 
 
   
-    <article id="post-Java/线程/ExecutorService线程池" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Linux/mysql安装" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/07/19/Java/线程/ExecutorService线程池/" class="article-date">
+    <a href="/2017/07/19/Linux/mysql安装/" class="article-date">
   <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
 </a>
     
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/线程/">线程</a>
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
   </div>
 
   </div>
@@ -472,7 +693,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/线程/ExecutorService线程池/">ExecutorService线程池</a>
+      <a class="article-title" href="/2017/07/19/Linux/mysql安装/">mysql安装</a>
     </h1>
   
 
@@ -480,111 +701,27 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="new-Thread的弊端"><a href="#new-Thread的弊端" class="headerlink" title="new Thread的弊端"></a>new Thread的弊端</h2><p>执行一个异步任务你还只是如下new Thread吗？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">new Thread(new Runnable() &#123;</div><div class="line"></div><div class="line">@Override</div><div class="line">public void run() &#123;</div><div class="line">// TODO Auto-generated method stub</div><div class="line">&#125;</div><div class="line">&#125;).start();</div></pre></td></tr></table></figure></p>
-<p>那你就out太多了，new Thread的弊端如下：</p>
-<ol>
-<li>每次new Thread新建对象性能差。</li>
-<li>线程缺乏统一管理，可能无限制新建线程，相互之间竞争，及可能占用过多系统资源导致死机或oom。</li>
-<li>缺乏更多功能，如定时执行、定期执行、线程中断。</li>
-</ol>
-<p>相比new Thread，Java提供的四种线程池的好处在于：</p>
-<ol>
-<li>重用存在的线程，减少对象创建、消亡的开销，性能佳。</li>
-<li>可有效控制最大并发线程数，提高系统资源的使用率，同时避免过多资源竞争，避免堵塞。</li>
-<li>提供定时执行、定期执行、单线程、并发数控制等功能。</li>
-</ol>
-<h2 id="几种不同的ExecutorService线程池对象"><a href="#几种不同的ExecutorService线程池对象" class="headerlink" title="几种不同的ExecutorService线程池对象"></a>几种不同的ExecutorService线程池对象</h2><h3 id="newCachedThreadPool"><a href="#newCachedThreadPool" class="headerlink" title="newCachedThreadPool"></a>newCachedThreadPool</h3><ul>
-<li>不定长可缓存线程池，空闲线程缓存60秒，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程，最大值为Integer.MAX_VALUE,也可以说是无限容量</li>
-<li>缓存型池子，先查看池中有没有以前建立的线程，如果有，就重用,如果没有，就建一个新的线程加入池中</li>
-<li>缓存型池子通常用于执行一些生存期很短的异步型任务</li>
-<li>能重用的线程，必须是timeout IDLE内的池中线程，缺省timeout是60s,超过这个IDLE时长，线程实例将被终止及移出池。<br>注意，放入CachedThreadPool的线程不必担心其结束，超过TIMEOUT不活动，其会自动被终止。</li>
+        <h2 id="使用apt-get"><a href="#使用apt-get" class="headerlink" title="使用apt-get"></a>使用apt-get</h2><h3 id="1-升级apt-get"><a href="#1-升级apt-get" class="headerlink" title="1.升级apt-get"></a>1.升级apt-get</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get update</div></pre></td></tr></table></figure>
+<h3 id="2-安装mysql-client-core-5-7"><a href="#2-安装mysql-client-core-5-7" class="headerlink" title="2.安装mysql-client-core-5.7"></a>2.安装mysql-client-core-5.7</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install MySQL-client-core-5.7</div></pre></td></tr></table></figure>
+<h3 id="3-安装-mysql-server-5-7"><a href="#3-安装-mysql-server-5-7" class="headerlink" title="3.安装 mysql-server-5.7"></a>3.安装 mysql-server-5.7</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">apt-get install mysql-server-5.7</div></pre></td></tr></table></figure>
+<h3 id="4-检查mysql是否启动"><a href="#4-检查mysql是否启动" class="headerlink" title="4.检查mysql是否启动"></a>4.检查mysql是否启动</h3><ul>
+<li>查看mysql进程是否运行：ps -ef | grep mysql</li>
+<li>查看msyql 监听端口：netstat -tap | grep mysql</li>
 </ul>
-<h4 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h4><p>创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程。示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">ExecutorService cachedThreadPool = Executors.newCachedThreadPool();</div><div class="line">for (int i = 0; i &lt; 10; i++) &#123;</div><div class="line">	final int index = i;</div><div class="line">	try &#123;</div><div class="line">		Thread.sleep(index * 1000);</div><div class="line">	&#125; catch (InterruptedException e) &#123;</div><div class="line">		e.printStackTrace();</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	cachedThreadPool.execute(new Runnable() &#123;</div><div class="line"></div><div class="line">		@Override</div><div class="line">		public void run() &#123;</div><div class="line">			System.out.println(index);</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>线程池为无限大，当执行第二个任务时第一个任务已经完成，会复用执行第一个任务的线程，而不用每次新建线程。</p>
-<h3 id="newFixedThreadPool"><a href="#newFixedThreadPool" class="headerlink" title="newFixedThreadPool"></a>newFixedThreadPool</h3><ul>
-<li>一个定长线程池，空闲线程无缓存，可控制线程最大并发数，超出的线程会在队列中等待。</li>
-<li>newFixedThreadPool与cacheThreadPool差不多，也是能重用，但不能随时建新的线程</li>
-<li>其独特之处:任意时间点，最多只能有固定数目的活动线程存在，此时如果有新的线程要建立，只能放在另外的队列中等待，直到当前的线程中某个线程终止直接被移出池子</li>
-<li>和cacheThreadPool不同，FixedThreadPool没有IDLE机制（可能也有，但既然文档没提，肯定非常长，类似依赖上层的TCP或UDP IDLE机制之类的），所以FixedThreadPool多数针对一些很稳定很固定的正规并发线程，多用于服务器</li>
-<li>从方法的源代码看，cache池和fixed 池调用的是同一个底层池，只不过参数不同:<br>fixed池线程数固定，并且是0秒IDLE（无IDLE）<br>cache池线程数支持0-Integer.MAX_VALUE(显然完全没考虑主机的资源承受能力），60秒IDLE</li>
-</ul>
-<h4 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a>示例</h4><p>创建一个定长线程池，可控制线程最大并发数，超出的线程会在队列中等待。示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">ExecutorService fixedThreadPool = Executors.newFixedThreadPool(3);</div><div class="line">for (int i = 0; i &lt; 10; i++) &#123;</div><div class="line">	final int index = i;</div><div class="line">	fixedThreadPool.execute(new Runnable() &#123;</div><div class="line">	</div><div class="line">		@Override</div><div class="line">		public void run() &#123;</div><div class="line">			try &#123;</div><div class="line">				System.out.println(index);</div><div class="line">				Thread.sleep(2000);</div><div class="line">			&#125; catch (InterruptedException e) &#123;</div><div class="line">				// TODO Auto-generated catch block</div><div class="line">				e.printStackTrace();</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>因为线程池大小为3，每个任务输出index后sleep 2秒，所以每两秒打印3个数字。<br>定长线程池的大小最好根据系统资源进行设置。如Runtime.getRuntime().availableProcessors()。</p>
-<h3 id="ScheduledThreadPool"><a href="#ScheduledThreadPool" class="headerlink" title="ScheduledThreadPool"></a>ScheduledThreadPool</h3><ul>
-<li>一个定长线程池，空闲线程无缓存，支持定时及周期性任务执行</li>
-<li>调度型线程池</li>
-<li>这个池子里的线程可以按schedule依次delay执行，或周期执行</li>
-</ul>
-<h4 id="示例-2"><a href="#示例-2" class="headerlink" title="示例"></a>示例</h4><p>创建一个定长线程池，支持定时及周期性任务执行。延迟执行示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(5);</div><div class="line">scheduledThreadPool.schedule(new Runnable() &#123;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void run() &#123;</div><div class="line">		System.out.println(&quot;delay 3 seconds&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;, 3, TimeUnit.SECONDS);</div></pre></td></tr></table></figure></p>
-<p>表示延迟3秒执行。</p>
-<p>定期执行示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">scheduledThreadPool.scheduleAtFixedRate(new Runnable() &#123;</div><div class="line">	</div><div class="line">	@Override</div><div class="line">	public void run() &#123;</div><div class="line">		System.out.println(&quot;delay 1 seconds, and excute every 3 seconds&quot;);</div><div class="line">	&#125;</div><div class="line">&#125;, 1, 3, TimeUnit.SECONDS);</div></pre></td></tr></table></figure></p>
-<h3 id="SingleThreadExecutor"><a href="#SingleThreadExecutor" class="headerlink" title="SingleThreadExecutor"></a>SingleThreadExecutor</h3><ul>
-<li>一个单线程化的线程池，空闲线程无缓存，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。</li>
-<li>单例线程，任意时间池中只能有一个线程</li>
-<li>用的是和cache池和fixed池相同的底层池，但线程数目是1-1,0秒IDLE（无IDLE）</li>
-</ul>
-<h4 id="示例-3"><a href="#示例-3" class="headerlink" title="示例"></a>示例</h4><p>创建一个单线程化的线程池，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。示例代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();</div><div class="line">for (int i = 0; i &lt; 10; i++) &#123;</div><div class="line">	final int index = i;</div><div class="line">	singleThreadExecutor.execute(new Runnable() &#123;</div><div class="line"></div><div class="line">		@Override</div><div class="line">		public void run() &#123;</div><div class="line">			try &#123;</div><div class="line">				System.out.println(index);</div><div class="line">				Thread.sleep(2000);</div><div class="line">			&#125; catch (InterruptedException e) &#123;</div><div class="line">				// TODO Auto-generated catch block</div><div class="line">				e.printStackTrace();</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>结果依次输出，相当于顺序执行各个任务。</p>
-<h2 id="ExecutorService-建立多线程的步骤"><a href="#ExecutorService-建立多线程的步骤" class="headerlink" title="ExecutorService 建立多线程的步骤"></a>ExecutorService 建立多线程的步骤</h2><ol>
-<li><p>定义线程类</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">class Handler implements Runnable&#123;&#125;</div></pre></td></tr></table></figure>
-</li>
-<li><p>建立ExecutorService线程池</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">ExecutorService executorService = Executors.newCachedThreadPool();</div><div class="line">或者</div><div class="line">int cpuNums = Runtime.getRuntime().availableProcessors();</div><div class="line">//获取当前系统的CPU 数目</div><div class="line">ExecutorService executorService=Executors.newFixedThreadPool(cpuNums * POOL_SIZE);</div><div class="line">//ExecutorService通常根据系统资源情况灵活定义线程池大小</div></pre></td></tr></table></figure>
-</li>
-<li><p>调用线程池操作</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">循环操作，成为daemon,把新实例放入Executor池中</div><div class="line">while(true)&#123;</div><div class="line">    executorService.execute(new Handler(socket));</div><div class="line">    // class Handler implements Runnable&#123;</div><div class="line">    或者</div><div class="line">    executorService.execute(createTask(i));</div><div class="line">    //private static Runnable createTask(final int taskID)</div><div class="line">&#125;</div><div class="line">execute(Runnable对象)方法</div><div class="line">其实就是对Runnable对象调用start()方法</div><div class="line">（当然还有一些其他后台动作，比如队列，优先级，IDLE timeout，active激活等）</div></pre></td></tr></table></figure>
-</li>
-</ol>
-
+<h3 id="5-msyql服务停止"><a href="#5-msyql服务停止" class="headerlink" title="5.msyql服务停止"></a>5.msyql服务停止</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysql stop</div></pre></td></tr></table></figure>
+<h3 id="6-Mysql-服务启动"><a href="#6-Mysql-服务启动" class="headerlink" title="6.Mysql 服务启动"></a>6.Mysql 服务启动</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysql start</div></pre></td></tr></table></figure>
+<h3 id="7-Mysql-服务重启"><a href="#7-Mysql-服务重启" class="headerlink" title="7.Mysql 服务重启"></a>7.Mysql 服务重启</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service mysql restart</div></pre></td></tr></table></figure>
+<h3 id="8-登录mysql后台"><a href="#8-登录mysql后台" class="headerlink" title="8.登录mysql后台"></a>8.登录mysql后台</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">mysql -u [username] -p</div><div class="line">如：mysql -u root -p</div></pre></td></tr></table></figure>
+<h3 id="9-查看mysql安装目录"><a href="#9-查看mysql安装目录" class="headerlink" title="9.查看mysql安装目录"></a>9.查看mysql安装目录</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">whereis mysql</div></pre></td></tr></table></figure>
+<h3 id="10-查询运行文件所在路径-文件夹地址"><a href="#10-查询运行文件所在路径-文件夹地址" class="headerlink" title="10.查询运行文件所在路径(文件夹地址)"></a>10.查询运行文件所在路径(文件夹地址)</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">which mysql</div></pre></td></tr></table></figure>
+<h3 id="11-查看mysql字符集"><a href="#11-查看mysql字符集" class="headerlink" title="11.查看mysql字符集"></a>11.查看mysql字符集</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">show variables like &apos;character%&apos;;</div></pre></td></tr></table></figure>
+<h3 id="12-修改字符编码"><a href="#12-修改字符编码" class="headerlink" title="12.修改字符编码"></a>12.修改字符编码</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">1. 停止服务，找到mysql.cnf文件</div><div class="line">2. 使用vi /etc/mysql/mysql.cnf编辑文件</div><div class="line">3. 加入：  </div><div class="line">###############################</div><div class="line">[client]</div><div class="line">default-character-set=utf8</div><div class="line"></div><div class="line">[mysqld]</div><div class="line">character-set-server=utf8</div><div class="line"></div><div class="line">[mysql]</div><div class="line">default-character-set=utf8</div><div class="line">###############################</div><div class="line">4. :wq保存退出</div><div class="line">5. 重启服务</div></pre></td></tr></table></figure>
+<h3 id="13-修改数据库root的密码"><a href="#13-修改数据库root的密码" class="headerlink" title="13.修改数据库root的密码"></a>13.修改数据库root的密码</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/usr/local/mysql/bin/mysqladmin -u root password &apos;rootroot&apos;</div></pre></td></tr></table></figure>
+<h3 id="14-卸载"><a href="#14-卸载" class="headerlink" title="14.卸载"></a>14.卸载</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">ps -ef | grep mysql</div><div class="line">/etc/init.d/mysql status</div><div class="line">whereis mysql</div><div class="line">find / -name mysql【找到所有文件名为mysql的文件列表】</div><div class="line">rm -rf /usr/local/mysql/【使用rm命令来移除列表中的文件】</div><div class="line">rm -rf /etc/my.cnf【使用rm命令来移除列表中的文件】</div></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/线程/ExecutorService线程池/" data-id="cjei97ee6005e89bl8xvjzdda" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Java/加密解密／编码解码/Base64编码三种方式" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/07/19/Java/加密解密／编码解码/Base64编码三种方式/" class="article-date">
-  <time datetime="2017-07-19T02:09:45.000Z" itemprop="datePublished">2017-07-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>►<a class="article-category-link" href="/categories/Java/加密解密／编码解码/">加密解密／编码解码</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/19/Java/加密解密／编码解码/Base64编码三种方式/">Base64编码三种方式</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>java 中使用base64编码和解码</p>
-<h2 id="第一种方式：通过反射使用java-中不对外公开的类"><a href="#第一种方式：通过反射使用java-中不对外公开的类" class="headerlink" title="第一种方式：通过反射使用java 中不对外公开的类"></a>第一种方式：通过反射使用java 中不对外公开的类</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">/*** </div><div class="line"> * encode by Base64 </div><div class="line"> */  </div><div class="line">public static String encodeBase64(byte[]input) throws Exception&#123;  </div><div class="line">	Class clazz=Class.forName(&quot;com.sun.org.apache.xerces.internal.impl.dv.util.Base64&quot;);  </div><div class="line">	Method mainMethod= clazz.getMethod(&quot;encode&quot;, byte[].class);  </div><div class="line">	mainMethod.setAccessible(true);  </div><div class="line">	Object retObj=mainMethod.invoke(null, new Object[]&#123;input&#125;);  </div><div class="line">	return (String)retObj;  </div><div class="line">&#125; </div><div class="line"> </div><div class="line">/*** </div><div class="line"> * decode by Base64 </div><div class="line"> */  </div><div class="line">public static byte[] decodeBase64(String input) throws Exception&#123;  </div><div class="line">	Class clazz=Class.forName(&quot;com.sun.org.apache.xerces.internal.impl.dv.util.Base64&quot;);  </div><div class="line">	Method mainMethod= clazz.getMethod(&quot;decode&quot;, String.class);  </div><div class="line">	mainMethod.setAccessible(true);  </div><div class="line">	Object retObj=mainMethod.invoke(null, input);  </div><div class="line">	return (byte[])retObj;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="第二种方式：使用commons-codec-jar（推荐）"><a href="#第二种方式：使用commons-codec-jar（推荐）" class="headerlink" title="第二种方式：使用commons-codec.jar（推荐）"></a>第二种方式：使用commons-codec.jar（推荐）</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">/** </div><div class="line"> * @param bytes </div><div class="line"> * @return </div><div class="line"> */  </div><div class="line">public static byte[] decode(final byte[] bytes) &#123;  </div><div class="line">	return Base64.decodeBase64(bytes);  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">/** </div><div class="line"> * 二进制数据编码为BASE64字符串 </div><div class="line"> * </div><div class="line"> * @param bytes </div><div class="line"> * @return </div><div class="line"> * @throws Exception </div><div class="line"> */  </div><div class="line">public static String encode(final byte[] bytes) &#123;  </div><div class="line">	return new String(Base64.encodeBase64(bytes));  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="第三种方式：java自带"><a href="#第三种方式：java自带" class="headerlink" title="第三种方式：java自带"></a>第三种方式：java自带</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">/**  </div><div class="line"> * 编码  </div><div class="line"> * @param bstr  </div><div class="line"> * @return String  </div><div class="line"> */    </div><div class="line">public static String encode(byte[] bstr)&#123;    </div><div class="line">	return new sun.misc.BASE64Encoder().encode(bstr);    </div><div class="line">&#125;    </div><div class="line">   </div><div class="line">/**  </div><div class="line"> * 解码  </div><div class="line"> * @param str  </div><div class="line"> * @return string  </div><div class="line"> */    </div><div class="line">public static byte[] decode(String str)&#123;    </div><div class="line">	byte[] bt = null;    </div><div class="line">	try &#123;    </div><div class="line">		sun.misc.BASE64Decoder decoder = new sun.misc.BASE64Decoder();    </div><div class="line">		bt = decoder.decodeBuffer( str );    </div><div class="line">	&#125; catch (IOException e) &#123;    </div><div class="line">		e.printStackTrace();    </div><div class="line">	&#125;    </div><div class="line">    </div><div class="line">	return bt;    </div><div class="line">&#125;</div></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://clq2owesome.github.io/2017/07/19/Java/加密解密／编码解码/Base64编码三种方式/" data-id="cjei97edf003a89blo9n6pexv" class="article-share-link">Share</a>
+      <a data-url="https://clq2owesome.github.io/2017/07/19/Linux/mysql安装/" data-id="cjfvvphha000ym9fy7reav37d" class="article-share-link">Share</a>
       
       
     </footer>
@@ -597,7 +734,7 @@
 
 
   <nav id="page-nav">
-    <a class="extend prev" rel="prev" href="/page/13/">&laquo; __('prev')</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><a class="page-number" href="/page/13/">13</a><span class="page-number current">14</span><a class="page-number" href="/page/15/">15</a><a class="page-number" href="/page/16/">16</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="extend next" rel="next" href="/page/15/">__('next') &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/13/">&laquo; __('prev')</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><a class="page-number" href="/page/13/">13</a><span class="page-number current">14</span><a class="page-number" href="/page/15/">15</a><a class="page-number" href="/page/16/">16</a><span class="space">&hellip;</span><a class="page-number" href="/page/25/">25</a><a class="extend next" rel="next" href="/page/15/">__('next') &raquo;</a>
   </nav>
 </section>
         
@@ -622,7 +759,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">三月 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">二月 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">十月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">八月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">七月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">四月 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">三月 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">二月 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">十月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">八月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">七月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a></li></ul>
     </div>
   </div>
 
@@ -635,23 +772,23 @@
       <ul>
         
           <li>
-            <a href="/2018/03/08/正则表达式/正则表达式/">正则表达式</a>
+            <a href="/2018/04/12/服务器相关/Tomcat/TOMCAT原理详解及请求过程/">TOMCAT原理详解及请求过程</a>
           </li>
         
           <li>
-            <a href="/2018/02/25/Java/基础/类加载机制/">类加载机制</a>
+            <a href="/2018/04/12/网络/HTTPS工作原理/">HTTPS工作原理</a>
           </li>
         
           <li>
-            <a href="/2018/02/25/Java/集合/HashSet原理/">HashSet原理</a>
+            <a href="/2018/04/12/网络/三次握手和四次挥手/">三次握手和四次挥手</a>
           </li>
         
           <li>
-            <a href="/2018/02/25/Java/集合/几种常见的map/">几种常见的map</a>
+            <a href="/2018/04/12/服务器相关/Tomcat/内存分配/">内存分配</a>
           </li>
         
           <li>
-            <a href="/2018/02/25/Java/集合/Hashtable与ConcurrentHashMap区别/">Hashtable与ConcurrentHashMap区别</a>
+            <a href="/2018/04/12/服务器相关/Tomcat/Tomcat整体架构浅析/">Tomcat整体架构浅析</a>
           </li>
         
       </ul>
